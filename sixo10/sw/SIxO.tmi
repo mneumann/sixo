@@ -1,0 +1,85 @@
+[PROJECT]
+ProjectName=SIxO
+WorkingDirectory=E:\Ralf\Projekte\SIxO\CVS\sixo\sw
+OutputDirectory=.\outdir
+ProjectFile=E:\Ralf\Projekte\SIxO\CVS\sixo\sw\SIxO.tmk
+ProjectInfoFile=E:\Ralf\Projekte\SIxO\CVS\sixo\sw\SIxO.tmi
+TargetName=M16C Family
+Type=1
+GoalFile=E:\Ralf\Projekte\SIxO\CVS\sixo\sw\outdir\SIxO.x30
+
+[NC]
+Name=NC30WA
+Version=V.5.00 Release 2
+
+[MEMBER]
+Count=10
+Name1=C-FLAG: MINIEMU
+Section1=undef / defined
+Mail1=if defined, activates KD30 V3.0 Monitor usage on Uart1
+TEL1=makes DebugOut printf() to Uart0 instead of Uart1
+ETC1=must be used together with A-FLAG 'MINIEMU=1'
+Name2=A-FLAG: MINIEMU=
+Section2=0 / 1
+Mail2=1: activates KD30 V3.0 Monitor usage on Uart1
+TEL2=makes RAM/ROM/InterruptVectorTable settings for monitor program
+ETC2=must be used together with C-FLAG 'MINIEMU'
+Name3=C-FLAG: DEBUG
+Section3=undef / defined
+Mail3=if defined, activates DebugOut with printf() on Uart1(0)
+TEL3=activates several modules debug code too
+ETC3=
+Name4=C-FLAG: HW_OILGEN
+Section4=undef / defined
+Mail4=if defined, activates usage of port p2.0/p2.1 for Oil-Contact + Generator Status input
+TEL4=only usable with adequate hw connections, e.g for BMW
+ETC4=
+Name5=C-FLAG: TOGGLE_PADS
+Section5=undef / defined
+Mail5=if defined, enables usage of macros like TOGGLE_PAD27
+TEL5=this is f.e. for debug purpose with ossi
+ETC5=
+Name6=C-FLAG: HW_LEDRYW
+Section6=undef / defined
+Mail6=if defined, enables/redefines LED names and  usage (red-yellow-white) instead of standard green/red
+TEL6=special use for Ralfs BMW version
+ETC6=
+Name7=C-FLAG: LOGO_NKDEV
+Section7=undef / defined
+Mail7=if defined, enables standard 'N&K' SIxO-Logo for start screen
+TEL7=can be switched to another logo
+ETC7=
+Name8=C-FLAG: DBGMSGQ
+Section8=undef / defined
+Mail8=if defined, enables additional message queue ODS outputs
+TEL8=only to be used with DEBUG defined
+ETC8=
+Name9=C-FLAG: LOGO_BMW
+Section9=undef / defined
+Mail9=if defined, enabled 'BMW' SIXO-Logo for start screen
+TEL9=can be switched to another logo
+ETC9=
+Name10=C-FLAG: LOGO_HUSQVARNA
+Section10=undef / defined
+Mail10=if defined, enables 'Husqvarna' SIXO-Logo for start screen
+TEL10=can be switched to another logo
+ETC10=
+
+[DOCUMENTFILE]
+Count=0
+
+[ITEM]
+ActiveFactory=default
+FactoryName1=default
+ActiveTagName1=all
+Count=1
+
+[TOOL]
+ToolCount=0
+ToolName1=lmc30
+
+[PD]
+Name=kd30
+Version=
+Path=D:\Programme\mitsubishi\KD30\kd30.exe
+Type=0

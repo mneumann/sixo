@@ -1,0 +1,543 @@
+####################################################################
+# Makefile for TM V.3.20
+# Copyright 1998-2002 MITSUBISHI ELECTRIC CORPORATION
+# AND MITSUBISHI ELECTRIC SEMICONDUCTOR APPLICATION ENGINEERING CORPORATION
+# All Rights Reserved.
+#
+#	Notice	:	Don't edit.
+#	Date	:	2004 11(November) 07(Sunday) PM.08.41
+#	Project	:	SIxO
+####################################################################
+
+DELETE	=	@-del
+LNLIST	=	$(PROJECT).cmd
+PRJDIR	=	E:\Ralf\Projekte\SIxO\CVS\sixo\sw
+LMC	=	LMC30
+CC	=	NC30
+AR	=	LB30
+UTL	=	utl30
+AS	=	AS30
+LIBFILE	=	$(PROJECT).lib
+OUTDIR	=	.\outdir
+MKDIR	=	@-mkdir
+ABSFILE	=	$(PROJECT).x30
+ODINCMD	=	$(OUTDIR)
+LN	=	LN30
+TARGET	=	$(ABSFILE)
+ECHO	=	@-echo
+MKFILE	=	$(PROJECT).tmk
+PROJECT	=	SIxO
+TYPE	=	@-type
+LFLAGS	=	-MS -L nc30lib -. -G -O $(OUTDIR)\$(TARGET)
+UTLFLAGS	=	
+CFLAGS	=	-c -I. -silent -dir $(OUTDIR) -Wall -DMINIEMU -DDEBUG -finfo
+LMCFLAGS	=	-. -ID
+LIBFLAGS	=	-C
+AFLAGS	=	-LM -. -DMINIEMU=1 -finfo -O$(OUTDIR)
+.SUFFIXES: .a30 .r30 .c .x30 .lib
+.PHONY: all
+all: \
+		$(OUTDIR)\$(TARGET) \
+		.outdir\SIxO.mot 
+.PHONY: clean
+clean: 
+	$(DELETE) $(OUTDIR)\$(TARGET)
+	$(DELETE) $(ODINCMD)\$(LNLIST)
+	$(DELETE) $(OUTDIR)\ncrt0.r30
+	$(DELETE) $(OUTDIR)\main.r30
+	$(DELETE) $(OUTDIR)\diagnose.r30
+	$(DELETE) $(OUTDIR)\msgqueue.r30
+	$(DELETE) $(OUTDIR)\debug.r30
+	$(DELETE) $(OUTDIR)\timer.r30
+	$(DELETE) $(OUTDIR)\device_l.r30
+	$(DELETE) $(OUTDIR)\init_l.r30
+	$(DELETE) $(OUTDIR)\leddrv.r30
+	$(DELETE) $(OUTDIR)\led.r30
+	$(DELETE) $(OUTDIR)\digindrv.r30
+	$(DELETE) $(OUTDIR)\displdrv.r30
+	$(DELETE) $(OUTDIR)\display.r30
+	$(DELETE) $(OUTDIR)\fonts.r30
+	$(DELETE) $(OUTDIR)\textout.r30
+	$(DELETE) $(OUTDIR)\objects.r30
+	$(DELETE) $(OUTDIR)\introdev.r30
+	$(DELETE) $(OUTDIR)\device.r30
+	$(DELETE) $(OUTDIR)\nvramdrv.r30
+	$(DELETE) $(OUTDIR)\eeprdrv.r30
+	$(DELETE) $(OUTDIR)\clkdrv.r30
+	$(DELETE) $(OUTDIR)\iicbb.r30
+	$(DELETE) $(OUTDIR)\measdrv.r30
+	$(DELETE) $(OUTDIR)\digoutdr.r30
+	$(DELETE) $(OUTDIR)\xtoa.r30
+	$(DELETE) $(OUTDIR)\testdev.r30
+	$(DELETE) $(OUTDIR)\bitmaps.r30
+	$(DELETE) $(OUTDIR)\maindev.r30
+	$(DELETE) $(OUTDIR)\vehicsim.r30
+	$(DELETE) $(OUTDIR)\measure.r30
+	$(DELETE) $(OUTDIR)\sysparam.r30
+	$(DELETE) $(OUTDIR)\tripcnt.r30
+	$(DELETE) $(OUTDIR)\setdev.r30
+	$(DELETE) $(OUTDIR)\beepdrv.r30
+	$(DELETE) $(OUTDIR)\beep.r30
+.outdir\SIxO.mot: \
+		$(OUTDIR)\$(TARGET) \
+		.\$(MKFILE) 
+	$(LMC) $(LMCFLAGS)#00000000000000 .\outdir\SIxO.x30
+$(ODINCMD)\$(LNLIST): \
+		.\$(MKFILE) 
+	$(ECHO)\$(MRLFLAGS) $(LFLAGS) >	$(ODINCMD)\$(LNLIST)
+	$(ECHO)\$(OUTDIR)\ncrt0.r30 >>	$(ODINCMD)\$(LNLIST)
+	$(ECHO)\$(OUTDIR)\main.r30 >>	$(ODINCMD)\$(LNLIST)
+	$(ECHO)\$(OUTDIR)\diagnose.r30 >>	$(ODINCMD)\$(LNLIST)
+	$(ECHO)\$(OUTDIR)\msgqueue.r30 >>	$(ODINCMD)\$(LNLIST)
+	$(ECHO)\$(OUTDIR)\debug.r30 >>	$(ODINCMD)\$(LNLIST)
+	$(ECHO)\$(OUTDIR)\timer.r30 >>	$(ODINCMD)\$(LNLIST)
+	$(ECHO)\$(OUTDIR)\device_l.r30 >>	$(ODINCMD)\$(LNLIST)
+	$(ECHO)\$(OUTDIR)\init_l.r30 >>	$(ODINCMD)\$(LNLIST)
+	$(ECHO)\$(OUTDIR)\leddrv.r30 >>	$(ODINCMD)\$(LNLIST)
+	$(ECHO)\$(OUTDIR)\led.r30 >>	$(ODINCMD)\$(LNLIST)
+	$(ECHO)\$(OUTDIR)\digindrv.r30 >>	$(ODINCMD)\$(LNLIST)
+	$(ECHO)\$(OUTDIR)\displdrv.r30 >>	$(ODINCMD)\$(LNLIST)
+	$(ECHO)\$(OUTDIR)\display.r30 >>	$(ODINCMD)\$(LNLIST)
+	$(ECHO)\$(OUTDIR)\fonts.r30 >>	$(ODINCMD)\$(LNLIST)
+	$(ECHO)\$(OUTDIR)\textout.r30 >>	$(ODINCMD)\$(LNLIST)
+	$(ECHO)\$(OUTDIR)\objects.r30 >>	$(ODINCMD)\$(LNLIST)
+	$(ECHO)\$(OUTDIR)\introdev.r30 >>	$(ODINCMD)\$(LNLIST)
+	$(ECHO)\$(OUTDIR)\device.r30 >>	$(ODINCMD)\$(LNLIST)
+	$(ECHO)\$(OUTDIR)\nvramdrv.r30 >>	$(ODINCMD)\$(LNLIST)
+	$(ECHO)\$(OUTDIR)\eeprdrv.r30 >>	$(ODINCMD)\$(LNLIST)
+	$(ECHO)\$(OUTDIR)\clkdrv.r30 >>	$(ODINCMD)\$(LNLIST)
+	$(ECHO)\$(OUTDIR)\iicbb.r30 >>	$(ODINCMD)\$(LNLIST)
+	$(ECHO)\$(OUTDIR)\measdrv.r30 >>	$(ODINCMD)\$(LNLIST)
+	$(ECHO)\$(OUTDIR)\digoutdr.r30 >>	$(ODINCMD)\$(LNLIST)
+	$(ECHO)\$(OUTDIR)\xtoa.r30 >>	$(ODINCMD)\$(LNLIST)
+	$(ECHO)\$(OUTDIR)\testdev.r30 >>	$(ODINCMD)\$(LNLIST)
+	$(ECHO)\$(OUTDIR)\bitmaps.r30 >>	$(ODINCMD)\$(LNLIST)
+	$(ECHO)\$(OUTDIR)\maindev.r30 >>	$(ODINCMD)\$(LNLIST)
+	$(ECHO)\$(OUTDIR)\vehicsim.r30 >>	$(ODINCMD)\$(LNLIST)
+	$(ECHO)\$(OUTDIR)\measure.r30 >>	$(ODINCMD)\$(LNLIST)
+	$(ECHO)\$(OUTDIR)\sysparam.r30 >>	$(ODINCMD)\$(LNLIST)
+	$(ECHO)\$(OUTDIR)\tripcnt.r30 >>	$(ODINCMD)\$(LNLIST)
+	$(ECHO)\$(OUTDIR)\setdev.r30 >>	$(ODINCMD)\$(LNLIST)
+	$(ECHO)\$(OUTDIR)\beepdrv.r30 >>	$(ODINCMD)\$(LNLIST)
+	$(ECHO)\$(OUTDIR)\beep.r30 >>	$(ODINCMD)\$(LNLIST)
+$(OUTDIR)\$(TARGET): \
+		$(ODINCMD)\$(LNLIST) \
+		$(OUTDIR)\ncrt0.r30 \
+		$(OUTDIR)\main.r30 \
+		$(OUTDIR)\diagnose.r30 \
+		$(OUTDIR)\msgqueue.r30 \
+		$(OUTDIR)\debug.r30 \
+		$(OUTDIR)\timer.r30 \
+		$(OUTDIR)\device_l.r30 \
+		$(OUTDIR)\init_l.r30 \
+		$(OUTDIR)\leddrv.r30 \
+		$(OUTDIR)\led.r30 \
+		$(OUTDIR)\digindrv.r30 \
+		$(OUTDIR)\displdrv.r30 \
+		$(OUTDIR)\display.r30 \
+		$(OUTDIR)\fonts.r30 \
+		$(OUTDIR)\textout.r30 \
+		$(OUTDIR)\objects.r30 \
+		$(OUTDIR)\introdev.r30 \
+		$(OUTDIR)\device.r30 \
+		$(OUTDIR)\nvramdrv.r30 \
+		$(OUTDIR)\eeprdrv.r30 \
+		$(OUTDIR)\clkdrv.r30 \
+		$(OUTDIR)\iicbb.r30 \
+		$(OUTDIR)\measdrv.r30 \
+		$(OUTDIR)\digoutdr.r30 \
+		$(OUTDIR)\xtoa.r30 \
+		$(OUTDIR)\testdev.r30 \
+		$(OUTDIR)\bitmaps.r30 \
+		$(OUTDIR)\maindev.r30 \
+		$(OUTDIR)\vehicsim.r30 \
+		$(OUTDIR)\measure.r30 \
+		$(OUTDIR)\sysparam.r30 \
+		$(OUTDIR)\tripcnt.r30 \
+		$(OUTDIR)\setdev.r30 \
+		$(OUTDIR)\beepdrv.r30 \
+		$(OUTDIR)\beep.r30 
+	$(LN) @$(ODINCMD)\$(LNLIST)
+$(OUTDIR)\beep.r30: \
+		.\beep.c \
+		.\standard.h \
+		.\stdmsgs.h \
+		.\msgqueue.h \
+		.\timer.h \
+		.\beepdrv.h \
+		.\beep.h \
+		.\debug.h \
+		.\digindrv.h 
+	$(CC) $(MRCFLAGS) $(CFLAGS) beep.c
+$(OUTDIR)\beepdrv.r30: \
+		.\beepdrv.c \
+		.\sfr62.h \
+		.\standard.h \
+		.\beepdrv.h \
+		.\timer.h \
+		.\msgqueue.h \
+		.\stdmsgs.h \
+		.\debug.h 
+	$(CC) $(MRCFLAGS) $(CFLAGS) beepdrv.c
+$(OUTDIR)\bitmaps.r30: \
+		.\bitmaps.c \
+		.\bitmaps.h 
+	$(CC) $(MRCFLAGS) $(CFLAGS) bitmaps.c
+$(OUTDIR)\clkdrv.r30: \
+		.\clkdrv.c \
+		.\standard.h \
+		.\clkdrv.h \
+		.\iicbb.h 
+	$(CC) $(MRCFLAGS) $(CFLAGS) clkdrv.c
+$(OUTDIR)\debug.r30: \
+		.\debug.c \
+		.\xtoa.h \
+		.\standard.h \
+		.\debug.h \
+		.\timer.h \
+		.\msgqueue.h \
+		.\stdmsgs.h \
+		.\display.h \
+		.\fonts.h \
+		.\displdrv.h \
+		.\sfr62.h \
+		D:\RENESAS\INC30\stdarg.h \
+		D:\RENESAS\INC30\stdio.h \
+		D:\RENESAS\INC30\string.h 
+	$(CC) $(MRCFLAGS) $(CFLAGS) debug.c
+$(OUTDIR)\device.r30: \
+		.\device.c \
+		.\standard.h \
+		.\msgqueue.h \
+		.\stdmsgs.h \
+		.\device.h \
+		.\resource.h \
+		.\timer.h 
+	$(CC) $(MRCFLAGS) $(CFLAGS) device.c
+$(OUTDIR)\device_l.r30: \
+		.\device_l.c \
+		D:\RENESAS\INC30\stdio.h 
+	$(CC) $(MRCFLAGS) $(CFLAGS) device_l.c
+$(OUTDIR)\diagnose.r30: \
+		.\diagnose.c \
+		.\sfr62.h \
+		.\diagnose.h \
+		.\standard.h \
+		D:\RENESAS\INC30\stdio.h \
+		D:\RENESAS\INC30\stdlib.h \
+		D:\RENESAS\INC30\string.h 
+	$(CC) $(MRCFLAGS) $(CFLAGS) diagnose.c
+$(OUTDIR)\digindrv.r30: \
+		.\digindrv.c \
+		.\standard.h \
+		.\timer.h \
+		.\msgqueue.h \
+		.\stdmsgs.h \
+		.\sfr62.h \
+		.\debug.h \
+		.\digindrv.h \
+		.\measdrv.h \
+		.\digoutdr.h \
+		.\leddrv.h \
+		.\led.h 
+	$(CC) $(MRCFLAGS) $(CFLAGS) digindrv.c
+$(OUTDIR)\digoutdr.r30: \
+		.\digoutdr.c \
+		.\standard.h \
+		.\sfr62.h \
+		.\debug.h \
+		.\digoutdr.h 
+	$(CC) $(MRCFLAGS) $(CFLAGS) digoutdr.c
+$(OUTDIR)\display.r30: \
+		.\display.c \
+		.\displdrv.h \
+		.\fonts.h \
+		.\display.h \
+		.\textout.h \
+		.\standard.h \
+		.\debug.h \
+		D:\RENESAS\INC30\string.h 
+	$(CC) $(MRCFLAGS) $(CFLAGS) display.c
+$(OUTDIR)\displdrv.r30: \
+		.\displdrv.c \
+		.\sfr62.h \
+		.\displdrv.h \
+		.\standard.h \
+		.\leddrv.h \
+		.\timer.h \
+		.\msgqueue.h \
+		.\stdmsgs.h 
+	$(CC) $(MRCFLAGS) $(CFLAGS) displdrv.c
+$(OUTDIR)\eeprdrv.r30: \
+		.\eeprdrv.c \
+		.\sfr62.h \
+		.\standard.h \
+		.\iicbb.h \
+		.\timer.h \
+		.\msgqueue.h \
+		.\stdmsgs.h \
+		.\eeprdrv.h \
+		.\debug.h 
+	$(CC) $(MRCFLAGS) $(CFLAGS) eeprdrv.c
+$(OUTDIR)\fonts.r30: \
+		.\fonts.c \
+		.\fonts.h \
+		.\standard.h \
+		.\display.h \
+		.\displdrv.h 
+	$(CC) $(MRCFLAGS) $(CFLAGS) fonts.c
+$(OUTDIR)\iicbb.r30: \
+		.\iicbb.a30 
+	$(AS) $(MRAFLAGS) $(AFLAGS) iicbb.a30
+$(OUTDIR)\init_l.r30: \
+		.\init_l.c \
+		D:\RENESAS\INC30\stdio.h 
+	$(CC) $(MRCFLAGS) $(CFLAGS) init_l.c
+$(OUTDIR)\introdev.r30: \
+		.\introdev.c \
+		.\standard.h \
+		.\debug.h \
+		.\display.h \
+		.\resource.h \
+		.\objects.h \
+		.\msgqueue.h \
+		.\stdmsgs.h \
+		.\device.h \
+		.\timer.h \
+		.\digindrv.h \
+		.\sysparam.h \
+		D:\RENESAS\INC30\stdio.h \
+		D:\RENESAS\INC30\string.h 
+	$(CC) $(MRCFLAGS) $(CFLAGS) introdev.c
+$(OUTDIR)\led.r30: \
+		.\led.c \
+		.\standard.h \
+		.\stdmsgs.h \
+		.\msgqueue.h \
+		.\leddrv.h \
+		.\led.h \
+		.\timer.h \
+		.\debug.h \
+		.\digindrv.h 
+	$(CC) $(MRCFLAGS) $(CFLAGS) led.c
+$(OUTDIR)\leddrv.r30: \
+		.\leddrv.c \
+		.\sfr62.h \
+		.\standard.h \
+		.\leddrv.h \
+		.\timer.h \
+		.\msgqueue.h \
+		.\stdmsgs.h \
+		.\debug.h 
+	$(CC) $(MRCFLAGS) $(CFLAGS) leddrv.c
+$(OUTDIR)\main.r30: \
+		.\main.c \
+		.\standard.h \
+		.\diagnose.h \
+		.\debug.h \
+		.\stdmsgs.h \
+		.\msgqueue.h \
+		.\timer.h \
+		.\leddrv.h \
+		.\sfr62.h \
+		.\led.h \
+		.\digindrv.h \
+		.\display.h \
+		.\device.h \
+		.\eeprdrv.h \
+		.\digoutdr.h \
+		.\measdrv.h \
+		.\vehicsim.h \
+		.\measure.h \
+		.\sysparam.h \
+		.\beep.h 
+	$(CC) $(MRCFLAGS) $(CFLAGS) main.c
+$(OUTDIR)\maindev.r30: \
+		.\maindev.c \
+		.\standard.h \
+		.\debug.h \
+		.\msgqueue.h \
+		.\stdmsgs.h \
+		.\timer.h \
+		.\display.h \
+		.\resource.h \
+		.\objects.h \
+		.\device.h \
+		.\digindrv.h \
+		.\measure.h \
+		.\sysparam.h \
+		.\beep.h \
+		.\led.h \
+		D:\RENESAS\INC30\stdio.h \
+		D:\RENESAS\INC30\string.h 
+	$(CC) $(MRCFLAGS) $(CFLAGS) maindev.c
+$(OUTDIR)\measdrv.r30: \
+		.\measdrv.c \
+		.\measdrv.h \
+		.\standard.h \
+		.\sfr62.h \
+		.\digoutdr.h \
+		.\timer.h \
+		.\msgqueue.h \
+		.\stdmsgs.h \
+		.\debug.h \
+		.\measure.h 
+	$(CC) $(MRCFLAGS) $(CFLAGS) measdrv.c
+$(OUTDIR)\measure.r30: \
+		.\measure.c \
+		.\standard.h \
+		.\measure.h \
+		.\measdrv.h \
+		.\timer.h \
+		.\msgqueue.h \
+		.\stdmsgs.h \
+		.\debug.h \
+		.\sysparam.h \
+		D:\RENESAS\INC30\stdio.h \
+		D:\RENESAS\INC30\string.h 
+	$(CC) $(MRCFLAGS) $(CFLAGS) measure.c
+$(OUTDIR)\msgqueue.r30: \
+		.\msgqueue.c \
+		.\standard.h \
+		.\stdmsgs.h \
+		.\msgqueue.h \
+		.\led.h \
+		.\debug.h \
+		.\device.h \
+		.\beep.h \
+		D:\RENESAS\INC30\string.h 
+	$(CC) $(MRCFLAGS) $(CFLAGS) msgqueue.c
+$(OUTDIR)\ncrt0.r30: \
+		.\ncrt0.a30 \
+		.\sect30.inc 
+	$(AS) $(MRAFLAGS) $(AFLAGS) ncrt0.a30
+$(OUTDIR)\nvramdrv.r30: \
+		.\nvramdrv.c \
+		.\standard.h \
+		.\nvramdrv.h \
+		.\iicbb.h 
+	$(CC) $(MRCFLAGS) $(CFLAGS) nvramdrv.c
+$(OUTDIR)\objects.r30: \
+		.\objects.c \
+		.\standard.h \
+		.\debug.h \
+		.\display.h \
+		.\objects.h \
+		.\fonts.h \
+		.\msgqueue.h \
+		.\stdmsgs.h \
+		.\digindrv.h \
+		.\timer.h \
+		.\xtoa.h \
+		.\beep.h \
+		.\led.h \
+		D:\RENESAS\INC30\string.h \
+		D:\RENESAS\INC30\stdlib.h \
+		D:\RENESAS\INC30\ctype.h 
+	$(CC) $(MRCFLAGS) $(CFLAGS) objects.c
+$(OUTDIR)\setdev.r30: \
+		.\setdev.c \
+		.\standard.h \
+		.\debug.h \
+		.\msgqueue.h \
+		.\stdmsgs.h \
+		.\timer.h \
+		.\display.h \
+		.\resource.h \
+		.\objects.h \
+		.\device.h \
+		.\digindrv.h \
+		.\measure.h \
+		.\sysparam.h \
+		.\displdrv.h \
+		D:\RENESAS\INC30\stdio.h \
+		D:\RENESAS\INC30\string.h 
+	$(CC) $(MRCFLAGS) $(CFLAGS) setdev.c
+$(OUTDIR)\sysparam.r30: \
+		.\sysparam.c \
+		.\standard.h \
+		.\nvramdrv.h \
+		.\eeprdrv.h \
+		.\sysparam.h \
+		.\measure.h \
+		.\debug.h \
+		.\timer.h \
+		.\msgqueue.h \
+		.\stdmsgs.h \
+		.\display.h \
+		.\device.h \
+		D:\RENESAS\INC30\string.h 
+	$(CC) $(MRCFLAGS) $(CFLAGS) sysparam.c
+$(OUTDIR)\testdev.r30: \
+		.\testdev.c \
+		.\standard.h \
+		.\debug.h \
+		.\msgqueue.h \
+		.\stdmsgs.h \
+		.\timer.h \
+		.\display.h \
+		.\resource.h \
+		.\objects.h \
+		.\device.h \
+		.\digindrv.h \
+		.\sysparam.h \
+		D:\RENESAS\INC30\stdio.h 
+	$(CC) $(MRCFLAGS) $(CFLAGS) testdev.c
+$(OUTDIR)\textout.r30: \
+		.\textout.c \
+		.\standard.h \
+		.\display.h \
+		.\fonts.h \
+		.\textout.h \
+		.\displdrv.h \
+		D:\RENESAS\INC30\string.h 
+	$(CC) $(MRCFLAGS) $(CFLAGS) textout.c
+$(OUTDIR)\timer.r30: \
+		.\timer.c \
+		.\sfr62.h \
+		.\standard.h \
+		.\msgqueue.h \
+		.\stdmsgs.h \
+		.\timer.h \
+		.\debug.h \
+		.\measdrv.h \
+		.\digoutdr.h \
+		D:\RENESAS\INC30\string.h 
+	$(CC) $(MRCFLAGS) $(CFLAGS) timer.c
+$(OUTDIR)\tripcnt.r30: \
+		.\tripcnt.c \
+		.\standard.h \
+		.\debug.h \
+		.\msgqueue.h \
+		.\stdmsgs.h \
+		.\timer.h \
+		.\display.h \
+		.\resource.h \
+		.\objects.h \
+		.\device.h \
+		.\digindrv.h \
+		.\measure.h \
+		.\sysparam.h \
+		.\beep.h \
+		.\led.h \
+		D:\RENESAS\INC30\stdio.h \
+		D:\RENESAS\INC30\string.h 
+	$(CC) $(MRCFLAGS) $(CFLAGS) tripcnt.c
+$(OUTDIR)\vehicsim.r30: \
+		.\vehicsim.c \
+		.\standard.h \
+		.\timer.h \
+		.\msgqueue.h \
+		.\stdmsgs.h \
+		.\measdrv.h \
+		.\vehicsim.h 
+	$(CC) $(MRCFLAGS) $(CFLAGS) vehicsim.c
+$(OUTDIR)\xtoa.r30: \
+		.\xtoa.c 
+	$(CC) $(MRCFLAGS) $(CFLAGS) xtoa.c
+####################################################################
+# End of makefile for TM V.3.20
+# Copyright 1998-2002 MITSUBISHI ELECTRIC CORPORATION
+# AND MITSUBISHI ELECTRIC SEMICONDUCTOR APPLICATION ENGINEERING CORPORATION
+# All Rights Reserved.
+####################################################################
