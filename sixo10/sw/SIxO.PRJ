@@ -1,0 +1,273 @@
+[Project ID]
+Signature=UE Proj: v.1
+
+[Project Information]
+Project Directory=F:\RALF\PROJEKTE\SIXO\SIXO\
+Use Relative Directory=1
+Relative to Project File=1
+Project Wordfile=SIxO_UEKeywords.txt
+
+[Open Files]
+Open File0=S:\SIXO\SW\SIxO.tmk
+Open File Pos0=555
+Open File Line0=415
+Active File Index=0
+Open File Window Pos0=2,3,-1,-1,-4,-23,180,220,1031,796
+Open File1=S:\SIXO\sw\digindrv.h
+Active File Display Mode=3
+Open File Pos1=5311
+Open File Line1=4785
+Open File Window Pos1=0,1,-1,-1,-4,-23,36,44,981,401
+Open File2=S:\SIXO\sw\led.h
+Open File Pos2=1116
+Open File Line2=876
+Open File Window Pos2=0,1,-1,-1,-4,-23,54,66,999,423
+Open File3=S:\SIXO\sw\sysparam.h
+Open File Pos3=1452
+Open File Line3=871
+Open File Window Pos3=0,1,-1,-1,-4,-23,72,88,1017,445
+Open File4=S:\SIXO\sw\digindrv.c
+Open File Pos4=2963
+Open File Line4=2359
+Open File Window Pos4=0,1,-1,-1,-4,-23,90,110,1035,467
+Open File5=S:\SIXO\sw\main.c
+Open File Pos5=4906
+Open File Line5=3994
+Open File Window Pos5=0,1,-1,-1,-4,-23,108,132,1053,489
+Open File6=S:\SIXO\sw\led.c
+Open File Pos6=0
+Open File Line6=0
+Open File Window Pos6=0,1,-1,-1,-4,-23,126,154,1071,511
+Open File7=S:\SIXO\SW\bitmaps.c
+Open File Pos7=11591
+Open File Line7=10860
+Open File Window Pos7=0,1,-1,-1,-4,-23,108,132,1017,630
+Open File8=
+Open File Pos8=5499
+Open File Line8=4433
+Open File Window Pos8=0,1,-1,-1,-4,-23,90,110,999,565
+Open File9=S:\SIXO\sw\maindev.c
+Open File Pos9=4568
+Open File Line9=4172
+Open File Window Pos9=2,3,-1,-1,-4,-23,108,132,1017,587
+Open File10=
+Open File Pos10=4225
+Open File Line10=3346
+Open File Window Pos10=0,1,-1,-1,-4,-23,180,220,1098,698
+Open File11=S:\SIXO\SW\bitmaps.c
+Open File Pos11=21796
+Open File Line11=21300
+Open File Window Pos11=0,1,-1,-1,-4,-23,198,242,1062,821
+Open File12=S:\SIXO\SW\objects.c
+Open File Pos12=2120
+Open File Line12=1785
+Open File Window Pos12=0,1,-1,-1,-4,-23,18,22,936,500
+Open File13=S:\SIXO\SW\objects.h
+Open File Pos13=3109
+Open File Line13=2179
+Open File Window Pos13=0,1,-1,-1,-4,-23,36,44,954,522
+Open File14=S:\SIXO\SW\introdev.c
+Open File Pos14=3434
+Open File Line14=2777
+Open File Window Pos14=0,1,-1,-1,-4,-23,54,66,972,544
+Open File15=
+Open File Pos15=16764
+Open File Line15=14935
+Open File Window Pos15=2,3,-1,-1,-4,-23,18,22,896,614
+Open File16=
+
+[File View]
+Current Select=Projektdateien\Output\bitmaps.c
+
+[Tools]
+Tool Cmd0="nc30 %f -c -silent -Wall -DDEBUG -DHW_OILGEN -finfo -dir.\outdir -I."
+Tool Dir0="%p"
+Tool Menu0="Compile"
+Bitmap Path0="D:\Programme\UltraEdit\COMPILE.bmp"
+Capture0=1
+Capture Mode0=3
+WinProg0=0
+SaveAllFiles0=1
+Replace Type0=0
+Tool Cmd1="make -f SIxO.tmk"
+Tool Dir1="%p"
+Tool Menu1="Build"
+Bitmap Path1="D:\Programme\UltraEdit\BUILD.bmp"
+Capture1=1
+Capture Mode1=3
+WinProg1=0
+SaveAllFiles1=1
+Replace Type1=0
+Tool Cmd2="make -z -f SIxO.tmk"
+Tool Dir2="%p"
+Tool Menu2="Re-Build all"
+Bitmap Path2="D:\Programme\UltraEdit\REBUILD.bmp"
+Capture2=1
+Capture Mode2=3
+WinProg2=0
+SaveAllFiles2=1
+Replace Type2=0
+Tool Cmd3="mapviewer SIxO.x30"
+Tool Dir3="%p.\OUTDIR\"
+Tool Menu3="Mapviewer"
+Bitmap Path3="D:\Programme\UltraEdit\MAPVIEW.bmp"
+Capture3=0
+Capture Mode3=0
+WinProg3=1
+SaveAllFiles3=1
+Replace Type3=0
+Tool Cmd4="D:\Programme\mitsubishi\KD30\kd30.exe"
+Tool Dir4=""
+Tool Menu4="KD30"
+Bitmap Path4="D:\Programme\UltraEdit\KD30.bmp"
+Capture4=0
+Capture Mode4=0
+WinProg4=1
+SaveAllFiles4=1
+Replace Type4=0
+Tool Cmd5=""
+Tool Dir5=""
+Tool Menu5=""
+Bitmap Path5=""
+Capture5=1
+Capture Mode5=0
+WinProg5=0
+SaveAllFiles5=0
+Replace Type5=0
+Tool Cmd6=""
+Tool Dir6=""
+Tool Menu6=""
+Bitmap Path6=""
+Capture6=1
+Capture Mode6=0
+WinProg6=0
+SaveAllFiles6=0
+Replace Type6=0
+Tool Cmd7=""
+Tool Dir7=""
+Tool Menu7=""
+Bitmap Path7=""
+Capture7=1
+Capture Mode7=0
+WinProg7=0
+SaveAllFiles7=0
+Replace Type7=0
+Tool Cmd8=""
+Tool Dir8=""
+Tool Menu8=""
+Bitmap Path8=""
+Capture8=1
+Capture Mode8=0
+WinProg8=0
+SaveAllFiles8=0
+Replace Type8=0
+Tool Cmd9=""
+Tool Dir9=""
+Tool Menu9=""
+Bitmap Path9=""
+Capture9=1
+Capture Mode9=0
+WinProg9=0
+SaveAllFiles9=0
+Replace Type9=0
+
+[Files - Std-Lib]
+0=device_l.c
+1=init_l.c
+2=xtoa.c
+3=xtoa.h
+
+[Files - Input]
+0=digindrv.c
+1=digindrv.h
+2=measdrv.c
+3=measdrv.h
+4=measure.c
+5=measure.h
+6=vehicsim.c
+7=vehicsim.h
+
+[Files - Diagnose]
+0=debug.c
+1=debug.h
+2=outdir\debuglog.txt
+3=device_l.c
+4=diagnose.c
+5=diagnose.h
+6=init_l.c
+
+[Files - Devices]
+0=device.c
+1=device.h
+2=introdev.c
+3=maindev.c
+4=objects.c
+5=objects.h
+6=resource.h
+7=setdev.c
+8=testdev.c
+9=tripcnt.c
+
+[Files - IICBus]
+0=clkdrv.c
+1=clkdrv.h
+2=eeprdrv.c
+3=eeprdrv.h
+4=iicbb.a30
+5=iicbb.h
+6=nvramdrv.c
+7=nvramdrv.h
+
+[Files - System]
+0=main.c
+1=msgqueue.c
+2=msgqueue.h
+3=standard.h
+4=stdmsgs.h
+5=sysparam.c
+6=sysparam.h
+7=timer.c
+8=timer.h
+
+[Files - Output]
+0=beep.c
+1=beep.h
+2=beepdrv.c
+3=beepdrv.h
+4=bitmaps.c
+5=bitmaps.h
+6=digoutdr.c
+7=digoutdr.h
+8=display.c
+9=display.h
+10=displdrv.c
+11=displdrv.h
+12=fonts.c
+13=fonts.h
+14=led.c
+15=led.h
+16=leddrv.c
+17=leddrv.h
+18=textout.c
+19=textout.h
+
+[Group]
+0=Build
+1=Devices
+2=Diagnose
+3=IICBus
+4=Input
+5=Output
+6=Std-Lib
+7=System
+9=
+
+[Files - Build]
+0=isr.c
+1=ncrt0.a30
+2=sect30.inc
+3=sfr62.h
+4=SIxO.tmi
+5=SIxO.tmk
+6=S:\sixo\doc\Versions.txt
+
