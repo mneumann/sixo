@@ -1,0 +1,28 @@
+SIxO-Software Versions
+======================
+
+Version Date        Feature
+======= ==========  ======================================
+V1.2.1  2003-05-06  > Bugfix Tripcounter, confirmation of long key
+                      stroke
+V1.2.0  2002-11-26  > MainDevice:
+                        - lower part scrollable
+                        - contains Fuel Distance (resetable)
+                        - contains Vehicle Distance (not editable)
+                    > SettingsDevice:
+                        - contains Vehicle Distance
+                        - contains Display Contrast
+
+V1.1.2  2002-10-15  > SW version number displayed in Logo Screen
+                    > motorcycle specific logo (Husquarna/BMW/SIXO)
+                    > Acknowledge-Beeper/LEDs for Ok/Esc keys
+
+V1.1.1  2002-10-13	> low engine speed filter improved (<1200 RPM)
+                    > low wheel speed filter improved (<15 km/h)
+
+V1.1.0  2002-10-01	> Beeper works (Message & direct driven)
+
+V1.0.0  2002-09-30	> First Release Candidate
+
+
+
