@@ -1,0 +1,400 @@
+;**********************************************************************
+;
+;  CVS-Filename:   $RCSfile$
+;  Version:        $Revision$
+;  Last Changed:   $Date$
+;  Changed by:     $Author$
+;
+;  --------------------------------------------------------------------
+;
+;  Created:        01-10-2001 by Arnold Neugebauer
+;  Project:        SIxO20
+;  Module:         IIC bit banging routines
+;  Purpose:        simple IIC routines which do *not* use UART2
+;
+;  --------------------------------------------------------------------
+;
+;  mcu:            Mitsubishi M30624FGLFP @ 10MHz
+;  usage:          define HALF_BIT_TIME below according to processor speed
+;                  include iicbb.h in C code
+;  notes:          no multi-master, no collision detection, no wait states (no
+;                  IIC bus clock extending allowed)
+;                  register usage:
+;                     R1L - receive/transmit byte
+;                     R0H - byte counter (number_of_dat = 0..255, 0 means 256 bytes)
+;                     R0L - bit counter and return value for C code
+;                     R1H - number of adresses to send (number_of_adr = 1 or 2)
+;                     R2  - delay counter
+;                     R3  - only used for processor bugfix, remove if not necessary
+;                     A0  - pointer to IIC data buffer (dat_buffer)
+;                     A1  - pointer to IIC address buffer (adr_buffer)
+;                  return value for C code is:
+;                     1 = OK, acknowledge received
+;                     0 = failed, no acknowledge received
+;                  SCL and SDA (in the output port) must be set to 0 when entering
+;                  the IIC routines.
+;                  Make sure, that the routines are called with the correct
+;                  parameter format (use ASSERTs for example). Parameters are not
+;                  checked in these low level routines.
+;                  TS = tri state, high impedance state
+;                  Performance would be better if the low level routines would
+;                  not exchange parameters via iic_data and iic_ack but this
+;                  alows for an efficient way to implement the delay in iic_delay.
+;  history:        first build 28.02.01
+;                  first release 03.02.01
+;                  introduced different buffers for address and data 04.03.01
+;                  SCL/SDA can now be any general purpose i/o port 06.03.01
+;                  avoided to alter the address buffer (replaced a shl.b #1,[A1]
+;                  by two shl.b #1,R1L in _iic_rcv 24.02.02
+;
+;  --------------------------------------------------------------------
+; 
+;  Compiler:       Renesas NC30WA V.5.00 Release 2, AS30
+;  Options:        -
+;
+;  --------------------------------------------------------------------
+;
+;  Licence details
+;
+;  This software is copyright © 2001-2004 by N&K Development, Germany
+;  
+;  You can redistribute it and/or modify it under the terms of the 
+;  GNU General Public License version 2 as published by the 
+;  Free Software Foundation. 
+;  
+;  This program is distributed in the hope that it will be useful, 
+;  but WITHOUT ANY WARRANTY; without even the implied warranty of 
+;  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+;  GNU General Public License for more details.
+;  
+;  You should have received a copy of the GNU General Public License
+;  along with this program; if not, write to the Free Software
+;  Foundation, Inc., 59 Temple Place - Suite 330, Boston, 
+;  MA  02111-1307, USA.
+;
+;  To purchase support or enhancements for this software, contact:
+;  
+;      N&K Development                     N&K Development         
+;      Arnold Neugebauer                   Ralf Krizsan            
+;      Stöckener Str. 115                  Knickstr. 10            
+;      30419 Hannover                      30890 Barsinghausen     
+;      arnold.neugebauer@web.de            ralf.krizsan@web.de
+;      
+;      or try http://www.sixo.de
+;
+;  --------------------------------------------------------------------
+; 
+;  Disclaimer of warrenty
+;
+;  The software is provided as is without warranties of
+;  any kind, either express or implied. To the fullest
+;  extent allowed by applicable law, N&K Development
+;  disclaims all warranties, express or implied,
+;  including, but not limited to, implied warranties of
+;  merchantability, fitness for a particular purpose, and
+;  non-infringement.
+;
+;*********************************************************************** */
+
+
+
+;define HALF_BIT_TIME according to processor speed
+;(see routine iic_delay below for details)
+                            ;     cycle time
+                            ;theory       measurement
+;HALF_BIT_TIME .equ 01h     ;             4.7us@10MHz
+;HALF_BIT_TIME .equ 02h     ;             5.3us@10MHz
+;HALF_BIT_TIME .equ 03h     ;             5.9us@10MHz
+;HALF_BIT_TIME .equ 07h     ;5.5us@10MHz  8.3us@10MHz
+;HALF_BIT_TIME .equ 0bh     ;8us@10MHz    10.8us@10MHz
+;HALF_BIT_TIME .equ 0bh     ;5us@16MHz
+;HALF_BIT_TIME .equ 02h     ;             5.3us@10MHz
+HALF_BIT_TIME .equ 05h     ;8.7us@14.72MHz 5.0us@14.72MHz
+;HALF_BIT_TIME .equ 06h     ;             6.0us@14.72MHz
+
+;This can be any general purpose i/o port. No special characteristics are assumed.
+;The high level is provided by external pull ups on the SDA and SCL lines. SDA
+;and SCL are always low. A high level at the output is reached by setting SDAD or
+;SCLD to input (TS). A low level is reached by setting SDAD or SCLD to output. A
+;high level is never driven on the bus.
+;Remember to turn off any special characteristics (pull ups, pull downs etc.) if
+;you use other ports than P70/71.
+;SCL and SDA (in the data register of the port) must be set to 0 when entering the
+;IIC routines. These bits are never set by the IIC routines to avoid any conflicts
+;with other program modules.
+PORT7   .equ    3edh        ;port 7 data register
+SDA     .btequ  0,PORT7     ;IIC serial data port, always 0
+
+PORT7D  .equ	3efh        ;port 7 direction register
+SDAD    .btequ  0,PORT7D    ;SDA direction control (0=input (TS), 1=output (low level)). 
+SCLD    .btequ  1,PORT7D    ;SCL direction control (0=input (TS), 1=output (low level)).
+
+
+;make these routines available for C code, symbols declared in iicbb.h
+.glb    _iic_rcv            ;routine to receive bytes
+.glb    _iic_snd            ;routine to send bytes
+
+
+.section iicbb,data,align
+
+;higher order bits of iic_ack and iic_data must
+;be kept 0 for correct return value to C code
+iic_ack:    .blkb   1       ;bit0: 1=ack received, 0=no ack received
+iic_data:   .blkb   1       ;bit0: data bit received/to be transmitted on IIC bus
+
+
+.section program,code,align
+
+;===========================================================================
+;iic_rcv
+;receives n bytes from the IIC bus and writes it into a receive buffer
+;in:    A0  - pointer to data buffer, the buffer must be large enough (R0H)
+;       A1  - pointer to address buffer (first byte is the address and
+;             the second byte may be the subaddress)
+;       R0H - amount of bytes to transfer
+;             max. 256 bytes (amount = 0)
+;       R1H - number of adresses to send (1 or 2)
+;out:   iic_ack = 1 if ack received
+;       iic_ack = 0 if no ack received
+;notes: the sequence is
+;       R1H = 1: adr_r data data ...
+;       R1H = 2: adr_w subadr adr_r data data ... 
+;===========================================================================
+_iic_rcv:
+        pushc	FLG			     ;push flag register on stack
+        push.b  R1L             ;push registers on stack which the C compiler
+        push.w  R2              ;assumes to be unchanged
+
+        mov.b   #01h,iic_ack    ;reset acknowledge error flag
+        mov.b   #00h,iic_data   ;preset iic_data to clear higher order bits
+;        shl.b   #1,[A1]         ;right align 7-bit device address
+        cmp.b   #01h,R1H        ;only one address to send?
+        jz      iic_rcv0        ;jump if so
+        jsr     iic_start       ;set start condition
+        mov.b   [A1],R1L        ;load device address
+        shl.b   #1,R1L          ;right align 7-bit device address
+        inc.w   A1              ;ptr to subaddr
+        bclr    0,R1            ;clear LSB of device address (write indicator)
+        jsr     iic_snd1byte    ;send device address
+        btst    0,iic_ack       ;test ACK
+        jz      iic_rcv3        ;no ACK -> error, stop
+        mov.b   [A1],R1L        ;load subaddress
+        jsr     iic_snd1byte    ;send subaddress
+        btst    0,iic_ack       ;test ACK
+        jz      iic_rcv3        ;no ACK -> error, stop
+        dec.w   A1              ;pointer back to device address
+iic_rcv0:
+        jsr     iic_start       ;restart
+        mov.b   [A1],R1L        ;load device address
+        shl.b   #1,R1L          ;right align 7-bit device address
+        bset    0,R1            ;set LSB of device address (read indicator)
+        jsr     iic_snd1byte    ;send device address
+        btst    0,iic_ack       ;test ACK
+        jz      iic_rcv3        ;no ACK -> error, stop
+iic_rcv1:
+        jsr     iic_rcv1byte    ;received byte -> R1L
+        mov.b   R1L,[A0]        ;received byte -> input buffer
+        inc.w   A0
+        dec.b   R0H             ;last byte received?
+        jz      iic_rcv2        ;yes -> do not send ACK
+        bclr    0,iic_data
+        jsr     iic_snd1bit     ;ACK senden
+        jmp     iic_rcv1        ;receive next byte
+iic_rcv2:
+        bset    0,iic_data      ;no ACK after last byte
+        jsr     iic_snd1bit     ;send 1 -> sender frees bus
+iic_rcv3:
+        jsr     iic_stop        ;set stop condition
+
+        mov.b   iic_ack, R0L    ;return value for C code
+        pop.w   R2
+        pop.b   R1L
+        popc	FLG				;pop flag register
+        rts
+
+
+;===========================================================================
+;iic_snd
+;transmits n bytes over the IIC bus
+;in:    A0  - pointer to data buffer
+;       A1  - pointer to address buffer (first byte is the address and
+;             the second byte may be the subaddress)
+;       R0H - amount of bytes to transfer
+;             max. 256 bytes (amount = 0)
+;       R1H - number of adresses to send (1 or 2)
+;out:   iic_ack = 1 if ack received
+;       iic_ack = 0 if no ack received
+;notes: the sequence is
+;       R1H = 1: adr_r data data ...
+;       R1H = 2: adr_r subadr data data ... 
+;===========================================================================
+_iic_snd:
+        pushc   FLG             ;push flag register on stack
+        push.b  R1L             ;push registers on stack which the C compiler
+        push.w  R2              ;assumes to be unchanged
+
+        mov.b   #01h,iic_ack    ;delete error flag and clear higher order bits
+        mov.b   #00h,iic_data   ;preset iic_data to clear higher order bits
+        jsr     iic_start       ;set start condition
+        mov.b   [A1],R1L        ;load device address
+        shl.b   #1,R1L          ;right align 7-bit device address
+        bclr    0,R1            ;clear LSB of device address (write indicator)
+        jsr     iic_snd1byte    ;send device address
+        btst    0,iic_ack
+        jz      iic_snd2        ;no ACK -> error, stop
+        cmp.b   #01h,R1H        ;only one address to send?
+        jz      iic_snd0        ;jump if so
+        inc.w   A1              ;pointer to subaddress
+        mov.b   [A1],R1L        ;load subaddress
+        jsr     iic_snd1byte    ;send subaddress
+        btst    0,iic_ack
+        jz      iic_snd2        ;no ACK -> error, stop
+iic_snd0:
+        mov.b   [A0],R1L        ;get data byte
+        inc.w   A0
+iic_snd1:
+        jsr     iic_snd1byte    ;send byte
+        btst    0,iic_ack
+        jz      iic_snd2        ;no ACK -> error, stop
+        mov.b   [A0],R1L        ;get next byte
+        inc.w   A0
+        dec.b   R0H             ;last byte sent?
+        jnz     iic_snd1
+iic_snd2:
+        jsr     iic_stop        ;set stop condition
+
+        mov.b   iic_ack,R0L     ;return value for C code
+        pop.w   R2
+        pop.b   R1L
+        popc    FLG             ;pop flag register
+        rts
+
+
+;===========================================================================
+;iic_snd1byte
+;sends one data byte over the IIC bus
+;in:    R1L - byte to transmit
+;out:   iic_ack = 1 if ack received
+;       iic_ack = 0 if no ack received
+;notes:
+;===========================================================================
+iic_snd1byte:
+        mov.b   #08h,R0L        ;bit counter
+iic_snd1byte0:
+        rolc.b  R1L             ;shift next bit to send in the carry
+        bmc     0,iic_data      ;set iic_data according to carry
+        jsr     iic_snd1bit     ;send one bit
+        dec.b   R0L             ;8 bits sent?
+        jnz     iic_snd1byte0
+        jsr     iic_rcv1bit     ;ask for acknowledge
+        mov.b   iic_data,iic_ack
+        bnot    0,iic_ack       ;invert acknowledge flag
+        rts
+
+
+;===========================================================================
+;iic_rcv1byte
+;receives one byte from the IIC bus
+;in:
+;out:   R1L - byte received
+;notes:
+;===========================================================================
+iic_rcv1byte:
+        mov.b   #08h,R0L        ;bit counter
+iic_rcv1byte0:
+        jsr     iic_rcv1bit     ;receive one bit
+        shl.b   #1,R1L           ;shift result one bit to the left, LSB=0
+        btst    0,iic_data      ;carry=bit 0 of iic_data
+        bmc     0,R1            ;set bit 0 of R1 according to carry
+        dec.b   R0L             ;8 bits received?
+        jnz     iic_rcv1byte0
+        rts                     ;no acknowledge to slave here because it could
+                                ;be the last byte to be received
+
+
+;===========================================================================
+;iic_start
+;sets start condition on IIC bus
+;in:
+;out:
+;notes:
+;===========================================================================
+iic_start:
+        jsr     iic_delay       ;for restart directly after ACK
+        bclr    SDAD            ;set SDA to input (SDA = high)
+        bclr    SCLD            ;SCL = high
+        jsr     iic_delay       ;for restart directly after ACK
+        bset    SDAD            ;SDA high->low
+        jsr     iic_delay       ;delay
+        bset    SCLD            ;SCL high->low
+        rts
+
+
+;===========================================================================
+;iic_stop
+;sets stop condition on IIC bus
+;in:
+;out:
+;notes:
+;===========================================================================
+iic_stop:
+        bset    SDAD            ;set SDA to output (SDA = low)
+        jsr     iic_delay       ;delay
+        bclr    SCLD            ;SCL low->high
+        jsr     iic_delay       ;delay
+        bclr    SDAD            ;SDA low->high
+        rts
+
+
+;===========================================================================
+;iic_snd1bit
+;sends 1 data bit over the IIC bus
+;in:    iic_data - data bit to transmit
+;out:
+;notes:
+;===========================================================================
+iic_snd1bit:
+        btst    0,iic_data      ;move inverted bit 0 iic_data to zero flag
+        bmz     SDAD            ;set SDAD according to zero flag
+        jsr     iic_delay       ;delay
+        bclr    SCLD            ;SCL low->high
+        jsr     iic_delay       ;delay
+        bset    SCLD            ;SCL high->low
+        rts
+
+
+;===========================================================================
+;iic_rcv1bit
+;receives 1 data bit from the IIC bus
+;in:
+;out:   iic_data - data bit received
+;notes:
+;===========================================================================
+iic_rcv1bit:
+        bclr    SDAD            ;set SDA to input
+        jsr     iic_delay       ;delay
+        bclr    SCLD            ;SCL low->high
+        btst    SDA             ;move SDA to carry
+        bmc     0,iic_data      ;set bit 0 iic_data according to carry
+        jsr     iic_delay       ;delay
+        bset    SCLD            ;SCL high->low
+        rts
+
+
+;===========================================================================
+;iic_delay
+;delays by half a bit time
+;in:
+;out:
+;notes: This is just a quick hack. Should be implemented with a timer or task
+;       switch of the operating system. The delay must be at least 5us for the
+;       IIC bus (100KHz).
+;===========================================================================
+iic_delay:
+        mov.w 	#HALF_BIT_TIME,R2 ;define the constant according to processor speed
+iic_delay0:
+        sub.w	#1,R2            ;3 cycles (SUB.W:Rn)
+        jnz		iic_delay0       ;2 + 2 cycles (if jump)
+        rts
+
+.end
