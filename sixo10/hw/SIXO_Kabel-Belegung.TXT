@@ -1,0 +1,67 @@
+SIXO-Kabel-Belegung
+===================
+(Stand 30.06.02)
+
+
+-------------------------------------------------
+Version A: Arnolds Standard TripCounter
+
+D-Sub   Farbe   Sinn    Pad     Port    Bemerkung
+------  ------- ------  ------  ------  ---------
+    1   gn/ws   RPM+    26
+    2   rt      12V+    1
+    3   rs      UP      23      p2_3
+    4   li      DOWN    24      p2_4
+    5   ws      OK      25      p2_5
+    6   sw+bl   GND     2               RPM-GND -> 2 Kabel!
+    7   rt/bl   WHEEL   11
+    8   gn      GPIO0   12
+    9   gr      GPIO1   13
+   10   ge      GPIO2   14
+   11   br      ?
+   12   br/gn   ?
+   13   gr/rs   ?
+   14
+   15
+-------------------------------------------------
+
+
+-------------------------------------------------
+Version B: Ralfs BMW-Ersatzcockpit
+
+    (Pin 1..7 identisch zu Arnold)
+
+D-Sub   Farbe   Sinn    Pad     Port    Bemerkung
+------  ------- ------  ------  ------  ---------
+    1   gn/ws   RPM+    26
+    2   rt      12V+    1
+    3   rs      UP      23      p2_3
+    4   li      DOWN    24      p2_4
+    5   ws      OK      25      p2_5
+    6   sw+bl   GND     2               RPM-GND -> 2 Kabel!
+    7   rt/bl   WHEEL   11
+    8   gn      ÖlDruck 12
+    9   gr      Ladek.  13
+   10   ge      BlinkL  -       direkt auf LED
+   11   br      BlinkR  -       direkt auf LED
+   12   br/gn   Fernl   -       direkt auf LED
+   13   gr/rs   Leerl   -       direkt auf LED
+   14
+   15
+-------------------------------------------------
+
+
+
+-------------------------------------------------
+ Ralfs IP67 Tastensatz
+
+ 4-poliges Telefonkabel, 0,12 mm²
+
+Farbe   Tasten-Anschluss        SIXO-D-Sub-PIN
+------  --------------------    -----------------
+br      gemeinsame Masse        6
+gn      OK                      5
+ge      DOWN                    4
+ws      UP                      3
+------  --------------------    -----------------
+
