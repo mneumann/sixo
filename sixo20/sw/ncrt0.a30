@@ -1,0 +1,406 @@
+;**********************************************************************
+;
+;  CVS-Filename:   $RCSfile$
+;  Version:        $Revision$
+;  Last Changed:   $Date$
+;  Changed by:     $Author$
+;
+;  --------------------------------------------------------------------
+;
+;  Created:        2001-10-25 by Ralf Krizsan                          
+;  Project:        SIxO                                                
+;  Module:         hardware settings                                   
+;  Purpose:        uC start up code                                    
+;  History:        10-02-2004 changed comment of CM1DATA               
+;                             skip clock init when MINIEMU==1          
+;                  11-02-2004 changed CM1DATAPLL (had wrong value)     
+;  Comments:       startup code skips clock initialisation when MINIEMU
+;                  is defined (the underlying monitor program starts   
+;                  first and has already done the initalisation)       
+;
+;  --------------------------------------------------------------------
+;
+;  Licence details
+;
+;  This software is copyright © 2001-2004 by N&K Development, Germany
+;  
+;  You can redistribute it and/or modify it under the terms of the 
+;  GNU General Public License version 2 as published by the 
+;  Free Software Foundation. 
+;  
+;  This program is distributed in the hope that it will be useful, 
+;  but WITHOUT ANY WARRANTY; without even the implied warranty of 
+;  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+;  GNU General Public License for more details.
+;  
+;  You should have received a copy of the GNU General Public License
+;  along with this program; if not, write to the Free Software
+;  Foundation, Inc., 59 Temple Place - Suite 330, Boston, 
+;  MA  02111-1307, USA.
+;
+;  To purchase support or enhancements for this software, contact:
+;  
+;      N&K Development                     N&K Development         
+;      Arnold Neugebauer                   Ralf Krizsan            
+;      Stöckener Str. 115                  Knickstr. 10            
+;      30419 Hannover                      30890 Barsinghausen     
+;      arnold.neugebauer@web.de            ralf.krizsan@web.de
+;      
+;      or try http://www.sixo.de
+;
+;  --------------------------------------------------------------------
+; 
+;  Disclaimer of warrenty
+;
+;  The software is provided as is without warranties of
+;  any kind, either express or implied. To the fullest
+;  extent allowed by applicable law, N&K Development
+;  disclaims all warranties, express or implied,
+;  including, but not limited to, implied warranties of
+;  merchantability, fitness for a particular purpose, and
+;  non-infringement.
+;
+;*********************************************************************** */
+
+
+.include sfr62p.inc     ; include assembler symbols of M16C62P registers
+
+;---------------------------------------------------------------------
+; Basic register definitions
+;---------------------------------------------------------------------
+
+UNLOCK          .equ          03h      ; Data: Enable Write to PMx, CMx, PLC, ...
+LOCK            .equ           0h      ; Data: Disable Write to PMx & CMx
+
+
+PM0DATA         .equ    00000000b      ; Data to set PM0:
+;                       ||||||++---------- 00: Single Chip Mode selected
+;                       |||||+------------  0: R/W Select to RD,BHE,WR
+;                       ||||+-------------  0: SW-Reset Bit not active
+;                       ||++-------------- 00: Multiplexed Bus not used
+;                       |+----------------  0: P4(0..3) not used in SingleChipMode
+;                       +-----------------  0: BCLCK is output
+
+PM1DATA         .equ    00001000b      ; Data to set PM1:
+;                       |||||||+----------  0: reserved, keep to 0!
+;                       |||||++-----------  n: reserved (unassigned)
+;                       ||||+-------------  1: use M30624 extended RAM/ROM
+;                       ||||                   ! enables use of c0000h-d0000h !
+;                       |+++--------------  n: reserved, keep to 0!
+;                       +-----------------  0: no wait state
+
+CM0DATA         .equ    00001000b      ; Data to set CM0:
+;                       ||||||++---------- 00: clock output P5.7 not used
+;                       |||||+------------  1: stop peripherals in WAIT mode
+;                       ||||+-------------  0: Xcin/cout drive capacity to LOW
+;                       |||+--------------  0: Port Xc: used as I/O port
+;                       ||+---------------  0: main clock stop bit
+;                       |+----------------  0: main clock division: CM1.6/1.7!
+;                       |                      !!! differs from reset state!!!
+;                       +-----------------  0: system clock select: use Xin/out
+
+CM1DATA         .equ    00100000b      ; Data to set CM1:
+;                       |||||||+----------  0: clock on
+;                       ||||||+-----------  0: PLL not used
+;                       |||+++------------  n: reserved
+;                       ||+---------------  1: Xin/out drive capacity to HIGH
+;                       ++---------------- 00: main clock division: no division!!!
+
+CSRDATA         .equ    00000001b      ; Data to set 'Chip select control register' (like after reset)
+;                       |||||||+----------  1: CS0 enable bit (1=CS, 0= normal port)
+;                       ||||||+-----------  0: CS1 enable bit 
+;                       |||||+------------  0: CS2 enable bit 
+;                       ||||+-------------  0: CS3 enable bit 
+;                       |||+--------------  0: CS0W CS0 wait state bit (1=no wait state, 0=one wait state)
+;                       ||+---------------  0: CS0W CS1 wait state bit 
+;                       |+----------------  0: CS0W CS2 wait state bit 
+;                       +-----------------  0: CS0W CS3 wait state bit 
+
+PM2DATA         .equ    00000000b      ; Data to set 'Processor mode register 2' (0x00 after reset): (plc0.7 MUST be O to write to pm2!!!)
+;                       |||||||+----------  0: set to '0', if PLL >= 16 MHz used ('two waits')
+;                       ||||||+-----------  0: 0 = System clock protected by PRCR (instead of modification disabled)
+;                       |||||+------------  0: 0 = watchdog timer uses CPU clock (instead of ring ossi)
+;                       +++++-------------  00000: reserved, set to 0
+
+CM1DATAPLL      .equ    00100010b      ; Data to set 'System Clock Control Register 1':
+;                       |||||||+----------  0: clock on
+;                       ||||||+-----------  1: 1 = PLL clock used
+;                       |||+++------------  n: reserved, set to 000
+;                       ||+---------------  1: Xin/out drive capacity to HIGH
+;                       ++---------------- 00: main clock division: no division!!!
+
+;---------------------------------------------------------------------
+;    SPECIAL SETTINGS FOR M16C/62P TYPE WITH INTERNAL PLL USED 
+;---------------------------------------------------------------------
+PLC0DATA_OFF    .equ    00010010b   ; plc0.7 == 0!!! ESSENTIAL value to prepare new PLL freq at next step !
+PLC0DATA_FACT2  .equ    10010001b   ; use PLL factor 2
+PLC0DATA_FACT4  .equ    10010010b   ; use PLL factor 4
+PLC0DATA_FACT6  .equ    10010011b   ; use PLL factor 6
+PLC0DATA_FACT8  .equ    10010100b   ; use PLL factor 8
+;                       |||||+++----------  PLL factor: 001: 2, 010: 4, 011; 6, 100: 8, all others: DO NOUT USE!
+;                       ||||+-------------  reserved, must be 0
+;                       |||+--------------  reserved, must be 1
+;                       ||+---------------  reserved, must be 0
+;                       |+----------------  reserved, must be 0
+;                       +-----------------  Operation enable bit (1 = PLL used)
+
+
+;---------------------------------------------------------------------
+;   SIXO2.0  target definitons 
+;---------------------------------------------------------------------
+QUARTZ          .equ    3686400             ; quartz frequency in Hz
+PLL_FACTOR      .equ    4                   ; set 1/2/4/6/8 as PLL factor here
+FSYS            .equ    (QUARTZ*PLL_FACTOR) ; = 14745600 MHz target system frequency with PLL enabled in Hz
+
+;---------------------------------------------------------------------
+;       automatic predefinition of desired register settings
+;---------------------------------------------------------------------
+.if PLL_FACTOR==2
+    PLC0DATA_ON .equ    PLC0DATA_FACT2
+    .assert "INFO: PLL factor >2< used!"        
+.else
+    .if PLL_FACTOR==4
+        PLC0DATA_ON .equ    PLC0DATA_FACT4
+        .assert "INFO: PLL factor >4< used!"        
+    .else
+        .if PLL_FACTOR==6
+            PLC0DATA_ON .equ    PLC0DATA_FACT6
+            .assert "INFO: PLL factor >6< used!"        
+        .else
+            .if PLL_FACTOR==8
+                PLC0DATA_ON .equ    PLC0DATA_FACT8
+                .assert "INFO: PLL factor >8< used!"        
+            .else
+                PLC0DATA_ON .equ    PLC0DATA_OFF
+                .assert "INFO: PLL will not be used (factor >1< used)!"        
+            .endif
+        .endif
+    .endif
+.endif
+
+
+; *************************************************************************
+
+;        .glb        __BankSelect
+;__BankSelect        .equ    0BH
+
+
+;---------------------------------------------------------------
+; special page definition
+;---------------------------------------------------------------
+;   macro define for special page
+;
+;Format:
+;    SPECIAL    number
+;
+
+SPECIAL        .macro        NUM
+    .org        0FFFFEH-(NUM*2)
+    .glb        __SPECIAL_@NUM
+    .word        __SPECIAL_@NUM  & 0FFFFH
+.endm
+;---------------------------------------------------------------------
+; Section allocation
+;---------------------------------------------------------------------
+;   .list OFF
+    .include sect30.inc
+;   .list ON
+
+;---------------------------------------------------------------------
+; SBDATA area definition
+;---------------------------------------------------------------------
+    .glb        __SB__
+__SB__        .equ    data_SE_top
+
+;====================================================================
+; Initialize Macro declaration
+;---------------------------------------------------------------------
+N_BZERO        .macro        TOP_ ,SECT_
+    mov.b        #00H, R0L
+    mov.w        #(TOP_ & 0FFFFH), A1
+    mov.w        #sizeof SECT_ , R3
+    sstr.b
+    .endm
+
+N_BCOPY .macro        FROM_,TO_,SECT_
+    mov.w        #(FROM_ & 0FFFFH),A0
+    mov.b        #(FROM_ >>16),R1H
+    mov.w        #TO_ ,A1
+    mov.w        #sizeof SECT_ , R3
+    smovf.b
+    .endm
+
+BZERO        .macro    TOP_,SECT_
+    push.w        #sizeof SECT_ >> 16
+    push.w        #sizeof SECT_  & 0ffffh
+    pusha        TOP_ >>16
+    pusha        TOP_ & 0ffffh
+    .stk        8
+    .glb        _bzero
+    .call        _bzero,G
+    jsr.a        _bzero
+    .endm
+
+
+BCOPY        .macro    FROM_ ,TO_ ,SECT_
+    push.w      #sizeof SECT_    >> 16
+    push.w      #sizeof SECT_    & 0ffffh
+    pusha       TO_ >>16
+    pusha       TO_  &  0ffffh
+    pusha       FROM_ >>16
+    pusha       FROM_   & 0ffffh
+    .stk        12
+    .glb        _bcopy
+    .call       _bcopy,G
+    jsr.a        _bcopy
+    .endm
+
+;====================================================================
+; Interrupt section start
+;---------------------------------------------------------------------
+    .insf       start,S,0
+    .glb        start
+    .section    ucinit
+
+start:
+;====================================================================
+;
+; Basic Processor Init Stuff (after reset, program will start here)
+;
+;---------------------------------------------------------------------
+
+.if MINIEMU==0                        ; do not initialise clocks if running under monitor control
+        mov.w      #0ffffh,R2         ; wait for stabilized clock
+start_delay:
+        sub.w      #1,R2
+        jnz        start_delay
+        nop
+                                      ; STANDARD REGISTER SETTINGS HERE ------------------------
+                                      
+        mov.b      #UNLOCK,prcr       ; disable 'write protect' of PMx, CMx, PLC, ...
+        mov.b      #PM0DATA,pm0       ; processer mode register 0: all normal
+        mov.b      #PM1DATA,pm1       ; processer mode register 1: use M30624 extended RAM/ROM
+        nop
+
+        mov.b      #CM1DATA,cm1       ; system clock control register 1: main clock, no division
+        mov.b      #CM0DATA,cm0       ; system clock control register 0: main clock, us div of cm16/17
+        nop                             
+                                      ; SPECIAL PLL SETTINGS NOW ------------------------
+
+        mov.b      #PLC0DATA_OFF,plc0 ; set PLL factor 4 per default, but PLL remains disabled
+        mov.b      #PM2DATA,pm2       ; set processer mode register 2 to '2 waits' for PLL use
+        mov.b      #PLC0DATA_ON,plc0  ; PLL enabled (but not yet used as system clock)
+        nop
+                                      ; NOW WAIT AT LEAST 20ms/50ms (Vcc 3V/5V) BEFORE USE PLL AS SYSTEM CLOCK !!!
+                                                   
+        mov.w 	   #0ffffh,r2         ; use r2 for down count 64k times
+pll_loop:                            
+        sub.w	   #1,r2              ; [2 cycles] decr loop counter
+        jnz		   pll_loop           ; [2 cycles] No underflow? Go one decrementing!
+        nop                           ; SUM: 4 cycles/loop assured, 
+                                      ;      so pll_loop takes at least 71 ms with 3,68MHz quartz, ok!
+
+        mov.b      #CM1DATAPLL,cm1    ; activate PLL use as system clock NOW!
+        nop                           ; PLL ACTIVATED !
+        mov.b      #LOCK,prcr         ; enable 'write protect' of PMx/CMx        
+.endif
+                                      ; STANDARD INIT STUFF HERE ------------------------
+
+        ldc        #0080h,flg         ; flag register: use 'UserStackPointer'
+        ldc        #stack_top,sp      ; set stack pointer
+        ldc        #istack_top,isp    ; set istack pointer
+        ldc        #data_SE_top,sb    ; set static base register
+        ldc        #stack_top,fb      ; set frame base register
+        ldintb     #ROM_VAR_VT        ; set variable vector table
+
+
+;====================================================================
+; NEAR area initialize.
+;--------------------------------------------------------------------
+; bss zero clear
+;--------------------------------------------------------------------
+    N_BZERO        bss_SE_top,bss_SE
+    N_BZERO        bss_SO_top,bss_SO
+    N_BZERO        bss_NE_top,bss_NE
+    N_BZERO        bss_NO_top,bss_NO
+
+;---------------------------------------------------------------------
+; initialize data section
+;---------------------------------------------------------------------
+    N_BCOPY        data_SEI_top,data_SE_top,data_SE
+    N_BCOPY        data_SOI_top,data_SO_top,data_SO
+    N_BCOPY        data_NEI_top,data_NE_top,data_NE
+    N_BCOPY        data_NOI_top,data_NO_top,data_NO
+
+
+;====================================================================
+; FAR area initialize.
+; !!! this area is not available in single chip mode !!!
+; (see 'c programming manual, page 100)
+;---------------------------------------------------------------------
+; bss zero clear
+;---------------------------------------------------------------------
+;   BZERO        bss_FE_top,bss_FE
+;   BZERO        bss_FO_top,bss_FO
+
+;---------------------------------------------------------------------
+; Copy edata_E(O) section from edata_EI(OI) section
+;---------------------------------------------------------------------
+;   BCOPY        data_FEI_top,data_FE_top,data_FE
+;   BCOPY        data_FOI_top,data_FO_top,data_FO
+
+    ldc          #stack_top,sp
+    .stk         -40
+
+;====================================================================
+; heap area initialize
+;---------------------------------------------------------------------
+    .glb        __mbase
+    .glb        __mnext
+    .glb        __msize
+    mov.w        #(heap_top&0FFFFH), __mbase
+    mov.w        #(heap_top>>16), __mbase+2
+    mov.w        #(heap_top&0FFFFH), __mnext
+    mov.w        #(heap_top>>16), __mnext+2
+    mov.w        #(HEAPSIZE&0FFFFH), __msize
+    mov.w        #(HEAPSIZE>>16), __msize+2
+
+;====================================================================
+; Initialize standard I/O (like printf() etc. to uart)
+;---------------------------------------------------------------------
+.if DEBUG==1   
+   .glb        _init
+   .call        _init,G
+   jsr.a        _init
+    .if        MINIEMU==1
+        .assert "INFO: Generates DebugOuts on Uart0!"        
+   .else
+        .assert "INFO: Generates DebugOuts on Uart1!"              
+   .endif
+.endif
+
+
+;====================================================================
+; Call main() function
+;---------------------------------------------------------------------
+    ldc         #0h,fb      ; for debugger
+
+    .glb        _main
+    jsr.a       _main
+
+;====================================================================
+; exit() function
+;---------------------------------------------------------------------
+    .glb        _exit
+    .glb        $exit
+_exit:                      ; End program
+$exit:
+    jmp    _exit
+    .einsf
+
+
+;---------------------------------------------------------------------
+; end of *.a30 file !!!
+;---------------------------------------------------------------------
+    .end
+
