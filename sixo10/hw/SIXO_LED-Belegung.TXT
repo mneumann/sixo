@@ -1,0 +1,76 @@
+SIXO LED Belegung
+=================
+First Version  30.06.02
+Husky-Belegung 01.05.03 AN
+
+
+-------------------------------------------------
+Version A: Arnolds Standard TripCounter
+- 3 Duo LEDs, invers betrieben
+- Sicht auf PCB: von oben nach unten
+-------------------------------------------------
+
+Diode   Farbe   Ports#      Bedeutung
+-----   ------  ----------- ----------
+ D5     rt      p9_2/p9_7
+ D5     gn      p9_7/p9_2
+ D4     rt      p9_1/p9_6
+ D4     gn      p9_6/p9_1
+ D3     rt      p9_0/p9_5
+ D3     gn      p9_5/p9_0
+
+
+-------------------------------------------------
+Version B: Ralfs BMW-Ersatzcockpit
+
+- 6 LEDs gesamt
+- 3 an SIXO-Ports
+    - LED Pins horizontal ausgerichtet
+    - Kathode immer nach links
+- 3 direkt an MRD Elektrik
+    - mit Vorwiderstand,
+    - LED Pins vertikal ausgerichtet
+    - Kathode immer nach oben
+- Sicht auf PCB: von oben nach unten
+-------------------------------------------------
+
+LED#    Farbe   Ports/Kabel Bedeutung
+------  ------  ----------- --------------------------------
+ D5     rt      p9_2/p9_7   SIXO Fehler!
+ LED2   ge      ge+br|sw    Blinker L+R (2xD, 470R gegen GND)
+ D4     or      p9_1/p9_6   SIXO Warnung!
+ LED4   bl      br/gn|sw    Fernlicht (22k gegen GND)
+ D3     ws      p9_0/p9_5   SIXO Info!
+ LED6   gn      gr/rs|rt    Leerlauf (22k gegen +12V)
+
+
+-------------------------------------------------
+Version C: Arnolds Husky-Ersatzcockpit
+
+- 5 LEDs gesamt
+- 3 an SIXO-Ports
+    - LED Pins horizontal ausgerichtet
+    - Kathode immer nach links
+- 2 direkt an MRD Elektrik
+    - mit Transistorstufe
+- Sicht auf PCB: von oben nach unten
+
+Orientiert sich an Ralfs BMW-Ersatzcockpit.
+Softwarekompatibel dazu. Unterschiede:
+- Leerlauf fehlt
+- andere Vorwiderstaende
+- direkt an der MRD-Elektrik angeschlossene LEDs
+  mit Transistorstufe und Filter aufgrund
+  Wechselstrom/Spannungsschwankungen
+- um ein Kabel nach aussen zu sparen sind die
+  Blinkerdioden aussen, nicht im Gehaeuse
+- Farben gemaess StVZO
+-------------------------------------------------
+
+LED#    Farbe   Ports/Kabel Bedeutung
+------  ------  ----------- --------------------------------
+ D5     rt      p9_2/p9_7   SIXO Fehler!  (R22=390)
+ LED2   gn                  Blinker L+R   (Transistorstufe Rvor=1K)
+ D4     ge      p9_1/p9_6   SIXO Warnung! (R21=390)
+ LED4   bl                  Fernlicht     (Transistorstufe Rvor=2K7)
+ D3     ws      p9_0/p9_5   SIXO Info!    (R20=1K8)
