@@ -1,0 +1,263 @@
+;***********************************************************************
+; 
+;   $RCSfile$
+; 
+;   $Revision$
+; 
+;   $Date$
+; 
+;   $Author$
+; 
+;  --------------------------------------------------------------------
+;   Company:        N&K Development, all rights reserved
+;
+;                   Neugebauer & Krizsan Cooperation, Germany
+;                   contact:    arnold.neugebauer@web.de
+;                               ralf.krizsan@web.de
+;  --------------------------------------------------------------------
+;   Created:        25-10-2001 by Ralf Krizsan
+;   Project:        SIxO
+;   Module:         hardware settings
+;   Purpose:        uC start up code
+;   Comments:       -
+; 
+;************************************************************************
+
+
+
+;---------------------------------------------------------------------
+; Basic register definitions
+;---------------------------------------------------------------------
+
+PM0             .equ          04h      ; processor mode register 0
+PM1             .equ          05h      ; processor mode register 1
+CM0             .equ          06h      ; system clock control register 0
+CM1             .equ          07h      ; system clock control register 1
+PRCR            .equ          0ah      ; WriteProtectRegister
+ENAPM           .equ          02h      ; Data: Enable Write to PMx
+ENACM           .equ          01h      ; Data: Enable Write to CMx
+DISPMCM         .equ           0h      ; Data: Disable Write to PMx & CMx
+
+PM0DATA         .equ    00000000b      ; Data to set PM0:
+;                       ||||||++---------- 00: Single Chip Mode selected
+;                       |||||+------------  0: R/W Select to RD,BHE,WR
+;                       ||||+-------------  0: SW-Reset Bit not active
+;                       ||++-------------- 00: Multiplexed Bus not used
+;                       |+----------------  0: P4(0..3) not used in SingleChipMode
+;                       +-----------------  0: BCLCK is output
+PM1DATA         .equ    00001000b      ; Data to set PM1:
+;                       |||||||+----------  0: reserved, keep to 0!
+;                       |||||++-----------  n: reserved (unassigned)
+;                       ||||+-------------  1: use M30624 extended RAM/ROM
+;                       ||||                   ! enables use of c0000h-d0000h !
+;                       |+++--------------  n: reserved, keep to 0!
+;                       +-----------------  0: no wait state
+CM0DATA         .equ    00001000b      ; Data to set CM0:
+;                       ||||||++---------- 00: clock output P5.7 not used
+;                       |||||+------------  1: stop peripherals in WAIT mode
+;                       ||||+-------------  0: Xcin/cout drive capacity to LOW
+;                       |||+--------------  0: Port Xc: used as I/O port
+;                       ||+---------------  0: main clock stop bit
+;                       |+----------------  0: main clock division: CM1.6/1.7!
+;                       |                      !!! differs from reset state!!!
+;                       +-----------------  0: system clock select: use Xin/out
+CM1DATA         .equ    00100000b      ; Data to set CM1:
+;                       |||||||+----------  0: clock on
+;                       |||++++-----------  n: reserved
+;                       ||+---------------  1: Xin/out drive capacity to HIGH
+;                       ++---------------- 00: main clock division: no division!!!
+
+
+;        .glb        __BankSelect
+;__BankSelect        .equ    0BH
+
+
+;---------------------------------------------------------------
+; special page definition
+;---------------------------------------------------------------
+;   macro define for special page
+;
+;Format:
+;    SPECIAL    number
+;
+
+SPECIAL        .macro        NUM
+    .org        0FFFFEH-(NUM*2)
+    .glb        __SPECIAL_@NUM
+    .word        __SPECIAL_@NUM  & 0FFFFH
+.endm
+;---------------------------------------------------------------------
+; Section allocation
+;---------------------------------------------------------------------
+;   .list OFF
+    .include sect30.inc
+;   .list ON
+
+;---------------------------------------------------------------------
+; SBDATA area definition
+;---------------------------------------------------------------------
+    .glb        __SB__
+__SB__        .equ    data_SE_top
+
+;====================================================================
+; Initialize Macro declaration
+;---------------------------------------------------------------------
+N_BZERO        .macro        TOP_ ,SECT_
+    mov.b        #00H, R0L
+    mov.w        #(TOP_ & 0FFFFH), A1
+    mov.w        #sizeof SECT_ , R3
+    sstr.b
+    .endm
+
+N_BCOPY .macro        FROM_,TO_,SECT_
+    mov.w        #(FROM_ & 0FFFFH),A0
+    mov.b        #(FROM_ >>16),R1H
+    mov.w        #TO_ ,A1
+    mov.w        #sizeof SECT_ , R3
+    smovf.b
+    .endm
+
+BZERO        .macro    TOP_,SECT_
+    push.w        #sizeof SECT_ >> 16
+    push.w        #sizeof SECT_  & 0ffffh
+    pusha        TOP_ >>16
+    pusha        TOP_ & 0ffffh
+    .stk        8
+    .glb        _bzero
+    .call        _bzero,G
+    jsr.a        _bzero
+    .endm
+
+
+BCOPY        .macro    FROM_ ,TO_ ,SECT_
+    push.w      #sizeof SECT_    >> 16
+    push.w      #sizeof SECT_    & 0ffffh
+    pusha       TO_ >>16
+    pusha       TO_  &  0ffffh
+    pusha       FROM_ >>16
+    pusha       FROM_   & 0ffffh
+    .stk        12
+    .glb        _bcopy
+    .call       _bcopy,G
+    jsr.a        _bcopy
+    .endm
+
+;====================================================================
+; Interrupt section start
+;---------------------------------------------------------------------
+    .insf       start,S,0
+    .glb        start
+    .section    ucinit
+
+start:
+;====================================================================
+;
+; Basic Processor Init Stuff (after reset, program will start here)
+;
+;---------------------------------------------------------------------
+
+        mov.w      #0ffffh,R2         ; wait for stabilized clock
+start_delay:
+        sub.w      #1,R2
+        jnz        start_delay
+
+        mov.b      #ENAPM,PRCR        ; disable 'write protect' of PMx
+        mov.b      #PM0DATA,PM0       ; set processer mode register 0
+        mov.b      #PM1DATA,PM1       ; set processer mode register 1
+        nop
+        mov.b      #ENACM,PRCR        ; disable 'write protect' of CMx
+        mov.b      #CM1DATA,CM1       ; set system clock control register 1
+        mov.b      #CM0DATA,CM0       ; set system clock control register 0
+        mov.b      #DISPMCM,PRCR      ; enable 'write protect' of PMx/CMx
+
+        ldc        #0080h,flg         ; flag register: use 'UserStackPointer'
+        ldc        #stack_top,sp      ; set stack pointer
+        ldc        #istack_top,isp    ; set istack pointer
+        ldc        #data_SE_top,sb    ; set static base register
+        ldc        #stack_top,fb      ; set frame base register
+        ldintb     #ROM_VAR_VT        ; set variable vector table
+
+
+;====================================================================
+; NEAR area initialize.
+;--------------------------------------------------------------------
+; bss zero clear
+;--------------------------------------------------------------------
+    N_BZERO        bss_SE_top,bss_SE
+    N_BZERO        bss_SO_top,bss_SO
+    N_BZERO        bss_NE_top,bss_NE
+    N_BZERO        bss_NO_top,bss_NO
+
+;---------------------------------------------------------------------
+; initialize data section
+;---------------------------------------------------------------------
+    N_BCOPY        data_SEI_top,data_SE_top,data_SE
+    N_BCOPY        data_SOI_top,data_SO_top,data_SO
+    N_BCOPY        data_NEI_top,data_NE_top,data_NE
+    N_BCOPY        data_NOI_top,data_NO_top,data_NO
+
+
+;====================================================================
+; FAR area initialize.
+; !!! this area is not available in single chip mode !!!
+; (see 'c programming manual, page 100)
+;---------------------------------------------------------------------
+; bss zero clear
+;---------------------------------------------------------------------
+;   BZERO        bss_FE_top,bss_FE
+;   BZERO        bss_FO_top,bss_FO
+
+;---------------------------------------------------------------------
+; Copy edata_E(O) section from edata_EI(OI) section
+;---------------------------------------------------------------------
+;   BCOPY        data_FEI_top,data_FE_top,data_FE
+;   BCOPY        data_FOI_top,data_FO_top,data_FO
+
+    ldc          #stack_top,sp
+    .stk         -40
+
+;====================================================================
+; heap area initialize
+;---------------------------------------------------------------------
+    .glb        __mbase
+    .glb        __mnext
+    .glb        __msize
+    mov.w        #(heap_top&0FFFFH), __mbase
+    mov.w        #(heap_top>>16), __mbase+2
+    mov.w        #(heap_top&0FFFFH), __mnext
+    mov.w        #(heap_top>>16), __mnext+2
+    mov.w        #(HEAPSIZE&0FFFFH), __msize
+    mov.w        #(HEAPSIZE>>16), __msize+2
+
+;====================================================================
+; Initialize standard I/O (like printf() etc. to uart)
+;---------------------------------------------------------------------
+   .glb        _init
+   .call        _init,G
+   jsr.a        _init
+
+
+;====================================================================
+; Call main() function
+;---------------------------------------------------------------------
+    ldc         #0h,fb      ; for debugger
+
+    .glb        _main
+    jsr.a       _main
+
+;====================================================================
+; exit() function
+;---------------------------------------------------------------------
+    .glb        _exit
+    .glb        $exit
+_exit:                      ; End program
+$exit:
+    jmp    _exit
+    .einsf
+
+
+;---------------------------------------------------------------------
+; end of *.a30 file !!!
+;---------------------------------------------------------------------
+    .end
+
