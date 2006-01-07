@@ -1,0 +1,1 @@
+rxtx com4 57600 none binary > sixo.bmp
