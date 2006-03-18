@@ -1,0 +1,110 @@
+/***********************************************************************
+ *
+ *  CVS-Filename:   $RCSfile$
+ *  Version:        $Revision$
+ *  Last Changed:   $Date$
+ *  Changed by:     $Author$
+ *
+ *  --------------------------------------------------------------------
+ *
+ *  Created:        2006-mm-dd by <YOUR AUTHORS NAME>
+ *  Project:        SIxO 20
+ *  Module:         <YOUR MODULE NAME>
+ *  Purpose:        <INTENDED PURPOSE>
+ *  Comments:       -
+ *  Changes:        -
+ *  ToDo:           -
+ *
+ *  Compiler:       Renesas NC30WA V.5.00 Release 2
+ *  Options:        -
+ *
+ *  --------------------------------------------------------------------
+ *
+ *  Licence details
+ *
+ *  This software is copyright © 2001-2006 by <YOUR AUTHORS NAME>
+ *
+ *  You can redistribute it and/or modify it under the terms of the
+ *  GNU General Public License version 2 as published by the
+ *  Free Software Foundation.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+ *  To purchase support or enhancements for this software, contact:
+ *
+ *      <YOUR AUTHORS NAME>
+ *      <YOUR AUTHORS POSTAL ADDRESS>
+ *      <YOUR AUTHORS MAIL ADDRESS
+ *
+ *      or try http://www.sixo.de
+ *
+ *  --------------------------------------------------------------------
+ *
+ *  Disclaimer
+ *
+ *  The software is provided as is without warranties of
+ *  any kind, either express or implied. To the fullest
+ *  extent allowed by applicable law, <YOUR AUTHORS NAME>
+ *  disclaims all warranties, express or implied,
+ *  including, but not limited to, implied warranties of
+ *  merchantability, fitness for a particular purpose, and
+ *  non-infringement.
+ *
+ *  --------------------------------------------------------------------
+ *
+ *  CVS History
+ *
+ *  This information is automatically added while 'commiting' the
+ *  changes to CVC ('Log message'):
+ *
+ * $Log$
+ * Revision 1.1  2006/03/18 09:01:34  tuberkel
+ * Initial revision
+ *
+ *
+ ************************************************************************ */
+
+
+
+ /* includes */
+
+ /* imported external symbols */
+
+ /* exported global symbols */
+
+ /* private symbols */
+
+
+// Function header template
+/***********************************************************************
+ *  FUNCTION:
+ *  DESCRIPTION:
+ *  PARAMETER:
+ *  RETURN:
+ *  COMMENT:
+ *********************************************************************** */
+
+
+// Function header example
+/***********************************************************************
+ *  FUNCTION:       ParGetSysParamInfo
+ *  DESCRIPTION:    returns a pointer to the requested system parameter
+ *                  info structure (not the sys parameter itself!)
+ *  PARAMETER:      eSearchedID     searched parameter ID
+ *  RETURN:         address         - of requested system parameter
+ *                                  - NULL if not found!
+ *  COMMENT:        to be used before reading / writing a system parameter
+ *********************************************************************** */
+
+
+
+
+
+
