@@ -1,0 +1,195 @@
+SIxO20-Software Versions
+========================
+
+Lower version numbers than v2.0.0 are maintained in the repository folder "sixo".
+Note that "sixo" is freezed (except bug fixes and minor updates).
+
+Version Date        Feature
+======= ==========  ======================================
+
+v2.4.2  2006-03-21  > NEU: Motorrad-Typ kann jetzt eingestellt werden
+			- keine MRD-spezifische Software-Versionen mehr
+			- MRD-Logo ändert sich automatisch mit
+			- Mrd-spez. Verhalten ändern sich zur Laufzeit
+			- Mrd-spez. Verhalten z.Zt. nur bei BMW R100GS, MuZ Baghira, AfricaTwin
+		    > NEU: Drehzahl-Schaltblitz
+			- Drehzahl frei einstellbar (0=aus, bis 30.000 U/Min)
+			- aktiviert INFO-LED 
+			- INFO-LED kann z.B. gegen Ultrahelle weiße LED ausgetauscht werden
+		    > NEU: Warnung bei Service-Intervall
+			- km für nächste Wartung frei einstellbar
+			- Warnungs-Text und -LED bei entsprechendem km-Stand
+		    > NEU: Maximalwert-Speicherung im Monitor-Device
+			- Batterie-Spannung Max-Wert
+			- Öl-Temp. Max-Wert
+			- Wasser-Temp. Max-Wert
+			- alle rücksetzbar mit [OK]-lang
+		    > NEU: Max.-Geschwindigkeit gespeichert
+			- angezeigt im Main-Device
+			- rücksetzbar mit [OK]-lang
+		    > NEU: TripCounter: Anzeige jetzt umschaltbar
+			- Gesamt/Teil-km jetzt oben/unten umschaltbar
+		    > NEU: getrennte Streckenzähler in Main-Device und TripCounter
+			- vorher: nur 2 Zähler gemeinsam genutzt
+			- jetzt: getrennte Main-Device T1/T2 und TripCounter Zähler
+		    > NEU: vForce-Logo
+		    > BugFixes: 
+			- Uhr-Sekundentakt-Anzeige jetzt ohne Ruckeln
+		    	- Display-Backlight beim Einschalten im Dunkeln jetzt ohne Flackern
+			- Main-Device: Anzeigen beim Scrollen nach Einheiten neu sortiert
+			
+
+v2.3.5  2005-07-02
+                    > NEW: Vehicle Speed TÜV conform approved
+                        - BugFix: vehicle speed accuracy improved by corrected filter
+                          algorythm
+                        - NEW: TÜV conform calculation of vehicle speed, including
+                          corrected wheel circumsize caused by wheel centrifugal forces
+                    > TripCounter:
+                        - NEW: Show vehicle speed instead of date in base line
+                    > Surveillance:
+                        - Improvements: Alternator Warning no checked via analog
+                          signal instead of GPI0 (>2000 RPM + ALTW < 8V)
+                        - NEW: Glaced Frost Warning (Air temp -2..+2°C)
+                    > NEW: SplashScreen
+                        - Boot Screen now contains vehicle specific logo :-)
+                    > MainDevice:
+                        - Automatic switch of temperature display between
+                          internal temp / external air temp (if available)
+                    > HWTestDevice:
+                        - Made test of power supply and battery check
+                          a little bit more tolerant
+                        - BugFix: HW-test now started only with ALL
+                          keys pressed! (before: only one key)
+                    > Measure-Driver:
+                        - Bugfix: Display value overflow if lithium battery fails:
+                          km values checked to limit before incrementing
+                        - Improvement: TÜV conform '+1km/h' moved from main device
+                          to measure HL driver
+                        - Bugfix: Display value overflow if lithium battery fails:
+                          distance calculations checked before casting
+                    > SetDevice:
+                        - BugFix: flickering backlight if editing backlight level
+
+v2.3.4  2005-03-25  > NEW: HWTestDevice: HW selfcheck software
+                        - started at PowerUp by pressing Up+Down+Ok
+                        - special screen with all I/O/HW elements
+                        - to be used for EndOfLine test
+                        - to be used at vehicle / end user too
+                    > IntroDevice:
+                        - HPN logo added
+                    > TripCounter:
+                        - Fixed: TripCounter upper/lower changed again
+                    > NEW: Hardcopy feature via Debug-Uart
+                        - Code activated by #defines DEBUG and HARDCOPY
+                        - Screen-Hardcopy triggered by HBEAM Low->High impuls
+                        - sends a complete black/white formated screen Bitmap (1024x64 BMP)
+                        - might directly be saved by terminal programm as file
+                        - might directly be opened by grahic tool without any changes
+                        - supports documentation
+                    > Some BugFixes/Improvements
+                        - fixed: automatic Backlight-Settings in SetDevice
+                        - Fixed: TogglePads macros corrected
+                        - Fixed: TimerRegistryFunctions fixed
+                        - new: GPO 1+2 pins made ready to use
+                        - new: PCB-HW-Version number made available
+                        - new: additional special characters in rgFont6x8
+
+v2.3.3  2004-12-14  > MonitorDevice:
+                        - freed from any vehicle surveillance code
+                            and moved to surveill.c
+                        - new: surveill.c to hold COMPLETE surveiellance stuff
+                            of analoge and digital part, took all stuff from
+                            mondev.c/anain.c/anaindrv.c/digindrv.c
+                        - Markus code + concept mostly unchanged :-)
+                    > AnalogIn-Part: completely reviewed by Arnold
+                        - several bugfixes and improvements
+                        - cleared driver concept
+                        - different filter modi for all analoge values
+                        - tested with VDO temp sensor
+                    > Surveillance:
+                        - OIL_TEMP_LOW      50    /* °C */
+                        - OIL_TEMP_WARN    110    /* °C */
+                        - OIL_TEMP_ERR     120    /* °C */
+                        - ENG_COLD_RPM    4000    /* U/Min */
+                        - WAT_TEMP_LOW      75    /* °C */
+                        - WAT_TEMP_WARN    100    /* °C */
+                        - WAT_TEMP_ERR     110    /* °C */
+                        - VOLTAGE_LOW      1050   /* 10,5V */
+                        - VOLTAGE_LOW_RPM  1700   /* U/Min */
+                        - VOLTAGE_HIGH     1550   /* 15,5V */
+
+
+v2.3.2  2004-10-23  Some BugFixes:
+                    > TripCounter-Device:
+                        - Upper/Lower were mischanged again, -> fixed
+                    > MainDevice:
+                        - VehicleStateString now cleared under all conditions
+                    > LCD-Backlight:
+                        - now uses hystersis to avoid flickering
+
+v2.3.1  2004-09-20  RELEASEVERSION
+                    > MonitorDevice:
+                        - always reacts on [OK] button by showing
+                          Vehicle state
+                    > IntroDevice: modified Version string
+                        - special bike compiler options shown
+                        - special debug options shown:
+                            - E = Emulator
+                            - D = DebugOut on Uart0
+                            - S = Vehicle simulation available
+                    > BMW100GS now supported
+
+v2.3.0  2004-08-04  Markus MonitorDevice Work
+                    > Baghira Logo combined with SIxO
+                    > Bitmap- and Textobjekt-Table in maindev.c
+                    > NEW: MonitorDevice
+                        - added between Trip Counter+Settings
+                        - Digindrv.c/anaindrv.c sending Messages to Monitordevice
+                          to control LEDs + status text (MonitorSetVehicleState)
+                        - Mutiple Error supported ("under 8l Sprit"/"Öl heiß") by scrolling
+                    > MainDevice:
+                        - Missing OilTemp-Sensor: -> RPM instead
+                        - Missing WaterTemp-Sensor: Fuel-Distance instead
+                        - Pressing Ok -> Switching between Clock + StatusText
+
+v2.2.0  2004-07-30  NEW RELEASE CANDIDATE!!!
+                    > Maindevice: TripCounter added as T1+T2
+                    > User-Device Logo changable (via Up/Down key)
+                    > Eeprom-Factory state now detected via MagicNumber
+                    > TripCounter: Short/Long distance exchanged in display (Like RodBook)
+                    > DebugOut: First Usage on device improved
+                    > several small BugFixes+improvements
+                    > AfricaTwin-Logo added
+
+v2.1.1  2004-06-15  > Markus complete AD/DA work added
+                        - AD/DA-Driver
+                        - aut. Backlight-Control
+                        - Voltage/Temp. Display
+
+v2.1.0  2004-06-15  > RTC now displayed
+                        - permanent displayed in MainDevice + TripCounter
+                        - editable + calibrable
+
+v2.0.1b 2004-04-04  > MuZ BAGHIRA work done by Markus:
+(Branch!)             - Digital Input adapted to Baghira Temperature Switch
+                      - Error LED adapted to Baghira Temperature Switch
+                      - Baghira Logo added
+
+v2.0.1  2004-02-24  > GPL added to all adequate source files
+                    > LEDs enabled & tested: ok!
+                    > Beeper enabled & tested: ok!
+                    > Vehicle Simulation enabled & tested: ok!
+                    > DigIn: All standard MotorCycle (TURN/NEUTRAL/OIL/HIGHBEAM) inputs
+                      now supported as direct LED switch
+                    > RPM/WHEEL BugFix: now prevents 'hopping values' when filter switches
+                    > TripCounter BugFix: Long- & Short-Distance counter now reseted together
+                    > TripCounter BugFix: LongPressed OK does not flicker any longer LED+Beeper
+
+v2.0.0  2003-12-23  > Initial version. Copy of "sixo". SW version number changed.
+                      Unused files isr.c, teraterm.ini, sixo.prj omitted (note:
+                      makefile is *.tmk, *.prj is generated on request with
+                      ProjectEditor->File->Output Makefile). Project name changed
+                      to sixo20. Compiled with tmv320_e/tmv320_patch_e/nc30wav500r2_e.
+                      Extern declarations in sysparam.c adapted for new compiler.
+                      Not tested.
