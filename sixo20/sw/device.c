@@ -73,8 +73,8 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
- * Revision 1.1  2006/03/18 08:45:10  tuberkel
- * Initial revision
+ * Revision 2.0  2006/06/26 23:25:50  tuberkel
+ * no message
  *
  * Revision 1.8  2006/03/18 08:45:10  Ralf
  * BugFix: no flickering backlight after booting in darkness

@@ -68,8 +68,8 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
- * Revision 1.1  2006/03/20 22:21:38  tuberkel
- * Initial revision
+ * Revision 2.0  2006/06/26 23:25:51  tuberkel
+ * no message
  *
  * Revision 1.1  2006/02/18 15:20:23  Ralf
  * - BIKE_MOTOBAU: statistics and lapcounter device added

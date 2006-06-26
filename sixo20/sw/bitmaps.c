@@ -82,8 +82,8 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
- * Revision 1.1  2006/03/18 12:05:19  tuberkel
- * Initial revision
+ * Revision 2.0  2006/06/26 23:25:50  tuberkel
+ * no message
  *
  * Revision 1.12  2006/03/18 08:40:57  Ralf
  * added 'vforce' logo

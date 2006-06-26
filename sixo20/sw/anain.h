@@ -73,8 +73,8 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
- * Revision 1.1  2006/03/18 12:05:19  tuberkel
- * Initial revision
+ * Revision 2.0  2006/06/26 23:25:50  tuberkel
+ * no message
  *
  * Revision 1.9  2006/02/18 14:32:57  Ralf
  * - ANAIN_STARTDELAY change from MilliSec to seconds

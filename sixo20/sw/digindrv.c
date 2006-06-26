@@ -68,8 +68,8 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
- * Revision 1.1  2006/03/18 12:05:18  tuberkel
- * Initial revision
+ * Revision 2.0  2006/06/26 23:25:50  tuberkel
+ * no message
  *
  *
  ************************************************************************ */

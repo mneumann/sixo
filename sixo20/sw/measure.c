@@ -68,8 +68,8 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
- * Revision 1.1  2006/03/18 08:50:43  tuberkel
- * Initial revision
+ * Revision 2.0  2006/06/26 23:25:51  tuberkel
+ * no message
  *
  * Revision 1.7  2006/03/18 08:50:43  Ralf
  * - TripCounter improved to 4 different counters

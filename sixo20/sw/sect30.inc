@@ -75,8 +75,8 @@
 ;  changes to CVC ('Log message'):
 ;
 ; $Log$
-; Revision 1.1  2006/02/18 14:40:47  tuberkel
-; Initial revision
+; Revision 2.0  2006/06/26 23:25:51  tuberkel
+; no message
 ;
 ; Revision 1.8  2006/02/18 14:40:47  Ralf
 ; - heap size decreased from 0x2000 -->0x1000

@@ -77,8 +77,8 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
- * Revision 1.1  2006/03/20 19:59:28  tuberkel
- * Initial revision
+ * Revision 2.0  2006/06/26 23:25:50  tuberkel
+ * no message
  *
  * Revision 1.4  2006/03/18 08:43:16  Ralf
  * changed logo handling

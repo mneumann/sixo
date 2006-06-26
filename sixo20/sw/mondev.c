@@ -68,8 +68,8 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
- * Revision 1.1  2006/03/20 21:57:18  tuberkel
- * Initial revision
+ * Revision 2.0  2006/06/26 23:25:51  tuberkel
+ * no message
  *
  * Revision 1.6  2006/02/18 14:57:16  Ralf
  * - BIKE_MOTOBAU: this device disabled

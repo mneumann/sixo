@@ -68,8 +68,8 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
- * Revision 1.1  2006/03/20 20:28:49  tuberkel
- * Initial revision
+ * Revision 2.0  2006/06/26 23:25:50  tuberkel
+ * no message
  *
  * Revision 1.21  2006/02/18 14:08:16  Ralf
  * - adaption to BIKER_MOTOBAU
