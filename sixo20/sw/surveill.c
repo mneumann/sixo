@@ -70,6 +70,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.2  2006/07/20 23:13:43  tuberkel
+ * BugFix in V2.1:
+ * - ALTW-warning now cleared correctly
+ *
  * Revision 2.1  2006/07/20 23:10:50  tuberkel
  * added special F650 handling:
  * - fuel 4 L. warning
