@@ -70,6 +70,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.1  2006/07/20 23:01:31  tuberkel
+ * - added F650 version
+ * - added ABS warning
+ *
  * Revision 2.0  2006/06/26 23:25:51  tuberkel
  * no message
  *
@@ -90,6 +94,7 @@
    7 characters for up to 15 bikes  "1234567" */
 #define RESTXT_BIKESTRING_DEFAULT   "STANDARD"
 #define RESTXT_BIKESTRING_R100GS    "R100GS"
+#define RESTXT_BIKESTRING_F650      "F650"
 #define RESTXT_BIKESTRING_HUSQV     "HUSQV"
 #define RESTXT_BIKESTRING_BAGHIRA   "BAGHIRA"
 #define RESTXT_BIKESTRING_AT        "AT"
@@ -170,6 +175,7 @@
 #define RESTXT_STATE_OILSWDEF     " \xd6ldrucksch. defekt? "
 #define RESTXT_STATE_FUEL8L       "  Unter 8 l. Sprit!  "
 #define RESTXT_STATE_FUEL4L       "  Unter 4 l. Sprit!  "
+#define RESTXT_STATE_ABS          "     ABS inaktiv!    "
 #define RESTXT_STATE_GLACED       "      Glatteis?      "
 #define RESTXT_STATE_SERVICEKM    "  Service-Intervall  "
 
