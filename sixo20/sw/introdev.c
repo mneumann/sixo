@@ -69,6 +69,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.1  2006/07/20 23:00:42  tuberkel
+ * added F650 version
+ *
  * Revision 2.0  2006/06/26 23:25:50  tuberkel
  * no message
  *
@@ -193,6 +196,7 @@ void IntroScreenShow(BOOL fShow)
             case eBIKE_AFRICATWIN:  strcat ( szSWVersion, RESTXT_BIKESTRING_AT); break;
             case eBIKE_R100GS:      strcat ( szSWVersion, RESTXT_BIKESTRING_R100GS); break;
             case eBIKE_R1100GS:     strcat ( szSWVersion, RESTXT_BIKESTRING_R1100GS); break;
+            case eBIKE_F650:        strcat ( szSWVersion, RESTXT_BIKESTRING_F650); break;            
             case eBIKE_BAGHIRA:     strcat ( szSWVersion, RESTXT_BIKESTRING_BAGHIRA); break;
             case eBIKE_HUSQV:       strcat ( szSWVersion, RESTXT_BIKESTRING_HUSQV); break;
             case eBIKE_HUSQVRS:     strcat ( szSWVersion, RESTXT_BIKESTRING_HUSQVRS); break;

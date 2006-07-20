@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.1  2006/07/20 23:03:24  tuberkel
+ * added F650 version
+ *
  * Revision 2.0  2006/06/26 23:25:51  tuberkel
  * no message
  *
@@ -892,6 +895,7 @@ void SetDeviceCheckChanges( void )
         {   case eBIKE_STANDARD:    gLogoSelection = eLogo_SIXO;        break;
             case eBIKE_R100GS:      gLogoSelection = eLogo_BMW;         break;
             case eBIKE_R1100GS:     gLogoSelection = eLogo_BMW_1100GS;  break;
+            case eBIKE_F650:        gLogoSelection = eLogo_BMW;  	break;
             case eBIKE_AFRICATWIN:  gLogoSelection = eLogo_AfricaTwin;  break;
             case eBIKE_BAGHIRA:     gLogoSelection = eLogo_BAGHIRA;     break;
             case eBIKE_HUSQV:       gLogoSelection = eLogo_HUSQV;       break;
