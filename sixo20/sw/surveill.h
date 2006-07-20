@@ -70,6 +70,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.1  2006/07/20 23:07:13  tuberkel
+ * - added ABS input
+ * - added TempSwitch instead of analog TempSensor
+ *
  * Revision 2.0  2006/06/26 23:25:51  tuberkel
  * no message
  *
@@ -129,6 +133,8 @@ typedef enum
    VEHICLE_STATE_ENGINECOLD,    // RPM + oil/water temp sensor
    VEHICLE_STATE_FUEL8L,        // digital input
    VEHICLE_STATE_FUEL4L,        // digital input
+   VEHICLE_STATE_ABS,           // digital input   
+   VEHICLE_STATE_WATTEMPSW,     // water temp switch
    VEHICLE_STATE_GLACED,        // air temp sensor
    VEHICLE_STATE_SERVICEKM,     // general vehicle service intervall
    LAST_VEHICLE_STATE_PARM      // --- invalid state --- */
