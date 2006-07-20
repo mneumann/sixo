@@ -14,12 +14,12 @@ Version=V.5.00 Release 2
 [MEMBER]
 Count=6
 Name1=A+C-FLAG: MINIEMU
-Section1=0 / 1
+Section1=0 / 1 NOTE: Set both A-FLAGS & C-FLAGS !!!
 Mail1=if defined, activates KD30 V3.0 Monitor usage on Uart1
 TEL1=if DEBUG too defined, makes DebugOut printf() to Uart0 instead of Uart1
 ETC1=
 Name2=A+C-FLAG: DEBUG
-Section2=0 / 1
+Section2=0 / 1 NOTE: Set both A-FLAGS & C-FLAGS !!!
 Mail2=if defined, activates DebugOut with printf() on Uart1(0)
 TEL2=activates several modules debug code too
 ETC2=
@@ -106,6 +106,6 @@ ToolName1=lmc30
 [PD]
 Name=KD30
 Version=V.3.02 Release 1a
-Path=D:\Renesas\M16C\KD30\KD30.EXE
+Path=C:\MTOOL\KD30\KD30.EXE
 Type=1
 
