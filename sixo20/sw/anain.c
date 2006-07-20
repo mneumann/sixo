@@ -74,6 +74,12 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.1  2006/07/20 22:56:34  tuberkel
+ * Added different filters LDR sensor:
+ * - fast detection of darkness
+ * - slowly detection of brightness
+ * This helps quickly switching on backlight e.g. under bridges
+ *
  * Revision 2.0  2006/06/26 23:25:50  tuberkel
  * no message
  *
@@ -381,10 +387,27 @@ void AnaInRefreshValues( UINT8 ucADChannel, UINT8 ucADSample )
         case ANAIN_LUMI:   //internal luminescence sensor (LDR) --------
             //we use the raw value of the LDR as physical value
             usNewValue = ANAIN_LUMI_SCALE * (UINT16)ucADSample;  //range 0=bright...255=dark
-            if( bADChannelInit ){
-               //luminescence filter: take 7/8 of old value and 1/8 of new sample
-               //(+4/8=0.5 for rounding error, equals behaviour for pos. and neg. slopes)
-               usADPhysValues[ucADChannel] = (7 * usADPhysValues[ucADChannel] + usNewValue + 4) >> 3;
+            if( bADChannelInit )
+            {
+               /* different filters for darker/brighter transition: 
+                    - fast detection of darkness
+                    - slowly detection of brightness 
+                  this helps quickly switching on backlight e.g. under bridges */
+               if ( usNewValue > usADPhysValues[ucADChannel] )
+               {
+                   // trend: going to be darker!
+                   // luminescence filter: take 1/8 of old value and 7/8 of new sample
+                   //(+4/8=0.5 for rounding error, equals behaviour for pos. and neg. slopes)
+                   usADPhysValues[ucADChannel] = (1*usADPhysValues[ucADChannel] + 7*usNewValue + 4) >> 3;
+               }
+               else
+               {
+                   // trend: going to be brighter!
+                   // luminescence filter: take 7/8 of old value and 1/8 of new sample
+                   // (+4/8=0.5 for rounding error, equals behaviour for pos. and neg. slopes)
+                   usADPhysValues[ucADChannel] = (7*usADPhysValues[ucADChannel] + 1*usNewValue + 4) >> 3;
+               }
+            
             }
             else{
                //take new sample without filtering at very first time to initialise filter
