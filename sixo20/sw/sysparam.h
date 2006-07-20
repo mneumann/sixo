@@ -69,6 +69,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.1  2006/07/20 23:06:03  tuberkel
+ * - added F650 version
+ * - incr. to V2.4.4
+ *
  * Revision 2.0  2006/06/26 23:25:51  tuberkel
  * no message
  *
@@ -96,10 +100,10 @@
 /* software version number e.q. '2.1.1' */
 #define DEF_SWID_APL   2  // APL = (0..15) mean application number (changed with new mean application features)
 #define DEF_SWID_SWV   4  // SWV = (0..15) sw version number (changed with additional features)
-#define DEF_SWID_BLD   2  // BLD = (0..15) build number (changed with bugfixes)
+#define DEF_SWID_BLD   4  // BLD = (0..15) build number (changed with bugfixes)
 
 
-/* bike specific version number */
+/* hardware specific version number */
 // SPC = (0..15 eq. 'A'..'F') special version number (changed for special enabled/disabled features)
 #define DEF_SWID_SPC   0    // 'A' reserved for base version
 
@@ -196,6 +200,7 @@ typedef enum
     eBIKE_HUSQV,         // Husqvarna version
     eBIKE_HUSQVRS,       // Husqvarna RS version
     eBIKE_KTM,           // KTM version
+    eBIKE_F650,          // BMW F650 version
     eBIKE_MOTOBAU,       // special Motobau (Berlin) version
     eBIKE_INVALID        // invalid bike type
 } BIKE_TYPE;
