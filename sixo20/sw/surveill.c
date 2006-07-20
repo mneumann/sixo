@@ -70,6 +70,13 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.1  2006/07/20 23:10:50  tuberkel
+ * added special F650 handling:
+ * - fuel 4 L. warning
+ * - ABS warning
+ * - WaterTempSwitch
+ * Now distinguish between analog TempoSensor & TempSwitch
+ *
  * Revision 2.0  2006/06/26 23:25:51  tuberkel
  * no message
  *
@@ -188,6 +195,8 @@ ERRCODE SurvInit(void)
     szVehicStateDescs[VEHICLE_STATE_OILSWDEF]       = (STRING) RESTXT_STATE_OILSWDEF;
     szVehicStateDescs[VEHICLE_STATE_FUEL8L]         = (STRING) RESTXT_STATE_FUEL8L;
     szVehicStateDescs[VEHICLE_STATE_FUEL4L]         = (STRING) RESTXT_STATE_FUEL4L;
+    szVehicStateDescs[VEHICLE_STATE_ABS]            = (STRING) RESTXT_STATE_ABS;    
+    szVehicStateDescs[VEHICLE_STATE_WATTEMPSW]      = (STRING) RESTXT_STATE_WATERTEMP;    
     szVehicStateDescs[VEHICLE_STATE_GLACED]         = (STRING) RESTXT_STATE_GLACED;
     szVehicStateDescs[VEHICLE_STATE_SERVICEKM]      = (STRING) RESTXT_STATE_SERVICEKM;
 
@@ -576,12 +585,16 @@ void SurvCheckAllAnalogWarnings(void)
         if ( vstatelvl == VEHICLE_STATE_LEVEL_OK )      // no warning until now?
         {   if (  ( wRPM        > ALTERN_LOW_RPM)       // check: RPM over check limit?
                 &&(wAlternator  < ALTERN_LOW    ) )     //        AND voltage below threshold?
-            vstatelvl = VEHICLE_STATE_LEVEL_WARNING;    // SET WARNING!
+            {
+                vstatelvl = VEHICLE_STATE_LEVEL_WARNING;    // SET WARNING!
+            }
         }
         else                                            // we already had a warning!
         {   if (  ( wRPM        == 0         )          // no error if motor stands still
-                ||( wAlternator > ALTERN_LOW ) )        // check: voltage higher than threshold?
+                ||( wAlternator > ALTERN_LOW     ) )    // check: voltage higher than threshold?
+            {
                 vstatelvl = VEHICLE_STATE_LEVEL_OK;     // CLEAR WARNING!
+            }
         }
     }
     else
@@ -627,6 +640,31 @@ void SurvCheckAllDigitalWarnings(void)
 {
     switch ( gBikeType )
     {
+        /* SPECIAL HANDLING FOR BMW F650 ============================= */
+        case eBIKE_F650:
+        {
+            /* WARNING LED ------------------------------------------- */
+
+            /* fuel 4 l error */
+            if ( DigIn_Fuel_4l == 0 )               // low active
+                 SurvSetVehicleState(VEHICLE_STATE_FUEL4L, VEHICLE_STATE_LEVEL_WARNING);
+            else SurvSetVehicleState(VEHICLE_STATE_FUEL4L, VEHICLE_STATE_LEVEL_OK);
+
+            /* ABS inactive warning */
+            if ( DigIn_ABS_Warn == 0 )              // low active
+                 SurvSetVehicleState(VEHICLE_STATE_ABS, VEHICLE_STATE_LEVEL_WARNING);
+            else SurvSetVehicleState(VEHICLE_STATE_ABS, VEHICLE_STATE_LEVEL_OK);
+
+            /* ERROR LED ------------------------------------------- */
+            if ( DigIn_Temp_Warn   == 1)          // high active
+                 SurvSetVehicleState(VEHICLE_STATE_WATTEMPSW, VEHICLE_STATE_LEVEL_ERROR);
+            else SurvSetVehicleState(VEHICLE_STATE_WATTEMPSW, VEHICLE_STATE_LEVEL_OK);
+
+        } break;
+
+
+
+
         /* SPECIAL HANDLING FOR HONDA AFRICATWIN ============================= */
         case eBIKE_AFRICATWIN:
         {
@@ -666,8 +704,8 @@ void SurvCheckAllDigitalWarnings(void)
             /* Baghira's does not have oil pressure warning light,
              * but a temperature warning light */
             if ( DigIn_Temp_Warn   == 1)          // high active
-                 SurvSetVehicleState(VEHICLE_STATE_WATTEMP, VEHICLE_STATE_LEVEL_ERROR);
-            else SurvSetVehicleState(VEHICLE_STATE_WATTEMP, VEHICLE_STATE_LEVEL_OK);
+                 SurvSetVehicleState(VEHICLE_STATE_WATTEMPSW, VEHICLE_STATE_LEVEL_ERROR);
+            else SurvSetVehicleState(VEHICLE_STATE_WATTEMPSW, VEHICLE_STATE_LEVEL_OK);
         } break;
 
         /* DEFAULT HANDLING FOR ALL OTHER BIKES ============================= */
@@ -751,6 +789,10 @@ void SurvSetVehicleState(VEHICLE_STATE_PARM parameter, VEHICLE_STATE_LEVEL level
         return;         /* no change */
    else ODS2(DBG_MEAS, DBG_INFO, "SurvSetVehicleState() [%s]: %s)", szVehicStateDescs[parameter], szErrorLevel[level]);
 
+   /* update current vehicle state */
+   VehicleState[parameter] = level;
+
+
    /* new parameter state != ok? -> show it at top! */
    if (level != VEHICLE_STATE_LEVEL_OK)
    {
@@ -767,9 +809,6 @@ void SurvSetVehicleState(VEHICLE_STATE_PARM parameter, VEHICLE_STATE_LEVEL level
        SurvScrollVehicleState(VST_SCROLL_DOWN);
 
    }
-
-   /* update current vehicle state */
-   VehicleState[parameter] = level;
 
    /* check which LEDs should be on */
    CurrentNOKStates = 0;
