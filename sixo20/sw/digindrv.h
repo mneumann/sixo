@@ -123,16 +123,11 @@
 
 /* special motor cycle defines */
 
-// BIKE_AFRICATWIN
 #define DigIn_Fuel_8l       DigIn_GPI_0     // low active switches for
 #define DigIn_Fuel_4l       DigIn_GPI_1     // low active switches
-
-// BIKE_BAGHIRA
 #define DigIn_Temp_Warn     DigIn_GPI_0     // high active switch
-
-// BIKE_R100GS
 #define DigIn_Altern_Warn   DigIn_GPI_0     // high active switch
-
+#define DigIn_ABS_Warn      DigIn_GPI_2     // low active switch
 
 
 /* time constants */
