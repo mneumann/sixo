@@ -68,6 +68,14 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.1  2006/10/01 22:17:10  tuberkel
+ * NEW:
+ * - DigitalFilter functions
+ * Fixed:
+ * DigInDrv_Init()
+ * - removed isr2 code (obsolete)
+ * - removed ALTW digital access
+ *
  * Revision 2.0  2006/06/26 23:25:50  tuberkel
  * no message
  *
@@ -85,17 +93,28 @@
 #include "msgqueue.h"
 #include "leddrv.h"
 #include "led.h"
-#include "digindrv.h"
 #include "device.h"
 #include "anaindrv.h"
+#include "sysparam.h"
+#include "digindrv.h"
+
 
 /* external vars */
-extern UINT16  wMilliSecCounter;            /* valid values: 0h .. ffffh */
+extern UINT16       wMilliSecCounter;   /* valid values: 0h .. ffffh */
+extern BIKE_TYPE    gBikeType;          /* bike type */
+
 
 
 /* module global vars */
-static KEYTIME   rgKeyControl[KEY_LAST];    /* protocol of duration & start time */
-static KEYTIME   MultiKeyControl;           /* protocol for multiple pressed keys */
+KEYTIME   rgKeyControl[KEY_LAST];    /* protocol of duration & start time */
+KEYTIME   MultiKeyControl;           /* protocol for multiple pressed keys */
+
+
+/* digital filter table for all inputs */
+DIGFILTTYPE DigInFilter[eDF_LAST];
+
+
+
 
 
 /* KD30 support */
@@ -127,7 +146,7 @@ ERRCODE DigInDrv_Init(void)
     KeyPortD_Up     = 0;   /* DOWN Button direction bit to INPUT */
 
     /* init key pressed time protocol */
-    for (i=0; i<KEY_LAST; i++)
+    for (i=0; i<(KEY_LAST); i++)
     {
         rgKeyControl[i].wStartTime_ms     = 0;
         rgKeyControl[i].wLastSentTime_ms  = 0;
@@ -137,21 +156,11 @@ ERRCODE DigInDrv_Init(void)
     MultiKeyControl.wLastSentTime_ms  = 0;
     MultiKeyControl.wDuration_ms      = 0;
 
-    /* we use the a isr to quickly get WHEEL & RPM infos,
-       but NOT for keyboard reading */
-    /* enable DigitalInputISR */
-    INT_GLOB_DISABLE;
-    int2ic     = 0x00;  /* int2 interrupt control register settings:
-                            - level set to 0 = disabled!
-                            - polarity flag to 'falling edge'
-                            - request cause select register flag to 'one edge' (ifsr2=0 default) */
-    INT_GLOB_ENABLE;
+    /* initialize digital input filter table */
+    DigInDrv_FilterInit();
 
     /* other digital in init stuff */
     pd2 &= ~DIGIN_ALL_P2;   // set all digin pins to INPUT
-
-    /* special handling for alternator warning */
-    pd10_4 = 0;             // digital input
 
     /* HW version detection */
     HWVerPortD &= ~HWVERS_PINS;     // assure 3 HW-Version pins to input only
@@ -433,25 +442,27 @@ ERRCODE DigInDrv_SendKeyMessage(const KEYNUMBER Key, const KEYTIME far * fpKeyDa
  *  DESCRIPTION:    check all other digital in ports
  *  PARAMETER:      -
  *  RETURN:         -
- *  COMMENT:        -
+ *  COMMENT:        Bike specific handling is handled in surveillance 
+ *                  modules SurvCheckAllValues()
  *********************************************************************** */
 void DigInDrv_CheckAllPorts(void)
 {
-    /* DEFAULT HANDLING FOR ALL BIKES ============================= */
+    /* Update all digital filter values ========================== */
+    DigInDrv_Filter();
 
     /* TURN LED ------------------------------------------- */
-    if (  (DigIn_TurnL == 1)                // high active
-        ||(DigIn_TurnR == 1) )              // high active
+    if (  (DF_TURNL == 1)                // high active
+        ||(DF_TURNR == 1) )              // high active
          LEDDrvSetLED(LEDDRV_TURN, TRUE);
     else LEDDrvSetLED(LEDDRV_TURN, FALSE);
 
     /* NEUTRAL LED ------------------------------------------- */
-    if (DigIn_Neutral == 0)                 // low active
+    if (DF_NEUTR == 0)                 // low active
          LEDDrvSetLED(LEDDRV_NEUTR, TRUE);
     else LEDDrvSetLED(LEDDRV_NEUTR, FALSE);
 
     /* HIGHBEAM LED ------------------------------------------- */
-    if (DigIn_HBeam == 1)                   // high active
+    if (DF_HBEAM == 1)                   // high active
          LEDDrvSetLED(LEDDRV_BEAM, TRUE);
     else LEDDrvSetLED(LEDDRV_BEAM, FALSE);
 
@@ -472,3 +483,137 @@ UINT8 DigInDrv_GetHWVersion(void)
     return (HWVerPort & HWVERS_PINS);   // get port status, mask hw version pins only
 }
 
+
+
+/***********************************************************************
+ *  FUNCTION:       DigInDrv_Filter
+ *  DESCRIPTION:    updates digital filtered values for all digital 
+ *                  input ports
+ *  PARAMETER:      -
+ *  RETURN:         -
+ *  COMMENT:        -
+ *********************************************************************** */
+void DigInDrv_Filter(void)
+{
+    DIGFILTELEMENT elem;
+    UINT8          input;
+    
+    // loop over all digital inpus
+    for (elem = eDF_TURNL; elem<eDF_GPI_3; elem++)
+    {
+        // get current input value
+        switch (elem)
+        {   case eDF_TURNL: input = DigIn_TurnL  ; break; 
+            case eDF_TURNR: input = DigIn_TurnR  ; break; 
+            case eDF_OILSW: input = DigIn_OilSw  ; break; 
+            case eDF_NEUTR: input = DigIn_Neutral; break; 
+            case eDF_HBEAM: input = DigIn_HBeam  ; break; 
+            case eDF_GPI_0: input = DigIn_GPI_0  ; break; 
+            case eDF_GPI_1: input = DigIn_GPI_1  ; break; 
+            case eDF_GPI_2: input = DigIn_GPI_2  ; break; 
+            case eDF_GPI_3: input = DigIn_GPI_3  ; break;
+            default: input = 0; break;
+        }            
+        
+        // check current input value: count up/down?
+        if ( input == 1 )             // current input: HIGH?
+             DigInFilter[elem].swFiltValue += (INT16) DigInFilter[elem].bIncrValue; // count UP!
+        else DigInFilter[elem].swFiltValue -= (INT16) DigInFilter[elem].bDecrValue; // count DOWN!
+        
+        // limit value & detect threshold (0/255)
+        if ( DigInFilter[elem].swFiltValue > UINT8_MAX)
+        {
+            DigInFilter[elem].swFiltValue = UINT8_MAX;
+            DigInFilter[elem].fState = 1;
+        }
+        else if ( DigInFilter[elem].swFiltValue < 0)
+        {
+            DigInFilter[elem].swFiltValue = 0;
+            DigInFilter[elem].fState = 0;
+        }
+    }     
+}
+
+
+
+
+/***********************************************************************
+ *  FUNCTION:       DigInDrv_FilterInit
+ *  DESCRIPTION:    bike specific digital filter initialization
+ *  PARAMETER:      -
+ *  RETURN:         -
+ *  COMMENT:        -
+ *********************************************************************** */
+void    DigInDrv_FilterInit(void)
+{
+    DIGFILTELEMENT elem;
+    
+    // reset all filter entries to common default filter settings 
+    for (elem = eDF_TURNL; elem < eDF_LAST; elem++)
+    {
+        DigInFilter[elem].bIncrValue    = DigInDrv_FilterConvertTime( DIGFILT_DEF );
+        DigInFilter[elem].bDecrValue    = DigInDrv_FilterConvertTime( DIGFILT_DEF );
+        DigInFilter[elem].swFiltValue   = 0;
+        DigInFilter[elem].fState        = FALSE;        
+    }
+        
+    // add bike specific filter settings
+    switch(gBikeType)
+    {
+        case eBIKE_F650:
+        {
+            // DF_Temp_Warn_F650 filter values - no special filtering
+            // DF_ABS_Warn_F650 - no special filtering
+
+            // DF_Fuel_4l_F650 filter values
+            DigInFilter[eDF_GPI_1].bIncrValue = DigInDrv_FilterConvertTime( DIGFILT_FUEL_HIGH );
+            DigInFilter[eDF_GPI_1].bDecrValue = DigInDrv_FilterConvertTime( DIGFILT_FUEL_LOW  );
+
+            ODS(DBG_DRV,DBG_INFO,"DigInDrv_FilterInit() set to eBIKE_F650!");            
+        } break;
+
+        case eBIKE_AFRICATWIN:
+        {
+            // DF_Fuel_8l_AT filter values
+            DigInFilter[eDF_GPI_0].bIncrValue = DigInDrv_FilterConvertTime( DIGFILT_FUEL_HIGH );
+            DigInFilter[eDF_GPI_0].bDecrValue = DigInDrv_FilterConvertTime( DIGFILT_FUEL_LOW  );
+
+            // DF_Fuel_4l_AT filter values
+            DigInFilter[eDF_GPI_1].bIncrValue = DigInDrv_FilterConvertTime( DIGFILT_FUEL_HIGH );
+            DigInFilter[eDF_GPI_1].bDecrValue = DigInDrv_FilterConvertTime( DIGFILT_FUEL_LOW  );
+
+            ODS(DBG_DRV,DBG_INFO,"DigInDrv_FilterInit() set to eBIKE_AFRICATWIN!");            
+        } break;
+        
+        default: 
+            ODS(DBG_DRV,DBG_INFO,"DigInDrv_FilterInit() set to default settings!");            
+            break;
+    }
+}
+
+
+/***********************************************************************
+ *  FUNCTION:       DigInDrv_FilterConvertTime
+ *  DESCRIPTION:    converts filter time into incr/decr value for filter
+ *  PARAMETER:      wFilterTime     in ms 
+ *  RETURN:         incr/decr       value to be used in filter
+ *  COMMENT:        helper function
+ *********************************************************************** */
+UINT8   DigInDrv_FilterConvertTime(UINT16 wFilterTime)
+{
+    UINT16 rvalue;
+    
+    // check limits
+    wFilterTime = MIN(wFilterTime, DIGFILT_MAX);
+    wFilterTime = MAX(wFilterTime, DIGFILT_MIN);
+    
+    // calculate incr/der value
+    rvalue = UINT8_MAX * MS_PER_TICK / wFilterTime;
+    
+    // limit result to UINT8
+    if ( rvalue > UINT8_MAX )
+        rvalue = UINT8_MAX;    // indicates 'no filter', direct switch
+    if ( rvalue == 0 )        
+        rvalue = 1;            // indicates slowest possible filter
+    return ((UINT8) rvalue);
+}
