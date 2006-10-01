@@ -70,6 +70,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.3  2006/10/01 22:19:02  tuberkel
+ * SurvCheckAllDigitalWarnings()
+ * - now uses digital filtered values only
+ *
  * Revision 2.2  2006/07/20 23:13:43  tuberkel
  * BugFix in V2.1:
  * - ALTW-warning now cleared correctly
@@ -143,6 +147,8 @@ extern UINT16           wSecCounter;            // low  resolution long  distanc
 extern BIKE_TYPE        gBikeType;              // bike type
 extern far DIST_TYPE    gNextServKm;            // to get/set original value
 extern far DIST_TYPE    gNextServKm_def;        // to get/set original value
+extern DIGFILTTYPE      DigInFilter[];          // digital filter table for all inputs
+
 
 // local data
 static UINT16      wRPM;                    // RPM signal           1 RPM/bit
@@ -638,7 +644,7 @@ void SurvCheckAllAnalogWarnings(void)
  *                  vehicle state
  *  PARAMETER:      -
  *  RETURN:         -
- *  COMMENT:        -
+ *  COMMENT:        We use digital filtered values only
  *********************************************************************** */
 void SurvCheckAllDigitalWarnings(void)
 {
@@ -650,17 +656,17 @@ void SurvCheckAllDigitalWarnings(void)
             /* WARNING LED ------------------------------------------- */
 
             /* fuel 4 l error */
-            if ( DigIn_Fuel_4l == 0 )               // low active
+            if ( DF_Fuel_4l_F650 == FALSE )          // low active
                  SurvSetVehicleState(VEHICLE_STATE_FUEL4L, VEHICLE_STATE_LEVEL_WARNING);
             else SurvSetVehicleState(VEHICLE_STATE_FUEL4L, VEHICLE_STATE_LEVEL_OK);
 
             /* ABS inactive warning */
-            if ( DigIn_ABS_Warn == 0 )              // low active
+            if ( DF_ABS_Warn_F650 == 0 )              // low active
                  SurvSetVehicleState(VEHICLE_STATE_ABS, VEHICLE_STATE_LEVEL_WARNING);
             else SurvSetVehicleState(VEHICLE_STATE_ABS, VEHICLE_STATE_LEVEL_OK);
 
             /* ERROR LED ------------------------------------------- */
-            if ( DigIn_Temp_Warn   == 1)          // high active
+            if ( DF_Temp_Warn_F650 == 1)             // high active
                  SurvSetVehicleState(VEHICLE_STATE_WATTEMPSW, VEHICLE_STATE_LEVEL_ERROR);
             else SurvSetVehicleState(VEHICLE_STATE_WATTEMPSW, VEHICLE_STATE_LEVEL_OK);
 
@@ -675,26 +681,26 @@ void SurvCheckAllDigitalWarnings(void)
             /* WARNING LED ------------------------------------------- */
 
             /* fuel 8 l warning */
-            if (DigIn_Fuel_8l == 0)                 // low active
+            if ( DF_Fuel_8l_AT == 0)                 // low active
                  SurvSetVehicleState(VEHICLE_STATE_FUEL8L, VEHICLE_STATE_LEVEL_WARNING);
             else SurvSetVehicleState(VEHICLE_STATE_FUEL8L, VEHICLE_STATE_LEVEL_OK);
 
             /* oil switch defect? */
-            if (  ( DigIn_OilSw == 1 )      // no oil signal
-                &&( wRPM        == 0 ) )    // but engine stands still?
+            if (  ( DF_OILSW == 1 )         // no oil signal
+                &&( wRPM     == 0 ) )       // but engine stands still?
                  SurvSetVehicleState(VEHICLE_STATE_OILSWDEF, VEHICLE_STATE_LEVEL_WARNING);
             else SurvSetVehicleState(VEHICLE_STATE_OILSWDEF, VEHICLE_STATE_LEVEL_OK);
 
             /* ERROR LED ------------------------------------------- */
 
             /* oil pressure ok? */
-            if (  ( DigIn_OilSw == 0             )      // low active
-                &&( wRPM        >  OIL_PRESS_RPM ) )    // and engine running?
+            if (  ( DF_OILSW == 0             )      // low active
+                &&( wRPM     >  OIL_PRESS_RPM ) )    // and engine running?
                  SurvSetVehicleState(VEHICLE_STATE_OILPRESS, VEHICLE_STATE_LEVEL_ERROR);
             else SurvSetVehicleState(VEHICLE_STATE_OILPRESS, VEHICLE_STATE_LEVEL_OK);
 
             /* fuel 4 l error */
-            if ( DigIn_Fuel_4l == 0 )               // low active
+            if ( DF_Fuel_4l_AT == 0 )               // low active
                  SurvSetVehicleState(VEHICLE_STATE_FUEL4L, VEHICLE_STATE_LEVEL_ERROR);
             else SurvSetVehicleState(VEHICLE_STATE_FUEL4L, VEHICLE_STATE_LEVEL_OK);
         } break;
@@ -707,7 +713,7 @@ void SurvCheckAllDigitalWarnings(void)
 
             /* Baghira's does not have oil pressure warning light,
              * but a temperature warning light */
-            if ( DigIn_Temp_Warn   == 1)          // high active
+            if ( DF_Temp_Warn_BAGHIRA == 1)          // high active
                  SurvSetVehicleState(VEHICLE_STATE_WATTEMPSW, VEHICLE_STATE_LEVEL_ERROR);
             else SurvSetVehicleState(VEHICLE_STATE_WATTEMPSW, VEHICLE_STATE_LEVEL_OK);
         } break;
@@ -718,16 +724,16 @@ void SurvCheckAllDigitalWarnings(void)
             /* WARNING LED ------------------------------------------- */
 
             /* oil switch defect? */
-            if (  ( DigIn_OilSw == 1 )      // no oil signal
-                &&( wRPM        == 0 ) )    // but engine stands still?
+            if (  ( DF_OILSW == 1 )      // no oil signal
+                &&( wRPM     == 0 ) )    // but engine stands still?
                  SurvSetVehicleState(VEHICLE_STATE_OILSWDEF, VEHICLE_STATE_LEVEL_WARNING);
             else SurvSetVehicleState(VEHICLE_STATE_OILSWDEF, VEHICLE_STATE_LEVEL_OK);
 
             /* ERROR LED ------------------------------------------- */
 
             /* oil pressure ok? */
-            if (  ( DigIn_OilSw == 0             )      // low active
-                &&( wRPM        >  OIL_PRESS_RPM ) )    // and engine running?
+            if (  ( DF_OILSW == 0             )      // low active
+                &&( wRPM     >  OIL_PRESS_RPM ) )    // and engine running?
                  SurvSetVehicleState(VEHICLE_STATE_OILPRESS, VEHICLE_STATE_LEVEL_ERROR);
             else SurvSetVehicleState(VEHICLE_STATE_OILPRESS, VEHICLE_STATE_LEVEL_OK);
         } break;
