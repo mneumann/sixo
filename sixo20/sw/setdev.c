@@ -68,6 +68,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.2  2006/10/01 22:22:53  tuberkel
+ * new: DigInDrv_FilterInit();
+ * - essential: adapt vehicle specific digital filter settings too!
+ *
  * Revision 2.1  2006/07/20 23:03:24  tuberkel
  * added F650 version
  *
@@ -904,7 +908,10 @@ void SetDeviceCheckChanges( void )
             case eBIKE_MOTOBAU:     gLogoSelection = eLogo_Motobau;     break;
             default:                gLogoSelection = eLogo_SIXO;        break;
         }
-        SurvResetVehicleStates();   // essential: reset all vehicle states to 'all right' too! */
+        // essential: reset all vehicle states to 'all right' too! */
+        SurvResetVehicleStates();   
+        // essential: adapt vehicle specific digital filter settings too! */
+        DigInDrv_FilterInit();
     }
 
     // Display Contrast changed? --------------------
