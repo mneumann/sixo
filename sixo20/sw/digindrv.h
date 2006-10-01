@@ -105,29 +105,110 @@
 /* other digital in port register */
 #define DIGIN_ALL_P2    0xf8    /* DigIn ports only */
 
+
+/* common dedicated digital inputs (unfiltered values) */
 #define DigIn_TurnL   p2_3
 #define DigIn_TurnR   p2_4
 #define DigIn_OilSw   p2_5
 #define DigIn_Neutral p2_6
 #define DigIn_HBeam   p2_7
 
+/* common general purpose digital inputs (unfiltered values) */
 #define DigIn_GPI_0   p1_4
 #define DigIn_GPI_1   p1_5
 #define DigIn_GPI_2   p1_6
 #define DigIn_GPI_3   p1_7
 
-/* Alternater Warning will later be done via analogue measurement */
-#define DigInD_ALTW   pd10_4
-#define DigIn_ALTW    p10_4
+
+/* digital filter structure */
+typedef struct
+{
+    INT16   swFiltValue;    // represents filter value 0..255 (0=LOW, 255=HIGH) 
+    UINT8   bIncrValue;     // increment step if input HIGH
+    UINT8   bDecrValue;     // deccrement step if input LOW
+    BOOL    fState;         // result of filter process
+} DIGFILTTYPE;
+
+/* enum to access array elements of digital filter structure via index */
+typedef enum 
+{   
+    eDF_TURNL,      // filter element turn-left
+    eDF_TURNR,      // filter element turn-right
+    eDF_OILSW,      // filter element oil pressure switch
+    eDF_NEUTR,      // filter element neutral-gear
+    eDF_HBEAM,      // filter element high-beam
+    eDF_GPI_0,      // filter element general purpose 0 
+    eDF_GPI_1,      // filter element general purpose 1
+    eDF_GPI_2,      // filter element general purpose 2 
+    eDF_GPI_3,      // filter element general purpose 3
+    eDF_LAST        // last - invalid element!
+} DIGFILTELEMENT;
 
 
-/* special motor cycle defines */
+/* common access macros to access filtered digital inputs */
+#define DF_TURNL    DigInFilter[eDF_TURNL].fState
+#define DF_TURNR    DigInFilter[eDF_TURNR].fState
+#define DF_OILSW    DigInFilter[eDF_OILSW].fState
+#define DF_NEUTR    DigInFilter[eDF_NEUTR].fState
+#define DF_HBEAM    DigInFilter[eDF_HBEAM].fState
+#define DF_GPI_0    DigInFilter[eDF_GPI_0].fState
+#define DF_GPI_1    DigInFilter[eDF_GPI_1].fState
+#define DF_GPI_2    DigInFilter[eDF_GPI_2].fState
+#define DF_GPI_3    DigInFilter[eDF_GPI_3].fState
 
-#define DigIn_Fuel_8l       DigIn_GPI_0     // low active switches for
-#define DigIn_Fuel_4l       DigIn_GPI_1     // low active switches
-#define DigIn_Temp_Warn     DigIn_GPI_0     // high active switch
-#define DigIn_Altern_Warn   DigIn_GPI_0     // high active switch
-#define DigIn_ABS_Warn      DigIn_GPI_2     // low active switch
+
+/* Honda AfriaTwin dedicated macros to access filtered digital inputs */
+#define DF_Fuel_8l_AT           DigInFilter[eDF_GPI_0].fState     // low active switch
+#define DF_Fuel_4l_AT           DigInFilter[eDF_GPI_1].fState     // low active switch
+
+
+/* BMW F650 dedicated macros to access filtered digital inputs */
+#define DF_Temp_Warn_F650       DigInFilter[eDF_GPI_0].fState     // high active switch
+#define DF_Fuel_4l_F650         DigInFilter[eDF_GPI_1].fState     // low active switch
+#define DF_ABS_Warn_F650        DigInFilter[eDF_GPI_2].fState     // low active switch
+
+
+
+/* MuZ Baghira decicated macros to access filtered digital inputs */
+#define DF_Temp_Warn_BAGHIRA    DigInFilter[eDF_GPI_0].fState     // high active switch
+
+
+
+
+/* ----------------------------------------------------------
+   Digital Input Filter 
+   
+   Note:    - digital inputs are mapped to UINT8 variabel
+            - any HIGH value incr. filter value with SLOW/FAST_INR
+            - any LOW  value decr. filter value with SLOW/FAST_DECR
+            - filter value is interpreted as
+                - HIGH if value == 255 (max)
+                - LOW  if value == 0   (min) 
+            - Digital values will be checked/updated every 20 ms (LOOP):
+            
+            - Filtertime to detect HIGH value:  [ FT_high = MAX / INCR * LOOP ]
+
+                                             => [ INCR    = MAX * LOOP / FT_high ]
+            
+            - Filtertime to detect LOW value:   [ FT_low  = MAX / DECR * LOOP ]
+            
+                                             => [ DECR    = MAX * LOOP / FT_low ]            
+            
+            - Examples: 
+                - incr/decr = 100  ->  255/100 * 20ms =   40 ms  ->  0,04 sec filter time 
+                - incr/decr =  50  ->  255/ 50 * 20ms =  100 ms  ->  0,10 sec filter time 
+                - incr/decr =   1  ->  255/  1 * 20ms = 5100 ms  ->  5,10 sec filter time 
+                
+    ---------------------------------------------------------- */
+
+#define DIGFILT_MIN           1         // in ms, time until LOW/HIGH detected!
+#define DIGFILT_MAX        5100         // in ms, time until LOW/HIGH detected!
+
+#define DIGFILT_DEF     DIGFILT_MIN     // indicated immediate behaviour (no filtering)
+
+#define DIGFILT_FUEL_HIGH      2000     // in ms, time until HIGH detected!
+#define DIGFILT_FUEL_LOW       4000     // in ms, time until LOW detected!
+
 
 
 /* time constants */
@@ -190,12 +271,18 @@ typedef struct
 
 /* function prototypes */
 ERRCODE DigInDrv_Init(void);
+
 UINT8   DigInDrv_GetKeyStates(void);
 ERRCODE DigInDrv_CheckKeyAction(void);
 ERRCODE DigInDrv_SendKeyMessage(const KEYNUMBER Key, const KEYTIME far * fpKeyData);
-UINT8 DigInDrv_GetHWVersion(void);
-void DigInDrv_CheckAllPorts(void);
 
+UINT8   DigInDrv_GetHWVersion(void);
+
+void    DigInDrv_CheckAllPorts(void);
+
+void    DigInDrv_FilterInit(void);
+void    DigInDrv_Filter(void);
+UINT8   DigInDrv_FilterConvertTime(UINT16 wFilterTime);
 
 #endif /* _DIGINDRV_H */
 
