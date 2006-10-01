@@ -78,9 +78,11 @@
 /* frequency, in which isr TimerInterrupt() is called
  *                -> act. value: 50 Hz
  *                -> to change this value look at InitTimerHW() */
-#define TICKS_PER_SECOND    50      // in Hz, for use in common software
-#define TICKS_PER_SECL      50L     // in Hz, for use in Timer Init calculation with FSYS 
-#define MSEC              1000L     // in ms/second, for use in Timer Init calculation with FSYS 
+#define TICKS_PER_SECOND    50  // in Hz, for use in common software
+#define TICKS_PER_SECL      50L // in Hz, for use in Timer Init calculation with FSYS 
+#define MSEC              1000L // in ms/second, for use in Timer Init calculation with FSYS 
+
+#define MS_PER_TICK       MSEC/TICKS_PER_SECOND // in ms/Tick, cyccle time, with which the 50-Hz-timer ISR will be callled
 
 #define WARN_TIMERLOAD_MS 15          // ODS() warning if timer function took more than 15 ms
 
