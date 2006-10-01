@@ -69,6 +69,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.2  2006/10/01 22:18:00  tuberkel
+ * just comment
+ *
  * Revision 2.1  2006/07/20 23:06:03  tuberkel
  * - added F650 version
  * - incr. to V2.4.4
@@ -187,9 +190,7 @@ typedef union
 
 
 
-/* bike type
-    - used to indicate kind of special bike adaption
-    - replaces former compiler #defines for bike version */
+/* bike type - used to indicate kind of special bike adaption */
 typedef enum
 {
     eBIKE_STANDARD,      // default bike version

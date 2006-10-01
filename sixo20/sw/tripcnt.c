@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.1  2006/10/01 22:13:27  tuberkel
+ * just comment
+ *
  * Revision 2.0  2006/06/26 23:25:51  tuberkel
  * no message
  *
@@ -123,7 +126,7 @@ extern UINT16           wMilliSecCounter;           /* valid values: 0h .. ffffh
 extern STRING far       szDevName[];                /* device names */
 extern SYSFLAGS_TYPE    gSystemFlags;               /* system parameters */
 extern TRPCNTFL_TYPE    gTripCntFlags;              /* tripcounter flags */
-extern BIKE_TYPE        gBikeType;                  /* bike type selcetion */
+extern BIKE_TYPE        gBikeType;                  /* bike type selecetion */
 
 
 /* internal prototypes */
