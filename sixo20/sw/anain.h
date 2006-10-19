@@ -73,6 +73,13 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.1  2006/10/19 18:53:58  tuberkel
+ * BugFix: ANAIN_TEMP_OFFSET -> SENSOR_DETECT
+ * - now uses values <-20° to detect missing temp sensor
+ * BugFix:
+ * - ANAIN_STARTDELAY  3 -> 5
+ * - prevents flickering fuel warning after 2 sec.
+ *
  * Revision 2.0  2006/06/26 23:25:50  tuberkel
  * no message
  *
@@ -89,12 +96,14 @@
 #define ANAIN_LUMI_SCALE  32
 #define ANAIN_VOLT_SCALE   4
 
-#define ANAIN_TEMP_OFFSET 40        // offset of unsigned temperature values
+#define ANAIN_TEMP_OFFSET         40    // offset of unsigned temperature values
+
+#define ANAIN_TEMP_SENSORDETECT  (-20)   // in °C, lower values indicate a missing sensor
 
 #define ANAIN_INVALID_S   0x7fff    // marker for invalid signed value (signed, max. positive)
 #define ANAIN_INVALID_U   0xffff    // marker for invalid unsigned value (unsigned, max. positive)
 
-#define ANAIN_STARTDELAY  3         // delay in sec to wait, until AD values should be valid
+#define ANAIN_STARTDELAY  5         // delay in sec to wait, until AD values should be valid
 
 
 ERRCODE AnaInInit( void );
