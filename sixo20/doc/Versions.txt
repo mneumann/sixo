@@ -7,37 +7,47 @@ Note that "sixo" is freezed (except bug fixes and minor updates).
 Version Date        Feature
 ======= ==========  ======================================
 
-v2.4.2  2006-03-21  > NEU: Motorrad-Typ kann jetzt eingestellt werden
-			- keine MRD-spezifische Software-Versionen mehr
-			- MRD-Logo ändert sich automatisch mit
-			- Mrd-spez. Verhalten ändern sich zur Laufzeit
-			- Mrd-spez. Verhalten z.Zt. nur bei BMW R100GS, MuZ Baghira, AfricaTwin
-		    > NEU: Drehzahl-Schaltblitz
-			- Drehzahl frei einstellbar (0=aus, bis 30.000 U/Min)
-			- aktiviert INFO-LED 
-			- INFO-LED kann z.B. gegen Ultrahelle weiße LED ausgetauscht werden
-		    > NEU: Warnung bei Service-Intervall
-			- km für nächste Wartung frei einstellbar
-			- Warnungs-Text und -LED bei entsprechendem km-Stand
-		    > NEU: Maximalwert-Speicherung im Monitor-Device
-			- Batterie-Spannung Max-Wert
-			- Öl-Temp. Max-Wert
-			- Wasser-Temp. Max-Wert
-			- alle rücksetzbar mit [OK]-lang
-		    > NEU: Max.-Geschwindigkeit gespeichert
-			- angezeigt im Main-Device
-			- rücksetzbar mit [OK]-lang
-		    > NEU: TripCounter: Anzeige jetzt umschaltbar
-			- Gesamt/Teil-km jetzt oben/unten umschaltbar
-		    > NEU: getrennte Streckenzähler in Main-Device und TripCounter
-			- vorher: nur 2 Zähler gemeinsam genutzt
-			- jetzt: getrennte Main-Device T1/T2 und TripCounter Zähler
-		    > NEU: vForce-Logo
-		    > BugFixes: 
-			- Uhr-Sekundentakt-Anzeige jetzt ohne Ruckeln
-		    	- Display-Backlight beim Einschalten im Dunkeln jetzt ohne Flackern
-			- Main-Device: Anzeigen beim Scrollen nach Einheiten neu sortiert
-			
+v2.4.4  2006-10-01  > NEW: motorcycle type BMW F650 supported
+                        + supports F650 switches for ABS, Fuel sensor, Watertemp.
+                        + fuel switch filtered  (>2 sec) to prevent flickering
+                      NEW: Digital Input Filter Function 
+                        + to be used for any digital input
+                        + bike specific behavior possible
+                        + currently enabled for fuel sensor only (AfricaTwin, F650) 
+                      Bugfix: 
+                        + autom. Temp-Sensor detection improved (less disturbance)
+                        + R100GS: ALTW warning cleared too, if RPM == 0
+                        + LCD-Backlight improved: quick-ON-slow-off characteristic
+                        + MainDevice Reset-Beeper only if necessary
+
+v2.4.2  2006-03-21  > NEW: motorcycle type selectable after flashing
+                        - no dedicated SW version any more
+                        - bike logo automatically changes too
+                        - bike specific behavior changes too
+                          (only BMW R100GS, MuZ Baghira, AfricaTwin)
+                    > NEW: RPM-Flash
+                        - RPM adjustable (0=off, bis 30.000 R/min)
+                        - activates INFO-LED 
+                        - INFO-LED might be replaced by ultrabright white LED
+                    > NEW: Service Intervall Warning
+                        - km free adjustable
+                        - warning text & LED if service distance reached
+                    > NEW: max values saved in monitor device
+                        - max battery voltage
+                        - max oil temperature 
+                        - max water temperature
+                        - resetable via [OK]-long
+                    > NEW: max speed saved
+                        - displayed in Main-Device
+                        - resetable via [OK]-long
+                    > NEW: TripCounter: upper/lower changable
+                    > NEW: seperated distance counters in Main-Device / TripCounter
+                    > NEW: vForce-Logo
+                    > BugFixes: 
+                        - clock seconds display without flickering
+                        - Display-Backlight switched on without flickering
+                        - Main-Device: scrolled values re-ordered
+            
 
 v2.3.5  2005-07-02
                     > NEW: Vehicle Speed TÜV conform approved
@@ -180,7 +190,7 @@ v2.0.1  2004-02-24  > GPL added to all adequate source files
                     > LEDs enabled & tested: ok!
                     > Beeper enabled & tested: ok!
                     > Vehicle Simulation enabled & tested: ok!
-                    > DigIn: All standard MotorCycle (TURN/NEUTRAL/OIL/HIGHBEAM) inputs
+                    > DigIn: All standard MotorCycle (TURN/NEWTRAL/OIL/HIGHBEAM) inputs
                       now supported as direct LED switch
                     > RPM/WHEEL BugFix: now prevents 'hopping values' when filter switches
                     > TripCounter BugFix: Long- & Short-Distance counter now reseted together
