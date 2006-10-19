@@ -68,6 +68,12 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.1  2006/10/19 18:56:15  tuberkel
+ * BugFix: ANAIN_TEMP_OFFSET -> SENSOR_DETECT
+ * - now uses values <-20° to detect missing temp sensor
+ * BugFix:
+ * - Reset-Beeper only if necessary
+ *
  * Revision 2.0  2006/06/26 23:25:50  tuberkel
  * no message
  *
@@ -372,7 +378,7 @@ void MainDeviceShow(BOOL fShow)
         sprintf( szSpeedMax,     "%3u",     Speed_Max);
 
         /* analog input values are already formated */
-        if ( AnaInGetAirTemperature() != -ANAIN_TEMP_OFFSET )
+        if ( AnaInGetAirTemperature() > ANAIN_TEMP_SENSORDETECT )
              AnaInFormatTemperature(AnaInGetAirTemperature(), szTemp, sizeof(szTemp));  // use external air temp if available
         else AnaInFormatTemperature(AnaInGetTemperature(),    szTemp, sizeof(szTemp));  // use internal device temp else
         AnaInFormatTemperature(AnaInGetWatTemperature(), szWaterTemp, sizeof(szWaterTemp));
@@ -458,7 +464,7 @@ void MainDeviceShow(BOOL fShow)
                     // TBD: Will later be done via Settings, but at the moment we
                     //      use this so called 'Arnoldschen Elfenbeinturm' here! ;-)
                     // Water temp available?
-                    if ( AnaInGetWatTemperature() != -ANAIN_TEMP_OFFSET )
+                    if ( AnaInGetWatTemperature() > ANAIN_TEMP_SENSORDETECT )
                     {
                         ObjBmpShow( &WaterTempSymbolBmpObj );
                         ObjTextShow( &WaterTempTxtObj );
@@ -474,7 +480,7 @@ void MainDeviceShow(BOOL fShow)
                     // TBD: Will later be done via Settings, but at the moment we
                     //      use this so called 'Arnoldschen Elfenbeinturm' here! ;-)
                     // Oil temp available?
-                    if ( AnaInGetOilTemperature() != -ANAIN_TEMP_OFFSET )
+                    if ( AnaInGetOilTemperature() > ANAIN_TEMP_SENSORDETECT )
                     {
                         ObjBmpShow( &OilTempSymbolBmpObj );
                         ObjTextShow( &OilTempTxtObj );
@@ -529,7 +535,7 @@ void MainDeviceShow(BOOL fShow)
                     // TBD: Will later be done via Settings, but at the moment we
                     //      use this so called 'Arnoldschen Elfenbeinturm' here! ;-)
                     // Water temp available?
-                    if ( AnaInGetWatTemperature() != -ANAIN_TEMP_OFFSET )
+                    if ( AnaInGetWatTemperature() > ANAIN_TEMP_SENSORDETECT )
                     {
                         /* might have been changed! */
                         ObjBmpShow( &WaterTempSymbolBmpObj );
@@ -547,7 +553,7 @@ void MainDeviceShow(BOOL fShow)
                     // TBD: Will later be done via Settings, but at the moment we
                     //      use this so called 'Arnoldschen Elfenbeinturm' here! ;-)
                     // Oil temp available?
-                    if ( AnaInGetOilTemperature() != -ANAIN_TEMP_OFFSET )
+                    if ( AnaInGetOilTemperature() > ANAIN_TEMP_SENSORDETECT )
                     {
                         /* might have been changed! */
                         ObjBmpShow( &OilTempSymbolBmpObj );
@@ -793,39 +799,47 @@ ERRCODE MainDeviceResetMsg(MESSAGE Msg)
     ERRCODE     RValue = ERR_MSG_NOT_PROCESSED;
     static BOOL fLocked = FALSE;                    /* TRUE = key not yet relases */
 
-    /* [OK] pressed+released long'? -> ITS FOR US! -> Re-enable Reset of distances!
-      Note: This code shall prevent a 'flickering info led' if the user doesn't
-            release the key which would repeat the distance reset */
-    if (  ( MsgId == MSG_KEY_OK                          )      /* OK key?  */
-        &&( MSG_KEY_TRANSITION(Msg) == KEYTRANS_RELEASED )      /* right now released* */
-        &&( MSG_KEY_DURATION(Msg) > KEYSAVE              )      /* has just shortly been pressed? */
-        &&( fLocked == TRUE                              ) )    /* is not already active? */
+    // check: main device in state to reset anything?
+    if (   ( MainDevice.wDevState == eMainFuelKm  ) 
+         ||( MainDevice.wDevState == eMainTrip1Km )
+         ||( MainDevice.wDevState == eMainTrip2Km )
+         ||( MainDevice.wDevState == eMainSpeedMax) )
     {
-        fLocked = FALSE;                // Re-enable another Reset of distances
-        RValue = ERR_MSG_PROCESSED;     // done!
-    }
-
-    /* user presses OK Button > 2 sec: focus & start edit */
-    else if (  ( MsgId == MSG_KEY_OK                    )    /* [OK] pressed? */
-             &&( MSG_KEY_TRANSITION(Msg) == KEYTRANS_ON )    /* still pressed? */
-             &&( MSG_KEY_DURATION(Msg) > KEYSAVE        )    /* longer than 2 sec.? */
-             &&( fLocked == FALSE                       ) )  /* key released since last reset? */
-    {
-        DIST_TYPE Dist;
-        Dist.dkm = 0;               /* reset distance value */
-        switch (MainDevice.wDevState) /* set into memory */
+        /* [OK] pressed+released long'? -> ITS FOR US! -> Re-enable Reset of distances!
+          Note: This code shall prevent a 'flickering info led' if the user doesn't
+                release the key which would repeat the distance reset */
+        if (  ( MsgId == MSG_KEY_OK                          )      /* OK key?  */
+            &&( MSG_KEY_TRANSITION(Msg) == KEYTRANS_RELEASED )      /* right now released* */
+            &&( MSG_KEY_DURATION(Msg) > KEYSAVE              )      /* has just shortly been pressed? */
+            &&( fLocked == TRUE                              ) )    /* is not already active? */
         {
-            case eMainFuelKm:   MeasSetFuelDist( &Dist );  break;
-            case eMainTrip1Km:  MeasSetTripCnt( eTRIPC_C, &Dist ); break;
-            case eMainTrip2Km:  MeasSetTripCnt( eTRIPC_D, &Dist ); break;
-            case eMainSpeedMax: Speed_Max = 0; break;
-            default: break;
+            fLocked = FALSE;                // Re-enable another Reset of distances
+            RValue = ERR_MSG_PROCESSED;     // done!
         }
-        BeepOk();                   /* beep ok */
-        LEDOk();                    /* LED ok */
-        fLocked = TRUE;             /* don't repeat this until key released */
-        RValue = ERR_MSG_PROCESSED; /* done */
+    
+        /* user presses OK Button > 2 sec: focus & start edit */
+        else if (  ( MsgId == MSG_KEY_OK                    )    /* [OK] pressed? */
+                 &&( MSG_KEY_TRANSITION(Msg) == KEYTRANS_ON )    /* still pressed? */
+                 &&( MSG_KEY_DURATION(Msg) > KEYSAVE        )    /* longer than 2 sec.? */
+                 &&( fLocked == FALSE                       ) )  /* key released since last reset? */
+        {
+            DIST_TYPE Dist;
+            Dist.dkm = 0;               /* reset distance value */
+            switch (MainDevice.wDevState) /* set into memory */
+            {
+                case eMainFuelKm:   MeasSetFuelDist( &Dist );  break;
+                case eMainTrip1Km:  MeasSetTripCnt( eTRIPC_C, &Dist ); break;
+                case eMainTrip2Km:  MeasSetTripCnt( eTRIPC_D, &Dist ); break;
+                case eMainSpeedMax: Speed_Max = 0; break;
+                default: break;
+            }
+            BeepOk();                   /* beep ok */
+            LEDOk();                    /* LED ok */
+            fLocked = TRUE;             /* don't repeat this until key released */
+            RValue = ERR_MSG_PROCESSED; /* done */
+        }
     }
+    return (RValue);
 }
 
 
