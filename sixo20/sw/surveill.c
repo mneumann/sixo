@@ -70,6 +70,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.4  2006/10/19 18:51:30  tuberkel
+ * BugFix: ANAIN_TEMP_OFFSET -> SENSOR_DETECT
+ * - now uses values <-20° to detect missing temp sensor
+ *
  * Revision 2.3  2006/10/01 22:19:02  tuberkel
  * SurvCheckAllDigitalWarnings()
  * - now uses digital filtered values only
@@ -267,8 +271,8 @@ void SurvUpdateStatistics (void)
     }
 
     // check air temperature (if valid & connected)
-    if (  ( iTempAir != ANAIN_INVALID_S    )
-        &&( iTempAir != -ANAIN_TEMP_OFFSET ) )
+    if (  ( iTempAir != ANAIN_INVALID_S        )
+        &&( iTempAir > ANAIN_TEMP_SENSORDETECT ) )
     {
         if (  ( TAir_Max < iTempAir         )
             ||( TAir_Max == ANAIN_INVALID_S ) )
@@ -280,8 +284,8 @@ void SurvUpdateStatistics (void)
     }
 
     // check oil temperature (if valid & connected)
-    if (  ( iTempOil != ANAIN_INVALID_S    )
-        &&( iTempOil != -ANAIN_TEMP_OFFSET ) )
+    if (  ( iTempOil != ANAIN_INVALID_S        )
+        &&( iTempOil > ANAIN_TEMP_SENSORDETECT ) )
     {
         if (  ( TOil_Max < iTempOil         )
             ||( TOil_Max == ANAIN_INVALID_S ) )
@@ -293,8 +297,8 @@ void SurvUpdateStatistics (void)
     }
 
     // check water temperature (if valid & connected)
-    if (  ( iTempWat != ANAIN_INVALID_S )
-        &&( iTempWat != -ANAIN_TEMP_OFFSET ) )
+    if (  ( iTempWat != ANAIN_INVALID_S        )
+        &&( iTempWat > ANAIN_TEMP_SENSORDETECT ) )
     {
         if (  ( TWat_Max < iTempWat         )
             ||( TWat_Max == ANAIN_INVALID_S ) )
@@ -543,9 +547,11 @@ void SurvCheckAllAnalogWarnings(void)
         if wRPM over warning limit AND (oil OR water to cold): -> Warning! */
     vstateprm = VEHICLE_STATE_ENGINECOLD;
     vstatelvl = VEHICLE_STATE_LEVEL_OK;
-    if (  ( wRPM > ENG_COLD_RPM                                                 )
-        &&(  (((iTempOil != -ANAIN_TEMP_OFFSET)) && (iTempOil < OIL_TEMP_LOW) )
-           ||(((iTempWat != -ANAIN_TEMP_OFFSET)) && (iTempWat < WAT_TEMP_LOW) ) ) )
+    if (  ( wRPM > ENG_COLD_RPM                         )
+        &&(  (  (iTempOil > ANAIN_TEMP_SENSORDETECT )
+              &&(iTempOil < OIL_TEMP_LOW            ) )
+           ||(  (iTempWat > ANAIN_TEMP_SENSORDETECT )
+              &&(iTempWat < WAT_TEMP_LOW            ) ) ) )
            vstatelvl = VEHICLE_STATE_LEVEL_WARNING;
     SurvSetVehicleState(vstateprm, vstatelvl);
 
