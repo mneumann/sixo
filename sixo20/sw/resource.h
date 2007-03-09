@@ -70,6 +70,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.2  2007/03/09 08:38:36  niezeithat
+ * - Added additional Motorbike Version, Africatwin RD07, no Fule Level Sensors!
+ *
  * Revision 2.1  2006/07/20 23:01:31  tuberkel
  * - added F650 version
  * - added ABS warning
@@ -98,6 +101,7 @@
 #define RESTXT_BIKESTRING_HUSQV     "HUSQV"
 #define RESTXT_BIKESTRING_BAGHIRA   "BAGHIRA"
 #define RESTXT_BIKESTRING_AT        "AT"
+#define RESTXT_BIKESTRING_ATRD07    "AT RD07"
 #define RESTXT_BIKESTRING_R1100GS   "1100GS"
 #define RESTXT_BIKESTRING_KTM       "KTM"
 #define RESTXT_BIKESTRING_HUSQVRS   "HUSQVRS"

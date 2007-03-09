@@ -69,6 +69,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.3  2007/03/09 08:38:36  niezeithat
+ * - Added additional Motorbike Version, Africatwin RD07, no Fule Level Sensors!
+ *
  * Revision 2.2  2006/10/01 22:18:00  tuberkel
  * just comment
  *
@@ -197,6 +200,7 @@ typedef enum
     eBIKE_R100GS,        // BMW R100 GS version
     eBIKE_R1100GS,       // BMW R1100 GS version
     eBIKE_AFRICATWIN,    // Honda AfricaTwin version
+    eBIKE_AFRICATWINRD07,// Honda AfricaTwin RD07 version
     eBIKE_BAGHIRA,       // MuZ Baghia version
     eBIKE_HUSQV,         // Husqvarna version
     eBIKE_HUSQVRS,       // Husqvarna RS version

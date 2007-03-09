@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.3  2007/03/09 08:38:36  niezeithat
+ * - Added additional Motorbike Version, Africatwin RD07, no Fule Level Sensors!
+ *
  * Revision 2.2  2006/10/01 22:22:53  tuberkel
  * new: DigInDrv_FilterInit();
  * - essential: adapt vehicle specific digital filter settings too!
@@ -896,17 +899,41 @@ void SetDeviceCheckChanges( void )
     if ( gBikeType != LocalBikeType )
     {   gBikeType = LocalBikeType;  // save that new value
         switch (gBikeType)          // change logo too!
-        {   case eBIKE_STANDARD:    gLogoSelection = eLogo_SIXO;        break;
-            case eBIKE_R100GS:      gLogoSelection = eLogo_BMW;         break;
-            case eBIKE_R1100GS:     gLogoSelection = eLogo_BMW_1100GS;  break;
-            case eBIKE_F650:        gLogoSelection = eLogo_BMW;  	break;
-            case eBIKE_AFRICATWIN:  gLogoSelection = eLogo_AfricaTwin;  break;
-            case eBIKE_BAGHIRA:     gLogoSelection = eLogo_BAGHIRA;     break;
-            case eBIKE_HUSQV:       gLogoSelection = eLogo_HUSQV;       break;
-            case eBIKE_HUSQVRS:     gLogoSelection = eLogo_HUSQVRS;     break;
-            case eBIKE_KTM:         gLogoSelection = eLogo_KTM;         break;
-            case eBIKE_MOTOBAU:     gLogoSelection = eLogo_Motobau;     break;
-            default:                gLogoSelection = eLogo_SIXO;        break;
+        {
+            case eBIKE_STANDARD:
+                gLogoSelection = eLogo_SIXO;
+                break;
+            case eBIKE_R100GS:
+                gLogoSelection = eLogo_BMW;
+                break;
+            case eBIKE_R1100GS:
+                gLogoSelection = eLogo_BMW_1100GS;
+                break;
+            case eBIKE_F650:        
+                gLogoSelection = eLogo_BMW;
+                break;
+            case eBIKE_AFRICATWINRD07:
+            case eBIKE_AFRICATWIN:
+                gLogoSelection = eLogo_AfricaTwin;
+                break;
+            case eBIKE_BAGHIRA:
+                gLogoSelection = eLogo_BAGHIRA;
+                break;
+            case eBIKE_HUSQV:
+                gLogoSelection = eLogo_HUSQV;
+                break;
+            case eBIKE_HUSQVRS:
+                gLogoSelection = eLogo_HUSQVRS;
+                break;
+            case eBIKE_KTM:
+                gLogoSelection = eLogo_KTM;
+                break;
+            case eBIKE_MOTOBAU:
+                gLogoSelection = eLogo_Motobau;
+                break;
+            default:
+                gLogoSelection = eLogo_SIXO;
+                break;
         }
         // essential: reset all vehicle states to 'all right' too! */
         SurvResetVehicleStates();   
