@@ -69,6 +69,12 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.3  2007/03/26 23:16:22  tuberkel
+ * BugFix:
+ * - more reliable buffer size szSWVersion[] 22 -> 64 chars
+ * Changed MOTOBAU version handling
+ * - eBikeType -> #define
+ *
  * Revision 2.2  2007/03/09 08:38:36  niezeithat
  * - Added additional Motorbike Version, Africatwin RD07, no Fule Level Sensors!
  *
@@ -124,7 +130,7 @@ extern const unsigned char far * fpBikeLogos[];
 static DEVDATA      IntroScreenDev;         /* this device */
 static BMPOBJECT    SixoLogoBmpObj;         /* logo object */
 static TEXTOBJECT   SWVersionTxtObj;        /* version text object */
-static unsigned char szSWVersion[22];       /* buffer to contain formated sw id */
+static unsigned char szSWVersion[64];       /* buffer to contain formated sw id */
 
 
 
@@ -181,7 +187,11 @@ void IntroScreenShow(BOOL fShow)
     if (fShow == TRUE)
     {
         /* Update values */
+        #ifdef BIKE_MOTOBAU
+        SixoLogoBmpObj.Data.fpucBitmap = (unsigned char far *)fpBikeLogos[eLogo_Motobau];   // fixed to MOTOBAU logo
+        #else // BIKE_MOTOBAU
         SixoLogoBmpObj.Data.fpucBitmap = (unsigned char far *)fpBikeLogos[gLogoSelection];
+        #endif // BIKE_MOTOBAU
 
         /* NOTE:    Lower screen part is reserved for software + bike
                     version information.
@@ -196,43 +206,26 @@ void IntroScreenShow(BOOL fShow)
         /* add formated bike version string depending on special compiler settings */
         switch ( gBikeType )
         {
-            case eBIKE_AFRICATWIN:
-                strcat ( szSWVersion, RESTXT_BIKESTRING_AT);
-                break;
-            case eBIKE_AFRICATWINRD07:
-                strcat ( szSWVersion, RESTXT_BIKESTRING_ATRD07);
-                break;
-            case eBIKE_R100GS:
-                strcat ( szSWVersion, RESTXT_BIKESTRING_R100GS);
-                break;
-            case eBIKE_R1100GS:
-                strcat ( szSWVersion, RESTXT_BIKESTRING_R1100GS);
-                break;
-            case eBIKE_F650:
-                strcat ( szSWVersion, RESTXT_BIKESTRING_F650);
-                break;
-            case eBIKE_BAGHIRA:
-                strcat ( szSWVersion, RESTXT_BIKESTRING_BAGHIRA);
-                break;
-            case eBIKE_HUSQV:
-                strcat ( szSWVersion, RESTXT_BIKESTRING_HUSQV);
-                break;
-            case eBIKE_HUSQVRS:
-                strcat ( szSWVersion, RESTXT_BIKESTRING_HUSQVRS);
-                break;
-            case eBIKE_KTM:
-                strcat ( szSWVersion, RESTXT_BIKESTRING_KTM);
-                break;
-            case eBIKE_MOTOBAU:
-                strcat ( szSWVersion, RESTXT_BIKESTRING_MOTOBAU);
-                break;
-            default:
-                strcat ( szSWVersion, RESTXT_BIKESTRING_DEFAULT);
-                break;
+            case eBIKE_AFRICATWIN:     strcat ( szSWVersion, RESTXT_BIKESTRING_AT);     break;
+            case eBIKE_AFRICATWINRD07: strcat ( szSWVersion, RESTXT_BIKESTRING_ATRD07); break;
+            case eBIKE_R100GS:         strcat ( szSWVersion, RESTXT_BIKESTRING_R100GS); break;
+            case eBIKE_R1100GS:        strcat ( szSWVersion, RESTXT_BIKESTRING_R1100GS);break;
+            case eBIKE_F650:           strcat ( szSWVersion, RESTXT_BIKESTRING_F650);   break;            
+            case eBIKE_BAGHIRA:        strcat ( szSWVersion, RESTXT_BIKESTRING_BAGHIRA);break;
+            case eBIKE_HUSQV:          strcat ( szSWVersion, RESTXT_BIKESTRING_HUSQV);  break;
+            case eBIKE_HUSQVRS:        strcat ( szSWVersion, RESTXT_BIKESTRING_HUSQVRS);break;
+            case eBIKE_KTM:            strcat ( szSWVersion, RESTXT_BIKESTRING_KTM);    break;
+            default:                   strcat ( szSWVersion, RESTXT_BIKESTRING_DEFAULT);break;
         }
+        
+        /* add MOTOBAU infos */
+        #ifdef BIKE_MOTOBAU
         strcat ( szSWVersion, " ");
-
+        strcat ( szSWVersion, RESTXT_BIKESTRING_MOTOBAU);
+        #endif // BIKE_MOTOBAU
+        
         /* add formated debug infos */
+        strcat ( szSWVersion, " ");
         #ifdef DEBUG
             strcat ( szSWVersion, RESTXT_SWVER_DEBUG);
         #endif
@@ -245,6 +238,9 @@ void IntroScreenShow(BOOL fShow)
         #ifdef HARDCOPY
             strcat ( szSWVersion, RESTXT_SWVER_HARDCOPY);
         #endif
+
+        /* limit string to max 21 chars */
+        szSWVersion[22] = 0x0;
 
         /* do we have to repaint all? */
         if (IntroScreenDev.fScreenInit == FALSE)
