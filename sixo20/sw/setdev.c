@@ -68,6 +68,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.4  2007/03/26 23:11:55  tuberkel
+ * changed MOTOBAU version handling
+ * - eBikeType -> #define
+ *
  * Revision 2.3  2007/03/09 08:38:36  niezeithat
  * - Added additional Motorbike Version, Africatwin RD07, no Fule Level Sensors!
  *
@@ -311,7 +315,7 @@ static const EDITNUMBER_INITTYPE EditNumObj[] =
     { &EditContrLevObj,     102,    9,  DPLFONT_6X8,     4, &bContrLev,             &bEditBuffer,   eUCHAR, 0L,    63L,  0L, eDez,   eColumn, 0, RESTXT_SET_DPLCONTRDESC,    "",                         2,  OC_DISPL | OC_SELECT | OC_EDIT              },
     { &EditRPMFlashObj,       0,   18,  DPLFONT_6X8,    21, &RPM_Flash,             &wEditBuffer,   eUINT,  0L, 30000L,  0L, eDez,   eColumn, 0, RESTXT_SET_RPMFLASH,        RESTXT_SET_RPMFLASHUNIT,    5,  OC_DISPL | OC_SELECT | OC_EDIT              },
       // bike type will modified in init routine for BIKE_MOTOBAU  version
-    { &EditBikeTypeObj,       0,   27,  DPLFONT_6X8,     9, &LocalBikeType,         &bEditBuffer,   eUCHAR, 0L,     7L,  0L, eDez,   eColumn, 0, RESTXT_SET_BIKETYPE,        "",                         1,  OC_DISPL | OC_SELECT | OC_EDIT              },
+    { &EditBikeTypeObj,       0,   27,  DPLFONT_6X8,     9, &LocalBikeType,         &bEditBuffer,   eUCHAR, 0L, (UINT32)(eBIKE_INVALID-1),  0L, eDez,   eColumn, 0, RESTXT_SET_BIKETYPE,  "",                1,  OC_DISPL | OC_SELECT | OC_EDIT              },
     { &EditTripCntFlObj,     72,   27,  DPLFONT_6X8,     9, &bTripCntFl,            &bEditBuffer,   eUCHAR, 0L,     1L,  0L, eDez,   eColumn, 0, RESTXT_SET_TRIPCNTFL,       "",                         1,  OC_DISPL | OC_SELECT | OC_EDIT              },
       // EngRun EngServ will modified in init routine for BIKE_MOTOBAU version
     { &EditEngRunSrvObj,      0,   36,  DPLFONT_6X8,    10, &EngRunTime_Srv.wHour,  &wEditBuffer,   eUINT,  0L,   999L,  0L, eDez,   eColumn, 0, RESTXT_SET_ERT_SRV,         RESTXT_SET_ERT_UNIT,        3,  OC_DISPL | OC_SELECT | OC_EDIT              },
@@ -402,19 +406,13 @@ ERRCODE SetDeviceInit(void)
                                  EditNumObj[i].bState);
 
         // special MOTOBAU behaviour post-init-manipulations
-        if ( gBikeType == eBIKE_MOTOBAU )
-        {
-            EditBikeTypeObj.State.bits.fEditable  = 0;          // BikeType: locked to MOTOBAU, will not be editable, but visible
-            EditServKmObj.State.bits.fDisplayable = 0;          // ServKm: will not be visible
-        }
-
+        #ifdef BIKE_MOTOBAU
+        EditServKmObj.State.bits.fDisplayable = 0;                  // ServKm: will not be visible
+        #else // BIKE_MOTOBAU
         // special STANDARD behaviour post-init-manipulations
-        if ( gBikeType != eBIKE_MOTOBAU )
-        {
-            EditBikeTypeObj.Limits.lMax = (UINT32) (eBIKE_MOTOBAU-1);   // BikeType: MOTOBAU version not available
-            EditEngRunSrvObj.State.bits.fDisplayable = 0;               // EngRunServHours: will not be visible
-            EditEngRunAllObj.State.bits.fDisplayable = 0;               // EngRunAllHours: will not be visible
-        }
+        EditEngRunSrvObj.State.bits.fDisplayable = 0;               // EngRunServHours: will not be visible
+        EditEngRunAllObj.State.bits.fDisplayable = 0;               // EngRunAllHours: will not be visible
+        #endif // BIKE_MOTOBAU
 
         // check init process
         if ( RValue != ERR_OK )
@@ -702,14 +700,13 @@ ERRCODE SetDeviceStateMachine(MESSAGE Msg)
         if (SetDevice.wDevState == eSetFirst)           // wrap around?
             SetDevice.wDevState = (eSetLast-1);
 
-        if (  (gBikeType == eBIKE_MOTOBAU        )      // special MOTOBAU behaviour
-            &&(SetDevice.wDevState == eSetServKm ) )    // do not select 'service km'
+        #ifdef BIKE_MOTOBAU                             // special MOTOBAU behaviour
+        if (SetDevice.wDevState == eSetServKm )         // do not select 'service km'
             SetDevice.wDevState = eSetAllHours;         // jump over it!
-
-        if (  (gBikeType != eBIKE_MOTOBAU          )    // special NOT MOTOBAU behaviour
-            &&(SetDevice.wDevState == eSetAllHours ) )  // do not select 'eSetAllHours'
+        else // BIKE_MOTOBAU                            // special NOT MOTOBAU behaviour
+        if (SetDevice.wDevState == eSetAllHours)        // do not select 'eSetAllHours'
             SetDevice.wDevState = eSetTripCntFl;        // jump over it!
-
+        #endif // BIKE_MOTOBAU                          
         SetDeviceSetFocus(SetDevice.wDevState);         // now use this focus...
         SetDeviceShow(TRUE);
         RValue = ERR_MSG_PROCESSED;
@@ -726,15 +723,13 @@ ERRCODE SetDeviceStateMachine(MESSAGE Msg)
 
         if (SetDevice.wDevState  == eSetLast)           // wrap around?
             SetDevice.wDevState = (eSetFirst+1);
-
-        if (  (gBikeType == eBIKE_MOTOBAU        )      // special MOTOBAU behaviour
-            &&(SetDevice.wDevState == eSetServKm ) )    // do not select 'service km'
+        #ifdef BIKE_MOTOBAU                             // special MOTOBAU behaviour
+        if (SetDevice.wDevState == eSetServKm)          // do not select 'service km'
             SetDevice.wDevState = eSetVehicDist;        // jump over it!
-
-        if (  (gBikeType != eBIKE_MOTOBAU          )    // special NOT MOTOBAU behaviour
-            &&(SetDevice.wDevState == eSetServHours) )  // do not select 'eSetServHours'
+        #else // BIKE_MOTOBAU                           // special NOT MOTOBAU behaviour
+        if (SetDevice.wDevState == eSetServHours)       // do not select 'eSetServHours'
             SetDevice.wDevState = eSetServKm;           // jump over it!
-
+        #endif // BIKE_MOTOBAU                          
         SetDeviceSetFocus(SetDevice.wDevState);         // now use this focus...
         SetDeviceShow(TRUE);
         RValue = ERR_MSG_PROCESSED;
@@ -900,40 +895,22 @@ void SetDeviceCheckChanges( void )
     {   gBikeType = LocalBikeType;  // save that new value
         switch (gBikeType)          // change logo too!
         {
-            case eBIKE_STANDARD:
-                gLogoSelection = eLogo_SIXO;
-                break;
-            case eBIKE_R100GS:
-                gLogoSelection = eLogo_BMW;
-                break;
-            case eBIKE_R1100GS:
-                gLogoSelection = eLogo_BMW_1100GS;
-                break;
-            case eBIKE_F650:        
-                gLogoSelection = eLogo_BMW;
-                break;
-            case eBIKE_AFRICATWINRD07:
-            case eBIKE_AFRICATWIN:
-                gLogoSelection = eLogo_AfricaTwin;
-                break;
-            case eBIKE_BAGHIRA:
-                gLogoSelection = eLogo_BAGHIRA;
-                break;
-            case eBIKE_HUSQV:
-                gLogoSelection = eLogo_HUSQV;
-                break;
-            case eBIKE_HUSQVRS:
-                gLogoSelection = eLogo_HUSQVRS;
-                break;
-            case eBIKE_KTM:
-                gLogoSelection = eLogo_KTM;
-                break;
-            case eBIKE_MOTOBAU:
-                gLogoSelection = eLogo_Motobau;
-                break;
-            default:
-                gLogoSelection = eLogo_SIXO;
-                break;
+            case eBIKE_STANDARD:    
+                                    #ifdef BIKE_MOTOBAU     
+                                    gLogoSelection = eLogo_Motobau;     break;  // motobau is our standard logo
+                                    #else // BIKE_MOTOBAU
+                                    gLogoSelection = eLogo_SIXO;        break;  // sixo is our standard logo
+                                    #endif // BIKE_MOTOBAU
+            case eBIKE_R100GS:      gLogoSelection = eLogo_BMW;         break;
+            case eBIKE_R1100GS:     gLogoSelection = eLogo_BMW_1100GS;  break;
+            case eBIKE_F650:        gLogoSelection = eLogo_BMW;  	    break;
+            case eBIKE_AFRICATWINRD07:  // no break
+            case eBIKE_AFRICATWIN:  gLogoSelection = eLogo_AfricaTwin;  break;
+            case eBIKE_BAGHIRA:     gLogoSelection = eLogo_BAGHIRA;     break;
+            case eBIKE_HUSQV:       gLogoSelection = eLogo_HUSQV;       break;
+            case eBIKE_HUSQVRS:     gLogoSelection = eLogo_HUSQVRS;     break;
+            case eBIKE_KTM:         gLogoSelection = eLogo_KTM;         break;
+            default:                gLogoSelection = eLogo_SIXO;        break;
         }
         // essential: reset all vehicle states to 'all right' too! */
         SurvResetVehicleStates();   

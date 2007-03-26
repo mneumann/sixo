@@ -69,6 +69,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.4  2007/03/26 23:13:33  tuberkel
+ * changed MOTOBAU version handling
+ * - eBikeType -> #define
+ *
  * Revision 2.3  2007/03/09 08:38:36  niezeithat
  * - Added additional Motorbike Version, Africatwin RD07, no Fule Level Sensors!
  *
@@ -206,7 +210,6 @@ typedef enum
     eBIKE_HUSQVRS,       // Husqvarna RS version
     eBIKE_KTM,           // KTM version
     eBIKE_F650,          // BMW F650 version
-    eBIKE_MOTOBAU,       // special Motobau (Berlin) version
     eBIKE_INVALID        // invalid bike type
 } BIKE_TYPE;
 
