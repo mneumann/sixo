@@ -7,19 +7,35 @@ Note that "sixo" is freezed (except bug fixes and minor updates).
 Version Date        Feature
 ======= ==========  ======================================
 
-v2.4.4  2006-10-01  > NEW: motorcycle type BMW F650 supported
-                        + supports F650 switches for ABS, Fuel sensor, Watertemp.
+v2.4.4  2007-03-26  > NEW: motorcycle type BMW F650 supported
+                        + supports F650 inputs for ABS, Fuel sensor, Watertemp.
                         + fuel switch filtered  (>2 sec) to prevent flickering
                       NEW: Digital Input Filter Function 
+                        + prevents flickering lamps/sensors
                         + to be used for any digital input
                         + bike specific behavior possible
                         + currently enabled for fuel sensor only (AfricaTwin, F650) 
+                      NEW: Honda AfricaTwin RD07 version                         
+                        - same as Honda AfricaTwin version, but 
+                          without fuel sensor warnings
+                      CHANGED: list of Bike Types 'Mrd-Typ' in SettingsDevice
+                            0  default bike version
+                            1  BMW R100 GS version
+                            2  BMW R1100 GS version
+                            3  Honda AfricaTwin version
+                            4  Honda AfricaTwin RD07 version
+                            5  MuZ Baghia version
+                            6  Husqvarna version
+                            7  Husqvarna RS version
+                            8  KTM version
+                            9  BMW F650 version
                       Bugfix: 
                         + autom. Temp-Sensor detection improved (less disturbance)
+                          (uses -20°C instead of -40°C to detect a sensor)
                         + R100GS: ALTW warning cleared too, if RPM == 0
                         + LCD-Backlight improved: quick-ON-slow-off characteristic
                         + MainDevice Reset-Beeper only if necessary
-
+                            
 v2.4.2  2006-03-21  > NEW: motorcycle type selectable after flashing
                         - no dedicated SW version any more
                         - bike logo automatically changes too
@@ -47,9 +63,9 @@ v2.4.2  2006-03-21  > NEW: motorcycle type selectable after flashing
                         - clock seconds display without flickering
                         - Display-Backlight switched on without flickering
                         - Main-Device: scrolled values re-ordered
-            
-
-v2.3.5  2005-07-02
+                            
+                            
+v2.3.5  2005-07-02          
                     > NEW: Vehicle Speed TÜV conform approved
                         - BugFix: vehicle speed accuracy improved by corrected filter
                           algorythm
@@ -80,7 +96,7 @@ v2.3.5  2005-07-02
                           distance calculations checked before casting
                     > SetDevice:
                         - BugFix: flickering backlight if editing backlight level
-
+                            
 v2.3.4  2005-03-25  > NEW: HWTestDevice: HW selfcheck software
                         - started at PowerUp by pressing Up+Down+Ok
                         - special screen with all I/O/HW elements
@@ -104,7 +120,7 @@ v2.3.4  2005-03-25  > NEW: HWTestDevice: HW selfcheck software
                         - new: GPO 1+2 pins made ready to use
                         - new: PCB-HW-Version number made available
                         - new: additional special characters in rgFont6x8
-
+                            
 v2.3.3  2004-12-14  > MonitorDevice:
                         - freed from any vehicle surveillance code
                             and moved to surveill.c
@@ -128,8 +144,8 @@ v2.3.3  2004-12-14  > MonitorDevice:
                         - VOLTAGE_LOW      1050   /* 10,5V */
                         - VOLTAGE_LOW_RPM  1700   /* U/Min */
                         - VOLTAGE_HIGH     1550   /* 15,5V */
-
-
+                            
+                            
 v2.3.2  2004-10-23  Some BugFixes:
                     > TripCounter-Device:
                         - Upper/Lower were mischanged again, -> fixed
@@ -137,7 +153,7 @@ v2.3.2  2004-10-23  Some BugFixes:
                         - VehicleStateString now cleared under all conditions
                     > LCD-Backlight:
                         - now uses hystersis to avoid flickering
-
+                            
 v2.3.1  2004-09-20  RELEASEVERSION
                     > MonitorDevice:
                         - always reacts on [OK] button by showing
@@ -149,7 +165,7 @@ v2.3.1  2004-09-20  RELEASEVERSION
                             - D = DebugOut on Uart0
                             - S = Vehicle simulation available
                     > BMW100GS now supported
-
+                            
 v2.3.0  2004-08-04  Markus MonitorDevice Work
                     > Baghira Logo combined with SIxO
                     > Bitmap- and Textobjekt-Table in maindev.c
@@ -162,7 +178,7 @@ v2.3.0  2004-08-04  Markus MonitorDevice Work
                         - Missing OilTemp-Sensor: -> RPM instead
                         - Missing WaterTemp-Sensor: Fuel-Distance instead
                         - Pressing Ok -> Switching between Clock + StatusText
-
+                            
 v2.2.0  2004-07-30  NEW RELEASE CANDIDATE!!!
                     > Maindevice: TripCounter added as T1+T2
                     > User-Device Logo changable (via Up/Down key)
@@ -171,21 +187,21 @@ v2.2.0  2004-07-30  NEW RELEASE CANDIDATE!!!
                     > DebugOut: First Usage on device improved
                     > several small BugFixes+improvements
                     > AfricaTwin-Logo added
-
+                            
 v2.1.1  2004-06-15  > Markus complete AD/DA work added
                         - AD/DA-Driver
                         - aut. Backlight-Control
                         - Voltage/Temp. Display
-
+                            
 v2.1.0  2004-06-15  > RTC now displayed
                         - permanent displayed in MainDevice + TripCounter
                         - editable + calibrable
-
+                            
 v2.0.1b 2004-04-04  > MuZ BAGHIRA work done by Markus:
 (Branch!)             - Digital Input adapted to Baghira Temperature Switch
                       - Error LED adapted to Baghira Temperature Switch
                       - Baghira Logo added
-
+                            
 v2.0.1  2004-02-24  > GPL added to all adequate source files
                     > LEDs enabled & tested: ok!
                     > Beeper enabled & tested: ok!
@@ -195,7 +211,7 @@ v2.0.1  2004-02-24  > GPL added to all adequate source files
                     > RPM/WHEEL BugFix: now prevents 'hopping values' when filter switches
                     > TripCounter BugFix: Long- & Short-Distance counter now reseted together
                     > TripCounter BugFix: LongPressed OK does not flicker any longer LED+Beeper
-
+                            
 v2.0.0  2003-12-23  > Initial version. Copy of "sixo". SW version number changed.
                       Unused files isr.c, teraterm.ini, sixo.prj omitted (note:
                       makefile is *.tmk, *.prj is generated on request with
