@@ -78,6 +78,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.1  2007/03/26 23:27:30  tuberkel
+ * changed MOTOBAU version handling
+ * - eBikeType -> #define
+ *
  * Revision 2.0  2006/06/26 23:25:51  tuberkel
  * no message
  *
@@ -164,9 +168,9 @@ const  SWVERS_TYPE gSWID_def = DEF_SWID_NUMBER;
        UINT8 gLogoSelection;
 static UINT8 gLogoSelection_cmp;
 #ifdef BIKE_MOTOBAU
-    const  UINT8 gLogoSelection_def = eLogo_Motobau;
+const  UINT8 gLogoSelection_def = eLogo_Motobau;
 #else // BIKE_MOTOBAU
-    const  UINT8 gLogoSelection_def = eLogo_SIXO;
+const  UINT8 gLogoSelection_def = eLogo_SIXO;
 #endif // BIKE_MOTOBAU
 
 /* tripcounter settings */
@@ -177,15 +181,7 @@ const  TRPCNTFL_TYPE gTripCntFlags_def = DEF_TRPCNTFL;
 /* bike type settings */
        BIKE_TYPE gBikeType;
 static BIKE_TYPE gBikeType_cmp;
-
-// special MOTOBAU behaviour
-// Note:    This is the one and only MOTOBAU compiler switch!
-//          Any other setting/behaviour will be at runtime via gBikeType
-#ifdef BIKE_MOTOBAU
-    const  BIKE_TYPE gBikeType_def = eBIKE_MOTOBAU;     // will not be editable! Fixed to MOTOBAU
-#else // BIKE_MOTOBAU
-    const  BIKE_TYPE gBikeType_def = eBIKE_STANDARD;    // will never be MOTOBAU version!
-#endif // BIKE_MOTOBAU
+const  BIKE_TYPE gBikeType_def = eBIKE_STANDARD;    
 
 // wheel size in mm
 extern  UINT16 wWheelSize;                      // original value

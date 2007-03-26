@@ -68,6 +68,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.1  2007/03/26 23:29:59  tuberkel
+ * changed MOTOBAU version handling
+ * - eBikeType -> #define
+ *
  * Revision 2.0  2006/06/26 23:25:51  tuberkel
  * no message
  *
@@ -151,11 +155,11 @@ extern TIME_TYPE_LD  EngRunTime_All;
 /*   ....!....!....!....!.
     +---------------------+    This is MOTOBAU apearance
     |Batterie:       12.2V|    of the monitor device
-    |Luft:+10°C  -10/+35°C|
-    |Öl:  105°C  (..130°C)|
-    |H2O:  80°C  (..105°C)|
+    |Luft:+10C  -10C  +35C|    'C' stands for '°C'
+    |Öl:  105C  -13C +130C|    special character
+    |H2O:  80C   -2C +105C|
     |DRZ-max:  10200 U/Min|
-    |v-max:       195 km/h|
+    |v-max:      195 km/h |
     |Serv. 65h  Ges. 1295h|
     |     < Alles ok >    |
     +---------------------+ */
@@ -219,6 +223,8 @@ UINT8               TextObjectsNumber;  // number of elements in selected table
 
 
 
+#ifdef BIKE_MOTOBAU                                         /* special MOTOBAU behaviour */
+
 static TEXTOBJECTS_TYPE TextObjects_MotoBau[] =
 {
     /*pObject            X   Y  Font          H  Width  Align     Format    string ptr   State      dyn*/
@@ -234,6 +240,7 @@ static TEXTOBJECTS_TYPE TextObjects_MotoBau[] =
     /*----------------- --- --- ------------ --- ----- --------- ---------- ------------ ---------- ---*/
 };
 
+#else // BIKE_MOTOBAU
 
 // STANDARD Monitor device resources ----------------------------
 static TEXTOBJECTS_TYPE TextObjects_Standard[] =
@@ -249,7 +256,7 @@ static TEXTOBJECTS_TYPE TextObjects_Standard[] =
     /*----------------- --- --- ------------ --- ----- --------- ---------- ------------ ---------- ---*/
 };
 
-
+#endif // BIKE_MOTOBAU
 
 
 /* internal prototypes */
@@ -277,16 +284,13 @@ ERRCODE MonitorDeviceInit(void)
     MonitorScreenDev.fScreenInit  = FALSE;
 
     // special MOTOBAU apearance
-    if ( gBikeType == eBIKE_MOTOBAU )                           /* special MOTOBAU behaviour */
-    {
-        TextObjects         = TextObjects_MotoBau;
-        TextObjectsNumber   = ARRAY_SIZE(TextObjects_MotoBau);
-    }
-    else
-    {
-        TextObjects         = TextObjects_Standard;
-        TextObjectsNumber   = ARRAY_SIZE(TextObjects_Standard);
-    }
+    #ifdef BIKE_MOTOBAU   
+    TextObjects         = TextObjects_MotoBau;
+    TextObjectsNumber   = ARRAY_SIZE(TextObjects_MotoBau);
+    #else // BIKE_MOTOBAU
+    TextObjects         = TextObjects_Standard;
+    TextObjectsNumber   = ARRAY_SIZE(TextObjects_Standard);
+    #endif // BIKE_MOTOBAU
 
     /* create text objects */
     for (i = 0; i < TextObjectsNumber; i++)
@@ -329,12 +333,13 @@ void MonitorDeviceShow(BOOL fShow)
         /* do we have to repaint all? */
         if (MonitorScreenDev.fScreenInit == FALSE)
         {
-            if ( gBikeType != eBIKE_MOTOBAU )           /* special MOTOBAU behaviour */
+            #ifndef BIKE_MOTOBAU        /* special NOT MOTOBAU behaviour */
             /* horizontal line between value list and status lines */
             {
                 DISPLXY Coord = {0,50};                 /* to be removed to an 'LineObject' !!! */
                 DisplDrawHorLine(&Coord, 128, 0x03);
             }
+            #endif // BIKE_MOTOBAU        
 
             /* show all objects */
             for (i = 0; i < TextObjectsNumber; i++)
@@ -517,7 +522,7 @@ void MonitorDeviceUpdateStrings ( void )
     INT16  iBuffer;
 
     // select special behaviour
-    if ( gBikeType == eBIKE_MOTOBAU )
+    #ifdef BIKE_MOTOBAU   
     {
         // special MOTOBAU apearance =========================================
 
@@ -571,9 +576,9 @@ void MonitorDeviceUpdateStrings ( void )
                     RPM_Max,
                     RESTXT_STAT_RPM_DESC );
 
-         // v max string             |v-max:       195 km/h|
+         // v max string             |v-max:      195 km/h |
         sprintf (   (char far *) szVmax,
-                    "%-10s%5u %s",
+                    "%-10s%5u %s ",
                     RESTXT_STAT_V_MAX,
                     Speed_Max,
                     RESTXT_STAT_V_DESC );
@@ -586,7 +591,7 @@ void MonitorDeviceUpdateStrings ( void )
                     RESTXT_STAT_H_ALL,
                     EngRunTime_All.wHour );
     }
-    else
+    #else // BIKE_MOTOBAU        
     {
         // STANDARD SIXO BEHAVIOUR ======================================
 
@@ -641,6 +646,7 @@ void MonitorDeviceUpdateStrings ( void )
 
         // END OF SPECIAL BEHAVIOUR ======================================
     }
+    #endif // BIKE_MOTOBAU        
 }
 
 
@@ -687,17 +693,17 @@ ERRCODE MonitorDeviceResetMsg(MESSAGE Msg)
         TWat_Min = TWat_Min_def;
         TWat_Max = TWat_Max_def;
 
-        if ( gBikeType == eBIKE_MOTOBAU )           /* special MOTOBAU behaviour */
+        #ifdef BIKE_MOTOBAU                   /* special MOTOBAU behaviour */
         {
             Speed_Max = Speed_Max_def;
             RPM_Max   = RPM_Max_def;
         }
-        else
+        #else // BIKE_MOTOBAU        
         {
-            Volt_Min = Volt_Min_def;                /* standard behaviour */
+            Volt_Min = Volt_Min_def;          /* standard behaviour */
             Volt_Max = Volt_Max_def;
         }
-
+        #endif // BIKE_MOTOBAU        
         BeepOk();                   /* beep ok */
         LEDOk();                    /* LED ok */
         fLocked = TRUE;             /* don't repeat this until key released */

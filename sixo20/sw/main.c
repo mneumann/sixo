@@ -68,6 +68,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.1  2007/03/26 23:25:13  tuberkel
+ * changed MOTOBAU version handling
+ * - eBikeType -> #define
+ *
  * Revision 2.0  2006/06/26 23:25:50  tuberkel
  * no message
  *
@@ -211,8 +215,9 @@ int main()
         Error = MainDeviceInit();                                   /* main device (speed&rpm) */
         Error = TripCntDevInit();                                   /* trip counter device */
         Error = MonitorDeviceInit();                                /* monitor device */
-        if ( gBikeType == eBIKE_MOTOBAU )                           /* special MOTOBAU behaviour */
-            Error = LapCntDeviceInit();                             /* LapCounter device */
+        #ifdef BIKE_MOTOBAU                                         /* special MOTOBAU behaviour */
+        Error = LapCntDeviceInit();                                 /* LapCounter device */
+        #endif // BIKE_MOTOBAU
         Error = SetDeviceInit();                                    /* settings device */
 
         /* Display & LED 'HW pseudo test' ---------------- */
@@ -231,8 +236,6 @@ int main()
         TimerRegisterEntryFunction( TimeDateUpdate );               /* RTC check */
         TimerRegisterEntryFunction( AnaInDrvTriggerADConverter );   /* generation of AD samples in single sweep mode */
         TimerRegisterEntryFunction( SurvCheckAllValues );           /* check of all digital/analoge values for warnings/errors */
-        if ( gBikeType == eBIKE_MOTOBAU )                           /* special MOTOBAU behaviour */
-            TimerRegisterEntryFunction( LapCntUpdateTime );         /* enable background lapcounter feature */
 
         // set start screen ------------------------------ */
         if (gSystemFlags.flags.ActDevNr == DEVID_HWTEST)            /* prevent from starting with HW-Test all the time */
