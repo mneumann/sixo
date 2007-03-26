@@ -74,8 +74,11 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.3  2007/03/26 23:14:38  tuberkel
+ * just comments
+ *
  * Revision 2.2  2006/10/19 18:52:26  tuberkel
- * BugFix: ANAIN_TEMP_OFFSET -> SENSOR_DETECT
+ * BugFix: ANAIN_TEMP_OFFSET -> ANAIN_TEMP_SENSORDETECT
  * - now uses values <-20° to detect missing temp sensor
  *
  * Revision 2.1  2006/07/20 22:56:34  tuberkel

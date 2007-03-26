@@ -68,8 +68,11 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.2  2007/03/26 23:17:31  tuberkel
+ * just comments
+ *
  * Revision 2.1  2006/10/19 18:56:15  tuberkel
- * BugFix: ANAIN_TEMP_OFFSET -> SENSOR_DETECT
+ * BugFix: ANAIN_TEMP_OFFSET -> ANAIN_TEMP_SENSORDETECT
  * - now uses values <-20° to detect missing temp sensor
  * BugFix:
  * - Reset-Beeper only if necessary
