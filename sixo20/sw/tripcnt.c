@@ -68,6 +68,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.2  2007/03/26 23:19:25  tuberkel
+ * changed MOTOBAU version handling
+ * - eBikeType -> #define
+ *
  * Revision 2.1  2006/10/01 22:13:27  tuberkel
  * just comment
  *
@@ -382,14 +386,11 @@ ERRCODE TripCntMsgEntry(MESSAGE GivenMsg)
                     TripCntDevShow(FALSE);                                    /* clear our screen */
 
                     // special MOTOBAU behaviour
-                    if ( gBikeType == eBIKE_MOTOBAU )
-                    {
-                        MSG_BUILD_SETFOCUS(NewMsg, DEVID_TRIPCOUNT, DEVID_LAPCNT);  // goto LapCounterDevice
-                    }
-                    else
-                    {
-                        MSG_BUILD_SETFOCUS(NewMsg, DEVID_TRIPCOUNT, DEVID_MONITOR); // goto MonitorDevice
-                    }
+                    #ifdef BIKE_MOTOBAU
+                    MSG_BUILD_SETFOCUS(NewMsg, DEVID_TRIPCOUNT, DEVID_LAPCNT);  // goto LapCounterDevice
+                    #else // BIKE_MOTOBAU
+                    MSG_BUILD_SETFOCUS(NewMsg, DEVID_TRIPCOUNT, DEVID_MONITOR); // goto MonitorDevice
+                    #endif // BIKE_MOTOBAU
                     MsgQPostMsg(NewMsg, MSGQ_PRIO_LOW);
                     RValue = ERR_MSG_PROCESSED;
                 }
