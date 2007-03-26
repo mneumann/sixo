@@ -1,9 +1,9 @@
 /***********************************************************************
  *
- *  CVS-Filename:   $$
- *  Version:        $$
- *  Last Changed:   $$
- *  Changed by:     $$
+ *  CVS-Filename:   $RCSfile$
+ *  Version:        $Revision$
+ *  Last Changed:   $Date$
+ *  Changed by:     $Author$
  *
  *  --------------------------------------------------------------------
  *
@@ -76,6 +76,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.1  2007/03/26 23:21:02  tuberkel
+ * Improved Focus handling
+ *
  * Revision 2.0  2006/06/26 23:25:50  tuberkel
  * no message
  *
@@ -253,8 +256,8 @@ void LapCntDeviceShow(BOOL fShow)
     ERRCODE error = ERR_OK;
     MESSAGE NewMsg;                                         // for screen fresh message
 
-    // update current focused lap
-    LapCntDeviceSetFocus(LapCounterState.cCurrentLap);
+    // update current time
+    LapCntUpdateTime();
 
     // update all strings
     for ( i = 0; i < LAPS_MAX; i++)
@@ -266,6 +269,9 @@ void LapCntDeviceShow(BOOL fShow)
              sprintf( szLapCntText[i],"#%02u --:--", i+1 );     // show unsed
         else sprintf( szLapCntText[i],"#%02u %02u:%02u", i+1, LapCntTime[i].bMin, LapCntTime[i].bSec );
     }
+
+    // update current focused lap
+    LapCntDeviceSetFocus(LapCounterState.cCurrentLap);
 
     // show mode of complete device
     if (fShow == TRUE)                                      // 'show' screen ?
@@ -421,12 +427,16 @@ ERRCODE LapCntDeviceMsgEntry(MESSAGE GivenMsg)
                     MsgQPostMsg(NewMsg, MSGQ_PRIO_LOW);
                     RValue = ERR_MSG_PROCESSED;
                 }
+                
+                LapCntDeviceShow(TRUE);     // update screen anyway
                 break;
 
-            case MSG_SCREEN_REFRESH:
+            //case MSG_SCREEN_REFRESH:        /* standard refresh cycle */
+            case MSG_TIMEDATE_SECOND_GONE:  /* additional blink lap trigger */            
                 LapCntDeviceShow(TRUE);
                 RValue = ERR_MSG_PROCESSED;
                 break;
+                                
             default: return ERR_MSG_NOT_PROCESSED;
         }
     }
@@ -496,7 +506,7 @@ ERRCODE LapCntDeviceStateMachine(MESSAGE Msg)
  *********************************************************************** */
 ERRCODE LapCntDeviceSetFocus(UINT8 bLap)
 {
-    int     i;
+    int       i;
     ERRCODE RValue = ERR_MSG_NOT_PROCESSED;
 
     // clear any focus before setting new one
@@ -505,6 +515,14 @@ ERRCODE LapCntDeviceSetFocus(UINT8 bLap)
 
     // set focus to current lap
     TextObject[bLap].pObject->State.bits.fSelected = 1;
+
+    // let the focus blink with 1 Hz, if lap counter active
+    TextObject[bLap].pObject->State.bits.fSelected = 1;
+    if (  (  LapCounterState.fActive  == 1 )
+        &&( (LapCntTime[bLap].bSec%2) == 0 ) )
+             TextObject[bLap].pObject->State.bits.fSelected = 0;
+    
+    return (RValue);    
 }
 
 
@@ -562,6 +580,7 @@ ERRCODE LapCntDeviceResetMsg(MESSAGE Msg)
         // ready
         RValue = ERR_MSG_PROCESSED; /* done */
     }
+    return (RValue);
 }
 
 
@@ -621,7 +640,6 @@ void LapCntUpdateTime( void )
 {
     static UINT8 bLastSecond = 0;       // to prevent multiple time stamp increments
     UINT8        bThisSecond = 0;       // just a time stamp
-    TIME_TYPE   ClockTime;              // copy of RTC data
 
     // check: LapCounter is active?
     if ( LapCounterState.fActive == 1 )
