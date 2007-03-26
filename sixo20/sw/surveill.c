@@ -70,8 +70,12 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.5  2007/03/26 23:06:06  tuberkel
+ * changed MOTOBAU version handling
+ * - eBiketye -> #define
+ *
  * Revision 2.4  2006/10/19 18:51:30  tuberkel
- * BugFix: ANAIN_TEMP_OFFSET -> SENSOR_DETECT
+ * BugFix: ANAIN_TEMP_OFFSET -> ANAIN_TEMP_SENSORDETECT
  * - now uses values <-20° to detect missing temp sensor
  *
  * Revision 2.3  2006/10/01 22:19:02  tuberkel
@@ -397,11 +401,10 @@ void SurvCheckRPMFlash ( void )
         MsgQPostMsg(msg, MSGQ_PRIO_LOW);                // send message
 
         // special MOTOBAU behaviour
-        if ( gBikeType == eBIKE_MOTOBAU )
-        {
-            // kai want's to enable an additional external lamp/indicator
-            GPO0 = 1;                       // enable output GPO_0 too
-        }
+        #ifdef BIKE_MOTOBAU        
+        // kai want's to enable an additional external lamp/indicator
+        GPO0 = 1;                       // enable output GPO_0 too
+        #endif // BIKE_MOTOBAU        
     }
 
     // check: Deactivate RPM Flash?
@@ -418,11 +421,10 @@ void SurvCheckRPMFlash ( void )
         MsgQPostMsg(msg, MSGQ_PRIO_LOW);                // send message
 
         // special MOTOBAU behaviour
-        if ( gBikeType == eBIKE_MOTOBAU )
-        {
-            // kai want's to enable an additional external lamp/indicator
-            GPO0 = 0;                       // disable output GPO_0 too
-        }
+        #ifdef BIKE_MOTOBAU        
+        // kai want's to enable an additional external lamp/indicator
+        GPO0 = 0;                       // disable output GPO_0 too
+        #endif // BIKE_MOTOBAU        
     }
 }
 
@@ -857,11 +859,10 @@ void SurvSetVehicleState(VEHICLE_STATE_PARM parameter, VEHICLE_STATE_LEVEL level
     MsgQPostMsg(msg, MSGQ_PRIO_LOW);
 
     // special MOTOBAU behaviour
-    if ( gBikeType == eBIKE_MOTOBAU )
-    {
-        // kai wants to enable an additional external lamp/indicator
-        GPO1 = error | warning;            // enable output GPO_1 too
-    }
+    #ifdef BIKE_MOTOBAU        
+    // kai wants to enable an additional external lamp/indicator
+    GPO1 = error | warning;            // enable output GPO_1 too
+    #endif // BIKE_MOTOBAU        
 }
 
 
