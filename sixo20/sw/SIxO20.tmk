@@ -5,7 +5,7 @@
 # All Rights Reserved.
 #
 #	Notice	:	Don't edit.
-#	Date	:	2006 07(July) 20(Thursday) PM.11.33
+#	Date	:	2007 03(March) 27(Tuesday) AM.01.21
 #	Project	:	SIxO20
 ####################################################################
 
@@ -22,14 +22,14 @@ OUTDIR	=	.\outdir
 MKDIR	=	@-mkdir
 ABSFILE	=	$(PROJECT).x30
 ODINCMD	=	$(OUTDIR)
-TARGET	=	$(ABSFILE)
 LN	=	LN30
+TARGET	=	$(ABSFILE)
 ECHO	=	@-echo
 MKFILE	=	$(PROJECT).tmk
-TYPE	=	@-type
 PROJECT	=	SIxO20
-CFLAGS	=	-c -I. -silent -dir $(OUTDIR) -Wall -DVEHICSIM -DDEBUG -DMINIEMU -DHARDCOPY_ -finfo
-AFLAGS	=	-. -DMINIEMU=1:DEBUG=1 -finfo -O$(OUTDIR)
+TYPE	=	@-type
+CFLAGS	=	-c -I. -silent -dir $(OUTDIR) -Wall -DVEHICSIM -finfo
+AFLAGS	=	-. -DMINIEMU=0:DEBUG=0 -finfo -O$(OUTDIR)
 LFLAGS	=	-MS -L nc30lib -. -G -O $(OUTDIR)\$(TARGET)
 LIBFLAGS	=	-C
 UTLFLAGS	=	
@@ -89,6 +89,8 @@ clean:
 		.\$(MKFILE) \
 		$(OUTDIR)\$(TARGET) 
 	$(LMC) $(LMCFLAGS)#00000000000000 .\outdir\SIxO20.x30
+.\ncrt0.a30: \
+		.\sect30.inc 
 $(ODINCMD)\$(LNLIST): \
 		.\$(MKFILE) 
 	$(ECHO)\$(MRLFLAGS) $(LFLAGS) >	$(ODINCMD)\$(LNLIST)
@@ -191,8 +193,8 @@ $(OUTDIR)\anain.r30: \
 		.\anain.h \
 		.\surveill.h \
 		.\resource.h \
-		D:\renesas\m16c\INC30\stdio.h \
-		D:\renesas\m16c\INC30\string.h 
+		C:\MTOOL\INC30\stdio.h \
+		C:\MTOOL\INC30\string.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) anain.c
 $(OUTDIR)\anaindrv.r30: \
 		.\anaindrv.c \
@@ -244,9 +246,9 @@ $(OUTDIR)\debug.r30: \
 		.\fonts.h \
 		.\displdrv.h \
 		.\sfr62p.h \
-		D:\renesas\m16c\INC30\stdarg.h \
-		D:\renesas\m16c\INC30\stdio.h \
-		D:\renesas\m16c\INC30\string.h 
+		C:\MTOOL\INC30\stdarg.h \
+		C:\MTOOL\INC30\stdio.h \
+		C:\MTOOL\INC30\string.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) debug.c
 $(OUTDIR)\device.r30: \
 		.\device.c \
@@ -262,16 +264,16 @@ $(OUTDIR)\device.r30: \
 	$(CC) $(MRCFLAGS) $(CFLAGS) device.c
 $(OUTDIR)\device_l.r30: \
 		.\device_l.c \
-		D:\renesas\m16c\INC30\stdio.h 
+		C:\MTOOL\INC30\stdio.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) device_l.c
 $(OUTDIR)\diagnose.r30: \
 		.\diagnose.c \
 		.\diagnose.h \
 		.\standard.h \
 		.\sfr62p.h \
-		D:\renesas\m16c\INC30\stdio.h \
-		D:\renesas\m16c\INC30\stdlib.h \
-		D:\renesas\m16c\INC30\string.h 
+		C:\MTOOL\INC30\stdio.h \
+		C:\MTOOL\INC30\stdlib.h \
+		C:\MTOOL\INC30\string.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) diagnose.c
 $(OUTDIR)\digindrv.r30: \
 		.\digindrv.c \
@@ -288,7 +290,8 @@ $(OUTDIR)\digindrv.r30: \
 		.\sfr62p.h \
 		.\m16c.h \
 		.\device.h \
-		.\anaindrv.h 
+		.\anaindrv.h \
+		.\sysparam.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) digindrv.c
 $(OUTDIR)\digoutdr.r30: \
 		.\digoutdr.c \
@@ -308,7 +311,7 @@ $(OUTDIR)\display.r30: \
 		.\msgqueue.h \
 		.\stdmsgs.h \
 		.\anain.h \
-		D:\renesas\m16c\INC30\string.h 
+		C:\MTOOL\INC30\string.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) display.c
 $(OUTDIR)\displdrv.r30: \
 		.\displdrv.c \
@@ -366,15 +369,15 @@ $(OUTDIR)\hwtestdev.r30: \
 		.\eeprdrv.h \
 		.\clkdrv.h \
 		.\diagnose.h \
-		D:\renesas\m16c\INC30\stdio.h \
-		D:\renesas\m16c\INC30\string.h 
+		C:\MTOOL\INC30\stdio.h \
+		C:\MTOOL\INC30\string.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) hwtestdev.c
 $(OUTDIR)\iicbb.r30: \
 		.\iicbb.a30 
 	$(AS) $(MRAFLAGS) $(AFLAGS) iicbb.a30
 $(OUTDIR)\init_l.r30: \
 		.\init_l.c \
-		D:\renesas\m16c\INC30\stdio.h 
+		C:\MTOOL\INC30\stdio.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) init_l.c
 $(OUTDIR)\introdev.r30: \
 		.\introdev.c \
@@ -390,8 +393,8 @@ $(OUTDIR)\introdev.r30: \
 		.\digindrv.h \
 		.\sysparam.h \
 		.\bitmaps.h \
-		D:\renesas\m16c\INC30\stdio.h \
-		D:\renesas\m16c\INC30\string.h 
+		C:\MTOOL\INC30\stdio.h \
+		C:\MTOOL\INC30\string.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) introdev.c
 $(OUTDIR)\lapcdev.r30: \
 		.\lapcdev.c \
@@ -411,8 +414,8 @@ $(OUTDIR)\lapcdev.r30: \
 		.\timedate.h \
 		.\led.h \
 		.\beep.h \
-		D:\renesas\m16c\INC30\stdio.h \
-		D:\renesas\m16c\INC30\string.h 
+		C:\MTOOL\INC30\stdio.h \
+		C:\MTOOL\INC30\string.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) lapcdev.c
 $(OUTDIR)\led.r30: \
 		.\led.c \
@@ -461,7 +464,7 @@ $(OUTDIR)\main.r30: \
 		.\anain.h \
 		.\surveill.h \
 		.\displdrv.h \
-		D:\renesas\m16c\INC30\stdio.h 
+		C:\MTOOL\INC30\stdio.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) main.c
 $(OUTDIR)\maindev.r30: \
 		.\maindev.c \
@@ -482,8 +485,8 @@ $(OUTDIR)\maindev.r30: \
 		.\timedate.h \
 		.\anain.h \
 		.\surveill.h \
-		D:\renesas\m16c\INC30\stdio.h \
-		D:\renesas\m16c\INC30\string.h 
+		C:\MTOOL\INC30\stdio.h \
+		C:\MTOOL\INC30\string.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) maindev.c
 $(OUTDIR)\measdrv.r30: \
 		.\measdrv.c \
@@ -510,8 +513,8 @@ $(OUTDIR)\measure.r30: \
 		.\sysparam.h \
 		.\sfr62p.h \
 		.\m16c.h \
-		D:\renesas\m16c\INC30\stdio.h \
-		D:\renesas\m16c\INC30\string.h 
+		C:\MTOOL\INC30\stdio.h \
+		C:\MTOOL\INC30\string.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) measure.c
 $(OUTDIR)\mondev.r30: \
 		.\mondev.c \
@@ -534,8 +537,8 @@ $(OUTDIR)\mondev.r30: \
 		.\measure.h \
 		.\beep.h \
 		.\timedate.h \
-		D:\renesas\m16c\INC30\stdio.h \
-		D:\renesas\m16c\INC30\string.h 
+		C:\MTOOL\INC30\stdio.h \
+		C:\MTOOL\INC30\string.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) mondev.c
 $(OUTDIR)\msgqueue.r30: \
 		.\msgqueue.c \
@@ -547,7 +550,7 @@ $(OUTDIR)\msgqueue.r30: \
 		.\device.h \
 		.\beep.h \
 		.\m16c.h \
-		D:\renesas\m16c\INC30\string.h 
+		C:\MTOOL\INC30\string.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) msgqueue.c
 $(OUTDIR)\ncrt0.r30: \
 		.\ncrt0.a30 
@@ -572,9 +575,9 @@ $(OUTDIR)\objects.r30: \
 		.\xtoa.h \
 		.\beep.h \
 		.\led.h \
-		D:\renesas\m16c\INC30\string.h \
-		D:\renesas\m16c\INC30\stdlib.h \
-		D:\renesas\m16c\INC30\ctype.h 
+		C:\MTOOL\INC30\string.h \
+		C:\MTOOL\INC30\stdlib.h \
+		C:\MTOOL\INC30\ctype.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) objects.c
 $(OUTDIR)\setdev.r30: \
 		.\setdev.c \
@@ -594,8 +597,8 @@ $(OUTDIR)\setdev.r30: \
 		.\timedate.h \
 		.\bitmaps.h \
 		.\surveill.h \
-		D:\renesas\m16c\INC30\stdio.h \
-		D:\renesas\m16c\INC30\string.h 
+		C:\MTOOL\INC30\stdio.h \
+		C:\MTOOL\INC30\string.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) setdev.c
 $(OUTDIR)\surveill.r30: \
 		.\surveill.c \
@@ -616,8 +619,8 @@ $(OUTDIR)\surveill.r30: \
 		.\timedate.h \
 		.\digoutdr.h \
 		.\sysparam.h \
-		D:\renesas\m16c\INC30\stdio.h \
-		D:\renesas\m16c\INC30\string.h 
+		C:\MTOOL\INC30\stdio.h \
+		C:\MTOOL\INC30\string.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) surveill.c
 $(OUTDIR)\sysparam.r30: \
 		.\sysparam.c \
@@ -635,7 +638,7 @@ $(OUTDIR)\sysparam.r30: \
 		.\timedate.h \
 		.\anain.h \
 		.\bitmaps.h \
-		D:\renesas\m16c\INC30\string.h 
+		C:\MTOOL\INC30\string.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) sysparam.c
 $(OUTDIR)\testdev.r30: \
 		.\testdev.c \
@@ -650,7 +653,7 @@ $(OUTDIR)\testdev.r30: \
 		.\device.h \
 		.\digindrv.h \
 		.\sysparam.h \
-		D:\renesas\m16c\INC30\stdio.h 
+		C:\MTOOL\INC30\stdio.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) testdev.c
 $(OUTDIR)\timedate.r30: \
 		.\timedate.c \
@@ -663,8 +666,8 @@ $(OUTDIR)\timedate.r30: \
 		.\debug.h \
 		.\m16c.h \
 		.\resource.h \
-		D:\renesas\m16c\INC30\string.h \
-		D:\renesas\m16c\INC30\stdio.h 
+		C:\MTOOL\INC30\string.h \
+		C:\MTOOL\INC30\stdio.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) timedate.c
 $(OUTDIR)\timer.r30: \
 		.\timer.c \
@@ -677,7 +680,7 @@ $(OUTDIR)\timer.r30: \
 		.\digoutdr.h \
 		.\sfr62p.h \
 		.\m16c.h \
-		D:\renesas\m16c\INC30\string.h 
+		C:\MTOOL\INC30\string.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) timer.c
 $(OUTDIR)\tripcnt.r30: \
 		.\tripcnt.c \
@@ -696,8 +699,8 @@ $(OUTDIR)\tripcnt.r30: \
 		.\beep.h \
 		.\led.h \
 		.\timedate.h \
-		D:\renesas\m16c\INC30\stdio.h \
-		D:\renesas\m16c\INC30\string.h 
+		C:\MTOOL\INC30\stdio.h \
+		C:\MTOOL\INC30\string.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) tripcnt.c
 $(OUTDIR)\vehicsim.r30: \
 		.\vehicsim.c \
