@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.2  2007/03/27 00:06:55  tuberkel
+ * BugFix: added missing LapCntUpdateTime()
+ *
  * Revision 2.1  2007/03/26 23:25:13  tuberkel
  * changed MOTOBAU version handling
  * - eBikeType -> #define
@@ -236,6 +239,9 @@ int main()
         TimerRegisterEntryFunction( TimeDateUpdate );               /* RTC check */
         TimerRegisterEntryFunction( AnaInDrvTriggerADConverter );   /* generation of AD samples in single sweep mode */
         TimerRegisterEntryFunction( SurvCheckAllValues );           /* check of all digital/analoge values for warnings/errors */
+        #ifdef BIKE_MOTOBAU                                         /* special MOTOBAU behaviour */
+            TimerRegisterEntryFunction( LapCntUpdateTime );         /* enable background lapcounter feature */
+        #endif // BIKE_MOTOBAU
 
         // set start screen ------------------------------ */
         if (gSystemFlags.flags.ActDevNr == DEVID_HWTEST)            /* prevent from starting with HW-Test all the time */
