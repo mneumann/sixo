@@ -69,6 +69,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.4  2007/03/30 10:09:22  tuberkel
+ * added language string part to szSWVersion
+ *
  * Revision 2.3  2007/03/26 23:16:22  tuberkel
  * BugFix:
  * - more reliable buffer size szSWVersion[] 22 -> 64 chars
@@ -201,9 +204,14 @@ void IntroScreenShow(BOOL fShow)
         /* get formated sw version */
         szSWVersion[0] = 0x0;
         sprintf( szSWVersion, "V%u.%u.%u", gSWID.Fields.apl, gSWID.Fields.swv, gSWID.Fields.bld);
-        strcat ( szSWVersion, " ");
+
+        
+        /* insert language */
+        strcat ( szSWVersion, "-");
+        strcat ( szSWVersion, RESTXT_LANG );
 
         /* add formated bike version string depending on special compiler settings */
+        strcat ( szSWVersion, " ");
         switch ( gBikeType )
         {
             case eBIKE_AFRICATWIN:     strcat ( szSWVersion, RESTXT_BIKESTRING_AT);     break;
