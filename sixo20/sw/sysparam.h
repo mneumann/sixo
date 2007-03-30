@@ -69,6 +69,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.5  2007/03/30 10:00:57  tuberkel
+ * incr. to V2.4.5
+ *
  * Revision 2.4  2007/03/26 23:13:33  tuberkel
  * changed MOTOBAU version handling
  * - eBikeType -> #define
@@ -110,7 +113,7 @@
 /* software version number e.q. '2.1.1' */
 #define DEF_SWID_APL   2  // APL = (0..15) mean application number (changed with new mean application features)
 #define DEF_SWID_SWV   4  // SWV = (0..15) sw version number (changed with additional features)
-#define DEF_SWID_BLD   4  // BLD = (0..15) build number (changed with bugfixes)
+#define DEF_SWID_BLD   5  // BLD = (0..15) build number (changed with bugfixes)
 
 
 /* hardware specific version number */
