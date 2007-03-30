@@ -7,6 +7,12 @@ Note that "sixo" is freezed (except bug fixes and minor updates).
 Version Date        Feature
 ======= ==========  ======================================
 
+v2.4.5  2007-03-30  > NEW: Language specific Version DE - EN - NL available
+                        + to be flashed as separate firmware files
+                      CHANGED: 
+                        + autom. Temp-Sensor detection improved (less disturbance)
+                          (uses -10°C instead of -20°C to detect a sensor)
+
 v2.4.4  2007-03-26  > NEW: motorcycle type BMW F650 supported
                         + supports F650 inputs for ABS, Fuel sensor, Watertemp.
                         + fuel switch filtered  (>2 sec) to prevent flickering
