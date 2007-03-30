@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.3  2007/03/30 10:08:35  tuberkel
+ * Added error check for wrong system init values
+ *
  * Revision 2.2  2007/03/27 00:06:55  tuberkel
  * BugFix: added missing LapCntUpdateTime()
  *
@@ -244,6 +247,11 @@ int main()
         #endif // BIKE_MOTOBAU
 
         // set start screen ------------------------------ */
+        if (  (gSystemFlags.flags.ActDevNr <  DEVID_MAIN)           /* check for basic eeprom content error */
+            ||(gSystemFlags.flags.ActDevNr >= DEVID_LAST) )
+        {   ODS1( DBG_SYS, DBG_ERROR, "Invalid gSystemFlags.flags.ActDevNr %u corrected!", gSystemFlags.flags.ActDevNr );        
+            gSystemFlags.flags.ActDevNr = DEVID_MAIN;
+        }
         if (gSystemFlags.flags.ActDevNr == DEVID_HWTEST)            /* prevent from starting with HW-Test all the time */
             gSystemFlags.flags.ActDevNr = DEVID_MAIN;
         eStartDevice = gSystemFlags.flags.ActDevNr;                 /* start NORMAL USER MODE */
