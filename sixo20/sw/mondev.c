@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.2  2007/03/30 10:06:51  tuberkel
+ * BugFix: added missing DisplayClear at Init
+ *
  * Revision 2.1  2007/03/26 23:29:59  tuberkel
  * changed MOTOBAU version handling
  * - eBikeType -> #define
@@ -198,7 +201,7 @@ static char         szVmax[STAT_TXT_LEN];
 static TEXTOBJECT   RunTimeObj;
 static char         szRunTime[STAT_TXT_LEN];
 static TEXTOBJECT   StatusObj;
-extern char         szVehicState[STATE_TEXT_LEN+1];    /* vehicle state string */
+extern char         szVehicState[VEHSTATE_TXT_LEN];    /* vehicle state string */
 
 
 
@@ -333,6 +336,9 @@ void MonitorDeviceShow(BOOL fShow)
         /* do we have to repaint all? */
         if (MonitorScreenDev.fScreenInit == FALSE)
         {
+            /* yes, repaint complete screen */
+            DisplClearScreen(0x0);
+
             #ifndef BIKE_MOTOBAU        /* special NOT MOTOBAU behaviour */
             /* horizontal line between value list and status lines */
             {
@@ -344,6 +350,7 @@ void MonitorDeviceShow(BOOL fShow)
             /* show all objects */
             for (i = 0; i < TextObjectsNumber; i++)
                 ObjTextShow( TextObjects[i].pObject );
+
             /* init done */
             MonitorScreenDev.fScreenInit = TRUE;
         }
