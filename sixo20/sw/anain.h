@@ -73,6 +73,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.3  2007/03/30 10:11:24  tuberkel
+ * changed ANAIN_TEMP_SENSORDETECT  -20 -> -10
+ *
  * Revision 2.2  2007/03/26 23:17:00  tuberkel
  * just comments
  *
@@ -99,9 +102,9 @@
 #define ANAIN_LUMI_SCALE  32
 #define ANAIN_VOLT_SCALE   4
 
-#define ANAIN_TEMP_OFFSET         40    // offset of unsigned temperature values
+#define ANAIN_TEMP_OFFSET         40     // offset of unsigned temperature values
 
-#define ANAIN_TEMP_SENSORDETECT  (-20)   // in °C, lower values indicate a missing sensor
+#define ANAIN_TEMP_SENSORDETECT  (-10)   // in °C, lower values indicate a missing sensor
 
 #define ANAIN_INVALID_S   0x7fff    // marker for invalid signed value (signed, max. positive)
 #define ANAIN_INVALID_U   0xffff    // marker for invalid unsigned value (unsigned, max. positive)
