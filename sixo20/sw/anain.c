@@ -74,6 +74,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.4  2007/03/30 10:12:00  tuberkel
+ * - Matthias Otto stuff:  language specific display content
+ *
  * Revision 2.3  2007/03/26 23:14:38  tuberkel
  * just comments
  *
@@ -736,7 +739,7 @@ void AnaInFormatVoltage( UINT16 usVolts, STRING szResult, size_t cbResult)
       return;
    }
    else{
-      sprintf( szResult, "%2d,%1d", usVolts/100, (usVolts - (usVolts/100) * 100) / 10);
+      sprintf( szResult, "%2d%c%1d", usVolts/100, RESTXT_DEC_SEPARATOR, (usVolts - (usVolts/100) * 100) / 10);
    }
 }
 
