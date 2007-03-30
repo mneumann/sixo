@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.3  2007/03/30 09:58:22  tuberkel
+ * language specific display content
+ *
  * Revision 2.2  2007/03/26 23:19:25  tuberkel
  * changed MOTOBAU version handling
  * - eBikeType -> #define
@@ -116,8 +119,8 @@ static DEVDATA      TripCntDev;
 static TEXTOBJECT   BigTripCntObj;                      /* contains the bigger trip counter object data */
 static TEXTOBJECT   SmallTripCntObj;                    /* contains the smaller trip counter object data */
 
-static CHAR         BigTripCntTxt[BUFFER_STRSIZE]   =    "  0,00";  /* buffer for big trip counter string */
-static CHAR         SmallTripCntTxt[BUFFER_STRSIZE] = "     0,00";  /* buffer for samll trip counter string */
+static CHAR         BigTripCntTxt[BUFFER_STRSIZE]   = {' ', ' ', '0', RESTXT_DEC_SEPARATOR, '0', '0'};  /* buffer for big trip counter string */
+static CHAR         SmallTripCntTxt[BUFFER_STRSIZE] = {' ', ' ', ' ', ' ', ' ', '0', RESTXT_DEC_SEPARATOR, '0', '0'};  /* buffer for samll trip counter string */
 
 static TEXTOBJECT   VehSpeedTxtObj;                     /* stateline speed object */
 static CHAR         szVehSpeed[9] = "--- km/h";         /* buffer for speed string */
@@ -228,8 +231,8 @@ void TripCntDevShow(BOOL fShow)
         }
 
         /* get trip counter display values */
-        sprintf(BigTripCntTxt,   "%3u,%.2u", MeasGetTripCnt(BigTripCnt,   MR_KM_ONLY), MeasGetTripCnt(BigTripCnt,   MR_DKM_ONLY));
-        sprintf(SmallTripCntTxt, "%6u,%.2u", MeasGetTripCnt(SmallTripCnt, MR_KM_ONLY), MeasGetTripCnt(SmallTripCnt, MR_DKM_ONLY));
+        sprintf(BigTripCntTxt,   "%3u%c%.2u", MeasGetTripCnt(BigTripCnt,   MR_KM_ONLY), RESTXT_DEC_SEPARATOR, MeasGetTripCnt(BigTripCnt,   MR_DKM_ONLY));
+        sprintf(SmallTripCntTxt, "%6u%c%.2u", MeasGetTripCnt(SmallTripCnt, MR_KM_ONLY), RESTXT_DEC_SEPARATOR, MeasGetTripCnt(SmallTripCnt, MR_DKM_ONLY));
 
         /* -------------------------------------------------- */
         /* update vehicle speed '123 km/h */
@@ -539,7 +542,7 @@ void TripCntUpdateTimeDate(void)
     if ( TripCntDev.fScreenInit == TRUE  )       // screen is ready?
     {
         /* update time for lower state line '13:15:24' */
-        TimeDate_GetString( GERM_HHMMSS,  szTime );
+        TimeDate_GetString( RESENUM_HHMMSS,  szTime );
         ObjTextShow( &TimeTxtObj );
     }
 }
