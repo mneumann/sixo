@@ -70,6 +70,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.6  2007/03/30 10:03:49  tuberkel
+ * just changed constant name VEHSTATE_TXT_LEN
+ *
  * Revision 2.5  2007/03/26 23:06:06  tuberkel
  * changed MOTOBAU version handling
  * - eBiketye -> #define
@@ -177,7 +180,7 @@ static STRING               szVehicStateAllRight;                           /* s
 static INT8                 CurrentNOKStates;                               /* number of states currently not ok */
 static INT8                 CurStateTextIdx = 0;                            /* index of vehicle parameter currently shown */
 
-char szVehicState[STATE_TEXT_LEN+1];                                 /* THE vehicle state string (directly used by 'MainDevice' and 'MonitorDevice') */
+char szVehicState[VEHSTATE_TXT_LEN];                                 /* THE vehicle state string (directly used by 'MainDevice' and 'MonitorDevice') */
 
 
 #ifdef DEBUG
