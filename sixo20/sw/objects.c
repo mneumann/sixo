@@ -69,6 +69,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.1  2007/03/30 10:05:56  tuberkel
+ * just comments
+ *
  * Revision 2.0  2006/06/26 23:25:51  tuberkel
  * no message
  *
@@ -95,17 +98,19 @@
 #include "digindrv.h"
 #include "beep.h"
 #include "led.h"
+#include "resource.h"
+
 
 /* character array for edit mode */
 /* NOTE 'ö' and 'ü' are the only characters, that the compiler
-        does not handle direct, so we've to use the hex-form! */
+        does not handle directly, so we've to use the hex-form! */
 const UINT8 szLowerChars[]="aäbcdefghijklmno\xf6pqrsßtu\xfcvwxyz";
 const UINT8 szUpperChars[]="AÄBCDEFGHIJKLMNOÖPQRSTUÜVWXYZ";
 const UINT8 szNumericChars[]="0123456789";
 const UINT8 szPunctChars[]="_-([{)]}!\x22#%&'*,./:;?@\\";
 const UINT8 szSpecialChars[]="+<=>|~$^`";
 
-#define MAXCHARLISTSIZE     120     /* max. number of chars if all list are used together */
+#define MAXCHARLISTSIZE     120     /* max. number of chars if all listed are used together */
 
 
 
@@ -1155,7 +1160,7 @@ STRING ObjEditNum2String( EDITNUMBEROBJECT far * fpObject, STRING szTargetBuffer
             for (i = 0; i < (fpObject->bLength - fpObject->bComma - 1); i++)
                 szTargetBuffer[i] = szTargetBuffer[i+1];
         }
-        szTargetBuffer[fpObject->bLength - fpObject->bComma - 1] = CHAR_POINT;
+        szTargetBuffer[fpObject->bLength - fpObject->bComma - 1] = RESTXT_THOU_SEPARATOR;
     }
 
 
