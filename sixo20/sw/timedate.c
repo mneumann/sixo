@@ -72,6 +72,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.1  2007/03/30 10:00:22  tuberkel
+ * Matthias Otto stuff:
+ * - language specific display content
+ *
  * Revision 2.0  2006/06/26 23:25:51  tuberkel
  * no message
  *
@@ -364,28 +368,35 @@ ERRCODE TimeDate_GetString( DATETIME_STRFORMAT eFormat, STRING szBuffer )
     switch (eFormat)
     {
         // german formats
-        case GERM_HHMM:          // return time in format '12:34'
-            sprintf(szBuffer,"%02u:%02u", Time.bHour, Time.bMin);
+        // Note: the leading SPACE in HHMM format compensates the preceeding 'a'/'p' of the englisch version!
+        case GERM_HHMM:          // return time in format '  5:34'
+            sprintf(szBuffer," %2u:%02u", Time.bHour, Time.bMin);
             break;
-        case GERM_HHMMSS:        // return time in format '12:34:56'
-            sprintf(szBuffer,"%02u:%02u:%02u", Time.bHour, Time.bMin, Time.bSec);
+        case GERM_HHMMSS:        // return time in format '  5:34:56'
+            sprintf(szBuffer," %2u:%02u:%02u", Time.bHour, Time.bMin, Time.bSec);
             break;
-        case GERM_DDMMYY:        // return date in format '28.02.04'
-            sprintf(szBuffer,"%02u.%02u.%02u", Date.bDate, Date.bMonth, Date.bYear);
+        case GERM_DDMMYY:        // return date in format ' 1.02.04'
+            sprintf(szBuffer,"%2u.%02u.%02u", Date.bDate, Date.bMonth, Date.bYear);
             break;
-        case GERM_DDMMYYYY:      // return date in format '28.02.2004'
-            sprintf(szBuffer,"%02u.%02u.20%02u", Date.bDate, Date.bMonth, Date.bYear);
+        case GERM_DDMMYYYY:      // return date in format ' 1.02.2004'
+            sprintf(szBuffer,"%2u.%02u.20%02u", Date.bDate, Date.bMonth, Date.bYear);
             break;
-        case GERM_WWDDMMYY:      // return date in format 'Fr 28.02.04'
-            sprintf(szBuffer,"%s %02u.%02u.%02u", TimeDate_GetDoWString(TRUE, Date.eDoW), Date.bDate, Date.bMonth, Date.bYear);
+        case GERM_WWDDMMYY:      // return date in format 'Fr  1.02.04'
+            sprintf(szBuffer,"%s %2u.%02u.%02u", TimeDate_GetDoWString(TRUE, Date.eDoW), Date.bDate, Date.bMonth, Date.bYear);
             break;
 
         // english formats
-        case ENGL_HHMM:          // return time in format '12:34'
-        case ENGL_HHMMSS:        // return time in format '12:34:56'
+        case ENGL_HHMM:          // return time in format ' 2:34p'
+         	sprintf(szBuffer,"%2u:%02u%c", Time.bHour<=12?Time.bHour:Time.bHour-12, Time.bMin, Time.bHour<12?'a':'p');
+			break;
+        case ENGL_HHMMSS:        // return time in format ' 2:34:56p'
+            sprintf(szBuffer,"%2u:%02u:%02u%c", Time.bHour<=12?Time.bHour:Time.bHour-12, Time.bMin, Time.bSec, Time.bHour<12?'a':'p');
+            break;
         case ENGL_YYMMDD:        // return date in format '04-12-28'
         case ENGL_YYYYMMDD:      // return date in format '2004-12-28'
-        case ENGL_WWYYMMDD:      // return date in format 'Fr, 04-12-28'
+        case ENGL_WWYYMMDD:      // return date in format 'Fr 04-12-28'
+		case ENGL_WWDDMMYY:		 // return date in format 'Fr  2/02/04'
+		     sprintf(szBuffer,"%s %2u/%02u/%02u", TimeDate_GetDoWString(TRUE, Date.eDoW), Date.bDate, Date.bMonth, Date.bYear);
             break;
         default: strcpy(szBuffer,"?");
     }
