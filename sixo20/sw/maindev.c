@@ -68,6 +68,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.3  2007/03/30 10:08:05  tuberkel
+ * - Matthias Otto stuff:  language specific display content
+ * - Added error check for wrong system init values
+ *
  * Revision 2.2  2007/03/26 23:17:31  tuberkel
  * just comments
  *
@@ -136,7 +140,7 @@ typedef enum
 extern UINT16            wMilliSecCounter;                  /* valid values: 0h .. ffffh */
 extern STRING far        szDevName[];                       /* device names */
 extern SYSFLAGS_TYPE     gSystemFlags;                      /* system parameters */
-extern char              szVehicState[STATE_TEXT_LEN+1];    /* vehicle state string */
+extern char              szVehicState[VEHSTATE_TXT_LEN];    /* vehicle state string */
 
 
 /* external bitmaps */
@@ -317,6 +321,13 @@ ERRCODE MainDeviceInit(void)
     MainDevice.szDevName    = szDevName[DEVID_MAIN];
     MainDevice.fFocused     = FALSE;
     MainDevice.fScreenInit  = FALSE;
+    
+    /* error check: */
+    if (  (gSystemFlags.flags.MainDevState == eMainFirst)
+        ||(gSystemFlags.flags.MainDevState >= eMainLast ) )
+    {   ODS1( DBG_SYS, DBG_ERROR, "MainDeviceInit(): Invalid MainDevState %u corrected!", gSystemFlags.flags.MainDevState );        
+        gSystemFlags.flags.MainDevState = eMainFirst + 1;
+    }
     MainDevice.wDevState    = gSystemFlags.flags.MainDevState;
 
     /* initialize bitmap objects */
@@ -364,7 +375,6 @@ void MainDeviceShow(BOOL fShow)
 {
     ERRCODE error = ERR_OK;
     MESSAGE NewMsg;             /* for screen fresh message */
-    CHAR    szBuffer[15];       /* text buffer */
     UINT16  wWheelSpeed;
 
     /* 'show' or 'clear' screen? */
@@ -372,13 +382,13 @@ void MainDeviceShow(BOOL fShow)
     {
         /* update of all displayable values */
         wWheelSpeed = MeasGetWheelSpeed(MR_KM_PER_H);
-        sprintf( szSpeed,        "%3u",     wWheelSpeed);
-        sprintf( szRPM,          "%5u",     MeasGetEngineSpeed(MR_RPM_R10));
-        sprintf( szFuelDist,     "%4u,%1u", MeasGetFuelDist(MR_KM_ONLY), MeasGetFuelDist(MR_HM_ONLY));
-        sprintf( szVehDist,      "%06lu",   MeasGetVehicDist(MR_KM));
-        sprintf( szTrip1Dist,    "%4u,%1u", MeasGetTripCnt( eTRIPC_C, MR_KM_ONLY), MeasGetTripCnt( eTRIPC_C, MR_HM_ONLY));
-        sprintf( szTrip2Dist,    "%4u,%1u", MeasGetTripCnt( eTRIPC_D, MR_KM_ONLY), MeasGetTripCnt( eTRIPC_D, MR_HM_ONLY));
-        sprintf( szSpeedMax,     "%3u",     Speed_Max);
+        sprintf( szSpeed,        "%3u",      wWheelSpeed);
+        sprintf( szRPM,          "%5u",      MeasGetEngineSpeed(MR_RPM_R10));
+        sprintf( szFuelDist,     "%4u%c%1u", MeasGetFuelDist(MR_KM_ONLY), RESTXT_DEC_SEPARATOR, MeasGetFuelDist(MR_HM_ONLY));
+        sprintf( szVehDist,      "%06lu",    MeasGetVehicDist(MR_KM));
+        sprintf( szTrip1Dist,    "%4u%c%1u", MeasGetTripCnt( eTRIPC_C, MR_KM_ONLY), RESTXT_DEC_SEPARATOR, MeasGetTripCnt( eTRIPC_C, MR_HM_ONLY));
+        sprintf( szTrip2Dist,    "%4u%c%1u", MeasGetTripCnt( eTRIPC_D, MR_KM_ONLY), RESTXT_DEC_SEPARATOR, MeasGetTripCnt( eTRIPC_D, MR_HM_ONLY));
+        sprintf( szSpeedMax,     "%3u",      Speed_Max);
 
         /* analog input values are already formated */
         if ( AnaInGetAirTemperature() > ANAIN_TEMP_SENSORDETECT )
@@ -918,17 +928,19 @@ ERRCODE MainDeviceShowVehicStateMsg(MESSAGE Msg)
  *********************************************************************** */
 void MainDeviceUpdateTimeDate(void)
 {
-    CHAR    szBuffer[15];                           /* text buffer */
+    CHAR    szBuffer[15];                           // text buffer
 
     // check conditions to display timedate */
     if (  ( MainDevice.fScreenInit == TRUE  )       // screen is ready?
         &&( ShowVehicleState       == FALSE ) )     // no vehicle state string active?
     {
-        /* support clock interface 'Mo, 01.01.01 00:00:00' */
-        TimeDate_GetString( GERM_WWDDMMYY,  szBuffer );
+        /* generate complete date/time string (21 chars!):
+            DE: 'Mo 01.01.01  00:00:00'
+            EN: 'Mo 01.01.01 00:00:00a' */
+        TimeDate_GetString( RESENUM_WWDDMMYY,  szBuffer );
         strcpy(szTimeDate, szBuffer);
-        strcat(szTimeDate, "  ");
-        TimeDate_GetString( GERM_HHMMSS,  szBuffer );
+        strcat(szTimeDate, " ");  
+        TimeDate_GetString( RESENUM_HHMMSS,  szBuffer );  // returns 7! chars!!!
         strcat(szTimeDate, szBuffer);
         ObjTextShow( &TimeDateTxtObj );
     }
