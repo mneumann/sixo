@@ -68,6 +68,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.1  2007/03/30 09:59:17  tuberkel
+ * Matthias Otto stuff:
+ * - added  ENGL_WWDDMMYY       // return date in format 'Fr, 28-02-04'
+ *
  * Revision 2.0  2006/06/26 23:25:51  tuberkel
  * no message
  *
@@ -165,7 +169,8 @@ typedef enum
     ENGL_HHMMSS,        // return time in format '12:34:56'
     ENGL_YYMMDD,        // return date in format '04-12-28'
     ENGL_YYYYMMDD,      // return date in format '2004-12-28'
-    ENGL_WWYYMMDD       // return date in format 'Fr, 04-12-28'
+    ENGL_WWYYMMDD,      // return date in format 'Fr, 04-12-28'
+    ENGL_WWDDMMYY       // return date in format 'Fr, 28-02-04'
 
 } DATETIME_STRFORMAT;
 
