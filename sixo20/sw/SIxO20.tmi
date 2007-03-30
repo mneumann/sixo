@@ -12,7 +12,7 @@ Name=NC30WA
 Version=V.5.00 Release 2
 
 [MEMBER]
-Count=6
+Count=7
 Name1=A+C-FLAG: MINIEMU
 Section1=0 / 1 NOTE: Set both A-FLAGS & C-FLAGS !!!
 Mail1=if defined, activates KD30 V3.0 Monitor usage on Uart1
@@ -43,10 +43,10 @@ Section6=- / def
 Mail6=if defined, setting input HIGHBEAM to ON starts a ScreenDumps as BMP via Uart1
 TEL6=only to be used with DEBUG defined
 ETC6=to be used for documentation only
-Name7=C-FLAG: BIKE_BAGHIRA
-Section7=- / def
-Mail7=if defined, enables GPI_0 as Temperature-Warning (Error LED)
-TEL7=specially defined for MuZ Baghira
+Name7=C-FLAG: LANG
+Section7=0..n / def = 0
+Mail7=0=DE, 1=EN-UK, 2=NL
+TEL7=selected language
 ETC7=
 Name8=C-FLAG: BIKE_R100GS
 Section8=- / def
