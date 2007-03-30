@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.5  2007/03/30 10:05:13  tuberkel
+ * changed EditWheelSizeObj size 11 -> 13 chars
+ *
  * Revision 2.4  2007/03/26 23:11:55  tuberkel
  * changed MOTOBAU version handling
  * - eBikeType -> #define
@@ -307,7 +310,7 @@ static const EDITNUMBER_INITTYPE EditNumObj[] =
 {
     /* fpObject           OrgX    OrgY  Font         Width  pNumber                 pWorkNumber     Type   Min  Max    Step DplType Mode     C  zDescr                      zUnit                       L   State                                       */
     /* ------------------ ------ ------ ------------ ----- -----------------------  --------------- ------ ---- ------- --- ------- -------- - ---------------------------- --------------------------- -- -------------------------------------------- */
-    { &EditWheelSizeObj,      0,    0,  DPLFONT_6X8,    11, &wWheelSize,            &wEditBuffer,   eUINT,  0L,  9999L,  0L, eDez,   eColumn, 0, RESTXT_SET_WHEELSIZEDESC,   RESTXT_SET_WHEELSIZEUNIT,   4,  OC_DISPL | OC_SELECT | OC_EDIT | OS_SELECT  },
+    { &EditWheelSizeObj,      0,    0,  DPLFONT_6X8,    13, &wWheelSize,            &wEditBuffer,   eUINT,  0L,  9999L,  0L, eDez,   eColumn, 0, RESTXT_SET_WHEELSIZEDESC,   RESTXT_SET_WHEELSIZEUNIT,   4,  OC_DISPL | OC_SELECT | OC_EDIT | OS_SELECT  },
     { &EditCCFNomObj,        84,    0,  DPLFONT_6X8,     6, &CCFNom,                &bEditBuffer,   eUCHAR, 1L,     9L,  0L, eDez,   eColumn, 0, RESTXT_SET_CCFNOMDESC,      RESTXT_SET_CCFNOMUNIT,      1,  OC_DISPL | OC_SELECT | OC_EDIT              },
     { &EditCCFDenomObj,     120,    0,  DPLFONT_6X8,     1, &CCFDenom,              &bEditBuffer,   eUCHAR, 1L,     9L,  0L, eDez,   eColumn, 0, "",                         "",                         1,  OC_DISPL | OC_SELECT | OC_EDIT              },
     { &EditBacklObj,          0,    9,  DPLFONT_6X8,    11, &bBacklOnLevel,         &bEditBuffer,   eUCHAR, 0L,     7L,  0L, eDez,   eColumn, 0, szBacklDescr,               "",                         1,  OC_DISPL | OC_SELECT | OC_EDIT              },
