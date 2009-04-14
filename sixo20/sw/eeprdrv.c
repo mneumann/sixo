@@ -219,6 +219,20 @@ ERRCODE iicInit( void )
 
 
 /***********************************************************************
+ *  FUNCTION:       iicEepromSize
+ *  DESCRIPTION:    publishes wEepromSize
+ *  PARAMETER:      none
+ *  RETURN:         size of the eeprom in bytes determined during
+ *                  iicInit(), 0 if no eeprom has been detected (yet)
+ *  COMMENT:
+ *********************************************************************** */
+UINT16 iicEepromSize( void )
+{
+   return wEepromSize;
+}
+
+
+/***********************************************************************
  *  FUNCTION:       iicEepromWrite
  *  DESCRIPTION:    write process to eeprom over iic bus
  *  PARAMETER:      EepromTrgtAddr   eeprom target adress
