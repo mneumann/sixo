@@ -78,6 +78,11 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.2  2009/04/14 21:01:10  tuberkel
+ * Changes done by Arnold:
+ * - EEPR_MAGICNUM_ADDR removed
+ * - ParCheckMagicNumber() dyn. detects addr. of magic number at end of Eeprom
+ *
  * Revision 2.1  2007/03/26 23:27:30  tuberkel
  * changed MOTOBAU version handling
  * - eBikeType -> #define
@@ -181,7 +186,7 @@ const  TRPCNTFL_TYPE gTripCntFlags_def = DEF_TRPCNTFL;
 /* bike type settings */
        BIKE_TYPE gBikeType;
 static BIKE_TYPE gBikeType_cmp;
-const  BIKE_TYPE gBikeType_def = eBIKE_STANDARD;    
+const  BIKE_TYPE gBikeType_def = eBIKE_STANDARD;
 
 // wheel size in mm
 extern  UINT16 wWheelSize;                      // original value
@@ -723,17 +728,19 @@ ERRCODE ParInitSystemPar (void)
  *********************************************************************** */
 BOOL ParCheckMagicNumber ( void )
 {
+    UINT16 wMagicAdr    = 0;
     UINT16 wMagicNumber = 0;
 
     /* read out current number */
-    iicEepromRead( EEPR_MAGICNUM_ADDR, EEPR_MAGICNUM_SIZE, (UINT8 *)&wMagicNumber );
+    wMagicAdr = iicEepromSize() - EEPR_MAGICNUM_SIZE;
+    iicEepromRead( wMagicAdr, EEPR_MAGICNUM_SIZE, (UINT8 *)(&wMagicNumber) );
 
     /* check that number: found? */
     if ( wMagicNumber != EEPR_MAGICNUM_VAL )
     {
         /* write into EEPROM */
         wMagicNumber = EEPR_MAGICNUM_VAL;
-        iicEepromWrite( EEPR_MAGICNUM_ADDR, EEPR_MAGICNUM_SIZE, (UINT8 *)&wMagicNumber );
+        iicEepromWrite( wMagicAdr, EEPR_MAGICNUM_SIZE, (UINT8 *)(&wMagicNumber) );
         return FALSE;
     }
     return TRUE;
