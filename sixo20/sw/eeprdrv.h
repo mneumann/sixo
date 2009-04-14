@@ -68,6 +68,7 @@
 
 // function prototypes
 ERRCODE iicInit( void );
+UINT16  iicEepromSize( void );
 ERRCODE iicEepromWrite(UINT16 EepromTrgtAddr, UINT16 nBytes, UINT8 * pSrcAddr);
 ERRCODE iicEepromRead(UINT16 EepromSrcAddr, UINT16 nBytes, UINT8 * pTrgtAddr);
 
