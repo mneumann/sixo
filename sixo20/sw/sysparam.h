@@ -69,6 +69,11 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.6  2009/04/14 20:59:26  tuberkel
+ * Changes done by Arnold:
+ * - Vers# inr. 245 => 246
+ * - EEPR_MAGICNUM_ADDR removed (dyn. detected)
+ *
  * Revision 2.5  2007/03/30 10:00:57  tuberkel
  * incr. to V2.4.5
  *
@@ -113,7 +118,7 @@
 /* software version number e.q. '2.1.1' */
 #define DEF_SWID_APL   2  // APL = (0..15) mean application number (changed with new mean application features)
 #define DEF_SWID_SWV   4  // SWV = (0..15) sw version number (changed with additional features)
-#define DEF_SWID_BLD   5  // BLD = (0..15) build number (changed with bugfixes)
+#define DEF_SWID_BLD   6  // BLD = (0..15) build number (changed with bugfixes)
 
 
 /* hardware specific version number */
@@ -153,7 +158,6 @@ typedef union TAG_SWVERS_TYPE
     Note:   Changing the 'magic number' results in a completely re-initialized eeprom,
             any application/user settings will be erased!
           */
-#define EEPR_MAGICNUM_ADDR    2046        // address of magic number (last two bytes in eeprom)
 #define EEPR_MAGICNUM_SIZE       2        // size of magic number (last two bytes in eeprom)
 #define EEPR_MAGICNUM_VAL   0xfedc        // THE magic number (might be a very 'unusual' number ;-) )
 
