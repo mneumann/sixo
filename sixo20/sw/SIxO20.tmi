@@ -1,12 +1,12 @@
 [PROJECT]
 ProjectName=SIxO20
-WorkingDirectory=S:\CVS\sixo20\sw
+WorkingDirectory=S:\CVS\sixo\sixo20\sw
 OutputDirectory=.\outdir
-ProjectFile=S:\CVS\sixo20\sw\SIxO20.tmk
-ProjectInfoFile=S:\CVS\sixo20\sw\SIxO20.tmi
+ProjectFile=S:\CVS\sixo\sixo20\sw\SIxO20.tmk
+ProjectInfoFile=S:\CVS\sixo\sixo20\sw\SIxO20.tmi
 TargetName=M16C Family
 Type=1
-GoalFile=S:\CVS\sixo20\sw\outdir\SIxO20.x30
+GoalFile=S:\CVS\sixo\sixo20\sw\outdir\SIxO20.x30
 [NC]
 Name=NC30WA
 Version=V.5.00 Release 2

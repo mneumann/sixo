@@ -5,7 +5,7 @@
 # All Rights Reserved.
 #
 #	Notice	:	Don't edit.
-#	Date	:	2007 03(March) 30(Friday) AM.11.42
+#	Date	:	2009 04(April) 14(Tuesday) PM.11.27
 #	Project	:	SIxO20
 ####################################################################
 
@@ -16,6 +16,7 @@ LMC	=	LMC30
 CC	=	NC30
 AR	=	LB30
 UTL	=	utl30
+MTOOLINC	=	D:\tools\Renesas\NC30\INC30
 AS	=	AS30
 LIBFILE	=	$(PROJECT).lib
 OUTDIR	=	.\outdir
@@ -28,12 +29,12 @@ ECHO	=	@-echo
 MKFILE	=	$(PROJECT).tmk
 TYPE	=	@-type
 PROJECT	=	SIxO20
-CFLAGS	=	-c -I. -silent -dir $(OUTDIR) -Wall -DVEHICSIM -DLANG=0 -finfo
-AFLAGS	=	-. -DMINIEMU=0:DEBUG=0 -finfo -O$(OUTDIR)
 LFLAGS	=	-MS -L nc30lib -. -G -O $(OUTDIR)\$(TARGET)
-LIBFLAGS	=	-C
 UTLFLAGS	=	
+CFLAGS	=	-c -I. -silent -dir $(OUTDIR) -Wall -DVEHICSIM -DLANG=0 -finfo
 LMCFLAGS	=	-. -ID
+LIBFLAGS	=	-C
+AFLAGS	=	-. -DMINIEMU=0:DEBUG=0 -finfo -O$(OUTDIR)
 .SUFFIXES: .a30 .r30 .c .x30 .lib
 .PHONY: all
 all: \
@@ -193,9 +194,9 @@ $(OUTDIR)\anain.r30: \
 		.\anain.h \
 		.\surveill.h \
 		.\resource.h \
-		C:\MTOOL\INC30\stdio.h \
-		C:\MTOOL\INC30\string.h \
-		.\resource_de.h 
+		.\resource_de.h \
+		$(MTOOLINC)\stdio.h \
+		$(MTOOLINC)\string.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) anain.c
 $(OUTDIR)\anaindrv.r30: \
 		.\anaindrv.c \
@@ -247,9 +248,9 @@ $(OUTDIR)\debug.r30: \
 		.\fonts.h \
 		.\displdrv.h \
 		.\sfr62p.h \
-		C:\MTOOL\INC30\stdarg.h \
-		C:\MTOOL\INC30\stdio.h \
-		C:\MTOOL\INC30\string.h 
+		$(MTOOLINC)\stdarg.h \
+		$(MTOOLINC)\stdio.h \
+		$(MTOOLINC)\string.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) debug.c
 $(OUTDIR)\device.r30: \
 		.\device.c \
@@ -266,16 +267,16 @@ $(OUTDIR)\device.r30: \
 	$(CC) $(MRCFLAGS) $(CFLAGS) device.c
 $(OUTDIR)\device_l.r30: \
 		.\device_l.c \
-		C:\MTOOL\INC30\stdio.h 
+		$(MTOOLINC)\stdio.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) device_l.c
 $(OUTDIR)\diagnose.r30: \
 		.\diagnose.c \
 		.\diagnose.h \
 		.\standard.h \
 		.\sfr62p.h \
-		C:\MTOOL\INC30\stdio.h \
-		C:\MTOOL\INC30\stdlib.h \
-		C:\MTOOL\INC30\string.h 
+		$(MTOOLINC)\stdio.h \
+		$(MTOOLINC)\stdlib.h \
+		$(MTOOLINC)\string.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) diagnose.c
 $(OUTDIR)\digindrv.r30: \
 		.\digindrv.c \
@@ -313,7 +314,7 @@ $(OUTDIR)\display.r30: \
 		.\msgqueue.h \
 		.\stdmsgs.h \
 		.\anain.h \
-		C:\MTOOL\INC30\string.h 
+		$(MTOOLINC)\string.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) display.c
 $(OUTDIR)\displdrv.r30: \
 		.\displdrv.c \
@@ -371,16 +372,16 @@ $(OUTDIR)\hwtestdev.r30: \
 		.\eeprdrv.h \
 		.\clkdrv.h \
 		.\diagnose.h \
-		C:\MTOOL\INC30\stdio.h \
-		C:\MTOOL\INC30\string.h \
-		.\resource_de.h 
+		.\resource_de.h \
+		$(MTOOLINC)\stdio.h \
+		$(MTOOLINC)\string.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) hwtestdev.c
 $(OUTDIR)\iicbb.r30: \
 		.\iicbb.a30 
 	$(AS) $(MRAFLAGS) $(AFLAGS) iicbb.a30
 $(OUTDIR)\init_l.r30: \
 		.\init_l.c \
-		C:\MTOOL\INC30\stdio.h 
+		$(MTOOLINC)\stdio.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) init_l.c
 $(OUTDIR)\introdev.r30: \
 		.\introdev.c \
@@ -396,9 +397,9 @@ $(OUTDIR)\introdev.r30: \
 		.\digindrv.h \
 		.\sysparam.h \
 		.\bitmaps.h \
-		C:\MTOOL\INC30\stdio.h \
-		C:\MTOOL\INC30\string.h \
-		.\resource_de.h 
+		.\resource_de.h \
+		$(MTOOLINC)\stdio.h \
+		$(MTOOLINC)\string.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) introdev.c
 $(OUTDIR)\lapcdev.r30: \
 		.\lapcdev.c \
@@ -418,9 +419,9 @@ $(OUTDIR)\lapcdev.r30: \
 		.\timedate.h \
 		.\led.h \
 		.\beep.h \
-		C:\MTOOL\INC30\stdio.h \
-		C:\MTOOL\INC30\string.h \
-		.\resource_de.h 
+		.\resource_de.h \
+		$(MTOOLINC)\stdio.h \
+		$(MTOOLINC)\string.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) lapcdev.c
 $(OUTDIR)\led.r30: \
 		.\led.c \
@@ -469,7 +470,7 @@ $(OUTDIR)\main.r30: \
 		.\anain.h \
 		.\surveill.h \
 		.\displdrv.h \
-		C:\MTOOL\INC30\stdio.h 
+		$(MTOOLINC)\stdio.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) main.c
 $(OUTDIR)\maindev.r30: \
 		.\maindev.c \
@@ -490,9 +491,9 @@ $(OUTDIR)\maindev.r30: \
 		.\timedate.h \
 		.\anain.h \
 		.\surveill.h \
-		C:\MTOOL\INC30\stdio.h \
-		C:\MTOOL\INC30\string.h \
-		.\resource_de.h 
+		.\resource_de.h \
+		$(MTOOLINC)\stdio.h \
+		$(MTOOLINC)\string.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) maindev.c
 $(OUTDIR)\measdrv.r30: \
 		.\measdrv.c \
@@ -519,8 +520,8 @@ $(OUTDIR)\measure.r30: \
 		.\sysparam.h \
 		.\sfr62p.h \
 		.\m16c.h \
-		C:\MTOOL\INC30\stdio.h \
-		C:\MTOOL\INC30\string.h 
+		$(MTOOLINC)\stdio.h \
+		$(MTOOLINC)\string.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) measure.c
 $(OUTDIR)\mondev.r30: \
 		.\mondev.c \
@@ -543,9 +544,9 @@ $(OUTDIR)\mondev.r30: \
 		.\measure.h \
 		.\beep.h \
 		.\timedate.h \
-		C:\MTOOL\INC30\stdio.h \
-		C:\MTOOL\INC30\string.h \
-		.\resource_de.h 
+		.\resource_de.h \
+		$(MTOOLINC)\stdio.h \
+		$(MTOOLINC)\string.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) mondev.c
 $(OUTDIR)\msgqueue.r30: \
 		.\msgqueue.c \
@@ -557,7 +558,7 @@ $(OUTDIR)\msgqueue.r30: \
 		.\device.h \
 		.\beep.h \
 		.\m16c.h \
-		C:\MTOOL\INC30\string.h 
+		$(MTOOLINC)\string.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) msgqueue.c
 $(OUTDIR)\ncrt0.r30: \
 		.\ncrt0.a30 
@@ -582,11 +583,11 @@ $(OUTDIR)\objects.r30: \
 		.\xtoa.h \
 		.\beep.h \
 		.\led.h \
-		C:\MTOOL\INC30\string.h \
-		C:\MTOOL\INC30\stdlib.h \
-		C:\MTOOL\INC30\ctype.h \
 		.\resource.h \
-		.\resource_de.h 
+		.\resource_de.h \
+		$(MTOOLINC)\string.h \
+		$(MTOOLINC)\stdlib.h \
+		$(MTOOLINC)\ctype.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) objects.c
 $(OUTDIR)\setdev.r30: \
 		.\setdev.c \
@@ -606,9 +607,9 @@ $(OUTDIR)\setdev.r30: \
 		.\timedate.h \
 		.\bitmaps.h \
 		.\surveill.h \
-		C:\MTOOL\INC30\stdio.h \
-		C:\MTOOL\INC30\string.h \
-		.\resource_de.h 
+		.\resource_de.h \
+		$(MTOOLINC)\stdio.h \
+		$(MTOOLINC)\string.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) setdev.c
 $(OUTDIR)\surveill.r30: \
 		.\surveill.c \
@@ -629,9 +630,9 @@ $(OUTDIR)\surveill.r30: \
 		.\timedate.h \
 		.\digoutdr.h \
 		.\sysparam.h \
-		C:\MTOOL\INC30\stdio.h \
-		C:\MTOOL\INC30\string.h \
-		.\resource_de.h 
+		.\resource_de.h \
+		$(MTOOLINC)\stdio.h \
+		$(MTOOLINC)\string.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) surveill.c
 $(OUTDIR)\sysparam.r30: \
 		.\sysparam.c \
@@ -649,7 +650,7 @@ $(OUTDIR)\sysparam.r30: \
 		.\timedate.h \
 		.\anain.h \
 		.\bitmaps.h \
-		C:\MTOOL\INC30\string.h 
+		$(MTOOLINC)\string.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) sysparam.c
 $(OUTDIR)\testdev.r30: \
 		.\testdev.c \
@@ -664,8 +665,8 @@ $(OUTDIR)\testdev.r30: \
 		.\device.h \
 		.\digindrv.h \
 		.\sysparam.h \
-		C:\MTOOL\INC30\stdio.h \
-		.\resource_de.h 
+		.\resource_de.h \
+		$(MTOOLINC)\stdio.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) testdev.c
 $(OUTDIR)\timedate.r30: \
 		.\timedate.c \
@@ -678,9 +679,9 @@ $(OUTDIR)\timedate.r30: \
 		.\debug.h \
 		.\m16c.h \
 		.\resource.h \
-		C:\MTOOL\INC30\string.h \
-		C:\MTOOL\INC30\stdio.h \
-		.\resource_de.h 
+		.\resource_de.h \
+		$(MTOOLINC)\string.h \
+		$(MTOOLINC)\stdio.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) timedate.c
 $(OUTDIR)\timer.r30: \
 		.\timer.c \
@@ -693,7 +694,7 @@ $(OUTDIR)\timer.r30: \
 		.\digoutdr.h \
 		.\sfr62p.h \
 		.\m16c.h \
-		C:\MTOOL\INC30\string.h 
+		$(MTOOLINC)\string.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) timer.c
 $(OUTDIR)\tripcnt.r30: \
 		.\tripcnt.c \
@@ -712,9 +713,9 @@ $(OUTDIR)\tripcnt.r30: \
 		.\beep.h \
 		.\led.h \
 		.\timedate.h \
-		C:\MTOOL\INC30\stdio.h \
-		C:\MTOOL\INC30\string.h \
-		.\resource_de.h 
+		.\resource_de.h \
+		$(MTOOLINC)\stdio.h \
+		$(MTOOLINC)\string.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) tripcnt.c
 $(OUTDIR)\vehicsim.r30: \
 		.\vehicsim.c \
