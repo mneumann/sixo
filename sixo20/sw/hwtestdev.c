@@ -68,6 +68,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.1  2009/04/14 21:17:55  tuberkel
+ * Changes done by Arnold:
+ * - HWTestCheckUnstimulatedErrors() uses dyn. Eeprom Magic Number Address
+ *
  * Revision 2.0  2006/06/26 23:25:50  tuberkel
  * no message
  *
@@ -804,6 +808,7 @@ void HWTestCheckUnstimulatedErrors( void )
     unsigned char   cTestNVRAMMinutes;
     unsigned char   cTestNVRAMSeconds;
     UINT16          wNVRAMTimeStamp;
+    UINT16          wTestEEPROMAdr;
     unsigned int    wSavedEEPROMData;
     unsigned int    wTestEEPROMWord;
 
@@ -902,12 +907,13 @@ void HWTestCheckUnstimulatedErrors( void )
         fHWCheck5sDone = TRUE;
 
         // write/read at last EEPROM word position before MagicNumber, without destroying old data
-        iicEepromRead( EEPR_MAGICNUM_ADDR-2, EEPR_MAGICNUM_SIZE, (UINT8*)&wSavedEEPROMData );
+        wTestEEPROMAdr = iicEepromSize() - EEPR_MAGICNUM_SIZE - sizeof( wTestEEPROMWord );
+        iicEepromRead( wTestEEPROMAdr, sizeof( wTestEEPROMWord ), (UINT8*)(&wSavedEEPROMData) );
         wTestEEPROMWord = 0xaaaa;
-        iicEepromWrite(EEPR_MAGICNUM_ADDR-2, EEPR_MAGICNUM_SIZE, (UINT8*)&wTestEEPROMWord );
+        iicEepromWrite(wTestEEPROMAdr, sizeof( wTestEEPROMWord ), (UINT8*)(&wTestEEPROMWord) );
         wTestEEPROMWord = 0x5555;
-        iicEepromRead( EEPR_MAGICNUM_ADDR-2, EEPR_MAGICNUM_SIZE, (UINT8*)&wTestEEPROMWord );
-        iicEepromWrite(EEPR_MAGICNUM_ADDR-2, EEPR_MAGICNUM_SIZE, (UINT8*)&wSavedEEPROMData );
+        iicEepromRead( wTestEEPROMAdr, sizeof( wTestEEPROMWord ), (UINT8*)(&wTestEEPROMWord) );
+        iicEepromWrite(wTestEEPROMAdr, sizeof( wTestEEPROMWord ), (UINT8*)(&wSavedEEPROMData) );
         if ( wTestEEPROMWord == 0xaaaa)
              StatObj_EEPR.szText = szOk;
         else StatObj_EEPR.szText = szErr;
