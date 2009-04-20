@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.6  2009/04/20 18:26:04  tuberkel
+ * Compiler Fix SetDeviceStateMachine()
+ *
  * Revision 2.5  2007/03/30 10:05:13  tuberkel
  * changed EditWheelSizeObj size 11 -> 13 chars
  *
@@ -699,14 +702,12 @@ ERRCODE SetDeviceStateMachine(MESSAGE Msg)
            ||(MSG_KEY_TRANSITION(Msg) == KEYTRANS_ON      ) ) ) // or longer pressed?
     {
         SetDevice.wDevState--;                          // previous selection state
-
         if (SetDevice.wDevState == eSetFirst)           // wrap around?
             SetDevice.wDevState = (eSetLast-1);
-
         #ifdef BIKE_MOTOBAU                             // special MOTOBAU behaviour
         if (SetDevice.wDevState == eSetServKm )         // do not select 'service km'
             SetDevice.wDevState = eSetAllHours;         // jump over it!
-        else // BIKE_MOTOBAU                            // special NOT MOTOBAU behaviour
+        #else // BIKE_MOTOBAU                           // special NOT MOTOBAU behaviour
         if (SetDevice.wDevState == eSetAllHours)        // do not select 'eSetAllHours'
             SetDevice.wDevState = eSetTripCntFl;        // jump over it!
         #endif // BIKE_MOTOBAU                          
@@ -723,7 +724,6 @@ ERRCODE SetDeviceStateMachine(MESSAGE Msg)
            ||(MSG_KEY_TRANSITION(Msg) == KEYTRANS_ON      ) ) ) // or longer pressed?
     {
         SetDevice.wDevState++;                          // next selection state
-
         if (SetDevice.wDevState  == eSetLast)           // wrap around?
             SetDevice.wDevState = (eSetFirst+1);
         #ifdef BIKE_MOTOBAU                             // special MOTOBAU behaviour
