@@ -7,7 +7,7 @@
  *
  *  --------------------------------------------------------------------
  *
- *  Created:        2007-03-29 by Matthias Otto 
+ *  Created:        2007-03-29 by Matthias Otto
  *  Project:        SIxO
  *  Module:         devices
  *  Purpose:        Language specific resource strings and formats
@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.2  2009/06/21 18:04:11  tuberkel
+ * New: RESTXT_SET_COMPCAL
+ *
  * Revision 2.1  2007/03/30 09:56:28  tuberkel
  * - Added language specific resource_x.h files
  * - controled via #define LANG=0/1/2 for DE/EN/NL
@@ -155,6 +158,7 @@
 #define RESTXT_SET_RPMFLASHUNIT     " rpm"
 
 #define RESTXT_SET_BIKETYPE         "Bike:"
+#define RESTXT_SET_COMPCAL          "Cmp:"
 #define RESTXT_SET_TRIPCNTFL        "TripCnt:"
 
 #define RESTXT_SET_SERVKM           "Serv. Due:"
