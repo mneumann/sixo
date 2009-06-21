@@ -163,8 +163,9 @@ ERRCODE DisplPrintAString( const unsigned char far * szString,
                            DPLFONT Font,
                            unsigned char ucMode );
 ERRCODE DisplDrawHorLine( const DISPLXY far * pCoord,
-                          UINT16 wLength,
-                          UINT8 bPattern );
+                          unsigned short wLength,
+                          unsigned char  bPattern,
+                          unsigned char  ucMode );
 ERRCODE DisplCheckLCDModule( void );
 
 BOOL    DisplBacklightCheckOn (UINT8 BacklOnLevel);
