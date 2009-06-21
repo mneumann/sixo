@@ -5,7 +5,7 @@
 # All Rights Reserved.
 #
 #	Notice	:	Don't edit.
-#	Date	:	2009 06(June) 21(Sunday) PM.06.07
+#	Date	:	2009 06(June) 21(Sunday) PM.11.44
 #	Project	:	SIxO20
 ####################################################################
 
@@ -23,12 +23,12 @@ OUTDIR	=	.\outdir
 MKDIR	=	@-mkdir
 ABSFILE	=	$(PROJECT).x30
 ODINCMD	=	$(OUTDIR)
-TARGET	=	$(ABSFILE)
 LN	=	LN30
+TARGET	=	$(ABSFILE)
 ECHO	=	@-echo
 MKFILE	=	$(PROJECT).tmk
-TYPE	=	@-type
 PROJECT	=	SIxO20
+TYPE	=	@-type
 LFLAGS	=	-MS -L nc30lib -. -G -O $(OUTDIR)\$(TARGET)
 UTLFLAGS	=	
 CFLAGS	=	-c -I. -silent -dir $(OUTDIR) -Wall -DVEHICSIM -DLANG=0 -DCOMPASS=1 -DDEBUG_ -DMINIEMU=1 -finfo
@@ -197,9 +197,9 @@ $(OUTDIR)\anain.r30: \
 		.\anain.h \
 		.\surveill.h \
 		.\resource.h \
-		.\resource_de.h \
 		$(MTOOLINC)\stdio.h \
-		$(MTOOLINC)\string.h 
+		$(MTOOLINC)\string.h \
+		.\resource_de.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) anain.c
 $(OUTDIR)\anaindrv.r30: \
 		.\anaindrv.c \
@@ -387,9 +387,9 @@ $(OUTDIR)\hwtestdev.r30: \
 		.\eeprdrv.h \
 		.\clkdrv.h \
 		.\diagnose.h \
-		.\resource_de.h \
 		$(MTOOLINC)\stdio.h \
-		$(MTOOLINC)\string.h 
+		$(MTOOLINC)\string.h \
+		.\resource_de.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) hwtestdev.c
 $(OUTDIR)\iicbb.r30: \
 		.\iicbb.a30 
@@ -412,9 +412,9 @@ $(OUTDIR)\introdev.r30: \
 		.\digindrv.h \
 		.\sysparam.h \
 		.\bitmaps.h \
-		.\resource_de.h \
 		$(MTOOLINC)\stdio.h \
-		$(MTOOLINC)\string.h 
+		$(MTOOLINC)\string.h \
+		.\resource_de.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) introdev.c
 $(OUTDIR)\lapcdev.r30: \
 		.\lapcdev.c \
@@ -434,9 +434,9 @@ $(OUTDIR)\lapcdev.r30: \
 		.\timedate.h \
 		.\led.h \
 		.\beep.h \
-		.\resource_de.h \
 		$(MTOOLINC)\stdio.h \
-		$(MTOOLINC)\string.h 
+		$(MTOOLINC)\string.h \
+		.\resource_de.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) lapcdev.c
 $(OUTDIR)\led.r30: \
 		.\led.c \
@@ -507,9 +507,9 @@ $(OUTDIR)\maindev.r30: \
 		.\timedate.h \
 		.\anain.h \
 		.\surveill.h \
-		.\resource_de.h \
 		$(MTOOLINC)\stdio.h \
-		$(MTOOLINC)\string.h 
+		$(MTOOLINC)\string.h \
+		.\resource_de.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) maindev.c
 $(OUTDIR)\measdrv.r30: \
 		.\measdrv.c \
@@ -560,9 +560,9 @@ $(OUTDIR)\mondev.r30: \
 		.\measure.h \
 		.\beep.h \
 		.\timedate.h \
-		.\resource_de.h \
 		$(MTOOLINC)\stdio.h \
-		$(MTOOLINC)\string.h 
+		$(MTOOLINC)\string.h \
+		.\resource_de.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) mondev.c
 $(OUTDIR)\msgqueue.r30: \
 		.\msgqueue.c \
@@ -600,10 +600,10 @@ $(OUTDIR)\objects.r30: \
 		.\beep.h \
 		.\led.h \
 		.\resource.h \
-		.\resource_de.h \
 		$(MTOOLINC)\string.h \
 		$(MTOOLINC)\stdlib.h \
-		$(MTOOLINC)\ctype.h 
+		$(MTOOLINC)\ctype.h \
+		.\resource_de.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) objects.c
 $(OUTDIR)\setdev.r30: \
 		.\setdev.c \
@@ -623,10 +623,10 @@ $(OUTDIR)\setdev.r30: \
 		.\timedate.h \
 		.\bitmaps.h \
 		.\surveill.h \
-		.\resource_de.h \
 		.\compassdrv.h \
 		$(MTOOLINC)\stdio.h \
-		$(MTOOLINC)\string.h 
+		$(MTOOLINC)\string.h \
+		.\resource_de.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) setdev.c
 $(OUTDIR)\surveill.r30: \
 		.\surveill.c \
@@ -647,9 +647,9 @@ $(OUTDIR)\surveill.r30: \
 		.\timedate.h \
 		.\digoutdr.h \
 		.\sysparam.h \
-		.\resource_de.h \
 		$(MTOOLINC)\stdio.h \
-		$(MTOOLINC)\string.h 
+		$(MTOOLINC)\string.h \
+		.\resource_de.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) surveill.c
 $(OUTDIR)\sysparam.r30: \
 		.\sysparam.c \
@@ -682,8 +682,8 @@ $(OUTDIR)\testdev.r30: \
 		.\device.h \
 		.\digindrv.h \
 		.\sysparam.h \
-		.\resource_de.h \
-		$(MTOOLINC)\stdio.h 
+		$(MTOOLINC)\stdio.h \
+		.\resource_de.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) testdev.c
 $(OUTDIR)\timedate.r30: \
 		.\timedate.c \
@@ -696,9 +696,9 @@ $(OUTDIR)\timedate.r30: \
 		.\debug.h \
 		.\m16c.h \
 		.\resource.h \
-		.\resource_de.h \
 		$(MTOOLINC)\string.h \
-		$(MTOOLINC)\stdio.h 
+		$(MTOOLINC)\stdio.h \
+		.\resource_de.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) timedate.c
 $(OUTDIR)\timer.r30: \
 		.\timer.c \
@@ -730,9 +730,10 @@ $(OUTDIR)\tripcnt.r30: \
 		.\beep.h \
 		.\led.h \
 		.\timedate.h \
-		.\resource_de.h \
 		$(MTOOLINC)\stdio.h \
-		$(MTOOLINC)\string.h 
+		$(MTOOLINC)\string.h \
+		.\compassdrv.h \
+		.\resource_de.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) tripcnt.c
 $(OUTDIR)\vehicsim.r30: \
 		.\vehicsim.c \
