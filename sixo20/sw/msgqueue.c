@@ -68,6 +68,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.1  2009/06/21 17:56:44  tuberkel
+ * Changes done by AN:
+ * New MSG_COMPASS_REFRESH Message
+ *
  * Revision 2.0  2006/06/26 23:25:51  tuberkel
  * no message
  *
@@ -489,20 +493,21 @@ STRING MsgQGiveMsgAsString(MESSAGE_ID bID)
 
     switch(bID)
     {
-        case MSG_NULL_MSG:      szBuffer = "MSG_NULL_MSG"; break;
-        case MSG_TIMER:         szBuffer = "MSG_TIMER"; break;
-        case MSG_KEY_OK:        szBuffer = "MSG_KEY_OK"; break;
-        case MSG_KEY_UP:        szBuffer = "MSG_KEY_UP"; break;
-        case MSG_KEY_DOWN:      szBuffer = "MSG_KEY_DOWN"; break;
-        case MSG_KEYS_PRESSED:  szBuffer = "MSG_KEYS_PRESSED"; break;
-        case MSG_DPL_FLASH_ON:  szBuffer = "MSG_DPL_FLASH_ON"; break;
-        case MSG_DPL_FLASH_OFF: szBuffer = "MSG_DPL_FLASH_OFF"; break;
-        case MSG_LED_SET:       szBuffer = "MSG_LED_SET"; break;
-        case MSG_LED_ON:        szBuffer = "MSG_LED_ON"; break;
-        case MSG_LED_OFF:       szBuffer = "MSG_LED_OFF"; break;
-        case MSG_GET_FOCUS:     szBuffer = "MSG_GET_FOCUS"; break;
-        case MSG_SET_FOCUS:     szBuffer = "MSG_SET_FOCUS"; break;
-        case MSG_SCREEN_REFRESH: szBuffer = "MSG_SCREEN_REFRESH"; break;
+        case MSG_NULL_MSG:        szBuffer = "MSG_NULL_MSG"; break;
+        case MSG_TIMER:           szBuffer = "MSG_TIMER"; break;
+        case MSG_KEY_OK:          szBuffer = "MSG_KEY_OK"; break;
+        case MSG_KEY_UP:          szBuffer = "MSG_KEY_UP"; break;
+        case MSG_KEY_DOWN:        szBuffer = "MSG_KEY_DOWN"; break;
+        case MSG_KEYS_PRESSED:    szBuffer = "MSG_KEYS_PRESSED"; break;
+        case MSG_DPL_FLASH_ON:    szBuffer = "MSG_DPL_FLASH_ON"; break;
+        case MSG_DPL_FLASH_OFF:   szBuffer = "MSG_DPL_FLASH_OFF"; break;
+        case MSG_LED_SET:         szBuffer = "MSG_LED_SET"; break;
+        case MSG_LED_ON:          szBuffer = "MSG_LED_ON"; break;
+        case MSG_LED_OFF:         szBuffer = "MSG_LED_OFF"; break;
+        case MSG_GET_FOCUS:       szBuffer = "MSG_GET_FOCUS"; break;
+        case MSG_SET_FOCUS:       szBuffer = "MSG_SET_FOCUS"; break;
+        case MSG_SCREEN_REFRESH:  szBuffer = "MSG_SCREEN_REFRESH"; break;
+        case MSG_COMPASS_REFRESH: szBuffer = "MSG_COMPASS_REFRESH"; break;
         default: szBuffer = "UNKNOWN MESSAGE!"; break;
     }
     return szBuffer;
