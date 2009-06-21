@@ -12,15 +12,15 @@ Name=NC30WA
 Version=V.5.00 Release 2
 
 [MEMBER]
-Count=7
+Count=8
 Name1=A+C-FLAG: MINIEMU
-Section1=0 / 1 NOTE: Set both A-FLAGS & C-FLAGS !!!
-Mail1=if defined, activates KD30 V3.0 Monitor usage on Uart1
-TEL1=if DEBUG too defined, makes DebugOut printf() to Uart0 instead of Uart1
+Section1== 0 / 1 NOTE: Set both A-FLAGS & C-FLAGS !!!
+Mail1=if 1, activates KD30 V3.0 Monitor usage on Uart1
+TEL1=if DEBUG = 1, printf() is moved from Uart1 to Uart0
 ETC1=
 Name2=A+C-FLAG: DEBUG
-Section2=0 / 1 NOTE: Set both A-FLAGS & C-FLAGS !!!
-Mail2=if defined, activates DebugOut with printf() on Uart1(0)
+Section2== 0 / 1 NOTE: Set both A-FLAGS & C-FLAGS !!!
+Mail2=if 1, activates DebugOut with printf() on Uart1 or Uart0 (see MINIEMU)
 TEL2=activates several modules debug code too
 ETC2=
 Name3=C-FLAG: TOGGLE_PADS
@@ -38,30 +38,30 @@ Section5=- / def
 Mail5=if defined, enable RPM & WHEEL ISR calls form main loop
 TEL5=Only active if WHEELSIZE eq. exact 2000 mm!
 ETC5=ISR calls are not accurate, values might toggle a bit :-)
-Name6=C-FLAG: HARDCOPY
-Section6=- / def
-Mail6=if defined, setting input HIGHBEAM to ON starts a ScreenDumps as BMP via Uart1
-TEL6=only to be used with DEBUG defined
-ETC6=to be used for documentation only
-Name7=C-FLAG: LANG
-Section7=0..n / def = 0
-Mail7=0=DE, 1=EN-UK, 2=NL
-TEL7=selected language
-ETC7=
-Name8=C-FLAG: BIKE_R100GS
-Section8=- / def
-Mail8=if defined, enables GPI_0 for Alternator-Warning
-TEL8=specially defined for BMW R100GS
+Name6=C-FLAG: LANG
+Section6=0..n / def = 0
+Mail6=0=DE, 1=EN-UK, 2=NL
+TEL6=selected language
+ETC6=
+Name7=C-FLAG: HARDCOPY
+Section7=- / def
+Mail7=if defined, setting input HIGHBEAM to ON starts a ScreenDumps as BMP via Uart1
+TEL7=only to be used with DEBUG defined
+ETC7=to be used for documentation only
+Name8=A+C-FLAG: COMPASS
+Section8== 0 / 1 NOTE: Set both A-FLAGS & C-FLAGS !!!
+Mail8=if 1, enables use of compass attached to UART0
+TEL8=only two of COMPASS, DEBUG, MINIEMU can be defined
 ETC8=
-Name9=C-FLAG: BIKE_KTM
+Name9=C-FLAG: SENSOR_TOIL
 Section9=- / def
-Mail9=sw version string changed only
-TEL9=
+Mail9=if defined, enables use of oil temperature sensor
+TEL9=only VDO standard sensor is available
 ETC9=
-Name10=C-FLAG: BIKE_R1100GS
-Section10=- / def
-Mail10=sw version string changed only
-TEL10=
+Name10=A+C-FLAG: COMPASS
+Section10=0 / 1 NOTE: Set both A-FLAGS & C-FLAGS !!!
+Mail10=if defined, enables use of compass attached to UART0
+TEL10=only two of COMPASS, DEBUG, MINIEMU can be defined
 ETC10=
 Name11=C-FLAG: BIKE_HUSQV
 Section11=- / def
@@ -88,7 +88,11 @@ Section15=- / def
 Mail15=if defined, enables use of oil temperature sensor
 TEL15=only VDO standard sensor is available
 ETC15=
-
+Name16=A+C-FLAG: COMPASS
+Section16=0 / 1 NOTE: Set both A-FLAGS & C-FLAGS !!!
+Mail16=if defined, enables use of compass attached to UART0
+TEL16=only two of COMPASS, DEBUG, MINIEMU can be defined
+ETC16=
 
 [DOCUMENTFILE]
 Count=0
@@ -106,6 +110,6 @@ ToolName1=lmc30
 [PD]
 Name=KD30
 Version=V.3.02 Release 1a
-Path=C:\MTOOL\KD30\KD30.EXE
+Path=D:\Tools\Renesas\NC30\KD30\KD30.EXE
 Type=1
 
