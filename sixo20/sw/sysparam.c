@@ -78,6 +78,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.3  2009/06/21 21:20:51  tuberkel
+ * BugFix: EEPROM max. is 1024 (not 2048) bytes
+ *
  * Revision 2.2  2009/04/14 21:01:10  tuberkel
  * Changes done by Arnold:
  * - EEPR_MAGICNUM_ADDR removed
@@ -369,7 +372,7 @@ const SYSPARINFO_TYPE  rgSysParControl[] =
     {   PID_LAPC_14,        EEPROM,    165,   sizeof(TIME_TYPE_LL),   &LapCntTime[14],    &LapCntTime_cmp[14],    &LapCntTime_def     },  // 2 bytes, lap counter time struct
     {   PID_LAPC_15,        EEPROM,    167,   sizeof(TIME_TYPE_LL),   &LapCntTime[15],    &LapCntTime_cmp[15],    &LapCntTime_def     },  // 2 bytes, lap counter time struct
 
-    /*  EEPROM: max. 2048 bytes allowed  */
+    /*  EEPROM: max. 1024 bytes allowed  */
     /*  ------------------- --------   ------ ----------------------- ------------------  ----------------------  ------------------- */
 };
 
