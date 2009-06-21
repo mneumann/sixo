@@ -5,7 +5,7 @@
 # All Rights Reserved.
 #
 #	Notice	:	Don't edit.
-#	Date	:	2009 04(April) 14(Tuesday) PM.11.27
+#	Date	:	2009 06(June) 21(Sunday) PM.06.07
 #	Project	:	SIxO20
 ####################################################################
 
@@ -31,10 +31,10 @@ TYPE	=	@-type
 PROJECT	=	SIxO20
 LFLAGS	=	-MS -L nc30lib -. -G -O $(OUTDIR)\$(TARGET)
 UTLFLAGS	=	
-CFLAGS	=	-c -I. -silent -dir $(OUTDIR) -Wall -DVEHICSIM -DLANG=0 -finfo
+CFLAGS	=	-c -I. -silent -dir $(OUTDIR) -Wall -DVEHICSIM -DLANG=0 -DCOMPASS=1 -DDEBUG_ -DMINIEMU=1 -finfo
 LMCFLAGS	=	-. -ID
 LIBFLAGS	=	-C
-AFLAGS	=	-. -DMINIEMU=0:DEBUG=0 -finfo -O$(OUTDIR)
+AFLAGS	=	-. -DCOMPASS=1:DEBUG=0:MINIEMU=1 -finfo -O$(OUTDIR)
 .SUFFIXES: .a30 .r30 .c .x30 .lib
 .PHONY: all
 all: \
@@ -86,6 +86,7 @@ clean:
 	$(DELETE) $(OUTDIR)\hwtestdev.r30
 	$(DELETE) $(OUTDIR)\lapcdev.r30
 	$(DELETE) $(OUTDIR)\$(PROJECT).*
+	$(DELETE) $(OUTDIR)\compassdrv.r30
 .outdir\SIxO20.mot: \
 		.\$(MKFILE) \
 		$(OUTDIR)\$(TARGET) 
@@ -136,6 +137,7 @@ $(ODINCMD)\$(LNLIST): \
 	$(ECHO)\$(OUTDIR)\surveill.r30 >>	$(ODINCMD)\$(LNLIST)
 	$(ECHO)\$(OUTDIR)\hwtestdev.r30 >>	$(ODINCMD)\$(LNLIST)
 	$(ECHO)\$(OUTDIR)\lapcdev.r30 >>	$(ODINCMD)\$(LNLIST)
+	$(ECHO)\$(OUTDIR)\compassdrv.r30 >>	$(ODINCMD)\$(LNLIST)
 $(OUTDIR)\$(TARGET): \
 		$(ODINCMD)\$(LNLIST) \
 		$(OUTDIR)\ncrt0.r30 \
@@ -178,7 +180,8 @@ $(OUTDIR)\$(TARGET): \
 		$(OUTDIR)\mondev.r30 \
 		$(OUTDIR)\surveill.r30 \
 		$(OUTDIR)\hwtestdev.r30 \
-		$(OUTDIR)\lapcdev.r30 
+		$(OUTDIR)\lapcdev.r30 \
+		$(OUTDIR)\compassdrv.r30 
 	$(LN) @$(ODINCMD)\$(LNLIST)
 $(OUTDIR)\anain.r30: \
 		.\anain.c \
@@ -236,6 +239,17 @@ $(OUTDIR)\clkdrv.r30: \
 		.\clkdrv.h \
 		.\iicbb.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) clkdrv.c
+$(OUTDIR)\compassdrv.r30: \
+		.\compassdrv.c \
+		.\standard.h \
+		.\compassdrv.h \
+		.\sfr62p.h \
+		.\timer.h \
+		.\msgqueue.h \
+		.\stdmsgs.h \
+		.\m16c.h \
+		$(MTOOLINC)\string.h 
+	$(CC) $(MRCFLAGS) $(CFLAGS) compassdrv.c
 $(OUTDIR)\debug.r30: \
 		.\debug.c \
 		.\xtoa.h \
@@ -314,6 +328,7 @@ $(OUTDIR)\display.r30: \
 		.\msgqueue.h \
 		.\stdmsgs.h \
 		.\anain.h \
+		$(MTOOLINC)\stdlib.h \
 		$(MTOOLINC)\string.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) display.c
 $(OUTDIR)\displdrv.r30: \
@@ -470,6 +485,7 @@ $(OUTDIR)\main.r30: \
 		.\anain.h \
 		.\surveill.h \
 		.\displdrv.h \
+		.\compassdrv.h \
 		$(MTOOLINC)\stdio.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) main.c
 $(OUTDIR)\maindev.r30: \
@@ -608,6 +624,7 @@ $(OUTDIR)\setdev.r30: \
 		.\bitmaps.h \
 		.\surveill.h \
 		.\resource_de.h \
+		.\compassdrv.h \
 		$(MTOOLINC)\stdio.h \
 		$(MTOOLINC)\string.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) setdev.c
