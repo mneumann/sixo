@@ -68,6 +68,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.4  2009/06/21 17:57:13  tuberkel
+ * Changes done by AN:
+ * Compass Version uses add. 'C' indicator
+ *
  * Revision 2.3  2007/03/30 09:56:28  tuberkel
  * - Added language specific resource_x.h files
  * - controled via #define LANG=0/1/2 for DE/EN/NL
@@ -146,7 +150,7 @@
 
 /* intro device bike version strings
    7 characters for up to 15 bikes  "1234567" */
-#define RESTXT_BIKESTRING_DEFAULT   "STANDARD"
+#define RESTXT_BIKESTRING_DEFAULT   "STD"
 #define RESTXT_BIKESTRING_R100GS    "R100GS"
 #define RESTXT_BIKESTRING_F650      "F650"
 #define RESTXT_BIKESTRING_HUSQV     "HUSQV"
@@ -170,6 +174,7 @@
 #define RESTXT_SWVER_MINIEMU   "E"  // 'E' for Emulator KD30
 #define RESTXT_SWVER_VEHICSIM  "S"  // 'S' for Simulation of Vehicle
 #define RESTXT_SWVER_HARDCOPY  "H"  // 'H' for Hardcopy on Debug-Uart via 'HighBeam'-switch
+#define RESTXT_SWVER_COMPASS   "C"  // 'C' for Compass
 
 
 
