@@ -68,6 +68,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.4  2009/06/21 17:55:27  tuberkel
+ * Changes done by AN:
+ * DisplDrawHorLine() new Mode-Parameter
+ *
  * Revision 2.3  2007/03/30 10:08:05  tuberkel
  * - Matthias Otto stuff:  language specific display content
  * - Added error check for wrong system init values
@@ -410,7 +414,7 @@ void MainDeviceShow(BOOL fShow)
             /* horizontal line between wheel speed & rpm */
             {
                 DISPLXY Coord = {0,34};                 /* to be removed to an 'LineObject' !!! */
-                DisplDrawHorLine(&Coord, 128, 0x03);
+                DisplDrawHorLine(&Coord, 128, 0x03, DPLXOR);
             }
 
             /* show always vehicle speed in upper display part */

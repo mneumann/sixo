@@ -68,6 +68,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.3  2009/06/21 17:55:56  tuberkel
+ * Changes done by AN:
+ * DisplDrawHorLine() new Mode-Parameter
+ *
  * Revision 2.2  2007/03/30 10:06:51  tuberkel
  * BugFix: added missing DisplayClear at Init
  *
@@ -343,7 +347,7 @@ void MonitorDeviceShow(BOOL fShow)
             /* horizontal line between value list and status lines */
             {
                 DISPLXY Coord = {0,50};                 /* to be removed to an 'LineObject' !!! */
-                DisplDrawHorLine(&Coord, 128, 0x03);
+                DisplDrawHorLine(&Coord, 128, 0x03, DPLXOR);
             }
             #endif // BIKE_MOTOBAU        
 
