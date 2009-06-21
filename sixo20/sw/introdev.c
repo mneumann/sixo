@@ -69,6 +69,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.5  2009/06/21 17:51:47  tuberkel
+ * Changes done by AN:
+ * Compass Version uses add. 'C' indicator
+ *
  * Revision 2.4  2007/03/30 10:09:22  tuberkel
  * added language string part to szSWVersion
  *
@@ -246,9 +250,12 @@ void IntroScreenShow(BOOL fShow)
         #ifdef HARDCOPY
             strcat ( szSWVersion, RESTXT_SWVER_HARDCOPY);
         #endif
+        #ifdef COMPASS
+            strcat ( szSWVersion, RESTXT_SWVER_COMPASS);
+        #endif
 
         /* limit string to max 21 chars */
-        szSWVersion[22] = 0x0;
+        szSWVersion[21] = 0x0;
 
         /* do we have to repaint all? */
         if (IntroScreenDev.fScreenInit == FALSE)
