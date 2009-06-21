@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.2  2009/06/21 17:58:09  tuberkel
+ * New: RESTXT_SET_COMPCAL
+ *
  * Revision 2.1  2007/03/30 09:56:28  tuberkel
  * - Added language specific resource_x.h files
  * - controled via #define LANG=0/1/2 for DE/EN/NL
@@ -154,7 +157,8 @@
 #define RESTXT_SET_RPMFLASH         "Schaltbl.:"
 #define RESTXT_SET_RPMFLASHUNIT     " U/Min"
 
-#define RESTXT_SET_BIKETYPE         "Mrd-Typ:"
+#define RESTXT_SET_BIKETYPE         "Mrd:"
+#define RESTXT_SET_COMPCAL          "Kmp:"
 #define RESTXT_SET_TRIPCNTFL        "TripCnt:"
 
 #define RESTXT_SET_SERVKM           "Serv. bei:"
