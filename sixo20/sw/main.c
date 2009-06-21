@@ -68,6 +68,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.4  2009/06/21 17:54:47  tuberkel
+ * Changes done by AN:
+ * Compass module added
+ *
  * Revision 2.3  2007/03/30 10:08:35  tuberkel
  * Added error check for wrong system init values
  *
@@ -120,6 +124,8 @@
 #include "anaindrv.h"
 #include "anain.h"
 #include "surveill.h"
+#include "compassdrv.h"
+
 
 
 
@@ -199,6 +205,9 @@ int main()
     Error = MeasDrvInit();          /* measurement init stuff (ta2, ta3, ta4, tb2, int1, int0) */
     Error = AnaInInit();            /* A/D converter for all measurements  */
     Error = SurvInit();             /* vehicle surveillance */
+#ifdef COMPASS
+    Error = CompassInit();          /* inits UART0 and its receive interrupt for compass use */
+#endif // COMPASS
 
     /* check: hw self diagnostic test ---------------- */
     /* (all keys pressed together at startup) */
@@ -249,7 +258,7 @@ int main()
         // set start screen ------------------------------ */
         if (  (gSystemFlags.flags.ActDevNr <  DEVID_MAIN)           /* check for basic eeprom content error */
             ||(gSystemFlags.flags.ActDevNr >= DEVID_LAST) )
-        {   ODS1( DBG_SYS, DBG_ERROR, "Invalid gSystemFlags.flags.ActDevNr %u corrected!", gSystemFlags.flags.ActDevNr );        
+        {   ODS1( DBG_SYS, DBG_ERROR, "Invalid gSystemFlags.flags.ActDevNr %u corrected!", gSystemFlags.flags.ActDevNr );
             gSystemFlags.flags.ActDevNr = DEVID_MAIN;
         }
         if (gSystemFlags.flags.ActDevNr == DEVID_HWTEST)            /* prevent from starting with HW-Test all the time */
@@ -259,13 +268,15 @@ int main()
         MsgQPostMsg(Msg, MSGQ_PRIO_LOW);                            /* post message */
     }
 
-
     /* THE main loop --------------------------------- */
     while (1)
     {
         Error = MsgQPumpMsg(MSG_NULL_MSG);      /* MessagePump: look for messages & execute them */
         VehicleSimulation();                    /* if defined: RPM+WHEEL simulation support */
         Hardcopy();                             /* if defined: Grafic Hardcopy support */
+#ifdef COMPASS
+        Compass();                              /* if defined: Compass support */
+#endif // COMPASS
     }
     return 0;
 }
@@ -328,7 +339,7 @@ void Hardcopy (void)
 #ifdef HARDCOPY
 
 #ifndef DEBUG
-    #error "Error: HARDCOPY supported only via uart, please activate DEBUG too!"
+    #error "ERROR: HARDCOPY supported only via uart, please activate DEBUG too!"
 #endif // DEBUG
 
     #include "digindrv.h"
