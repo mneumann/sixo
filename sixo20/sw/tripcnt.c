@@ -68,6 +68,17 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.4  2009/06/21 21:17:43  tuberkel
+ * Changes by AN and SCHW:
+ * - new Compass layout inside TripCounter Module
+ * - can be disabled via user settings 'Tripcounter/upperlower:
+ * Bitcoded:
+ * - bit0: LongDistance:     1=upside (like roadbook), 0=downside
+ * - bit1: ShowCompassValue: 1=show, 0=off
+ * - bit2: ShowCompassBar:   1=show, 0=off
+ * CompassValue ist shown in footer line
+ * CompassCompassBar as graphic
+ *
  * Revision 2.3  2007/03/30 09:58:22  tuberkel
  * language specific display content
  *
@@ -107,6 +118,23 @@
 #include "beep.h"
 #include "led.h"
 #include "timedate.h"
+//#*#AN debug begin
+#include "compassdrv.h"
+//#*#AN debug end
+
+
+// Screen Appearance:  +----.----.----.----.-+
+// (21 Chars width)    |                     |
+//                     |  0000,0 TripCount   |
+//                     |                     |
+//                     |---------------------|
+//                     |   00000,0 TripCnt   |
+//                     |                     |
+//                     |124km/h 360° 22:19:30|  Speed + Compass Heading + Time
+//                     +----.----.----.----.-+
+
+
+
 
 /* defines for device data */
 #define BIGTRIP_STRSIZE    7            /* to contain max. string    '999,99' km */
@@ -123,10 +151,14 @@ static CHAR         BigTripCntTxt[BUFFER_STRSIZE]   = {' ', ' ', '0', RESTXT_DEC
 static CHAR         SmallTripCntTxt[BUFFER_STRSIZE] = {' ', ' ', ' ', ' ', ' ', '0', RESTXT_DEC_SEPARATOR, '0', '0'};  /* buffer for samll trip counter string */
 
 static TEXTOBJECT   VehSpeedTxtObj;                     /* stateline speed object */
-static CHAR         szVehSpeed[9] = "--- km/h";         /* buffer for speed string */
+static CHAR         szVehSpeed[8] = "---km/h";          /* buffer for speed string */
+
+static TEXTOBJECT   CompassTxtObj;                      /* stateline compass object */
+static CHAR         szCompass[5] = "---°";              /* buffer for time string */
 
 static TEXTOBJECT   TimeTxtObj;                         /* stateline time object */
-static CHAR         szTime[15] = "--:--:--";            /* buffer for time string */
+static CHAR         szTime[9] = "--:--:--";             /* buffer for time string */
+
 
 /* external symbols */
 extern UINT16           wMilliSecCounter;           /* valid values: 0h .. ffffh */
@@ -135,12 +167,17 @@ extern SYSFLAGS_TYPE    gSystemFlags;               /* system parameters */
 extern TRPCNTFL_TYPE    gTripCntFlags;              /* tripcounter flags */
 extern BIKE_TYPE        gBikeType;                  /* bike type selecetion */
 
+/* external bitmaps */
+extern const unsigned char far * rgCompassTop144x8[];
+extern const unsigned char far * rgCompassBot144x8[];
+
 
 /* internal prototypes */
 ERRCODE TripCntKeyhandling(MESSAGE GivenMsg);
-UINT16 TripCntToggleSpeed(MESSAGE GivenMsg);
-void TripCntUpdateTimeDate(void);
-
+UINT16  TripCntToggleSpeed(MESSAGE GivenMsg);
+void    TripCntUpdateTimeDate(void);
+void    TripCntUpdateCompassHeading(void);
+void    TripCntUpdateCompassBargraph(void);
 
 /* text object table */
 static const TEXTOBJECT_INITTYPE TextObjects[] =
@@ -149,9 +186,11 @@ static const TEXTOBJECT_INITTYPE TextObjects[] =
     /* ----------------------- ---- --- -------------- --- ----- --------- ---------- ----------------- ---------- */
     { &BigTripCntObj,            0,  0, DPLFONT_24X32,  1,  6, TXT_RIGHT,  TXT_NORM, BigTripCntTxt,     OC_DISPL },
     { &SmallTripCntObj,          6, 38, DPLFONT_14X16,  1,  9, TXT_RIGHT,  TXT_NORM, SmallTripCntTxt,   OC_DISPL },
-    { &VehSpeedTxtObj,           2, 56, DPLFONT_6X8,    1,  8, TXT_CENTER, TXT_NORM, szVehSpeed,        OC_DISPL },
-    { &TimeTxtObj,              62, 56, DPLFONT_6X8,    1, 14, TXT_CENTER, TXT_NORM, szTime,            OC_DISPL }
+    { &VehSpeedTxtObj,           2, 56, DPLFONT_6X8,    1,  7, TXT_LEFT,   TXT_NORM, szVehSpeed,        OC_DISPL },
+    { &CompassTxtObj,           52, 56, DPLFONT_6X8,    1,  4, TXT_CENTER, TXT_NORM, szCompass,         OC_DISPL },
+    { &TimeTxtObj,              45, 56, DPLFONT_6X8,    1, 14, TXT_RIGHT,  TXT_NORM, szTime,            OC_DISPL }
 };
+
 
 
 
@@ -220,13 +259,13 @@ void TripCntDevShow(BOOL fShow)
         TRIPC_ID SmallTripCnt;
         UINT16   wWheelSpeed;
 
-        if ( gTripCntFlags.flags.LongDistUp == 1 )
+        // User setting: Which counter should be shown as BIG upper one?
+        if (gTripCntFlags.flags.LongDistUp == 1)
         {   BigTripCnt   = eTRIPC_A;
             SmallTripCnt = eTRIPC_B;
         }
         else
-        {
-            BigTripCnt = eTRIPC_B;
+        {   BigTripCnt   = eTRIPC_B;
             SmallTripCnt = eTRIPC_A;
         }
 
@@ -237,7 +276,7 @@ void TripCntDevShow(BOOL fShow)
         /* -------------------------------------------------- */
         /* update vehicle speed '123 km/h */
         wWheelSpeed = MeasGetWheelSpeed(MR_KM_PER_H);
-        sprintf( szVehSpeed, "%3u %s", wWheelSpeed, RESTXT_SPEED_DESC);
+        sprintf( szVehSpeed, "%3u%s", wWheelSpeed, RESTXT_SPEED_DESC);
 
         /* -------------------------------------------------- */
         /* update time for lower state line '13:15:24' */
@@ -251,22 +290,38 @@ void TripCntDevShow(BOOL fShow)
             TripCntDev.fScreenInit  = TRUE;
 
             /* yes, repaint complete screen */
-            ObjTextShow( &BigTripCntObj);
+
+            /* show BIGCOUNTER onyl if compass BARGRAGH disabled */
+            if (gTripCntFlags.flags.ShowCompassBar == 0)
+                ObjTextShow( &BigTripCntObj);
             ObjTextShow( &SmallTripCntObj );
             ObjTextShow( &VehSpeedTxtObj );
-            TripCntUpdateTimeDate();        // at initial time only!
+
+            // the following should be initialized ONCE,
+            // but refreshed with diccated message!
+            TripCntUpdateTimeDate();
+
+            // show compass VALUE only if enabled
+            if (gTripCntFlags.flags.ShowCompassValue == 1)
+                TripCntUpdateCompassHeading();
+
+            // show compass BARGRAGH only if enabled
+            if (gTripCntFlags.flags.ShowCompassBar == 1)
+                TripCntUpdateCompassBargraph();
 
             /* horizontal line between big & small trip counter */
             /* to be removed to an 'LineObject' !!! */
             {
                 DISPLXY Coord = {0,34};
-                DisplDrawHorLine(&Coord, 128, 0x03);
+                DisplDrawHorLine(&Coord, 128, 0x03, DPLXOR);
             }
         }
         else
         {
             /* No, repaint only changed stuff */
-            ObjTextShow( &BigTripCntObj   );
+            /* show BIGCOUNTER onyl if compass BARGRAGH disabled */
+            if (gTripCntFlags.flags.ShowCompassBar == 0)
+                ObjTextShow( &BigTripCntObj);
             ObjTextShow( &SmallTripCntObj );
             ObjTextShow( &VehSpeedTxtObj );
             //ObjTextShow( &TimeTxtObj ); will be refreshed by special message only
@@ -298,7 +353,6 @@ ERRCODE TripCntMsgEntry(MESSAGE GivenMsg)
 
     /* --------------------------------------------------- */
     /* focus handling */
-
     switch (MsgId)
     {
         case MSG_GET_FOCUS:
@@ -374,10 +428,15 @@ ERRCODE TripCntMsgEntry(MESSAGE GivenMsg)
     {
         switch (MsgId)
         {
+            /* standard refresha message */
             case MSG_SCREEN_REFRESH:
+                // Please note, that Compass Data and Time is refreshed on dedicated
+                // message MSG_COMPASS_REFRESH and MSG_TIMEDATE_SECOND_GONE only (see below)
                 TripCntDevShow(TRUE);
                 RValue = ERR_MSG_PROCESSED;
                 break;
+
+            /* any user action on MULTIPLE keys */
             case MSG_KEYS_PRESSED:
                 /* check if UP&DOWN are pressed short: */
                 if (  (RValue == ERR_MSG_NOT_PROCESSED                    )
@@ -398,6 +457,8 @@ ERRCODE TripCntMsgEntry(MESSAGE GivenMsg)
                     RValue = ERR_MSG_PROCESSED;
                 }
                 break;
+
+            /* any user action on a SINGLE key */
             case MSG_KEY_OK:
             case MSG_KEY_UP:
             case MSG_KEY_DOWN:
@@ -407,6 +468,18 @@ ERRCODE TripCntMsgEntry(MESSAGE GivenMsg)
             /* trigger time / date screen update only */
             case MSG_TIMEDATE_SECOND_GONE:
                 TripCntUpdateTimeDate();
+                RValue = ERR_MSG_PROCESSED;
+                break;
+
+            /* got a fresh compass heading information */
+            case MSG_COMPASS_REFRESH:
+                // show compass VALUE only if enabled
+                if (gTripCntFlags.flags.ShowCompassValue == 1)
+                    TripCntUpdateCompassHeading();
+                // show compass BARGRAGH only if enabled
+                if (gTripCntFlags.flags.ShowCompassBar == 1)
+                    TripCntUpdateCompassBargraph();
+                // msg processed anyway
                 RValue = ERR_MSG_PROCESSED;
                 break;
 
@@ -546,5 +619,152 @@ void TripCntUpdateTimeDate(void)
         ObjTextShow( &TimeTxtObj );
     }
 }
+
+
+/***********************************************************************
+ *  FUNCTION:       TripCntUpdateCompassHeading
+ *  DESCRIPTION:    Separate handling of CompassHeading screen refreshs,
+ *                  update compass heading for lower state line '359°'
+ *  PARAMETER:      -
+ *  RETURN:         -
+ *  COMMENT:        -
+ *********************************************************************** */
+void TripCntUpdateCompassHeading(void)
+{
+    tCompassHeadingInfo *ptHeadingInfo;
+    static usOldHeading = 0xffff;
+
+    // check conditions to display timedate */
+    if ( TripCntDev.fScreenInit == TRUE  )       // screen is ready?
+    {
+        /* time to get a fresh heading from driver */
+        ptHeadingInfo = CompassGetHeadingInfo();
+
+        /* update only if valid value */
+        if( ptHeadingInfo->bValid )
+        {
+            sprintf( szCompass, "%3d°", ptHeadingInfo->usHeading );
+            usOldHeading = ptHeadingInfo->usHeading;
+            ObjTextShow( &CompassTxtObj );
+        }
+        else
+        {   // nothing worth to be displayed
+        }
+    }
+}
+
+
+
+/***********************************************************************
+ *  FUNCTION:       TripCntUpdateCompassBargraph
+ *  DESCRIPTION:    Shows a big graphic on display (half filled)
+ *                  with a small floating bar of heading values
+ *                  and a big heading value in front.
+ *  PARAMETER:      -
+ *  RETURN:         -
+ *  COMMENT:        This is in conflict to the upper area
+ *                  big tripcounter value, so only one of them
+ *                  can be enabled!
+ *********************************************************************** */
+void TripCntUpdateCompassBargraph(void)
+{
+    UINT16 usHeading;
+    UINT16 usOffset;
+    INT16  sTextPos;
+    INT16  sTextVal;
+    char   szText[8]; //we only need 4 but some space is left if something goes wrong with sprintf
+    UINT8  ucTextIdx;
+
+    BITMAP  tBitmap;
+    DISPLXY tPixelCoord;
+
+    tCompassHeadingInfo *ptHeadingInfo;
+    static usOldHeading = 0xffff;
+
+    tBitmap.wWidth  = 128;
+    tBitmap.wHeight = 8;
+
+
+    // check conditions to display timedate */
+    if ( TripCntDev.fScreenInit == FALSE  )       // screen is NOT ready?
+    {   return;
+    }
+
+    /* time to get a fresh heading from driver */
+    ptHeadingInfo = CompassGetHeadingInfo();
+
+    /* update only if valid value */
+    if( ptHeadingInfo->bValid == FALSE)
+    {   return;
+    }
+
+    // ####### OK - START TO DRAW GRAPHIC HERE ! ###########
+    usHeading = ptHeadingInfo->usHeading;
+
+    //--------- draw scales at top and bottom ---------
+    usOffset = usHeading + 1; //rounding
+    usOffset /= 3;            //3 degree steps
+    usOffset %= 5;            //reposition to 0 all 3*5=15 degrees
+    usOffset *= 4;            //one scale division is 4 pixels wide
+
+    tPixelCoord.wXPos = 0;
+    tPixelCoord.wYPos = 0;
+    tBitmap.fpucBitmap = (UINT8 far*)( ((UINT32)rgCompassTop144x8) + ((UINT32)usOffset) );
+    DisplPrintABitmap( &tBitmap, &tPixelCoord, DPLNORM );
+
+    tPixelCoord.wYPos = 25;
+    tBitmap.fpucBitmap = (UINT8 far*)( ((UINT32)rgCompassBot144x8) + ((UINT32)usOffset) );
+    DisplPrintABitmap( &tBitmap, &tPixelCoord, DPLNORM );
+
+    //--------- delete values of major lines  ---------
+    tPixelCoord.wYPos = 12;   //= 34/2 - 6 + 1 = total height/2 - char height + 1
+    DisplDrawHorLine( &tPixelCoord, 128, 0, DPLNORM );
+
+    //--------- print values of major lines   ---------
+    //Note that sTextPos may be negative, text is clipped at display borders.
+    //First major line is 4 pixels from the left (no offset).
+    //Middle of 3 chars of the 4x6 font is 5 pixels.
+    sTextPos =  4 - 5;
+    sTextPos -= usOffset,     //lines are moving left with growing offset/heading
+
+    sTextVal = usHeading + 1; //rounding (3 degree steps)
+    sTextVal /= 15;           //floor to next major value
+    sTextVal *= 15;
+    sTextVal -= 3*15;         //3 major lines to the left from current heading
+    if( sTextVal < 0 ) sTextVal += 360;
+
+    while( sTextPos < 128 )
+    {   //end of display
+        sprintf( szText, "%03d", sTextVal );
+        ucTextIdx = 0;         //position within the string szText
+        tPixelCoord.wXPos = sTextPos;
+
+        //Major line may not be visible. Display functions can't clip at the
+        //left border. So truncate the string instead.
+        if( sTextPos < -4 )
+        {   tPixelCoord.wXPos += 8; //print rightmost digit, 2 x char width
+            ucTextIdx += 2;
+        }
+        else if( sTextPos < 0 )
+        {   tPixelCoord.wXPos += 4; //print right 2 digits, 1 x char with
+            ucTextIdx += 1;
+        }
+
+        //only print if value is visible
+        if( sTextPos >= -8 ) DisplPrintAString( &(szText[ucTextIdx]), &tPixelCoord, DPLFONT_4X6, DPLNORM );
+
+        sTextPos +=20;          //20 pixels between major lines
+        sTextVal += 15;         //15 degrees between major lines
+        if( sTextVal >= 360 )
+            sTextVal -= 360;
+    }
+
+    //--------- fat current heading in the middle -----
+    tPixelCoord.wXPos = 64 - 20; //total width/2 - middle of 3 chars of 14x16 font
+    tPixelCoord.wYPos = 9;       //= 34/2 - 16/2 = total height/2 - char height/2
+    sprintf( szText, "%03d", usHeading );
+    DisplPrintAString( szText, &tPixelCoord, DPLFONT_14X16, DPLNORM );
+}
+
 
 
