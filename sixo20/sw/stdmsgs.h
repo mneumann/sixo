@@ -68,6 +68,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.1  2009/06/21 21:21:32  tuberkel
+ * Changes done by AN:
+ * New MSG_COMPASS_REFRESH Message
+ *
  * Revision 2.0  2006/06/26 23:25:51  tuberkel
  * no message
  *
@@ -119,6 +123,9 @@ typedef enum
     /* special time/date messages ---------------------------------- */
     MSG_TIMEDATE_SECOND_GONE,           /* to snychronize sconds on display */
 
+    /* compass messages -------------------------------------------- */
+    MSG_COMPASS_REFRESH,                /* data from compass has been updated */
+    
     /* last message check ------------------------------------------- */
     MSG_LAST_MESSAGE                    /* last - unused! - message */
 
