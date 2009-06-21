@@ -68,6 +68,17 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.7  2009/06/21 21:23:18  tuberkel
+ * Changes by AN and SCHW:
+ * - new Compass layout inside TripCounter Module
+ * - can be disabled via user settings 'Tripcounter/upperlower:
+ * Bitcoded:
+ * - bit0: LongDistance:     1=upside (like roadbook), 0=downside
+ * - bit1: ShowCompassValue: 1=show, 0=off
+ * - bit2: ShowCompassBar:   1=show, 0=off
+ * CompassValue ist shown in footer line
+ * CompassCompassBar as graphic
+ *
  * Revision 2.6  2009/04/20 18:26:04  tuberkel
  * Compiler Fix SetDeviceStateMachine()
  *
@@ -117,7 +128,7 @@
 #include "timedate.h"
 #include "bitmaps.h"
 #include "surveill.h"
-
+#include "compassdrv.h"
 
 
 // defines for device data
@@ -153,6 +164,16 @@
 //                     |24.12.04 13:24:25 ±20|
 //                     +----.----.----.----.-+
 
+// Screen Appearance:  +----.----.----.----.-+
+// (21 Chars width)    |Rad:2200 mm   ZKF:1/1|
+//                     |Display A:0 H:63 K:36|
+//     >= V2.4.7       |Schaltbl.:10200 U/Min|  Motobau:
+//                     |Mrd:0 Cmp:0 TripCnt:0|  Cmp = Compass-Calibration
+//                     |Serv. bei  999.999 km|  |Serv.:999h Ges.:9999h|
+//                     |Gesamt:    112.500 km|
+//                     |24.12.04 13:24:25 ±20|
+//                     +----.----.----.----.-+
+
 
 
 // device states = focus handling
@@ -170,6 +191,7 @@ typedef enum
     eSetRPMFlash,       // RPM flash light
 
     eSetBikeType,       // bike type selection
+    eSetCompassCalib,   // compass calibration
     eSetTripCntFl,      // tripCounter Flag
 
     // special MOTOBAU selection
@@ -208,14 +230,12 @@ static UINT32   dwEditBuffer;                                       // 32 bit ed
 extern UINT16           wWheelSize;                                 // original wheel size from eeprom in mm
 static EDITNUMBEROBJECT EditWheelSizeObj;                           // complete wheel size object
 
-
 // cylinder correcture factor: 'Zyl.-Fakt.: 1/1'
 extern CCF_TYPE         CCF;                                        // original CCF value (with Nom/Denom nibbles) from eeprom
 static EDITNUMBEROBJECT EditCCFNomObj;                              // complete nominator number object
 static EDITNUMBEROBJECT EditCCFDenomObj;                            // complete denominator number object
 static UINT8            CCFNom;                                     // copy of CCF.Nom as reference
 static UINT8            CCFDenom;                                   // copy of CCF.Denom as reference
-
 
 // Backlight objects:
 extern DPLFLAGS_TYPE    gDisplayFlags;                              // orginal display values
@@ -238,13 +258,18 @@ static UINT8            bContrLev;                                  // copy of g
 extern RPM_TYPE         RPM_Flash;                                  // original values from EEPROM, engine speed to enable flash lamp,   1 RPM/bit
 static EDITNUMBEROBJECT EditRPMFlashObj;                            // complete RPM Flashlight object
 
-// BikeType: |Mrd-Typ:0   TripCnt:0|
+// BikeType: |Mrd:0 Cmp:0 TripCnt:0|
 static EDITNUMBEROBJECT EditBikeTypeObj;                            // complete bike type object
 extern BIKE_TYPE        gBikeType;
 static BIKE_TYPE        LocalBikeType;
-extern UINT8            gLogoSelection;                             // selected bke logo
+extern UINT8            gLogoSelection;                             // selected bike logo
 
-// TripCounterFlag: |Mrd-Typ:0   TripCnt:0|
+// CompassBikeType: |Mrd:0 Cmp:0 TripCnt:0|
+static EDITNUMBEROBJECT EditCompassCalibObj;                        // compass calibration state object
+static UINT8            bSavedCmpCalState;                               // edit value
+static UINT8            bCurrentCmpCalState;                            // to detect user activity
+
+// TripCounterFlag: |Mrd:0 Cmp:0 TripCnt:0|
 static EDITNUMBEROBJECT EditTripCntFlObj;                            // complete trip counter flag object
 static UINT8            bTripCntFl;                                  // copy of trip counter flag as reference
 extern TRPCNTFL_TYPE    gTripCntFlags;
@@ -255,19 +280,15 @@ extern TIME_TYPE_LD  EngRunTime_All;                                // original 
 static EDITNUMBEROBJECT EditEngRunSrvObj;                           // complete EnginRunTime Service object
 static EDITNUMBEROBJECT EditEngRunAllObj;                           // complete EnginRunTime All object
 
-
 // service km object |Serv. bei  999.999 km|
 extern DIST_TYPE        gNextServKm;                                // to get/set original value
 static UINT32           dwServKm;                                   // original vehicle distance in km only
 static EDITNUMBEROBJECT EditServKmObj;                              // complete number object
 
-
-
 // vehicle distance object 'Gesamt: 112.500 km'
 static DIST_TYPE        VehicDist;                                  // to get/set original value
 static UINT32           dwVehicDist;                                // original vehicle distance in km only
 static EDITNUMBEROBJECT EditVehicDistObj;                           // complete number object
-
 
 // Date field objects '24.12.04'
 static DATE_TYPE        RTCDateCopy;                                // buffer to get current RTC data
@@ -277,7 +298,6 @@ static EDITNUMBEROBJECT EditYearObj;                                // complete 
 static UINT8            bDate;                                      // copy of RTC day as reference
 static UINT8            bMonth;                                     // copy of RTC day as reference
 static UINT8            bYear;                                      // copy of RTC day as reference
-
 
 // time field objects '13:12:24'
 static TIME_TYPE     RTCTimeCopy;                                // buffer to get current RTC data
@@ -321,8 +341,9 @@ static const EDITNUMBER_INITTYPE EditNumObj[] =
     { &EditContrLevObj,     102,    9,  DPLFONT_6X8,     4, &bContrLev,             &bEditBuffer,   eUCHAR, 0L,    63L,  0L, eDez,   eColumn, 0, RESTXT_SET_DPLCONTRDESC,    "",                         2,  OC_DISPL | OC_SELECT | OC_EDIT              },
     { &EditRPMFlashObj,       0,   18,  DPLFONT_6X8,    21, &RPM_Flash,             &wEditBuffer,   eUINT,  0L, 30000L,  0L, eDez,   eColumn, 0, RESTXT_SET_RPMFLASH,        RESTXT_SET_RPMFLASHUNIT,    5,  OC_DISPL | OC_SELECT | OC_EDIT              },
       // bike type will modified in init routine for BIKE_MOTOBAU  version
-    { &EditBikeTypeObj,       0,   27,  DPLFONT_6X8,     9, &LocalBikeType,         &bEditBuffer,   eUCHAR, 0L, (UINT32)(eBIKE_INVALID-1),  0L, eDez,   eColumn, 0, RESTXT_SET_BIKETYPE,  "",                1,  OC_DISPL | OC_SELECT | OC_EDIT              },
-    { &EditTripCntFlObj,     72,   27,  DPLFONT_6X8,     9, &bTripCntFl,            &bEditBuffer,   eUCHAR, 0L,     1L,  0L, eDez,   eColumn, 0, RESTXT_SET_TRIPCNTFL,       "",                         1,  OC_DISPL | OC_SELECT | OC_EDIT              },
+    { &EditBikeTypeObj,       0,   27,  DPLFONT_6X8,     5, &LocalBikeType,         &bEditBuffer,   eUCHAR, 0L, (UINT32)(eBIKE_INVALID-1),  0L, eDez,   eColumn, 0, RESTXT_SET_BIKETYPE,  "",            1,  OC_DISPL | OC_SELECT | OC_EDIT              },
+    { &EditCompassCalibObj,  36,   27,  DPLFONT_6X8,     5, &bSavedCmpCalState,     &bEditBuffer,   eUCHAR, 0L,     6L,  0L, eDez,   eColumn, 0, RESTXT_SET_COMPCAL,         "",                         1,  OC_DISPL | OC_SELECT | OC_EDIT              },
+    { &EditTripCntFlObj,     72,   27,  DPLFONT_6X8,     9, &bTripCntFl,            &bEditBuffer,   eUCHAR, 0L,     7L,  0L, eDez,   eColumn, 0, RESTXT_SET_TRIPCNTFL,       "",                         1,  OC_DISPL | OC_SELECT | OC_EDIT              },
       // EngRun EngServ will modified in init routine for BIKE_MOTOBAU version
     { &EditEngRunSrvObj,      0,   36,  DPLFONT_6X8,    10, &EngRunTime_Srv.wHour,  &wEditBuffer,   eUINT,  0L,   999L,  0L, eDez,   eColumn, 0, RESTXT_SET_ERT_SRV,         RESTXT_SET_ERT_UNIT,        3,  OC_DISPL | OC_SELECT | OC_EDIT              },
     { &EditEngRunAllObj,     66,   36,  DPLFONT_6X8,    10, &EngRunTime_All.wHour,  &wEditBuffer,   eUINT,  0L,  9999L,  0L, eDez,   eColumn, 0, RESTXT_SET_ERT_ALL,         RESTXT_SET_ERT_UNIT,        4,  OC_DISPL | OC_SELECT | OC_EDIT              },
@@ -376,6 +397,8 @@ ERRCODE SetDeviceInit(void)
     bBacklLev       = gDisplayFlags.flags.BacklLev;
     bContrLev       = gDisplayFlags.flags.ContrLev;
     LocalBikeType   = gBikeType;
+
+    bSavedCmpCalState    = 0;
 
     TimeDate_GetDate( &RTCDateCopy );       // get current date
     bDate  = RTCDateCopy.bDate;
@@ -462,8 +485,14 @@ void SetDeviceShow(BOOL fShow)
         {   dwServKm = gNextServKm.km;                      // get km only
         }
 
+        if (EditCompassCalibObj.State.bits.fEditActive == FALSE)
+        {   tCompassHeadingInfo *ptHeadingInfo;
+            ptHeadingInfo = CompassGetHeadingInfo();
+            bSavedCmpCalState  = ptHeadingInfo->ucCalState;      // get current driver state
+        }
+
         if (EditTripCntFlObj.State.bits.fEditActive == FALSE)
-        {   bTripCntFl = gTripCntFlags.flags.LongDistUp;
+        {   bTripCntFl = gTripCntFlags.byte;                    // save complete byte instead of bits
         }
 
         if (EditCCFNomObj.State.bits.fEditActive == FALSE)
@@ -710,7 +739,7 @@ ERRCODE SetDeviceStateMachine(MESSAGE Msg)
         #else // BIKE_MOTOBAU                           // special NOT MOTOBAU behaviour
         if (SetDevice.wDevState == eSetAllHours)        // do not select 'eSetAllHours'
             SetDevice.wDevState = eSetTripCntFl;        // jump over it!
-        #endif // BIKE_MOTOBAU                          
+        #endif // BIKE_MOTOBAU
         SetDeviceSetFocus(SetDevice.wDevState);         // now use this focus...
         SetDeviceShow(TRUE);
         RValue = ERR_MSG_PROCESSED;
@@ -732,7 +761,7 @@ ERRCODE SetDeviceStateMachine(MESSAGE Msg)
         #else // BIKE_MOTOBAU                           // special NOT MOTOBAU behaviour
         if (SetDevice.wDevState == eSetServHours)       // do not select 'eSetServHours'
             SetDevice.wDevState = eSetServKm;           // jump over it!
-        #endif // BIKE_MOTOBAU                          
+        #endif // BIKE_MOTOBAU
         SetDeviceSetFocus(SetDevice.wDevState);         // now use this focus...
         SetDeviceShow(TRUE);
         RValue = ERR_MSG_PROCESSED;
@@ -762,6 +791,7 @@ ERRCODE SetDeviceSetFocus(SETDEVSTATE eState)
     EditVehicDistObj.State.bits.fSelected = FALSE;
     EditRPMFlashObj.State.bits.fSelected  = FALSE;
     EditBikeTypeObj.State.bits.fSelected  = FALSE;
+    EditCompassCalibObj.State.bits.fSelected  = FALSE;
     EditTripCntFlObj.State.bits.fSelected = FALSE;
     EditEngRunSrvObj.State.bits.fSelected = FALSE;
     EditEngRunAllObj.State.bits.fSelected = FALSE;
@@ -788,6 +818,7 @@ ERRCODE SetDeviceSetFocus(SETDEVSTATE eState)
         case eSetDisplContr:    EditContrLevObj.State.bits.fSelected  = TRUE; break;
         case eSetRPMFlash:      EditRPMFlashObj.State.bits.fSelected  = TRUE; break;
         case eSetBikeType:      EditBikeTypeObj.State.bits.fSelected  = TRUE; break;
+        case eSetCompassCalib:  EditCompassCalibObj.State.bits.fSelected  = TRUE; break;
         case eSetTripCntFl:     EditTripCntFlObj.State.bits.fSelected = TRUE; break;
         case eSetServHours:     EditEngRunSrvObj.State.bits.fSelected = TRUE; break;
         case eSetAllHours:      EditEngRunAllObj.State.bits.fSelected = TRUE; break;
@@ -837,40 +868,38 @@ void SetDeviceCheckChanges( void )
 
     // CCF value was changed? ----------------------
     if (  (CCF.nibble.nom   != CCFNom  )
-        ||(CCF.nibble.denom != CCFDenom) ){
-        CCF.nibble.nom   = CCFNom;                              // save global -> auto eeprom update!
+        ||(CCF.nibble.denom != CCFDenom) )
+    {   CCF.nibble.nom   = CCFNom;                              // save global -> auto eeprom update!
         CCF.nibble.denom = CCFDenom;
     }
 
     // Backlight on/off and Level ------------------
-    if( gDisplayFlags.flags.BacklOnLevel != bBacklOnLevel ){    // saved with changes?
-       gDisplayFlags.flags.BacklOnLevel = bBacklOnLevel;        // save global -> auto eeprom update!
+    if( gDisplayFlags.flags.BacklOnLevel != bBacklOnLevel )     // saved with changes?
+    {   gDisplayFlags.flags.BacklOnLevel = bBacklOnLevel;       // save global -> auto eeprom update!
     }
 
     // BacklightLevel was changed? -----------------
-    if( gDisplayFlags.flags.BacklLev != bBacklLev ){            // saved with changes?
-       gDisplayFlags.flags.BacklLev = bBacklLev;                // save global -> auto eeprom update!
+    if( gDisplayFlags.flags.BacklLev != bBacklLev )             // saved with changes?
+    {   gDisplayFlags.flags.BacklLev = bBacklLev;               // save global -> auto eeprom update!
     }
 
     // NOTE: As BacklightSwitch and -Level are to be set in one
     //       API function, they are to be handled together here!
     // BacklightSwitch in edit mode? -----------
-    if( EditBacklObj.State.bits.fEditActive == TRUE ){              // edit mode active?
-      LCDDrvSetBacklightLevel( DisplBacklightCheckOn(bEditBuffer),  // use CURRENT EDIT VALUE of BacklightOnlevel!!!
-                               gDisplayFlags.flags.BacklLev );
-
+    if( EditBacklObj.State.bits.fEditActive == TRUE )               // edit mode active?
+    {   LCDDrvSetBacklightLevel( DisplBacklightCheckOn(bEditBuffer),  // use CURRENT EDIT VALUE of BacklightOnlevel!!!
+                                 gDisplayFlags.flags.BacklLev );
     }
-    else{
-       // BacklightLevel in edit mode? -----------
-       if( EditBacklLevObj.State.bits.fEditActive == TRUE ){        // NO: edit mode level active?
-         LCDDrvSetBacklightLevel(  DisplBacklightCheckOn(gDisplayFlags.flags.BacklOnLevel),
-                                   bEditBuffer );                   // use CURRENT EDIT VALUE of BacklightLevel!!!
-
+    else
+    {  // BacklightLevel in edit mode? -----------
+       if( EditBacklLevObj.State.bits.fEditActive == TRUE )         // NO: edit mode level active?
+       {    LCDDrvSetBacklightLevel(  DisplBacklightCheckOn(gDisplayFlags.flags.BacklOnLevel),
+                                      bEditBuffer );                // use CURRENT EDIT VALUE of BacklightLevel!!!
        }
-       else{
-          // ELSE: Set current Backlight-Switch-Level with current backlight level
-         LCDDrvSetBacklightLevel(  DisplBacklightCheckOn(gDisplayFlags.flags.BacklOnLevel),
-                                    gDisplayFlags.flags.BacklLev ); //set global values
+       else
+       {    // ELSE: Set current Backlight-Switch-Level with current backlight level
+            LCDDrvSetBacklightLevel(  DisplBacklightCheckOn(gDisplayFlags.flags.BacklOnLevel),
+                                      gDisplayFlags.flags.BacklLev ); //set global values
        }
     }
 
@@ -879,9 +908,54 @@ void SetDeviceCheckChanges( void )
     {    gNextServKm.km = dwServKm;                       // give back km into dkm structure
     }
 
+    // CompassCalib State in edit mode? -----------------
+    if (EditCompassCalibObj.State.bits.fEditActive == TRUE )    // edit mode active?
+    {
+        if(bEditBuffer < bCurrentCmpCalState)           // decr. state NOT allowed! -> fix old value!
+        {   bEditBuffer = bCurrentCmpCalState;
+        }
+        else if(bEditBuffer > bCurrentCmpCalState+1)    // incr. >1 NOT allowed! -> limit new value!
+        {   bEditBuffer = bCurrentCmpCalState+1;
+        }
+        else if (bEditBuffer != bCurrentCmpCalState)    // still a user activity detected?
+        {
+            bCurrentCmpCalState++;                      // should indicate the real compass driver calibration state
+            switch(bCurrentCmpCalState)
+            {   case 0: ODS( DBG_SYS, DBG_INFO, "Waiting for Compass Calibration start.."); break;
+                case 1: ODS( DBG_SYS, DBG_INFO, "Step 1: Hold compass horizontal and keep still!"); break;
+                case 2: ODS( DBG_SYS, DBG_INFO, "Step 2: Multiple rotate compass horizontal!"); break;
+                case 3: ODS( DBG_SYS, DBG_INFO, "Step 3: Save horizontal measurement!"); break;
+                case 4: ODS( DBG_SYS, DBG_INFO, "Step 4: Hold compass vertical and keep still!"); break;
+                case 5: ODS( DBG_SYS, DBG_INFO, "Step 5: Multiple rotate compass vertical!"); break;
+                case 6: ODS( DBG_SYS, DBG_INFO, "Step 6: Save vertical measurement!"); break;
+            }
+            CompassCmdIncCalState();                    // ==> activate next calibration step!
+        }
+        else
+        {   // nothing changed ==> nothing to do!
+        }
+    }
+    else    // currently not (no longer) in edit mode
+    {   // check for changed value after editing finished with ESC / OK
+        if (bSavedCmpCalState == 0)                      // user pressed ESC ?
+        {   ODS( DBG_SYS, DBG_INFO, "Calibration aborted => Reset Calibration Mode!");
+            CompassCmdReset();                      // ==> reset calibration process!
+        }
+        if (bSavedCmpCalState < 6)                      // user OK before end 'state 6'?
+        {   ODS( DBG_SYS, DBG_INFO, "Calibration not completed => Reset Calibration Mode!");
+            CompassCmdReset();                      // ==> reset calibration process!
+        }
+        else
+        {   // success finished calibration state!
+            ODS( DBG_SYS, DBG_INFO, "Calibration successfully completed!");
+        }
+        bSavedCmpCalState   = 0;                        // reset to default state
+        bCurrentCmpCalState = 0;
+    }
+
     // TripCntFlag was changed? -----------------
-    if( gTripCntFlags.flags.LongDistUp != bTripCntFl )
-    {  gTripCntFlags.flags.LongDistUp = bTripCntFl;                // save global -> auto eeprom update!
+    if( gTripCntFlags.byte != bTripCntFl )              // compare complete byte instead of bits
+    {  gTripCntFlags.byte = bTripCntFl;                 // save global -> auto eeprom update!
     }
 
     // Vehicle Distance changed? -------------------
@@ -898,8 +972,8 @@ void SetDeviceCheckChanges( void )
     {   gBikeType = LocalBikeType;  // save that new value
         switch (gBikeType)          // change logo too!
         {
-            case eBIKE_STANDARD:    
-                                    #ifdef BIKE_MOTOBAU     
+            case eBIKE_STANDARD:
+                                    #ifdef BIKE_MOTOBAU
                                     gLogoSelection = eLogo_Motobau;     break;  // motobau is our standard logo
                                     #else // BIKE_MOTOBAU
                                     gLogoSelection = eLogo_SIXO;        break;  // sixo is our standard logo
@@ -916,7 +990,7 @@ void SetDeviceCheckChanges( void )
             default:                gLogoSelection = eLogo_SIXO;        break;
         }
         // essential: reset all vehicle states to 'all right' too! */
-        SurvResetVehicleStates();   
+        SurvResetVehicleStates();
         // essential: adapt vehicle specific digital filter settings too! */
         DigInDrv_FilterInit();
     }
