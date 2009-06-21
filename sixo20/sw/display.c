@@ -72,6 +72,7 @@
  ************************************************************************ */
 
 
+#include <stdlib.h>
 #include <string.h>
 #include "standard.h"
 #include "displdrv.h"
@@ -577,49 +578,49 @@ ERRCODE DisplPrintAString(  const unsigned char far *szString,
  *  DESCRIPTION:    prints a horizontal line with a defined thickness
  *                  to the screen
  *  PARAMETER:      DISPLXY far *   pCoord      x,y start coordinates
- *                  UINT16          wLength     length of line in pixels
- *                  UINT8           bPattern    line style pattern
+ *                  unsigned short  wLength     length of line in pixels
+ *                  unsigned char   bPattern    line style pattern
+ *                  unsigned char   ucMode      display mode (bit coded, f.e. invers)
  *  RETURN:         error code
  *  COMMENT:        Function uses a 8 vertical pixel with a bitcoded bPattern
  *                  to be drawn 'wLength'-times at a line:
  *                      - to Draw a single pixel line use 0x01
  *                      - to Draw a 8 pixel line use 0xff
- *                  Function uses XOR mode to draw line
- *
- *      t.b.d.:     This function could be faster, if we use a temporary
- *                  memory to be filled with 'bPattern' and then give it
- *                  as one(!) BMP to draw, instead of n BMPs.
+ *                  To draw a line usually DPLXOR is used to keep
+ *                  surrounding area where bPattern is 0.
  *********************************************************************** */
-ERRCODE DisplDrawHorLine( const DISPLXY far *pCoord, UINT16 wLength, UINT8 bPattern )
+ERRCODE DisplDrawHorLine( const DISPLXY far *pCoord, unsigned short wLength,
+                          unsigned char bPattern,
+                          unsigned char ucMode )
 {
-   ERRCODE RValue = ERR_OK;
-   BITMAP  BMPLine;
    DISPLXY Coord;
-   UINT16  wColumn;
+   BITMAP  BMPLine;
+   unsigned short wColumn;
+   ERRCODE RValue;
 
    //check parameters first
-   if(  (pCoord->wYPos >= DisplGetDimension(DPLFONT_NOFONT).wYPos)
-      ||(pCoord->wXPos >= DisplGetDimension(DPLFONT_NOFONT).wXPos)
-      ||(bPattern == 0 )
-      ||(wLength  == 0 ) ){
+   Coord = DisplGetDimension( DPLFONT_NOFONT );
+   if(  (pCoord->wYPos >= Coord.wYPos)
+      ||(pCoord->wXPos >= Coord.wXPos)
+      ||(wLength  == 0 )
+      ||(wLength  > Coord.wXPos) ){ 
       return ERR_PARAM_ERR;
    }
 
    //prepare bitmap
-   Coord = *pCoord;        //get a copy to work with
-   BMPLine.wWidth  = 1;    //single column pattern
-   BMPLine.wHeight = 8;    //8 bit vertical pattern
-   BMPLine.fpucBitmap = (UINT8 far*)&bPattern;
-
-   //loop to draw line length
+   BMPLine.wWidth  = wLength; //single column pattern
+   BMPLine.wHeight = 8;       //8 bit vertical pattern
+   BMPLine.fpucBitmap = (unsigned char far*)malloc( wLength );
+   if( BMPLine.fpucBitmap == NULL ) return ERR_NO_MEM;
    for( wColumn = 0; wColumn < wLength; wColumn++ ){
-      RValue = DisplPrintABitmap( &BMPLine, &Coord, DPLXOR );
-      if( RValue != ERR_OK ) break;
-      Coord.wXPos++;
+      BMPLine.fpucBitmap[wColumn] = bPattern;
    }
 
+   RValue = DisplPrintABitmap( &BMPLine, pCoord, ucMode );
+   free( BMPLine.fpucBitmap );
    return RValue;
 }
+
 
 /***********************************************************************
  *  FUNCTION:       DisplSetParms
