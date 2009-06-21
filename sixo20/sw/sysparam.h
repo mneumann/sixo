@@ -69,6 +69,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.7  2009/06/21 21:19:55  tuberkel
+ * V2.4.7
+ * (former used as V2.5.0 at Ralley Dalmatia)
+ *
  * Revision 2.6  2009/04/14 20:59:26  tuberkel
  * Changes done by Arnold:
  * - Vers# inr. 245 => 246
@@ -118,7 +122,7 @@
 /* software version number e.q. '2.1.1' */
 #define DEF_SWID_APL   2  // APL = (0..15) mean application number (changed with new mean application features)
 #define DEF_SWID_SWV   4  // SWV = (0..15) sw version number (changed with additional features)
-#define DEF_SWID_BLD   6  // BLD = (0..15) build number (changed with bugfixes)
+#define DEF_SWID_BLD   7  // BLD = (0..15) build number (changed with bugfixes)
 
 
 /* hardware specific version number */
@@ -197,10 +201,12 @@ typedef union
     struct
     {
         unsigned char   LongDistUp:1;       /* LongDistance: 1=upside (like roadbook), 0=downside */
-        unsigned char   reserved:7;         /* reserved */
+        unsigned char   ShowCompassValue:1; /* CompassValue: 1=show, 0=off */
+        unsigned char   ShowCompassBar:1;   /* CompassBargragh: 1=show, 0=off */
+        unsigned char   reserved:5;         /* reserved */
     } flags;
 } TRPCNTFL_TYPE;
-#define DEF_TRPCNTFL (0x01 )  /* default: Long Distance up like in Roadbook */
+#define DEF_TRPCNTFL (0x01 )  /* default: Long Distance up like in Roadbook, CompassBar off, CompassValue off*/
 
 
 
