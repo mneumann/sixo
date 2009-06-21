@@ -75,6 +75,10 @@
 ;  changes to CVC ('Log message'):
 ;
 ; $Log$
+; Revision 2.1  2009/06/21 21:24:08  tuberkel
+; Changes done by AN:
+; New _CompassRxIsr
+;
 ; Revision 2.0  2006/06/26 23:25:51  tuberkel
 ; no message
 ;
@@ -103,6 +107,7 @@
     .glb        _WheelSensor_ISR    ; as int0 isr vector
     .glb        _RPMSensor_ISR      ; as int1 isr vector
     .glb        _HWTestStimuISR     ; as timer tb5 isr vector
+    .glb        _CompassRxIsr       ; as uart0 receive isr vector
 
     .glb        _dummy_int          ; global for unexpected call checking
 
@@ -343,7 +348,11 @@ switch_table_top:
         .lword        _dummy_int         ; uart2 transmit(for user)(vector 15)
         .lword        _dummy_int         ; uart2 receive(for user)(vector 16)
         .lword        _dummy_int         ; uart0 transmit(for user)(vector 17)
+.if        COMPASS==1
+        .lword        _CompassRxIsr      ; uart0 receive for compass, note that
+.else                                    ; there is no transmit ISR
         .lword        _dummy_int         ; uart0 receive(for user)(vector 18)
+.endif
 .if        MINIEMU==1
         .lword        0FF900h            ; uart1 tx interrupt for KD30 V3.02
         .lword        0FF900h            ; uart1 rx interrupt for KD30 V3.02
