@@ -68,6 +68,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.2  2009/06/21 17:49:50  tuberkel
+ * Changes done by AN:
+ * HW-Tests / Uart not enabled if COMPASS defined
+ *
  * Revision 2.1  2009/04/14 21:17:55  tuberkel
  * Changes done by Arnold:
  * - HWTestCheckUnstimulatedErrors() uses dyn. Eeprom Magic Number Address
@@ -768,7 +772,7 @@ void HWTestCheckStimulatedErrors( void )
          StatObj_GPI3.szText = szOk;
     else StatObj_GPI3.szText = szErr;
 
-#if (defined MINIEMU) || (defined DEBUG)
+#if (defined MINIEMU) || (defined DEBUG) || (defined COMPASS)
     // do not use uart-loopback-test in this case
     // error status remains 'unknown'
 #else
@@ -1043,7 +1047,7 @@ void HWTestInit ( void )
     // enable uart loopback test, if tester present
     // Note: we don't use uarts, we only check digital port reaction
     // Note: can not be used if DEBUG or MiniEmulator uses Uarts
-#if (defined MINIEMU) || (defined DEBUG)
+#if (defined MINIEMU) || (defined DEBUG) || (defined COMPASS)
     // do not use uart-loopback-test in this case
 #else
     if (gfEOLTest == TRUE)
