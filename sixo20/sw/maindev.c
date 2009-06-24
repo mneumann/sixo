@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.5  2009/06/24 21:11:08  tuberkel
+ * just removed a comma in string
+ *
  * Revision 2.4  2009/06/21 17:55:27  tuberkel
  * Changes done by AN:
  * DisplDrawHorLine() new Mode-Parameter
@@ -197,7 +200,7 @@ static CHAR         szSpeedMax[4] = "  0";      /* buffer to contain SpeedMax, m
 extern SPEED_TYPE   Speed_Max;                  /* prepared value */
 
 static TEXTOBJECT   TimeDateTxtObj;             /* time & date output opbject */
-static CHAR         szTimeDate[22] = "Mo, 01.01.01 00:00:00";   /* buffer for timedate string */
+static CHAR         szTimeDate[22] = "Mo  01.01.01 00:00:00";   /* buffer for timedate string */
 
 static BMPOBJECT    InfoSymbolBmpObj;           /* info symbol for monitor */
 static BMPOBJECT    HazardSymbolBmpObj;         /* hazard symbol for monitor */
@@ -325,11 +328,11 @@ ERRCODE MainDeviceInit(void)
     MainDevice.szDevName    = szDevName[DEVID_MAIN];
     MainDevice.fFocused     = FALSE;
     MainDevice.fScreenInit  = FALSE;
-    
+
     /* error check: */
     if (  (gSystemFlags.flags.MainDevState == eMainFirst)
         ||(gSystemFlags.flags.MainDevState >= eMainLast ) )
-    {   ODS1( DBG_SYS, DBG_ERROR, "MainDeviceInit(): Invalid MainDevState %u corrected!", gSystemFlags.flags.MainDevState );        
+    {   ODS1( DBG_SYS, DBG_ERROR, "MainDeviceInit(): Invalid MainDevState %u corrected!", gSystemFlags.flags.MainDevState );
         gSystemFlags.flags.MainDevState = eMainFirst + 1;
     }
     MainDevice.wDevState    = gSystemFlags.flags.MainDevState;
@@ -817,7 +820,7 @@ ERRCODE MainDeviceResetMsg(MESSAGE Msg)
     static BOOL fLocked = FALSE;                    /* TRUE = key not yet relases */
 
     // check: main device in state to reset anything?
-    if (   ( MainDevice.wDevState == eMainFuelKm  ) 
+    if (   ( MainDevice.wDevState == eMainFuelKm  )
          ||( MainDevice.wDevState == eMainTrip1Km )
          ||( MainDevice.wDevState == eMainTrip2Km )
          ||( MainDevice.wDevState == eMainSpeedMax) )
@@ -833,7 +836,7 @@ ERRCODE MainDeviceResetMsg(MESSAGE Msg)
             fLocked = FALSE;                // Re-enable another Reset of distances
             RValue = ERR_MSG_PROCESSED;     // done!
         }
-    
+
         /* user presses OK Button > 2 sec: focus & start edit */
         else if (  ( MsgId == MSG_KEY_OK                    )    /* [OK] pressed? */
                  &&( MSG_KEY_TRANSITION(Msg) == KEYTRANS_ON )    /* still pressed? */
@@ -943,7 +946,7 @@ void MainDeviceUpdateTimeDate(void)
             EN: 'Mo 01.01.01 00:00:00a' */
         TimeDate_GetString( RESENUM_WWDDMMYY,  szBuffer );
         strcpy(szTimeDate, szBuffer);
-        strcat(szTimeDate, " ");  
+        strcat(szTimeDate, " ");
         TimeDate_GetString( RESENUM_HHMMSS,  szBuffer );  // returns 7! chars!!!
         strcat(szTimeDate, szBuffer);
         ObjTextShow( &TimeDateTxtObj );
