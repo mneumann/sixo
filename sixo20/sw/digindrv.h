@@ -80,7 +80,7 @@
 
 /* hardware version number ports */
 /* ATTENTION: p4 is used to control LCD module too! */
-#define HWVERS_PINS     0x3     // 3 bit used to code hw version
+#define HWVERS_PINS     0x7     // 3 bit used to code hw version
 #define HWVerPortD      pd4     // port direction registers
 #define HWVerD0         pd4_0
 #define HWVerD1         pd4_1
@@ -123,23 +123,23 @@
 /* digital filter structure */
 typedef struct
 {
-    INT16   swFiltValue;    // represents filter value 0..255 (0=LOW, 255=HIGH) 
+    INT16   swFiltValue;    // represents filter value 0..255 (0=LOW, 255=HIGH)
     UINT8   bIncrValue;     // increment step if input HIGH
     UINT8   bDecrValue;     // deccrement step if input LOW
     BOOL    fState;         // result of filter process
 } DIGFILTTYPE;
 
 /* enum to access array elements of digital filter structure via index */
-typedef enum 
-{   
+typedef enum
+{
     eDF_TURNL,      // filter element turn-left
     eDF_TURNR,      // filter element turn-right
     eDF_OILSW,      // filter element oil pressure switch
     eDF_NEUTR,      // filter element neutral-gear
     eDF_HBEAM,      // filter element high-beam
-    eDF_GPI_0,      // filter element general purpose 0 
+    eDF_GPI_0,      // filter element general purpose 0
     eDF_GPI_1,      // filter element general purpose 1
-    eDF_GPI_2,      // filter element general purpose 2 
+    eDF_GPI_2,      // filter element general purpose 2
     eDF_GPI_3,      // filter element general purpose 3
     eDF_LAST        // last - invalid element!
 } DIGFILTELEMENT;
@@ -176,29 +176,29 @@ typedef enum
 
 
 /* ----------------------------------------------------------
-   Digital Input Filter 
-   
+   Digital Input Filter
+
    Note:    - digital inputs are mapped to UINT8 variabel
             - any HIGH value incr. filter value with SLOW/FAST_INR
             - any LOW  value decr. filter value with SLOW/FAST_DECR
             - filter value is interpreted as
                 - HIGH if value == 255 (max)
-                - LOW  if value == 0   (min) 
+                - LOW  if value == 0   (min)
             - Digital values will be checked/updated every 20 ms (LOOP):
-            
+
             - Filtertime to detect HIGH value:  [ FT_high = MAX / INCR * LOOP ]
 
                                              => [ INCR    = MAX * LOOP / FT_high ]
-            
+
             - Filtertime to detect LOW value:   [ FT_low  = MAX / DECR * LOOP ]
-            
-                                             => [ DECR    = MAX * LOOP / FT_low ]            
-            
-            - Examples: 
-                - incr/decr = 100  ->  255/100 * 20ms =   40 ms  ->  0,04 sec filter time 
-                - incr/decr =  50  ->  255/ 50 * 20ms =  100 ms  ->  0,10 sec filter time 
-                - incr/decr =   1  ->  255/  1 * 20ms = 5100 ms  ->  5,10 sec filter time 
-                
+
+                                             => [ DECR    = MAX * LOOP / FT_low ]
+
+            - Examples:
+                - incr/decr = 100  ->  255/100 * 20ms =   40 ms  ->  0,04 sec filter time
+                - incr/decr =  50  ->  255/ 50 * 20ms =  100 ms  ->  0,10 sec filter time
+                - incr/decr =   1  ->  255/  1 * 20ms = 5100 ms  ->  5,10 sec filter time
+
     ---------------------------------------------------------- */
 
 #define DIGFILT_MIN           1         // in ms, time until LOW/HIGH detected!
