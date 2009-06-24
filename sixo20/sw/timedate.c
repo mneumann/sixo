@@ -72,6 +72,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.2  2009/06/24 21:13:08  tuberkel
+ * just comments
+ *
  * Revision 2.1  2007/03/30 10:00:22  tuberkel
  * Matthias Otto stuff:
  * - language specific display content
@@ -369,10 +372,11 @@ ERRCODE TimeDate_GetString( DATETIME_STRFORMAT eFormat, STRING szBuffer )
     {
         // german formats
         // Note: the leading SPACE in HHMM format compensates the preceeding 'a'/'p' of the englisch version!
-        case GERM_HHMM:          // return time in format '  5:34'
+        case GERM_HHMM:          // return time in format '  5:34' (see note above!)
             sprintf(szBuffer," %2u:%02u", Time.bHour, Time.bMin);
             break;
-        case GERM_HHMMSS:        // return time in format '  5:34:56'
+        // Note: the leading SPACE in HHMM format compensates the preceeding 'a'/'p' of the englisch version!
+        case GERM_HHMMSS:        // return time in format '  5:34:56' (see note above!)
             sprintf(szBuffer," %2u:%02u:%02u", Time.bHour, Time.bMin, Time.bSec);
             break;
         case GERM_DDMMYY:        // return date in format ' 1.02.04'
