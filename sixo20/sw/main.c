@@ -68,6 +68,11 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.5  2009/06/24 21:10:10  tuberkel
+ * Improvement: Moved DigInDrv_Init() before LCDDrv_Init()
+ * - assures correct HW-ID detection (internal pullups)
+ * - HW-IFD used to setup correct display contrast
+ *
  * Revision 2.4  2009/06/21 17:54:47  tuberkel
  * Changes done by AN:
  * Compass module added
@@ -196,11 +201,11 @@ int main()
     Error = ParCheckFirstInit();    /* check, wether eeprom/nvram update necessary */
     Error = ParInitSystemPar();     /* initialize all system parameters from eeprom/nvram */
     Error = TimeDateInit();         /* initialize system time & date stuff */
+    Error = DigInDrv_Init();        /* prepare keyboard ports and other input ports */
     Error = DisplInit(FALSE);       /* prepare lcd output & clear screen */
     Error = DigOutInit();           /* prepare general purpose output ports */
     Error = LEDInit();              /* prepare led output ports & service */
     Error = BeepInit();             /* prepare beeper output ports & service */
-    Error = DigInDrv_Init();        /* prepare keyboard ports and other input ports */
     Error = MsgQInit();             /* reset message queue */
     Error = MeasDrvInit();          /* measurement init stuff (ta2, ta3, ta4, tb2, int1, int0) */
     Error = AnaInInit();            /* A/D converter for all measurements  */
