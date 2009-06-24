@@ -108,6 +108,7 @@
 #include "standard.h"
 #include "display.h"
 #include "displdrv.h"
+#include "digindrv.h"
 #ifdef HARDCOPY
     #include "stdio.h"    // hardcopy via uart
 #endif // HARDCOPY
@@ -245,21 +246,48 @@ static ERRCODE LCDDrvReset( void )
  *
  *  PARAMETER:      level       from 0=light .. 63=dark
  *  RETURN:         ERR_OK
- *  COMMENT:        -
+ *  COMMENT:        Detects Hardware-ID to setup correct contrast
+ *                  values for green or white display modules.
+ *                  Limits the lower value to avoid a setting
+ *                  (at room temperature) whith that nothing
+ *                  can be seen on the display anymore:
+ *                  Usable ContrLvl values:
+ *                      1st charge (green display): 129..255
+ *                      2nd charge (white display): 110..173
+ *                  Note that 2nd charge uses different resistor
+ *                  values for contrast driver!
  *********************************************************************** */
 ERRCODE LCDDrvSetContrastLevel( UINT8 bContrast )
 {
-   if( !gfLCD_Ok ) return ERR_OK;     //LCD may be disconnected
+    UINT8 u8HwId = DigInDrv_GetHWVersion();
 
-   //check parameter
-   if( bContrast > 63 ) return ERR_PARAM_ERR;
+    // LCD may be disconnected
+    if( !gfLCD_Ok )
+        return ERR_OK;
 
-   //limit the lower value to avoid a setting (at room temperature) whith
-   //that nothing can be seen on the display anymore
-   bContrast = bContrast << 1;
-   ContrLvl = 129 + bContrast; //129..255 with input 0..63
+    // check parameter
+    if( bContrast > 63 )
+        return ERR_PARAM_ERR;
 
-   return ERR_OK;
+    // Select correct HW settings
+    if (u8HwId < 2)
+    {
+        // settings for 1st production charge
+        bContrast = bContrast << 1;     // scale given value x2
+        ContrLvl = 129 + bContrast;     // add to specific offset value
+    }
+    else if (u8HwId == 2)
+    {
+        // settings for 2nd production charge (different resistors)
+        bContrast = bContrast << 0;     // scale given value x1
+        ContrLvl = 110 + bContrast;     // add to specific offset value
+    }
+    else
+    {
+        // invalid HW id!
+    }
+
+    return ERR_OK;
 }
 
 
