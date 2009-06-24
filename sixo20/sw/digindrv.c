@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.2  2009/06/24 21:00:28  tuberkel
+ * Just comments and removed spaces
+ *
  * Revision 2.1  2006/10/01 22:17:10  tuberkel
  * NEW:
  * - DigitalFilter functions
@@ -442,7 +445,7 @@ ERRCODE DigInDrv_SendKeyMessage(const KEYNUMBER Key, const KEYTIME far * fpKeyDa
  *  DESCRIPTION:    check all other digital in ports
  *  PARAMETER:      -
  *  RETURN:         -
- *  COMMENT:        Bike specific handling is handled in surveillance 
+ *  COMMENT:        Bike specific handling is handled in surveillance
  *                  modules SurvCheckAllValues()
  *********************************************************************** */
 void DigInDrv_CheckAllPorts(void)
@@ -476,7 +479,8 @@ void DigInDrv_CheckAllPorts(void)
  *  PARAMETER:      -
  *  RETURN:         UINT8       hw version, valid 0..7
  *  COMMENT:        M16C internal pullup resistors are used to detect
- *                  not existing external pull-downs.
+ *                  not existing external pull-downs. So DigInDrv_Init()
+ *                  must have been called first before using this function!
  *********************************************************************** */
 UINT8 DigInDrv_GetHWVersion(void)
 {
@@ -487,7 +491,7 @@ UINT8 DigInDrv_GetHWVersion(void)
 
 /***********************************************************************
  *  FUNCTION:       DigInDrv_Filter
- *  DESCRIPTION:    updates digital filtered values for all digital 
+ *  DESCRIPTION:    updates digital filtered values for all digital
  *                  input ports
  *  PARAMETER:      -
  *  RETURN:         -
@@ -497,29 +501,29 @@ void DigInDrv_Filter(void)
 {
     DIGFILTELEMENT elem;
     UINT8          input;
-    
+
     // loop over all digital inpus
     for (elem = eDF_TURNL; elem<eDF_GPI_3; elem++)
     {
         // get current input value
         switch (elem)
-        {   case eDF_TURNL: input = DigIn_TurnL  ; break; 
-            case eDF_TURNR: input = DigIn_TurnR  ; break; 
-            case eDF_OILSW: input = DigIn_OilSw  ; break; 
-            case eDF_NEUTR: input = DigIn_Neutral; break; 
-            case eDF_HBEAM: input = DigIn_HBeam  ; break; 
-            case eDF_GPI_0: input = DigIn_GPI_0  ; break; 
-            case eDF_GPI_1: input = DigIn_GPI_1  ; break; 
-            case eDF_GPI_2: input = DigIn_GPI_2  ; break; 
+        {   case eDF_TURNL: input = DigIn_TurnL  ; break;
+            case eDF_TURNR: input = DigIn_TurnR  ; break;
+            case eDF_OILSW: input = DigIn_OilSw  ; break;
+            case eDF_NEUTR: input = DigIn_Neutral; break;
+            case eDF_HBEAM: input = DigIn_HBeam  ; break;
+            case eDF_GPI_0: input = DigIn_GPI_0  ; break;
+            case eDF_GPI_1: input = DigIn_GPI_1  ; break;
+            case eDF_GPI_2: input = DigIn_GPI_2  ; break;
             case eDF_GPI_3: input = DigIn_GPI_3  ; break;
             default: input = 0; break;
-        }            
-        
+        }
+
         // check current input value: count up/down?
         if ( input == 1 )             // current input: HIGH?
              DigInFilter[elem].swFiltValue += (INT16) DigInFilter[elem].bIncrValue; // count UP!
         else DigInFilter[elem].swFiltValue -= (INT16) DigInFilter[elem].bDecrValue; // count DOWN!
-        
+
         // limit value & detect threshold (0/255)
         if ( DigInFilter[elem].swFiltValue > UINT8_MAX)
         {
@@ -531,7 +535,7 @@ void DigInDrv_Filter(void)
             DigInFilter[elem].swFiltValue = 0;
             DigInFilter[elem].fState = 0;
         }
-    }     
+    }
 }
 
 
@@ -547,16 +551,16 @@ void DigInDrv_Filter(void)
 void    DigInDrv_FilterInit(void)
 {
     DIGFILTELEMENT elem;
-    
-    // reset all filter entries to common default filter settings 
+
+    // reset all filter entries to common default filter settings
     for (elem = eDF_TURNL; elem < eDF_LAST; elem++)
     {
         DigInFilter[elem].bIncrValue    = DigInDrv_FilterConvertTime( DIGFILT_DEF );
         DigInFilter[elem].bDecrValue    = DigInDrv_FilterConvertTime( DIGFILT_DEF );
         DigInFilter[elem].swFiltValue   = 0;
-        DigInFilter[elem].fState        = FALSE;        
+        DigInFilter[elem].fState        = FALSE;
     }
-        
+
     // add bike specific filter settings
     switch(gBikeType)
     {
@@ -569,7 +573,7 @@ void    DigInDrv_FilterInit(void)
             DigInFilter[eDF_GPI_1].bIncrValue = DigInDrv_FilterConvertTime( DIGFILT_FUEL_HIGH );
             DigInFilter[eDF_GPI_1].bDecrValue = DigInDrv_FilterConvertTime( DIGFILT_FUEL_LOW  );
 
-            ODS(DBG_DRV,DBG_INFO,"DigInDrv_FilterInit() set to eBIKE_F650!");            
+            ODS(DBG_DRV,DBG_INFO,"DigInDrv_FilterInit() set to eBIKE_F650!");
         } break;
 
         case eBIKE_AFRICATWIN:
@@ -582,11 +586,11 @@ void    DigInDrv_FilterInit(void)
             DigInFilter[eDF_GPI_1].bIncrValue = DigInDrv_FilterConvertTime( DIGFILT_FUEL_HIGH );
             DigInFilter[eDF_GPI_1].bDecrValue = DigInDrv_FilterConvertTime( DIGFILT_FUEL_LOW  );
 
-            ODS(DBG_DRV,DBG_INFO,"DigInDrv_FilterInit() set to eBIKE_AFRICATWIN!");            
+            ODS(DBG_DRV,DBG_INFO,"DigInDrv_FilterInit() set to eBIKE_AFRICATWIN!");
         } break;
-        
-        default: 
-            ODS(DBG_DRV,DBG_INFO,"DigInDrv_FilterInit() set to default settings!");            
+
+        default:
+            ODS(DBG_DRV,DBG_INFO,"DigInDrv_FilterInit() set to default settings!");
             break;
     }
 }
@@ -595,25 +599,25 @@ void    DigInDrv_FilterInit(void)
 /***********************************************************************
  *  FUNCTION:       DigInDrv_FilterConvertTime
  *  DESCRIPTION:    converts filter time into incr/decr value for filter
- *  PARAMETER:      wFilterTime     in ms 
+ *  PARAMETER:      wFilterTime     in ms
  *  RETURN:         incr/decr       value to be used in filter
  *  COMMENT:        helper function
  *********************************************************************** */
 UINT8   DigInDrv_FilterConvertTime(UINT16 wFilterTime)
 {
     UINT16 rvalue;
-    
+
     // check limits
     wFilterTime = MIN(wFilterTime, DIGFILT_MAX);
     wFilterTime = MAX(wFilterTime, DIGFILT_MIN);
-    
+
     // calculate incr/der value
     rvalue = UINT8_MAX * MS_PER_TICK / wFilterTime;
-    
+
     // limit result to UINT8
     if ( rvalue > UINT8_MAX )
         rvalue = UINT8_MAX;    // indicates 'no filter', direct switch
-    if ( rvalue == 0 )        
+    if ( rvalue == 0 )
         rvalue = 1;            // indicates slowest possible filter
     return ((UINT8) rvalue);
 }
