@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.8  2009/06/24 21:12:27  tuberkel
+ * CompilerFix: correct use of #define COMPASS
+ *
  * Revision 2.7  2009/06/21 21:23:18  tuberkel
  * Changes by AN and SCHW:
  * - new Compass layout inside TripCounter Module
@@ -485,11 +488,13 @@ void SetDeviceShow(BOOL fShow)
         {   dwServKm = gNextServKm.km;                      // get km only
         }
 
+#ifdef COMPASS
         if (EditCompassCalibObj.State.bits.fEditActive == FALSE)
         {   tCompassHeadingInfo *ptHeadingInfo;
             ptHeadingInfo = CompassGetHeadingInfo();
             bSavedCmpCalState  = ptHeadingInfo->ucCalState;      // get current driver state
         }
+#endif //COMPASS
 
         if (EditTripCntFlObj.State.bits.fEditActive == FALSE)
         {   bTripCntFl = gTripCntFlags.byte;                    // save complete byte instead of bits
@@ -908,6 +913,7 @@ void SetDeviceCheckChanges( void )
     {    gNextServKm.km = dwServKm;                       // give back km into dkm structure
     }
 
+#ifdef COMPASS
     // CompassCalib State in edit mode? -----------------
     if (EditCompassCalibObj.State.bits.fEditActive == TRUE )    // edit mode active?
     {
@@ -952,6 +958,7 @@ void SetDeviceCheckChanges( void )
         bSavedCmpCalState   = 0;                        // reset to default state
         bCurrentCmpCalState = 0;
     }
+#endif // COMPASS
 
     // TripCntFlag was changed? -----------------
     if( gTripCntFlags.byte != bTripCntFl )              // compare complete byte instead of bits
