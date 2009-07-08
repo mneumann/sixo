@@ -69,6 +69,12 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.6  2009/07/08 21:41:17  tuberkel
+ * All compiler defines reviewed:
+ * - set to unique usage: set define to 0 or 1
+ * - default values set, if not used
+ * - see 'Project Editor' for details
+ *
  * Revision 2.5  2009/06/21 17:51:47  tuberkel
  * Changes done by AN:
  * Compass Version uses add. 'C' indicator
@@ -194,10 +200,12 @@ void IntroScreenShow(BOOL fShow)
     if (fShow == TRUE)
     {
         /* Update values */
-        #ifdef BIKE_MOTOBAU
-        SixoLogoBmpObj.Data.fpucBitmap = (unsigned char far *)fpBikeLogos[eLogo_Motobau];   // fixed to MOTOBAU logo
+        #if(BIKE_MOTOBAU==1)
+            // always use the Motobau logo for this version
+            SixoLogoBmpObj.Data.fpucBitmap = (unsigned char far *)fpBikeLogos[eLogo_Motobau];   // fixed to MOTOBAU logo
         #else // BIKE_MOTOBAU
-        SixoLogoBmpObj.Data.fpucBitmap = (unsigned char far *)fpBikeLogos[gLogoSelection];
+            // use the logo selected by user
+            SixoLogoBmpObj.Data.fpucBitmap = (unsigned char far *)fpBikeLogos[gLogoSelection];
         #endif // BIKE_MOTOBAU
 
         /* NOTE:    Lower screen part is reserved for software + bike
@@ -209,7 +217,7 @@ void IntroScreenShow(BOOL fShow)
         szSWVersion[0] = 0x0;
         sprintf( szSWVersion, "V%u.%u.%u", gSWID.Fields.apl, gSWID.Fields.swv, gSWID.Fields.bld);
 
-        
+
         /* insert language */
         strcat ( szSWVersion, "-");
         strcat ( szSWVersion, RESTXT_LANG );
@@ -222,35 +230,35 @@ void IntroScreenShow(BOOL fShow)
             case eBIKE_AFRICATWINRD07: strcat ( szSWVersion, RESTXT_BIKESTRING_ATRD07); break;
             case eBIKE_R100GS:         strcat ( szSWVersion, RESTXT_BIKESTRING_R100GS); break;
             case eBIKE_R1100GS:        strcat ( szSWVersion, RESTXT_BIKESTRING_R1100GS);break;
-            case eBIKE_F650:           strcat ( szSWVersion, RESTXT_BIKESTRING_F650);   break;            
+            case eBIKE_F650:           strcat ( szSWVersion, RESTXT_BIKESTRING_F650);   break;
             case eBIKE_BAGHIRA:        strcat ( szSWVersion, RESTXT_BIKESTRING_BAGHIRA);break;
             case eBIKE_HUSQV:          strcat ( szSWVersion, RESTXT_BIKESTRING_HUSQV);  break;
             case eBIKE_HUSQVRS:        strcat ( szSWVersion, RESTXT_BIKESTRING_HUSQVRS);break;
             case eBIKE_KTM:            strcat ( szSWVersion, RESTXT_BIKESTRING_KTM);    break;
             default:                   strcat ( szSWVersion, RESTXT_BIKESTRING_DEFAULT);break;
         }
-        
+
         /* add MOTOBAU infos */
-        #ifdef BIKE_MOTOBAU
-        strcat ( szSWVersion, " ");
-        strcat ( szSWVersion, RESTXT_BIKESTRING_MOTOBAU);
+        #if(BIKE_MOTOBAU==1)
+            strcat ( szSWVersion, " ");
+            strcat ( szSWVersion, RESTXT_BIKESTRING_MOTOBAU);
         #endif // BIKE_MOTOBAU
-        
-        /* add formated debug infos */
+
+        /* add formated debug infos for special versions */
         strcat ( szSWVersion, " ");
-        #ifdef DEBUG
+        #if(DEBUG==1)
             strcat ( szSWVersion, RESTXT_SWVER_DEBUG);
         #endif
-        #ifdef MINIEMU
+        #if(MINIEMU==1)
             strcat ( szSWVersion, RESTXT_SWVER_MINIEMU);
         #endif
-        #ifdef VEHICSIM
+        #if(VEHICSIM==1)
             strcat ( szSWVersion, RESTXT_SWVER_VEHICSIM);
         #endif
-        #ifdef HARDCOPY
+        #if(HARDCOPY==1)
             strcat ( szSWVersion, RESTXT_SWVER_HARDCOPY);
         #endif
-        #ifdef COMPASS
+        #if(COMPASS==1)
             strcat ( szSWVersion, RESTXT_SWVER_COMPASS);
         #endif
 

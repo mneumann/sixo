@@ -65,7 +65,7 @@
 ERRCODE DigOutInit(void);
 
 
-#ifdef TOGGLE_PADS
+#if(TOGGLE_PADS==1)
 /* makros for port3_2/3/4 for ossi checks */
 /* port pin will change state for everey call */
     #define TOGGLE_PAD9         (p3_2 = p3_2 ? 0 : 1)

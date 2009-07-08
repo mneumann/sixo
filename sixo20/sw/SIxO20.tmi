@@ -24,33 +24,33 @@ Mail2=if 1, activates DebugOut with printf() on Uart1 or Uart0 (see MINIEMU)
 TEL2=activates several modules debug code too
 ETC2=
 Name3=C-FLAG: TOGGLE_PADS
-Section3=- / def
-Mail3=if defined, enables usage of macros like TOGGLE_PAD27
+Section3== 0 / 1 (def:0)
+Mail3=if 1, enables usage of macros like TOGGLE_PAD27
 TEL3=this is f.e. for debug purpose with Oszilograph
 ETC3=
 Name4=C-FLAG: DBGMSGQ
-Section4=- / def
-Mail4=if defined, enables additional message queue ODS outputs
+Section4== 0 / 1 (def:0)
+Mail4=if 1, enables additional message queue debug outputs
 TEL4=only to be used with DEBUG defined
 ETC4=
 Name5=C-FLAG: VEHICSIM
-Section5=- / def
-Mail5=if defined, enable RPM & WHEEL ISR calls form main loop
+Section5== 0 / 1 (def:0)
+Mail5=if 1, enables RPM & WHEEL ISR calls form main loop
 TEL5=Only active if WHEELSIZE eq. exact 2000 mm!
 ETC5=ISR calls are not accurate, values might toggle a bit :-)
 Name6=C-FLAG: LANG
-Section6=0..n / def = 0
+Section6== 0..n (def:0)
 Mail6=0=DE, 1=EN-UK, 2=NL
 TEL6=selected language
 ETC6=
 Name7=C-FLAG: HARDCOPY
-Section7=- / def
-Mail7=if defined, setting input HIGHBEAM to ON starts a ScreenDumps as BMP via Uart1
+Section7== 0 / 1 (def:0)
+Mail7=if 1, switching input HIGHBEAM to ON starts a ScreenDumps as BMP via Uart1
 TEL7=only to be used with DEBUG defined
 ETC7=to be used for documentation only
 Name8=A+C-FLAG: COMPASS
 Section8== 0 / 1 NOTE: Set both A-FLAGS & C-FLAGS !!!
-Mail8=if 1, enables use of compass attached to UART0
+Mail8=if 1, enables use of COMPASS attached to Uart0
 TEL8=only two of COMPASS, DEBUG, MINIEMU can be defined
 ETC8=
 Name9=C-FLAG: SENSOR_TOIL

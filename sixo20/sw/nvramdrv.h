@@ -84,7 +84,7 @@ ERRCODE iicNvramWrite( UINT8 NvramTrgtAddr, UINT8 nBytes, UINT8* pSrcAddr );
 ERRCODE iicNvramRead( UINT8 NvramSrcAddr, UINT8 nBytes, UINT8* pTrgtAddr );
 
 //test functions only present in the debug version
-#ifdef DEBUG
+#if(DEBUG==1)
    ERRCODE iicTestNvram( void );
 #endif
 

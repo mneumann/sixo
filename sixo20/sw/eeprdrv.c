@@ -116,7 +116,7 @@ UINT16 wPageSize;
 UINT16 wPageMask;
 extern  UINT16  wMilliSecCounter; //system timer of the module timer.c
 
-#ifdef DEBUG
+#if(DEBUG==1)
    //for test eeprom emulated by iic_{snd|rcv}_test
    UINT16 wTestSize;
    UINT8  test_eeprom[4096];
@@ -375,7 +375,7 @@ ERRCODE iicEepromRead(UINT16 EepromSrcAddr, UINT16 nBytes, UINT8 * pTrgtAddr)
 //=
 //======================================================================
 
-#ifdef DEBUG
+#if(DEBUG==1)
 /***********************************************************************
  *  FUNCTION:       iicTestEeprom
  *  DESCRIPTION:    selfchecking test routines for iicEeprom{Write|Read}

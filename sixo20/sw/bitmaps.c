@@ -82,6 +82,12 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.2  2009/07/08 21:41:17  tuberkel
+ * All compiler defines reviewed:
+ * - set to unique usage: set define to 0 or 1
+ * - default values set, if not used
+ * - see 'Project Editor' for details
+ *
  * Revision 2.1  2009/06/21 17:52:43  tuberkel
  * Changes done by AN:
  * Two special compass bitmaps
@@ -1628,7 +1634,7 @@ const unsigned char rgFuelSymbol8x8[] = {
   0x00, 0xff, 0xf9, 0xf9, 0xf9, 0xff, 0x9c, 0x78,
   };
 
-#ifdef COMPASS
+#if (COMPASS==1)
 /* compass degree bars */
 const unsigned char rgCompassTop144x8[] = {
   0x1f, 0x01, 0x01, 0x01, 0xff, 0x01, 0x01, 0x01,

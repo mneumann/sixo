@@ -88,11 +88,12 @@
 #include "compassdrv.h"
 
 
-#ifdef COMPASS
+/* main switch for this module */
+#if (COMPASS==1)
 
 
-#if (defined DEBUG) && (defined MINIEMU)
-#error "ERROR: Use only two of DEBUG, MINIEMU and COMPASS!"
+#if (DEBUG==1) && (MINIEMU==1)
+    #error "ERROR: Use only two of DEBUG, MINIEMU and COMPASS!"
 #endif
 
 
@@ -102,8 +103,6 @@
 #include "m16c.h"
 
 
-//define our own debug switch since DEBUG occupies a UART
-//#define COMPASS_DEBUG
 
 //buffer size must be a multiple of 3, the largest 'D' packet is 93 bytes big
 #define COMPASS_RXD_BUFFER_LEN (3*31)

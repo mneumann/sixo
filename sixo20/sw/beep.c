@@ -68,6 +68,12 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.1  2009/07/08 21:41:17  tuberkel
+ * All compiler defines reviewed:
+ * - set to unique usage: set define to 0 or 1
+ * - default values set, if not used
+ * - see 'Project Editor' for details
+ *
  * Revision 2.0  2006/06/26 23:25:50  tuberkel
  * no message
  *
@@ -308,7 +314,7 @@ void BeepClick(void)
 }
 
 
-#ifdef BEEPDEBUG
+
 /***********************************************************************
  *  FUNCTION:       TestBeepSendMessage
  *  DESCRIPTION:    just tests timer and timer messages
@@ -316,6 +322,7 @@ void BeepClick(void)
  *  RETURN:         -
  *  COMMENT:        -
  *********************************************************************** */
+#if(TESTBEEP==1)
 void TestBeepSendMessage(void)
 {
     MESSAGE msg;
@@ -344,8 +351,7 @@ void TestBeepSendMessage(void)
     BEEP_MSG_TICKS(msg, BEEP_OFF, 0, 1);
     SetTimerMsg(msg, SEC2TICKS(15));
 }
+#endif // TESTBEEP
 
 
 
-
-#endif // BEEPDEBUG

@@ -70,6 +70,12 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.7  2009/07/08 21:41:17  tuberkel
+ * All compiler defines reviewed:
+ * - set to unique usage: set define to 0 or 1
+ * - default values set, if not used
+ * - see 'Project Editor' for details
+ *
  * Revision 2.6  2007/03/30 10:03:49  tuberkel
  * just changed constant name VEHSTATE_TXT_LEN
  *
@@ -183,7 +189,7 @@ static INT8                 CurStateTextIdx = 0;                            /* i
 char szVehicState[VEHSTATE_TXT_LEN];                                 /* THE vehicle state string (directly used by 'MainDevice' and 'MonitorDevice') */
 
 
-#ifdef DEBUG
+#if(DEBUG==1)
 // just for debug purpose
 static const STRING szErrorLevel[] = {  "OK", "INFO", "WARNING", "ERROR" };
 #endif
@@ -216,8 +222,8 @@ ERRCODE SurvInit(void)
     szVehicStateDescs[VEHICLE_STATE_OILSWDEF]       = (STRING) RESTXT_STATE_OILSWDEF;
     szVehicStateDescs[VEHICLE_STATE_FUEL8L]         = (STRING) RESTXT_STATE_FUEL8L;
     szVehicStateDescs[VEHICLE_STATE_FUEL4L]         = (STRING) RESTXT_STATE_FUEL4L;
-    szVehicStateDescs[VEHICLE_STATE_ABS]            = (STRING) RESTXT_STATE_ABS;    
-    szVehicStateDescs[VEHICLE_STATE_WATTEMPSW]      = (STRING) RESTXT_STATE_WATERTEMP;    
+    szVehicStateDescs[VEHICLE_STATE_ABS]            = (STRING) RESTXT_STATE_ABS;
+    szVehicStateDescs[VEHICLE_STATE_WATTEMPSW]      = (STRING) RESTXT_STATE_WATERTEMP;
     szVehicStateDescs[VEHICLE_STATE_GLACED]         = (STRING) RESTXT_STATE_GLACED;
     szVehicStateDescs[VEHICLE_STATE_SERVICEKM]      = (STRING) RESTXT_STATE_SERVICEKM;
 
@@ -404,10 +410,10 @@ void SurvCheckRPMFlash ( void )
         MsgQPostMsg(msg, MSGQ_PRIO_LOW);                // send message
 
         // special MOTOBAU behaviour
-        #ifdef BIKE_MOTOBAU        
+        #if(BIKE_MOTOBAU==1)
         // kai want's to enable an additional external lamp/indicator
         GPO0 = 1;                       // enable output GPO_0 too
-        #endif // BIKE_MOTOBAU        
+        #endif // BIKE_MOTOBAU
     }
 
     // check: Deactivate RPM Flash?
@@ -424,10 +430,10 @@ void SurvCheckRPMFlash ( void )
         MsgQPostMsg(msg, MSGQ_PRIO_LOW);                // send message
 
         // special MOTOBAU behaviour
-        #ifdef BIKE_MOTOBAU        
+        #if(BIKE_MOTOBAU==1)
         // kai want's to enable an additional external lamp/indicator
         GPO0 = 0;                       // disable output GPO_0 too
-        #endif // BIKE_MOTOBAU        
+        #endif // BIKE_MOTOBAU
     }
 }
 
@@ -862,10 +868,10 @@ void SurvSetVehicleState(VEHICLE_STATE_PARM parameter, VEHICLE_STATE_LEVEL level
     MsgQPostMsg(msg, MSGQ_PRIO_LOW);
 
     // special MOTOBAU behaviour
-    #ifdef BIKE_MOTOBAU        
+    #if(BIKE_MOTOBAU==1)
     // kai wants to enable an additional external lamp/indicator
     GPO1 = error | warning;            // enable output GPO_1 too
-    #endif // BIKE_MOTOBAU        
+    #endif // BIKE_MOTOBAU
 }
 
 

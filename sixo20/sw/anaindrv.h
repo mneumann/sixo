@@ -96,7 +96,7 @@
 ERRCODE AnaInDrvInit( void );
 void AnaInDrvTriggerADConverter( void );
 
-#ifdef DEBUG
+#if(DEBUG==1)
 UINT8 AnaInDrvTestGenerateADValues( UINT8 ucADValue );
 #endif //DEBUG
 

@@ -139,7 +139,7 @@ ERRCODE LEDMsgEntry(MESSAGE msg)
         default: RValue = ERR_MSG_NOT_PROCESSED;
     }
 
-#ifdef DEBUG
+#if(DEBUG==1)
     /* DebugPurpose: */
     // TestCheckKeyStateMsgs(msg);
 #endif
@@ -279,7 +279,7 @@ void LEDEsc(void)
 
 
 
-#ifdef LEDDEBUG
+#if(TESTLED==1)
 /***********************************************************************
  *  FUNCTION:       TestLEDSendMessage
  *  DESCRIPTION:    just tests timer and timer messages
@@ -386,4 +386,4 @@ void TestCheckKeyStateMsgs(MESSAGE msg)
     }
 }
 
-#endif // LEDDEBUG
+#endif // TESTLED

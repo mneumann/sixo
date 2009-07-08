@@ -1,6 +1,6 @@
 /*******************************************************************************
 *
-*                                         
+*
 *
 * Copyright 1995-1998 MITSUBISHI ELECTRIC CORPORATION
 * AND MITSUBISHI ELECTRIC SEMICONDUCTOR SYSTEMS CORPORATION
@@ -32,11 +32,11 @@
 
 /* KD30 MiniEmulator uses UART1 per Default,
    so we use UART0 for debugging while debugging!
-   
+
    The release version does not use KD30, so UART1
-   is free for flash programming and debug outs! 
+   is free for flash programming and debug outs!
 */
-#ifdef MINIEMU
+#if(MINIEMU==1)
 #define UART0
 #endif
 
@@ -48,10 +48,10 @@
 /* ================================================= */
 #ifdef MELPS7700
 
-/* 
-This code is cleared by krizsan, 13.08.2001 
+/*
+This code is cleared by krizsan, 13.08.2001
 because we don't have a MELPS7700.
-To get it back, use the original file 
+To get it back, use the original file
 */
 
 #endif  /* MELPS7700 */
@@ -114,8 +114,8 @@ char _rbuf1;
     FSYS     = hardware system clock in Hz (f.e. 10 MHz or 16 MHz)
     UxPRESCL = uart X precaler frequency (1,8,32 equals f1/f8/f32 as uart subclock precscaler)
     UxCLK    = uart X target bit rate in bps (f.e. 2400 or 9600 bps)
-    UxBRG    = uart X reload value for bit rate generator - to be calculated 
-    
+    UxBRG    = uart X reload value for bit rate generator - to be calculated
+
                                 FSYS
                 UxBRG = ---------------------- - 1
                          UxCLK * UxPRESC * 16
@@ -128,7 +128,7 @@ char _rbuf1;
    calculate uartX bit rate generator reload value  */
 
 /* hardware settings */
-#define FQUARTZ     3686400L           // used Quartz                       
+#define FQUARTZ     3686400L           // used Quartz
 #define PLL_FACT    4L                 // used PLL factor
 #define FSYS        (PLL_FACT*FQUARTZ) // = 14745600L Hz (FSYS x PLL-factor)
 
@@ -144,7 +144,7 @@ char _rbuf1;
     /* (disable RTS/CTS for SIxO 2.0)  */
     #define BRG1152     BRG(115200,1)
     #define CNTR1152    0x10   /* f1   */
-    #define BRG576      BRG(57600,1)    
+    #define BRG576      BRG(57600,1)
     #define CNTR576     0x10   /* f1   */
     #define BRG192      BRG(19200,1)
     #define CNTR192     0x10   /* f1   */
@@ -178,7 +178,7 @@ char _rbuf1;
 
 /*******************************************************************************
 *
-* init_dev 
+* init_dev
 *
 * Copyright 1988-1998 MITSUBISHI ELECTRIC CORPORATION
 * AND MITSUBISHI ELECTRIC SEMICONDUCTOR SYSTEMS CORPORATION
@@ -186,20 +186,20 @@ char _rbuf1;
 *
 *         : Version 2.00.00
 *       Version 2.01.00
-*                       
 *
-*           init_dev --                     
+*
+*           init_dev --
 *
 *           status = init_dev( stream, mode )
 *
 *           #include <stdio.h>
-*           FILE *stream                            
-*           int  mode;                
-*           int  status;                      
+*           FILE *stream
+*           int  mode;
+*           int  status;
 *
-*                                                                               
 *
-*                                                 
+*
+*
 *
 *******************************************************************************/
 
@@ -214,7 +214,7 @@ int init_dev( FILE _far *stream , int  mode )
 
 /*******************************************************************************
 *
-* speed 
+* speed
 *
 * Copyright 1988-1998 MITSUBISHI ELECTRIC CORPORATION
 * AND MITSUBISHI ELECTRIC SEMICONDUCTOR SYSTEMS CORPORATION
@@ -222,25 +222,25 @@ int init_dev( FILE _far *stream , int  mode )
 *
 *         : Version 2.00.00
 *       Version 2.01.00
-*                       
-*       Version 3.00.00
-*               ,                
 *
-*           speed --                   
+*       Version 3.00.00
+*               ,
+*
+*           speed --
 *
 *           status = speed( rate, bit, parity, stop );
 *
 *           #include <stdio.h>
-*           int  rate;                    
-*           int  bit;                   
-*           int  parity;                
-*           int  stop;                        
-*           int  status;                      
+*           int  rate;
+*           int  bit;
+*           int  parity;
+*           int  stop;
+*           int  status;
 *
-*                                                                               
 *
-*                                                                           
-*                       
+*
+*
+*
 *
 *******************************************************************************/
 
@@ -319,7 +319,7 @@ int speed( int rate, int bit, int parity, int stop )
 
 /*******************************************************************************
 *
-* ini_prn 
+* ini_prn
 *
 * Copyright 1988-1998 MITSUBISHI ELECTRIC CORPORATION
 * AND MITSUBISHI ELECTRIC SEMICONDUCTOR SYSTEMS CORPORATION
@@ -327,18 +327,18 @@ int speed( int rate, int bit, int parity, int stop )
 *
 *         : Version 2.00.00
 *       Version 2.01.00
-*                       
 *
-*           ini_prn --                                 
+*
+*           ini_prn --
 *
 *           status = init_prn( void );
 *
-*           int  status;                      
+*           int  status;
 *
-*                                                                         
-*                         
 *
-*                                                                       
+*
+*
+*
 *
 *******************************************************************************/
 
@@ -347,14 +347,14 @@ int init_prn()
 /*
     int i;
 
-    _porta = STROBE | RESET;            
-    _pa_vct = 0x8c;                     
-    _portb = NULL;                      
-    _pb_vct = 0xff;                     
-    _porta = STROBE;                    
-    for ( i = 0 ; i < 0x50 ; i++ ) ;    
-    _porta = RESET | STROBE;            
-    for ( i = 0 ; i < 0x50 ; i++ ) ;    
+    _porta = STROBE | RESET;
+    _pa_vct = 0x8c;
+    _portb = NULL;
+    _pb_vct = 0xff;
+    _porta = STROBE;
+    for ( i = 0 ; i < 0x50 ; i++ ) ;
+    _porta = RESET | STROBE;
+    for ( i = 0 ; i < 0x50 ; i++ ) ;
     if ( _porta & FAULT )
         return EOF;
     else
@@ -365,7 +365,7 @@ int init_prn()
 
 /*******************************************************************************
 *
-* _sget 
+* _sget
 *
 * Copyright 1988-1998 MITSUBISHI ELECTRIC CORPORATION
 * AND MITSUBISHI ELECTRIC SEMICONDUCTOR SYSTEMS CORPORATION
@@ -373,18 +373,18 @@ int init_prn()
 *
 *         : Version 2.00.00
 *       Version 2.01.00
-*                       
 *
-*           _sget --                         
+*
+*           _sget --
 *
 *           data = _sget( void );
 *
-*           int  data;              
+*           int  data;
 *
-*                                                                           
-*                 
 *
-*                                       
+*
+*
+*
 *
 *******************************************************************************/
 
@@ -404,7 +404,7 @@ int _sget( )                            /*                            */
 
 /*******************************************************************************
 *
-* _sput 
+* _sput
 *
 * Copyright 1988-1998 MITSUBISHI ELECTRIC CORPORATION
 * AND MITSUBISHI ELECTRIC SEMICONDUCTOR SYSTEMS CORPORATION
@@ -412,18 +412,18 @@ int _sget( )                            /*                            */
 *
 *         : Version 2.00.00
 *       Version 2.01.00
-*                       
 *
-*           _sput --                         
+*
+*           _sput --
 *
 *           status = _sput( c );
 *
-*           int  c;                     
-*           int  status;                  
+*           int  c;
+*           int  status;
 *
-*                                                                       
 *
-*                                       
+*
+*
 *
 *******************************************************************************/
 
@@ -437,7 +437,7 @@ int _sput( int c )                          /*                            */
     while ( !( _cntr1_h & TI ) ) ;      /* wait, until no data in transmit buffer  */
 #endif
     _sbuf1 = c;                         /* transmit buffer to given char */
-    
+
     if ( _cntr1_h & 0xf0 )
         return EOF;                     /*              */
     return  TRUE;
@@ -446,7 +446,7 @@ int _sput( int c )                          /*                            */
 
 /*******************************************************************************
 *
-* _pput 
+* _pput
 *
 * Copyright 1988-1998 MITSUBISHI ELECTRIC CORPORATION
 * AND MITSUBISHI ELECTRIC SEMICONDUCTOR SYSTEMS CORPORATION
@@ -454,18 +454,18 @@ int _sput( int c )                          /*                            */
 *
 *         : Version 2.00.00
 *       Version 2.01.00
-*                       
 *
-*           _pput --                                       
+*
+*           _pput --
 *
 *           status = _pput( c );
 *
-*           int  c;                     
-*           int  status;                  
+*           int  c;
+*           int  status;
 *
-*                                                                       
 *
-*                                                     
+*
+*
 *
 *******************************************************************************/
 
@@ -476,17 +476,17 @@ int _pput( int c )                          /*                                  
 
     if ( _porta & FAULT )
         return EOF;
-    while ( !( _porta & BUSY ) ) ;      
+    while ( !( _porta & BUSY ) ) ;
     _portb = c;
-    for ( i = 0 ; i < 10 ; i++ ) ;      
-    _porta = RESET;                     
-    for ( i = 0 ; i < 10 ; i++ ) ;      
-    _porta = RESET | STROBE;            
-    while ( _porta & ACK ) ;            
+    for ( i = 0 ; i < 10 ; i++ ) ;
+    _porta = RESET;
+    for ( i = 0 ; i < 10 ; i++ ) ;
+    _porta = RESET | STROBE;
+    while ( _porta & ACK ) ;
     if ( _porta & FAULT )
         return EOF;
     else
-*/    
+*/
         return TRUE;
 }
 
@@ -494,7 +494,7 @@ int _pput( int c )                          /*                                  
 
 /*******************************************************************************
 *
-*                                         
+*
 *
 * Copyright 1995-1998 MITSUBISHI ELECTRIC CORPORATION
 * AND MITSUBISHI ELECTRIC SEMICONDUCTOR SYSTEMS CORPORATION

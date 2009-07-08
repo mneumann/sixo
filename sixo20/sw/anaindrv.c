@@ -146,7 +146,7 @@ ERRCODE AnaInDrvInit( void )
 void AnaInDrvTriggerADConverter( void )
 {
    UINT8 ucADValue;
-   
+
    //--------------------prepare the measurement--------------------
    if( gbPrepare ){
       gbPrepare = FALSE;
@@ -200,7 +200,7 @@ void AnaInDrvTriggerADConverter( void )
 //=
 //======================================================================
 
-#ifdef DEBUG
+#if(DEBUG==1)
 
 /***********************************************************************
  *  FUNCTION:       AnaInDrvTestGenerateADValues
@@ -221,7 +221,7 @@ UINT8 AnaInDrvTestGenerateADValues( UINT8 ucADValue )
    //nearly linear.
    {
       static UINT8 ucGenValue = 50;
-   
+
       if( gucChannel == 5 ){ //only process TAIR, bypass all other channels
          ucADValue = ucGenValue;
          if( ucGenValue < 206 ) ucGenValue++;

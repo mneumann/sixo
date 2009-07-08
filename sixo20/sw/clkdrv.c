@@ -23,19 +23,19 @@
  *                  cy= 3840      seconds per calibration cycle (64 minutes)
  *                  k = {256|512} one calibration step {subtracts|adds} k
  *                                oscillator cycles within cy
- *                  tdur          duration of the measurement 
+ *                  tdur          duration of the measurement
  *                  tdev          deviation between clock and reference after
  *                                tdur (positive: clock runs too fast -> sub
  *                                osc cycles; negative: clock runs too slow
  *                                -> add osc cycles)
  *
- *                       n cy  tdev 
+ *                       n cy  tdev
  *                  c = ------------
  *                         k tdur
  *
  *
  *  --------------------------------------------------------------------
- * 
+ *
  *  Compiler:       Renesas NC30WA V.5.00 Release 2
  *  Options:        -
  *
@@ -44,33 +44,33 @@
  *  Licence details
  *
  *  This software is copyright © 2001-2004 by N&K Development, Germany
- *  
- *  You can redistribute it and/or modify it under the terms of the 
- *  GNU General Public License version 2 as published by the 
- *  Free Software Foundation. 
- *  
- *  This program is distributed in the hope that it will be useful, 
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of 
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+ *
+ *  You can redistribute it and/or modify it under the terms of the
+ *  GNU General Public License version 2 as published by the
+ *  Free Software Foundation.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  *  GNU General Public License for more details.
- *  
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, 
+ *  Foundation, Inc., 59 Temple Place - Suite 330, Boston,
  *  MA  02111-1307, USA.
  *
  *  To purchase support or enhancements for this software, contact:
- *  
- *      N&K Development                     N&K Development         
- *      Arnold Neugebauer                   Ralf Krizsan            
- *      Stöckener Str. 115                  Knickstr. 10            
- *      30419 Hannover                      30890 Barsinghausen     
+ *
+ *      N&K Development                     N&K Development
+ *      Arnold Neugebauer                   Ralf Krizsan
+ *      Stöckener Str. 115                  Knickstr. 10
+ *      30419 Hannover                      30890 Barsinghausen
  *      arnold.neugebauer@web.de            ralf.krizsan@web.de
- *      
+ *
  *      or try http://www.sixo.de
  *
  *  --------------------------------------------------------------------
- * 
+ *
  *  Disclaimer of warrenty
  *
  *  The software is provided as is without warranties of
@@ -151,7 +151,7 @@ ERRCODE iicSetClockTime( CLOCKTIME *pClktme )
    //prepare buffers for transmission over iic bus
    iic_adr_buffer[0] = IIC_CLK_DEV_ADDR;
    iic_adr_buffer[1] = IIC_CLK_SECS_SUB_ADDR;
- 
+
    iic_dat_buffer[0] = pClktme->seconds;
    iic_dat_buffer[1] = pClktme->minutes;
    iic_dat_buffer[2] = pClktme->hours;
@@ -197,7 +197,7 @@ ERRCODE iicGetClockTime( CLOCKTIME *pClktme )
    //prepare buffers for transmission over iic bus
    iic_adr_buffer[0] = IIC_CLK_DEV_ADDR;
    iic_adr_buffer[1] = IIC_CLK_SECS_SUB_ADDR;
- 
+
    //go and get time over iic bus
    if( !iic_rcv( iic_adr_buffer,
                  2,              // number of addresses: dev addr and sub addr
@@ -248,7 +248,7 @@ ERRCODE iicSetClockDate( CLOCKDATE *pClkdte )
    //transmit date over iic bus
    iic_adr_buffer[0] = IIC_CLK_DEV_ADDR;
    iic_adr_buffer[1] = IIC_CLK_DAY_SUB_ADDR;
- 
+
    iic_dat_buffer[0] = pClkdte->day;
    iic_dat_buffer[1] = pClkdte->date;
    iic_dat_buffer[2] = pClkdte->month;
@@ -290,7 +290,7 @@ ERRCODE iicGetClockDate( CLOCKDATE *pClkdte )
    //go and get date over iic bus
    iic_adr_buffer[0] = IIC_CLK_DEV_ADDR;
    iic_adr_buffer[1] = IIC_CLK_DAY_SUB_ADDR;
- 
+
    if( !iic_rcv( iic_adr_buffer,
                  2,              // number of addresses: dev addr and sub addr
                  iic_dat_buffer,
@@ -352,11 +352,11 @@ ERRCODE iicSetClockCalib( INT32 dwDuration, INT32 dwDeviation )
       iic_dat_buffer[0] = SPECIAL_S;
       //remove sign from dwDeviation (absolute value)
       //(can't convert INT32_MIN, accept little error of one second if
-      //this excessive value is given,should never happen anyway) 
+      //this excessive value is given,should never happen anyway)
       dwDeviation = ~dwDeviation;
       if( dwDeviation < INT32_MAX ) dwDeviation += 1;
    }
-      
+
    //check parameters
    if(   ( dwDuration <= 0 )
       || ( dwDeviation > dwDuration )
@@ -402,7 +402,7 @@ ERRCODE iicSetClockCalib( INT32 dwDuration, INT32 dwDeviation )
 
    //set special function bits, disable frequency test, output low
    iic_dat_buffer[0] &= ~(SPECIAL_OUT + SPECIAL_FT);
-  
+
    if( !iic_snd( iic_adr_buffer,
                  2,              // number of addresses: dev addr and sub addr
                  iic_dat_buffer,
@@ -518,7 +518,7 @@ ERRCODE iicClockCalibDirect( BOOL bWrite, UINT8* chCalib )
 //=
 //======================================================================
 
-#ifdef DEBUG
+
 /***********************************************************************
  *  FUNCTION:       iicTestClockTime
  *  DESCRIPTION:    selfchecking test routines for iic{S|G}etClockTime
@@ -529,6 +529,7 @@ ERRCODE iicClockCalibDirect( BOOL bWrite, UINT8* chCalib )
  *                  ERR_CLOCK_NOREAD   read from clock failed, no acknowledge
  *  COMMENT:
  *********************************************************************** */
+#if(DEBUG==1)
 ERRCODE iicTestClockTime( void )
 {
    UINT8 iic_adr_buffer[2];
@@ -868,7 +869,7 @@ ERRCODE iicTestClockCalib( void )
    if(  ( uchCalib != +9 )
       ||( dwSecPerMonth != 96 ) //96.5 truncated
    ) return ERR_CLOCK_NOREAD;
-  
+
    //-------------------------------------------------------------------
 
    //set calib value via iicSetClockCalib
@@ -947,7 +948,7 @@ ERRCODE iicTestClockCalib( void )
    //-------------------------------------------------------------------
 
    //test excess, function should return error but set calib
-   dwDuration = 37033490; //~428 days, 
+   dwDuration = 37033490; //~428 days,
    dwDeviation = -4370;   //~73 min >MAX_DEVIATION
    ERR = iicSetClockCalib( dwDuration, dwDeviation );
    if( ERR != ERR_CLOCK_EXCESS ) return ERR_PARAM_ERR;

@@ -74,6 +74,12 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.5  2009/07/08 21:41:17  tuberkel
+ * All compiler defines reviewed:
+ * - set to unique usage: set define to 0 or 1
+ * - default values set, if not used
+ * - see 'Project Editor' for details
+ *
  * Revision 2.4  2007/03/30 10:12:00  tuberkel
  * - Matthias Otto stuff:  language specific display content
  *
@@ -249,7 +255,7 @@ static UINT8  ADChannelInitBits;          //each bit=1 indicates an initialized 
 
 
 //private prototypes
-#ifdef DEBUG
+#if(DEBUG==1)
 BOOL AnaInCRCCheckTables( void );
 #endif
 
@@ -270,7 +276,7 @@ ERRCODE AnaInInit( void )
    ADChannelInitBits = 0;
    memset ( usADPhysValues, ANAIN_INVALID_U, sizeof(usADPhysValues));
 
-#ifdef DEBUG
+#if(DEBUG==1)
    //check compensation tables in debug mode only
    if( AnaInCRCCheckTables() == FALSE ){
       ODS( DBG_DRV, DBG_INFO, "AnaInInit() FAILED!" );
@@ -283,7 +289,7 @@ ERRCODE AnaInInit( void )
 }
 
 
-#ifdef DEBUG
+
 /***********************************************************************
  *  FUNCTION:       AnaInCRCCheckTables
  *  DESCRIPTION:    used to assure un-manipulated lookup tables
@@ -292,6 +298,7 @@ ERRCODE AnaInInit( void )
  *                  FALSE - compensation tables are faulty
  *  COMMENT:
  *********************************************************************** */
+#if(DEBUG==1)
 BOOL AnaInCRCCheckTables ( void )
 {
    UINT16 usIdx;
@@ -399,9 +406,9 @@ void AnaInRefreshValues( UINT8 ucADChannel, UINT8 ucADSample )
             usNewValue = ANAIN_LUMI_SCALE * (UINT16)ucADSample;  //range 0=bright...255=dark
             if( bADChannelInit )
             {
-               /* different filters for darker/brighter transition: 
+               /* different filters for darker/brighter transition:
                     - fast detection of darkness
-                    - slowly detection of brightness 
+                    - slowly detection of brightness
                   this helps quickly switching on backlight e.g. under bridges */
                if ( usNewValue > usADPhysValues[ucADChannel] )
                {
@@ -417,7 +424,7 @@ void AnaInRefreshValues( UINT8 ucADChannel, UINT8 ucADSample )
                    // (+4/8=0.5 for rounding error, equals behaviour for pos. and neg. slopes)
                    usADPhysValues[ucADChannel] = (7*usADPhysValues[ucADChannel] + 1*usNewValue + 4) >> 3;
                }
-            
+
             }
             else{
                //take new sample without filtering at very first time to initialise filter

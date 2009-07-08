@@ -1,6 +1,6 @@
 /*******************************************************************************
 *
-* init 
+* init
 *
 * Copyright 1995-1998 MITSUBISHI ELECTRIC CORPORATION
 * AND MITSUBISHI ELECTRIC SEMICONDUCTOR SYSTEMS CORPORATION
@@ -12,15 +12,15 @@
 *
 *         : Version 0.00.00
 *
-*           init --       
+*           init --
 *
 *           void init( void )
 *           #include <stdio.h>
 *
-*               
 *
-*           FILE                          UART                      
-*                           
+*
+*           FILE                          UART
+*
 *
 *******************************************************************************/
 
@@ -38,11 +38,11 @@
 
 /* KD30 MiniEmulator uses UART1 per Default,
    so we use UART0 for debugging while debugging!
-   
+
    The release version does not use KD30, so UART1
-   is free for flash programming and debug outs! 
+   is free for flash programming and debug outs!
 */
-#ifdef MINIEMU
+#if(MINIEMU==1)
 #define UART0
 #endif
 
@@ -85,7 +85,7 @@ void init( void )
     speed(_576, _B8, _PN, _S1);
 #else /* UART1 : default */
     /* these setting work well! */
-    /* speed(_96, _B8, _PN, _S2); */ 
+    /* speed(_96, _B8, _PN, _S2); */
     /* speed(_192, _B8, _PN, _S1); */
     speed(_576, _B8, _PN, _S1);
     /*speed(_1152, _B8, _PN, _S1); */ /* this is too fast for m16c */
@@ -96,7 +96,7 @@ void init( void )
 
 /*******************************************************************************
 *
-* init 
+* init
 *
 * Copyright 1995-1998 MITSUBISHI ELECTRIC CORPORATION
 * AND MITSUBISHI ELECTRIC SEMICONDUCTOR SYSTEMS CORPORATION

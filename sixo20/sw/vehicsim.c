@@ -69,6 +69,12 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.1  2009/07/08 21:41:17  tuberkel
+ * All compiler defines reviewed:
+ * - set to unique usage: set define to 0 or 1
+ * - default values set, if not used
+ * - see 'Project Editor' for details
+ *
  * Revision 2.0  2006/06/26 23:25:51  tuberkel
  * no message
  *
@@ -79,8 +85,8 @@
  ************************************************************************ */
 
 
-
-#ifdef VEHICSIM
+/* main switch for this module */
+#if(VEHICSIM==1)
 
 
 

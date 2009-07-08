@@ -104,9 +104,15 @@ ERRCODE LEDDrvSetLED(LEDDRV_LEDS bLEDIndex, BOOL fActivate);
 ERRCODE LEDDrvSetBright(unsigned char bBrightness);
 
 
-#ifdef LEDDEBUG
+/* optional LED test functions (default: off) */
+#ifndef TESTLED
+#define TESTLED 0       // 1 enables a LED test functions
+#endif
+
+
+#if(TESTLED==1)
 void LEDDrvTest(unsigned int loopdelay);
-#endif // LEDDEBUG
+#endif // TESTLED
 
 #endif /* _LEDDrvH */
 

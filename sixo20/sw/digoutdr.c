@@ -82,7 +82,7 @@
 ERRCODE DigOutInit(void)
 {
 
-#ifdef DEBUG
+#if(DEBUG==1)
     /* TEST: Port p3_2/3/4 for ossi checks */
     p3   = p3 & (~0x1c);   /* clear output of p3_2/3/4 */
     pd3  = p3 |   0x1c;    /* set p3_2/3/4 to output */

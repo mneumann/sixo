@@ -68,6 +68,12 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.9  2009/07/08 21:41:17  tuberkel
+ * All compiler defines reviewed:
+ * - set to unique usage: set define to 0 or 1
+ * - default values set, if not used
+ * - see 'Project Editor' for details
+ *
  * Revision 2.8  2009/06/24 21:12:27  tuberkel
  * CompilerFix: correct use of #define COMPASS
  *
@@ -438,12 +444,12 @@ ERRCODE SetDeviceInit(void)
                                  EditNumObj[i].bState);
 
         // special MOTOBAU behaviour post-init-manipulations
-        #ifdef BIKE_MOTOBAU
-        EditServKmObj.State.bits.fDisplayable = 0;                  // ServKm: will not be visible
+        #if(BIKE_MOTOBAU==1)
+            EditServKmObj.State.bits.fDisplayable = 0;                  // ServKm: will not be visible
         #else // BIKE_MOTOBAU
-        // special STANDARD behaviour post-init-manipulations
-        EditEngRunSrvObj.State.bits.fDisplayable = 0;               // EngRunServHours: will not be visible
-        EditEngRunAllObj.State.bits.fDisplayable = 0;               // EngRunAllHours: will not be visible
+            // special STANDARD behaviour post-init-manipulations
+            EditEngRunSrvObj.State.bits.fDisplayable = 0;               // EngRunServHours: will not be visible
+            EditEngRunAllObj.State.bits.fDisplayable = 0;               // EngRunAllHours: will not be visible
         #endif // BIKE_MOTOBAU
 
         // check init process
@@ -488,7 +494,7 @@ void SetDeviceShow(BOOL fShow)
         {   dwServKm = gNextServKm.km;                      // get km only
         }
 
-#ifdef COMPASS
+#if (COMPASS==1)
         if (EditCompassCalibObj.State.bits.fEditActive == FALSE)
         {   tCompassHeadingInfo *ptHeadingInfo;
             ptHeadingInfo = CompassGetHeadingInfo();
@@ -738,12 +744,12 @@ ERRCODE SetDeviceStateMachine(MESSAGE Msg)
         SetDevice.wDevState--;                          // previous selection state
         if (SetDevice.wDevState == eSetFirst)           // wrap around?
             SetDevice.wDevState = (eSetLast-1);
-        #ifdef BIKE_MOTOBAU                             // special MOTOBAU behaviour
-        if (SetDevice.wDevState == eSetServKm )         // do not select 'service km'
-            SetDevice.wDevState = eSetAllHours;         // jump over it!
-        #else // BIKE_MOTOBAU                           // special NOT MOTOBAU behaviour
-        if (SetDevice.wDevState == eSetAllHours)        // do not select 'eSetAllHours'
-            SetDevice.wDevState = eSetTripCntFl;        // jump over it!
+        #if(BIKE_MOTOBAU==1)
+            if (SetDevice.wDevState == eSetServKm )         // do not select 'service km'
+                SetDevice.wDevState = eSetAllHours;         // jump over it!
+        #else // BIKE_MOTOBAU                               // special NOT MOTOBAU behaviour
+            if (SetDevice.wDevState == eSetAllHours)        // do not select 'eSetAllHours'
+                SetDevice.wDevState = eSetTripCntFl;        // jump over it!
         #endif // BIKE_MOTOBAU
         SetDeviceSetFocus(SetDevice.wDevState);         // now use this focus...
         SetDeviceShow(TRUE);
@@ -760,12 +766,12 @@ ERRCODE SetDeviceStateMachine(MESSAGE Msg)
         SetDevice.wDevState++;                          // next selection state
         if (SetDevice.wDevState  == eSetLast)           // wrap around?
             SetDevice.wDevState = (eSetFirst+1);
-        #ifdef BIKE_MOTOBAU                             // special MOTOBAU behaviour
-        if (SetDevice.wDevState == eSetServKm)          // do not select 'service km'
-            SetDevice.wDevState = eSetVehicDist;        // jump over it!
+        #if(BIKE_MOTOBAU==1)                             // special MOTOBAU behaviour
+            if (SetDevice.wDevState == eSetServKm)          // do not select 'service km'
+                SetDevice.wDevState = eSetVehicDist;        // jump over it!
         #else // BIKE_MOTOBAU                           // special NOT MOTOBAU behaviour
-        if (SetDevice.wDevState == eSetServHours)       // do not select 'eSetServHours'
-            SetDevice.wDevState = eSetServKm;           // jump over it!
+            if (SetDevice.wDevState == eSetServHours)       // do not select 'eSetServHours'
+                SetDevice.wDevState = eSetServKm;           // jump over it!
         #endif // BIKE_MOTOBAU
         SetDeviceSetFocus(SetDevice.wDevState);         // now use this focus...
         SetDeviceShow(TRUE);
@@ -913,7 +919,7 @@ void SetDeviceCheckChanges( void )
     {    gNextServKm.km = dwServKm;                       // give back km into dkm structure
     }
 
-#ifdef COMPASS
+#if (COMPASS==1)
     // CompassCalib State in edit mode? -----------------
     if (EditCompassCalibObj.State.bits.fEditActive == TRUE )    // edit mode active?
     {
@@ -980,7 +986,7 @@ void SetDeviceCheckChanges( void )
         switch (gBikeType)          // change logo too!
         {
             case eBIKE_STANDARD:
-                                    #ifdef BIKE_MOTOBAU
+                                    #if(BIKE_MOTOBAU==1)
                                     gLogoSelection = eLogo_Motobau;     break;  // motobau is our standard logo
                                     #else // BIKE_MOTOBAU
                                     gLogoSelection = eLogo_SIXO;        break;  // sixo is our standard logo

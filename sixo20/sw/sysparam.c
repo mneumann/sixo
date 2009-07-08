@@ -78,6 +78,12 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.4  2009/07/08 21:41:17  tuberkel
+ * All compiler defines reviewed:
+ * - set to unique usage: set define to 0 or 1
+ * - default values set, if not used
+ * - see 'Project Editor' for details
+ *
  * Revision 2.3  2009/06/21 21:20:51  tuberkel
  * BugFix: EEPROM max. is 1024 (not 2048) bytes
  *
@@ -175,10 +181,11 @@ const  SWVERS_TYPE gSWID_def = DEF_SWID_NUMBER;
 /* selected logo */
        UINT8 gLogoSelection;
 static UINT8 gLogoSelection_cmp;
-#ifdef BIKE_MOTOBAU
-const  UINT8 gLogoSelection_def = eLogo_Motobau;
+
+#if(BIKE_MOTOBAU==1)
+    const  UINT8 gLogoSelection_def = eLogo_Motobau;
 #else // BIKE_MOTOBAU
-const  UINT8 gLogoSelection_def = eLogo_SIXO;
+    const  UINT8 gLogoSelection_def = eLogo_SIXO;
 #endif // BIKE_MOTOBAU
 
 /* tripcounter settings */

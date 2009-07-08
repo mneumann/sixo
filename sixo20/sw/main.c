@@ -68,6 +68,12 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.6  2009/07/08 21:41:17  tuberkel
+ * All compiler defines reviewed:
+ * - set to unique usage: set define to 0 or 1
+ * - default values set, if not used
+ * - see 'Project Editor' for details
+ *
  * Revision 2.5  2009/06/24 21:10:10  tuberkel
  * Improvement: Moved DigInDrv_Init() before LCDDrv_Init()
  * - assures correct HW-ID detection (internal pullups)
@@ -210,7 +216,7 @@ int main()
     Error = MeasDrvInit();          /* measurement init stuff (ta2, ta3, ta4, tb2, int1, int0) */
     Error = AnaInInit();            /* A/D converter for all measurements  */
     Error = SurvInit();             /* vehicle surveillance */
-#ifdef COMPASS
+#if (COMPASS==1)
     Error = CompassInit();          /* inits UART0 and its receive interrupt for compass use */
 #endif // COMPASS
 
@@ -235,7 +241,7 @@ int main()
         Error = MainDeviceInit();                                   /* main device (speed&rpm) */
         Error = TripCntDevInit();                                   /* trip counter device */
         Error = MonitorDeviceInit();                                /* monitor device */
-        #ifdef BIKE_MOTOBAU                                         /* special MOTOBAU behaviour */
+        #if(BIKE_MOTOBAU==1)                                        /* special MOTOBAU behaviour */
         Error = LapCntDeviceInit();                                 /* LapCounter device */
         #endif // BIKE_MOTOBAU
         Error = SetDeviceInit();                                    /* settings device */
@@ -256,7 +262,7 @@ int main()
         TimerRegisterEntryFunction( TimeDateUpdate );               /* RTC check */
         TimerRegisterEntryFunction( AnaInDrvTriggerADConverter );   /* generation of AD samples in single sweep mode */
         TimerRegisterEntryFunction( SurvCheckAllValues );           /* check of all digital/analoge values for warnings/errors */
-        #ifdef BIKE_MOTOBAU                                         /* special MOTOBAU behaviour */
+        #if(BIKE_MOTOBAU==1)                                        /* special MOTOBAU behaviour */
             TimerRegisterEntryFunction( LapCntUpdateTime );         /* enable background lapcounter feature */
         #endif // BIKE_MOTOBAU
 
@@ -277,11 +283,21 @@ int main()
     while (1)
     {
         Error = MsgQPumpMsg(MSG_NULL_MSG);      /* MessagePump: look for messages & execute them */
-        VehicleSimulation();                    /* if defined: RPM+WHEEL simulation support */
-        Hardcopy();                             /* if defined: Grafic Hardcopy support */
-#ifdef COMPASS
-        Compass();                              /* if defined: Compass support */
-#endif // COMPASS
+
+        /* if defined: RPM+WHEEL simulation support */
+        #if(VEHICSIM==1)
+        VehicleSimulation();
+        #endif
+
+        /* if defined: Grafic Hardcopy support */
+        #if(HARDCOPY==1)
+        Hardcopy();
+        #endif
+
+        /* if defined: Compass support */
+        #if (COMPASS==1)
+        Compass();
+        #endif
     }
     return 0;
 }
@@ -297,9 +313,9 @@ int main()
  * RETURN:      -
  * COMMENT:     To simulate real SIXO action while nobody moves...
  *********************************************************************** */
+#if(VEHICSIM==1)
 void VehicleSimulation(void)
 {
-#ifdef VEHICSIM
     static BOOL fSimEnabled = FALSE;
 
     // delayed start to prevent ISR overflows
@@ -324,9 +340,8 @@ void VehicleSimulation(void)
             ODS(DBG_SYS,DBG_INFO,"==> Vehicle Simulation disabled!");
         }
     }
-#endif
 }
-
+#endif
 
 
 
@@ -339,11 +354,10 @@ void VehicleSimulation(void)
  * RETURN:      -
  * COMMENT:     FOR DOCUMENATATION PURPOSE ONLY!
  *********************************************************************** */
+#if(HARDCOPY==1)
 void Hardcopy (void)
 {
-#ifdef HARDCOPY
-
-#ifndef DEBUG
+#if(DEBUG==0)
     #error "ERROR: HARDCOPY supported only via uart, please activate DEBUG too!"
 #endif // DEBUG
 
@@ -362,8 +376,9 @@ void Hardcopy (void)
     {
         fState = 0;
     }
-#endif // HARDCOPY
 }
+#endif // HARDCOPY
+
 
 
 

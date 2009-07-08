@@ -68,6 +68,12 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.6  2009/07/08 21:41:17  tuberkel
+ * All compiler defines reviewed:
+ * - set to unique usage: set define to 0 or 1
+ * - default values set, if not used
+ * - see 'Project Editor' for details
+ *
  * Revision 2.5  2009/07/08 18:46:54  tuberkel
  * Test
  *
@@ -304,7 +310,7 @@ void TripCntDevShow(BOOL fShow)
             // but refreshed with diccated message!
             TripCntUpdateTimeDate();
 
-#ifdef COMPASS
+#if (COMPASS==1)
             // show compass VALUE only if enabled
             if (gTripCntFlags.flags.ShowCompassValue == 1)
                 TripCntUpdateCompassHeading();
@@ -453,10 +459,10 @@ ERRCODE TripCntMsgEntry(MESSAGE GivenMsg)
                     TripCntDevShow(FALSE);                                    /* clear our screen */
 
                     // special MOTOBAU behaviour
-                    #ifdef BIKE_MOTOBAU
-                    MSG_BUILD_SETFOCUS(NewMsg, DEVID_TRIPCOUNT, DEVID_LAPCNT);  // goto LapCounterDevice
+                    #if(BIKE_MOTOBAU==1)
+                        MSG_BUILD_SETFOCUS(NewMsg, DEVID_TRIPCOUNT, DEVID_LAPCNT);  // goto LapCounterDevice
                     #else // BIKE_MOTOBAU
-                    MSG_BUILD_SETFOCUS(NewMsg, DEVID_TRIPCOUNT, DEVID_MONITOR); // goto MonitorDevice
+                        MSG_BUILD_SETFOCUS(NewMsg, DEVID_TRIPCOUNT, DEVID_MONITOR); // goto MonitorDevice
                     #endif // BIKE_MOTOBAU
                     MsgQPostMsg(NewMsg, MSGQ_PRIO_LOW);
                     RValue = ERR_MSG_PROCESSED;
@@ -476,7 +482,7 @@ ERRCODE TripCntMsgEntry(MESSAGE GivenMsg)
                 RValue = ERR_MSG_PROCESSED;
                 break;
 
-#ifdef COMPASS
+#if (COMPASS==1)
             /* got a fresh compass heading information */
             case MSG_COMPASS_REFRESH:
                 // show compass VALUE only if enabled
@@ -636,7 +642,7 @@ void TripCntUpdateTimeDate(void)
  *  RETURN:         -
  *  COMMENT:        -
  *********************************************************************** */
-#ifdef COMPASS
+#if (COMPASS==1)
 void TripCntUpdateCompassHeading(void)
 {
     tCompassHeadingInfo *ptHeadingInfo;
@@ -674,7 +680,7 @@ void TripCntUpdateCompassHeading(void)
  *                  big tripcounter value, so only one of them
  *                  can be enabled!
  *********************************************************************** */
-#ifdef COMPASS
+#if (COMPASS==1)
 void TripCntUpdateCompassBargraph(void)
 {
     UINT16 usHeading;

@@ -68,6 +68,12 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.2  2009/07/08 21:41:17  tuberkel
+ * All compiler defines reviewed:
+ * - set to unique usage: set define to 0 or 1
+ * - default values set, if not used
+ * - see 'Project Editor' for details
+ *
  * Revision 2.1  2009/06/21 17:56:44  tuberkel
  * Changes done by AN:
  * New MSG_COMPASS_REFRESH Message
@@ -104,6 +110,12 @@ UINT8   gbMsgQueueCurrent;                  // current elements in queue
 
 // temporary modul specific message entry functions
 MSGENTRYFCT TestMessageEntry;
+
+
+// optional debug outs (default: off)
+#ifndef DBGMSGQ
+#define DBGMSGQ 0
+#endif
 
 
 
@@ -351,8 +363,9 @@ ERRCODE MsgQPumpMsg(MESSAGE_ID bID)
        {
           err = ERR_MSG_NOT_PROCESSED;  // per default
 
-          #ifdef DBGMSGQ
-          if (msg.BBBI.id != MSG_SCREEN_REFRESH) ODS1(DBG_SYS,DBG_INFO,"'%s' received!", MsgQGiveMsgAsString(msg.BBBI.id));
+          #if(DBGMSGQ==1)
+          if (msg.BBBI.id != MSG_SCREEN_REFRESH)
+            ODS1(DBG_SYS,DBG_INFO,"'%s' received!", MsgQGiveMsgAsString(msg.BBBI.id));
           #endif
 
           // -------------------------------------------------
@@ -392,14 +405,16 @@ ERRCODE MsgQPumpMsg(MESSAGE_ID bID)
           // -------------------------------------------------
 
           /* nobody processed this message ? */
-          #ifdef DBGMSGQ
-          if (err == ERR_MSG_NOT_PROCESSED) ODS1(DBG_SYS,DBG_WARNING,"'%s' not processed!", MsgQGiveMsgAsString(msg.BBBI.id));
+          #if(DBGMSGQ==1)
+          if (err == ERR_MSG_NOT_PROCESSED)
+              ODS1(DBG_SYS,DBG_WARNING,"'%s' not processed!", MsgQGiveMsgAsString(msg.BBBI.id));
           #endif
 
           /* check msg Q entries */
-          #ifdef DBGMSGQ
+          #if(DBGMSGQ==1)
           ODS1(DBG_SYS,DBG_INFO,"MsgQ: %u",gbMsgQueueCurrent);
           #endif
+
           return err;
        }
        else

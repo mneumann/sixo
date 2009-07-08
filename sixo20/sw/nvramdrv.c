@@ -166,7 +166,7 @@ ERRCODE iicNvramRead( UINT8 NvramSrcAddr, UINT8 nBytes, UINT8* pTrgtAddr)
 //=
 //======================================================================
 
-#ifdef DEBUG
+#if(DEBUG==1)
 /***********************************************************************
  *  FUNCTION:       iicTestNvram
  *  DESCRIPTION:    selfchecking test routines for iicNvram{Write|Read}

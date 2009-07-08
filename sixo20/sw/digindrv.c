@@ -68,6 +68,12 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.3  2009/07/08 21:41:17  tuberkel
+ * All compiler defines reviewed:
+ * - set to unique usage: set define to 0 or 1
+ * - default values set, if not used
+ * - see 'Project Editor' for details
+ *
  * Revision 2.2  2009/06/24 21:00:28  tuberkel
  * Just comments and removed spaces
  *
@@ -120,8 +126,8 @@ DIGFILTTYPE DigInFilter[eDF_LAST];
 
 
 
-/* KD30 support */
-#ifdef MINIEMU
+/* KD30 support: These values can set via KD30-GUI too! */
+#if(MINIEMU==1)
 unsigned char kd30_Ok_Pressed = 0;
 unsigned char kd30_Up_Pressed = 0;
 unsigned char kd30_Down_Pressed = 0;
@@ -193,7 +199,7 @@ UINT8 DigInDrv_GetKeyStates(void)
     if (KeyPort_Down == 0)
         RValue |= KEYFL_DOWN;
 
-#ifdef MINIEMU
+#if(MINIEMU==1)
     /* check value given by KD30 */
     if (kd30_Ok_Pressed)
         RValue |= KEYFL_OK;

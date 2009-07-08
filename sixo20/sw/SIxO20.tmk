@@ -5,7 +5,7 @@
 # All Rights Reserved.
 #
 #	Notice	:	Don't edit.
-#	Date	:	2009 06(June) 24(Wednesday) PM.10.50
+#	Date	:	2009 07(July) 08(Wednesday) PM.11.35
 #	Project	:	SIxO20
 ####################################################################
 
@@ -23,14 +23,14 @@ OUTDIR	=	.\outdir
 MKDIR	=	@-mkdir
 ABSFILE	=	$(PROJECT).x30
 ODINCMD	=	$(OUTDIR)
-TARGET	=	$(ABSFILE)
 LN	=	LN30
+TARGET	=	$(ABSFILE)
 ECHO	=	@-echo
 MKFILE	=	$(PROJECT).tmk
-TYPE	=	@-type
 PROJECT	=	SIxO20
-CFLAGS	=	-c -I. -silent -dir $(OUTDIR) -Wall -DVEHICSIM -DLANG=0 -DCOMPASS_=1 -DDEBUG_ -DMINIEMU_=1 -finfo
-AFLAGS	=	-. -DCOMPASS=0:DEBUG=0:MINIEMU=0 -finfo -O$(OUTDIR)
+TYPE	=	@-type
+CFLAGS	=	-c -I. -silent -dir $(OUTDIR) -Wall -DVEHICSIM=1 -DLANG=0 -DCOMPASS_=0 -DDEBUG=1 -DMINIEMU=1 -finfo
+AFLAGS	=	-. -DCOMPASS=0:DEBUG=1:MINIEMU=1 -finfo -O$(OUTDIR)
 LFLAGS	=	-MS -L nc30lib -. -G -O $(OUTDIR)\$(TARGET)
 LIBFLAGS	=	-C
 UTLFLAGS	=	
@@ -480,8 +480,8 @@ $(OUTDIR)\main.r30: \
 		.\anain.h \
 		.\surveill.h \
 		.\displdrv.h \
-		.\compassdrv.h \
-		$(MTOOLINC)\stdio.h 
+		$(MTOOLINC)\stdio.h \
+		.\compassdrv.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) main.c
 $(OUTDIR)\maindev.r30: \
 		.\maindev.c \
@@ -618,10 +618,10 @@ $(OUTDIR)\setdev.r30: \
 		.\timedate.h \
 		.\bitmaps.h \
 		.\surveill.h \
-		.\compassdrv.h \
 		$(MTOOLINC)\stdio.h \
 		$(MTOOLINC)\string.h \
-		.\resource_de.h 
+		.\resource_de.h \
+		.\compassdrv.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) setdev.c
 $(OUTDIR)\surveill.r30: \
 		.\surveill.c \
@@ -727,8 +727,8 @@ $(OUTDIR)\tripcnt.r30: \
 		.\timedate.h \
 		$(MTOOLINC)\stdio.h \
 		$(MTOOLINC)\string.h \
-		.\compassdrv.h \
-		.\resource_de.h 
+		.\resource_de.h \
+		.\compassdrv.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) tripcnt.c
 $(OUTDIR)\vehicsim.r30: \
 		.\vehicsim.c \

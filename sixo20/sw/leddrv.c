@@ -70,6 +70,12 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.1  2009/07/08 21:41:17  tuberkel
+ * All compiler defines reviewed:
+ * - set to unique usage: set define to 0 or 1
+ * - default values set, if not used
+ * - see 'Project Editor' for details
+ *
  * Revision 2.0  2006/06/26 23:25:50  tuberkel
  * no message
  *
@@ -169,7 +175,6 @@ ERRCODE LEDDrvSetBright(unsigned char bBrightness)
 
 
 
-#ifdef LEDDEBUG
 /***********************************************************************
  *  FUNCTION:       LEDTest
  *  DESCRIPTION:
@@ -177,6 +182,7 @@ ERRCODE LEDDrvSetBright(unsigned char bBrightness)
  *  RETURN:         -
  *  COMMENT:        -
  *********************************************************************** */
+#if(TESTLED==1)
 void LEDDrvTest(unsigned int loopdelay)
 {
     LEDDRV_LEDS eLED;
@@ -192,5 +198,7 @@ void LEDDrvTest(unsigned int loopdelay)
         Delay_ms(loopdelay);
     }
 }
-#endif // LEDDEBUG
+#endif // TESTLED
+
+
  

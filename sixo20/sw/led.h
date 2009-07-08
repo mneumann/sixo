@@ -94,11 +94,11 @@ void LEDEsc(void);
 
 
 
-#ifdef LEDDEBUG
-/* test functions */
-void TestLEDSendMessage(void);
-void TestCheckKeyStateMsgs(MESSAGE msg);
-#endif // LEDDEBUG
+#if(TESTLED==1)
+    /* test functions */
+    void TestLEDSendMessage(void);
+    void TestCheckKeyStateMsgs(MESSAGE msg);
+#endif // TESTLED
 
 
 #endif /* _LED_H */

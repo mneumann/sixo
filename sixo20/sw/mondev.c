@@ -68,6 +68,12 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.4  2009/07/08 21:41:17  tuberkel
+ * All compiler defines reviewed:
+ * - set to unique usage: set define to 0 or 1
+ * - default values set, if not used
+ * - see 'Project Editor' for details
+ *
  * Revision 2.3  2009/06/21 17:55:56  tuberkel
  * Changes done by AN:
  * DisplDrawHorLine() new Mode-Parameter
@@ -230,7 +236,8 @@ UINT8               TextObjectsNumber;  // number of elements in selected table
 
 
 
-#ifdef BIKE_MOTOBAU                                         /* special MOTOBAU behaviour */
+/* special MOTOBAU behaviour */
+#if(BIKE_MOTOBAU==1)
 
 static TEXTOBJECTS_TYPE TextObjects_MotoBau[] =
 {
@@ -291,12 +298,12 @@ ERRCODE MonitorDeviceInit(void)
     MonitorScreenDev.fScreenInit  = FALSE;
 
     // special MOTOBAU apearance
-    #ifdef BIKE_MOTOBAU   
-    TextObjects         = TextObjects_MotoBau;
-    TextObjectsNumber   = ARRAY_SIZE(TextObjects_MotoBau);
+    #if(BIKE_MOTOBAU==1)
+        TextObjects         = TextObjects_MotoBau;
+        TextObjectsNumber   = ARRAY_SIZE(TextObjects_MotoBau);
     #else // BIKE_MOTOBAU
-    TextObjects         = TextObjects_Standard;
-    TextObjectsNumber   = ARRAY_SIZE(TextObjects_Standard);
+        TextObjects         = TextObjects_Standard;
+        TextObjectsNumber   = ARRAY_SIZE(TextObjects_Standard);
     #endif // BIKE_MOTOBAU
 
     /* create text objects */
@@ -343,13 +350,14 @@ void MonitorDeviceShow(BOOL fShow)
             /* yes, repaint complete screen */
             DisplClearScreen(0x0);
 
-            #ifndef BIKE_MOTOBAU        /* special NOT MOTOBAU behaviour */
+            /* special NOT MOTOBAU behaviour */
+            #if(BIKE_MOTOBAU==0)
             /* horizontal line between value list and status lines */
             {
                 DISPLXY Coord = {0,50};                 /* to be removed to an 'LineObject' !!! */
                 DisplDrawHorLine(&Coord, 128, 0x03, DPLXOR);
             }
-            #endif // BIKE_MOTOBAU        
+            #endif // BIKE_MOTOBAU
 
             /* show all objects */
             for (i = 0; i < TextObjectsNumber; i++)
@@ -533,7 +541,7 @@ void MonitorDeviceUpdateStrings ( void )
     INT16  iBuffer;
 
     // select special behaviour
-    #ifdef BIKE_MOTOBAU   
+    #if(BIKE_MOTOBAU==1)
     {
         // special MOTOBAU apearance =========================================
 
@@ -602,7 +610,7 @@ void MonitorDeviceUpdateStrings ( void )
                     RESTXT_STAT_H_ALL,
                     EngRunTime_All.wHour );
     }
-    #else // BIKE_MOTOBAU        
+    #else // BIKE_MOTOBAU
     {
         // STANDARD SIXO BEHAVIOUR ======================================
 
@@ -657,7 +665,7 @@ void MonitorDeviceUpdateStrings ( void )
 
         // END OF SPECIAL BEHAVIOUR ======================================
     }
-    #endif // BIKE_MOTOBAU        
+    #endif // BIKE_MOTOBAU
 }
 
 
@@ -704,17 +712,16 @@ ERRCODE MonitorDeviceResetMsg(MESSAGE Msg)
         TWat_Min = TWat_Min_def;
         TWat_Max = TWat_Max_def;
 
-        #ifdef BIKE_MOTOBAU                   /* special MOTOBAU behaviour */
-        {
-            Speed_Max = Speed_Max_def;
+        /* special MOTOBAU behaviour */
+        #if(BIKE_MOTOBAU==1)
+        {   Speed_Max = Speed_Max_def;
             RPM_Max   = RPM_Max_def;
         }
-        #else // BIKE_MOTOBAU        
-        {
-            Volt_Min = Volt_Min_def;          /* standard behaviour */
+        #else // BIKE_MOTOBAU
+        {   Volt_Min = Volt_Min_def;          /* standard behaviour */
             Volt_Max = Volt_Max_def;
         }
-        #endif // BIKE_MOTOBAU        
+        #endif // BIKE_MOTOBAU
         BeepOk();                   /* beep ok */
         LEDOk();                    /* LED ok */
         fLocked = TRUE;             /* don't repeat this until key released */

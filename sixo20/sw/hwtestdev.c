@@ -68,6 +68,12 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.3  2009/07/08 21:41:17  tuberkel
+ * All compiler defines reviewed:
+ * - set to unique usage: set define to 0 or 1
+ * - default values set, if not used
+ * - see 'Project Editor' for details
+ *
  * Revision 2.2  2009/06/21 17:49:50  tuberkel
  * Changes done by AN:
  * HW-Tests / Uart not enabled if COMPASS defined
@@ -268,8 +274,9 @@ static TEXTOBJECT   StatObj_KEY2;
 
 
 // hw test defines
-#define REBOOT_SEC      30
-
+#ifndef VARY_DISPLAY
+#define VARY_DISPLAY    0       // 1 enables contrast/backlight variation during test
+#endif
 
 
 // HW Test  device resources ----------------------------
@@ -709,7 +716,7 @@ void HWTestCheckStimulatedErrors( void )
     else StatObj_TWAT.szText = szErr;
 
 // we have a 'misterous factor 2' between MiniEmu and Not-MiniEmu-Version!
-#ifdef MINIEMU
+#if(MINIEMU==1)
     // check vehicle speed in km/h
     if (  (MeasGetWheelSpeed(MR_KM_PER_H) > 70 )
         &&(MeasGetWheelSpeed(MR_KM_PER_H) < 85 ) )
@@ -772,7 +779,7 @@ void HWTestCheckStimulatedErrors( void )
          StatObj_GPI3.szText = szOk;
     else StatObj_GPI3.szText = szErr;
 
-#if (defined MINIEMU) || (defined DEBUG) || (defined COMPASS)
+#if (MINIEMU==1) || (DEBUG==1) || (COMPASS==1)
     // do not use uart-loopback-test in this case
     // error status remains 'unknown'
 #else
@@ -1047,7 +1054,7 @@ void HWTestInit ( void )
     // enable uart loopback test, if tester present
     // Note: we don't use uarts, we only check digital port reaction
     // Note: can not be used if DEBUG or MiniEmulator uses Uarts
-#if (defined MINIEMU) || (defined DEBUG) || (defined COMPASS)
+#if (MINIEMU==1) || (DEBUG==1) || (COMPASS==1)
     // do not use uart-loopback-test in this case
 #else
     if (gfEOLTest == TRUE)
@@ -1143,9 +1150,11 @@ void HWTestStimuISR(void)
          BeepDrvSetBeeper(TRUE);
     else BeepDrvSetBeeper(FALSE);
 
-    // disply tests (simultanous Contrast/Backlight)
+    // optional disply tests (simultanous Contrast/Backlight)
+    // VARY_DISPLAY: this code permanentely dims backlight from off to maximum
+    //               and varies the complete contrast spectrum
+    #if(VARY_DISPLAY==1)
     {
-#ifdef VARY_DISPLAY
         // set LCD contrast
         static unsigned char ucTestValue = 30;
 
@@ -1161,11 +1170,11 @@ void HWTestStimuISR(void)
 
         // set backlight
         LCDDrvSetBacklightLevel( TRUE, ucTestValue );
-#else
+    }
+    #else
         // level fixed here, because dynamic behavour (on/off) is not required
         LCDDrvSetBacklightLevel( TRUE, 63 );
-#endif
-    }
+    #endif // VARY_DISPLAY
 
     // activate LEDs as pairs
     if (fGPO1 == 1)
