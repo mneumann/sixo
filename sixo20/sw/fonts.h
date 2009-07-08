@@ -7,7 +7,7 @@
  *
  *  --------------------------------------------------------------------
  *
- *  Created:        08-07-2001 by Ralf Krizsan
+ *  Created:        08-07-2001 by Ralf Schwarzer
  *  Project:        SIxO
  *  Module:         fonts
  *  Purpose:        fonts definitions api export header
@@ -42,10 +42,10 @@
  *  To purchase support or enhancements for this software, contact:
  *
  *      N&K Development                     N&K Development
- *      Arnold Neugebauer                   Ralf Krizsan
- *      Stöckener Str. 115                  Knickstr. 10
- *      30419 Hannover                      30890 Barsinghausen
- *      arnold.neugebauer@web.de            ralf.krizsan@web.de
+ *      Arnold Neugebauer                   Ralf Schwarzer
+ *      Stöckener Str. 115                  Hudeplan 37 A
+ *      30419 Hannover                      30453 Hannover
+ *      arnold.neugebauer@web.de            ralf.schwarzer@htp-tel.de
  *
  *      or try http://www.sixo.de
  *

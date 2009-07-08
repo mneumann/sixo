@@ -43,10 +43,10 @@
  *  To purchase support or enhancements for this software, contact:
  *
  *      N&K Development                     N&K Development
- *      Arnold Neugebauer                   Ralf Krizsan
- *      Stoeckener Str. 115                 Knickstr. 10
- *      30419 Hannover                      30890 Barsinghausen
- *      arnold.neugebauer@web.de            ralf.krizsan@web.de
+ *      Arnold Neugebauer                   Ralf Schwarzer
+ *      Stoeckener Str. 115                 Hudeplan 37 A
+ *      30419 Hannover                      30453 Hannover
+ *      arnold.neugebauer@web.de            ralf.schwarzer@htp-tel.de
  *
  *      or try http://www.sixo.de
  *
@@ -70,6 +70,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.2  2009/07/08 21:49:04  tuberkel
+ * Changed contact data: Ralf Krizsan ==> Ralf Schwarzer
+ *
  * Revision 2.1  2006/07/20 23:07:13  tuberkel
  * - added ABS input
  * - added TempSwitch instead of analog TempSensor

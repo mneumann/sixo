@@ -7,7 +7,7 @@
  *
  *  --------------------------------------------------------------------
  *
- *  Created:        2001-11-24 by Ralf Krizsan
+ *  Created:        2001-11-24 by Ralf Schwarzer
  *  Project:        SIxO
  *  Module:         objects & devices
  *  Purpose:        object defintions (text object, menu object, etc.)
@@ -42,10 +42,10 @@
  *  To purchase support or enhancements for this software, contact:
  *
  *      N&K Development                     N&K Development
- *      Arnold Neugebauer                   Ralf Krizsan
- *      Stöckener Str. 115                  Knickstr. 10
- *      30419 Hannover                      30890 Barsinghausen
- *      arnold.neugebauer@web.de            ralf.krizsan@web.de
+ *      Arnold Neugebauer                   Ralf Schwarzer
+ *      Stöckener Str. 115                  Hudeplan 37 A
+ *      30419 Hannover                      30453 Hannover
+ *      arnold.neugebauer@web.de            ralf.schwarzer@htp-tel.de
  *
  *      or try http://www.sixo.de
  *
@@ -69,6 +69,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.2  2009/07/08 21:49:04  tuberkel
+ * Changed contact data: Ralf Krizsan ==> Ralf Schwarzer
+ *
  * Revision 2.1  2007/03/30 10:05:56  tuberkel
  * just comments
  *

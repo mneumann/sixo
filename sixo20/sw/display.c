@@ -7,7 +7,7 @@
  *
  *  --------------------------------------------------------------------
  *
- *  Created:        2001-02-16 by Ralf Krizsan
+ *  Created:        2001-02-16 by Ralf Schwarzer
  *  Project:        SIxO
  *  Module:         lcd high level driver
  *  Purpose:        display service functions
@@ -50,10 +50,10 @@
  *  To purchase support or enhancements for this software, contact:
  *
  *      N&K Development                     N&K Development
- *      Arnold Neugebauer                   Ralf Krizsan
- *      Stöckener Str. 115                  Knickstr. 10
- *      30419 Hannover                      30890 Barsinghausen
- *      arnold.neugebauer@web.de            ralf.krizsan@web.de
+ *      Arnold Neugebauer                   Ralf Schwarzer
+ *      Stöckener Str. 115                  Hudeplan 37 A
+ *      30419 Hannover                      30453 Hannover
+ *      arnold.neugebauer@web.de            ralf.schwarzer@htp-tel.de
  *
  *      or try http://www.sixo.de
  *

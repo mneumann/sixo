@@ -47,10 +47,10 @@
  *  To purchase support or enhancements for this software, contact:
  *
  *      N&K Development                     N&K Development
- *      Arnold Neugebauer                   Ralf Krizsan
- *      Stoeckener Str. 115                 Knickstr. 10
- *      30419 Hannover                      30890 Barsinghausen
- *      arnold.neugebauer@web.de            ralf.krizsan@web.de
+ *      Arnold Neugebauer                   Ralf Schwarzer
+ *      Stoeckener Str. 115                 Hudeplan 37 A
+ *      30419 Hannover                      30453 Hannover
+ *      arnold.neugebauer@web.de            ralf.schwarzer@htp-tel.de
  *
  *      or try http://www.sixo.de
  *
@@ -74,6 +74,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.6  2009/07/08 21:49:03  tuberkel
+ * Changed contact data: Ralf Krizsan ==> Ralf Schwarzer
+ *
  * Revision 2.5  2009/07/08 21:41:17  tuberkel
  * All compiler defines reviewed:
  * - set to unique usage: set define to 0 or 1
