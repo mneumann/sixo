@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.5  2009/07/08 18:46:54  tuberkel
+ * Test
+ *
  * Revision 2.4  2009/06/21 21:17:43  tuberkel
  * Changes by AN and SCHW:
  * - new Compass layout inside TripCounter Module
@@ -157,7 +160,7 @@ static TEXTOBJECT   CompassTxtObj;                      /* stateline compass obj
 static CHAR         szCompass[5] = "---°";              /* buffer for time string */
 
 static TEXTOBJECT   TimeTxtObj;                         /* stateline time object */
-static CHAR         szTime[9] = "--:--:--";             /* buffer for time string */
+static CHAR         szTime[10] = "--:--:--a";           /* buffer for time string (add. am/pm in engl. version!)*/
 
 
 /* external symbols */
@@ -279,7 +282,7 @@ void TripCntDevShow(BOOL fShow)
         sprintf( szVehSpeed, "%3u%s", wWheelSpeed, RESTXT_SPEED_DESC);
 
         /* -------------------------------------------------- */
-        /* update time for lower state line '13:15:24' */
+        /* update time for lower state line '13:15:24p' */
         // TimeDate_GetString( GERM_HHMMSS,  szTime ); // will be updated by special message only
 
         /* -------------------------------------------------- */
@@ -301,6 +304,7 @@ void TripCntDevShow(BOOL fShow)
             // but refreshed with diccated message!
             TripCntUpdateTimeDate();
 
+#ifdef COMPASS
             // show compass VALUE only if enabled
             if (gTripCntFlags.flags.ShowCompassValue == 1)
                 TripCntUpdateCompassHeading();
@@ -308,6 +312,7 @@ void TripCntDevShow(BOOL fShow)
             // show compass BARGRAGH only if enabled
             if (gTripCntFlags.flags.ShowCompassBar == 1)
                 TripCntUpdateCompassBargraph();
+#endif //COMPASS
 
             /* horizontal line between big & small trip counter */
             /* to be removed to an 'LineObject' !!! */
@@ -471,6 +476,7 @@ ERRCODE TripCntMsgEntry(MESSAGE GivenMsg)
                 RValue = ERR_MSG_PROCESSED;
                 break;
 
+#ifdef COMPASS
             /* got a fresh compass heading information */
             case MSG_COMPASS_REFRESH:
                 // show compass VALUE only if enabled
@@ -482,6 +488,7 @@ ERRCODE TripCntMsgEntry(MESSAGE GivenMsg)
                 // msg processed anyway
                 RValue = ERR_MSG_PROCESSED;
                 break;
+#endif // COMPASS
 
             case MSG_DPL_FLASH_ON:
             case MSG_DPL_FLASH_OFF:
@@ -614,7 +621,7 @@ void TripCntUpdateTimeDate(void)
     // check conditions to display timedate */
     if ( TripCntDev.fScreenInit == TRUE  )       // screen is ready?
     {
-        /* update time for lower state line '13:15:24' */
+        /* update time for lower state line '13:15:24p' */
         TimeDate_GetString( RESENUM_HHMMSS,  szTime );
         ObjTextShow( &TimeTxtObj );
     }
@@ -629,6 +636,7 @@ void TripCntUpdateTimeDate(void)
  *  RETURN:         -
  *  COMMENT:        -
  *********************************************************************** */
+#ifdef COMPASS
 void TripCntUpdateCompassHeading(void)
 {
     tCompassHeadingInfo *ptHeadingInfo;
@@ -652,7 +660,7 @@ void TripCntUpdateCompassHeading(void)
         }
     }
 }
-
+#endif //COMPASS
 
 
 /***********************************************************************
@@ -666,6 +674,7 @@ void TripCntUpdateCompassHeading(void)
  *                  big tripcounter value, so only one of them
  *                  can be enabled!
  *********************************************************************** */
+#ifdef COMPASS
 void TripCntUpdateCompassBargraph(void)
 {
     UINT16 usHeading;
@@ -765,6 +774,6 @@ void TripCntUpdateCompassBargraph(void)
     sprintf( szText, "%03d", usHeading );
     DisplPrintAString( szText, &tPixelCoord, DPLFONT_14X16, DPLNORM );
 }
-
+#endif //COMPASS
 
 
