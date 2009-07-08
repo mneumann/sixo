@@ -5,7 +5,7 @@
 # All Rights Reserved.
 #
 #	Notice	:	Don't edit.
-#	Date	:	2009 06(June) 21(Sunday) PM.11.44
+#	Date	:	2009 06(June) 24(Wednesday) PM.10.50
 #	Project	:	SIxO20
 ####################################################################
 
@@ -23,18 +23,18 @@ OUTDIR	=	.\outdir
 MKDIR	=	@-mkdir
 ABSFILE	=	$(PROJECT).x30
 ODINCMD	=	$(OUTDIR)
-LN	=	LN30
 TARGET	=	$(ABSFILE)
+LN	=	LN30
 ECHO	=	@-echo
 MKFILE	=	$(PROJECT).tmk
-PROJECT	=	SIxO20
 TYPE	=	@-type
+PROJECT	=	SIxO20
+CFLAGS	=	-c -I. -silent -dir $(OUTDIR) -Wall -DVEHICSIM -DLANG=0 -DCOMPASS_=1 -DDEBUG_ -DMINIEMU_=1 -finfo
+AFLAGS	=	-. -DCOMPASS=0:DEBUG=0:MINIEMU=0 -finfo -O$(OUTDIR)
 LFLAGS	=	-MS -L nc30lib -. -G -O $(OUTDIR)\$(TARGET)
-UTLFLAGS	=	
-CFLAGS	=	-c -I. -silent -dir $(OUTDIR) -Wall -DVEHICSIM -DLANG=0 -DCOMPASS=1 -DDEBUG_ -DMINIEMU=1 -finfo
-LMCFLAGS	=	-. -ID
 LIBFLAGS	=	-C
-AFLAGS	=	-. -DCOMPASS=1:DEBUG=0:MINIEMU=1 -finfo -O$(OUTDIR)
+UTLFLAGS	=	
+LMCFLAGS	=	-. -ID
 .SUFFIXES: .a30 .r30 .c .x30 .lib
 .PHONY: all
 all: \
@@ -242,13 +242,7 @@ $(OUTDIR)\clkdrv.r30: \
 $(OUTDIR)\compassdrv.r30: \
 		.\compassdrv.c \
 		.\standard.h \
-		.\compassdrv.h \
-		.\sfr62p.h \
-		.\timer.h \
-		.\msgqueue.h \
-		.\stdmsgs.h \
-		.\m16c.h \
-		$(MTOOLINC)\string.h 
+		.\compassdrv.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) compassdrv.c
 $(OUTDIR)\debug.r30: \
 		.\debug.c \
@@ -336,7 +330,8 @@ $(OUTDIR)\displdrv.r30: \
 		.\displdrv.h \
 		.\standard.h \
 		.\sfr62p.h \
-		.\display.h 
+		.\display.h \
+		.\digindrv.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) displdrv.c
 $(OUTDIR)\eeprdrv.r30: \
 		.\eeprdrv.c \
