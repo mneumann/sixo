@@ -69,6 +69,11 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.4  2009/07/11 13:26:46  tuberkel
+ * Improvement:
+ * - TextEdit Object now supports LED/Beep as 'saved'/ESC' indicator like other objects
+ * - TextEdit Object now handles descriptor field like other objects (not inverted if focused))
+ *
  * Revision 2.3  2009/07/11 13:19:21  tuberkel
  * Improvement:
  * TextEdit Object now shows/edits complete edit _field_
@@ -442,7 +447,7 @@ ERRCODE ObjEditTextMsgEntry( EDITTEXTOBJECT far * fpObject, MESSAGE GivenMsg )
         if (fpObject->State.bits.fEditActive == FALSE)   /* Is edit mode active / inactive? */
         {
             /* ======================================================================== */
-                                                        /* EDITMODE IS INACTIVE! */
+            /* EDITMODE IS INACTIVE! */
             /* ------------------------------------------------------------------------ */
             if (  (MsgId == MSG_KEY_OK)                 /* [OK] starts the edit mode? */
                 &&(MSG_KEY_TRANSITION(GivenMsg) == KEYTRANS_PRESSED) ) /* pressed the first time?*/
@@ -464,8 +469,10 @@ ERRCODE ObjEditTextMsgEntry( EDITTEXTOBJECT far * fpObject, MESSAGE GivenMsg )
         else
         {
             /* ======================================================================== */
-                                                        /* EDITMODE IS ALREADY ACTIVE! */
+            /* EDITMODE IS ALREADY ACTIVE! */
+            /* ------------------------------------------------------------------------ */
             RValue = ERR_MSG_PROCESSED;
+
             /* ------------------------------------------------------------------------ */
             if ( MsgId == MSG_DPL_FLASH_OFF )             /* FLASH OFF */
             {
@@ -509,14 +516,18 @@ ERRCODE ObjEditTextMsgEntry( EDITTEXTOBJECT far * fpObject, MESSAGE GivenMsg )
                 strcpy(fpObject->szText, fpObject->szWorkText); /* save edited text! */
                 fpObject->State.bits.fEditActive = FALSE;       /* user ended edit mode! */
                 ODS1(DBG_USER, DBG_INFO, "EditText saved [%s]", fpObject->szWorkText);
+                LEDOk();                                        /* additional 'saved' indicator */
+                BeepOk();                                       /* additional 'saved' indicator */
             }
             /* ------------------------------------------------------------------------ */
-            else if (  (MsgId == MSG_KEYS_PRESSED                 )  /* multiple keys */
-                &&(MSG_KEY_STATES(GivenMsg) & (KEY_UP | KEY_DOWN) ) )/* [UP]&[DOWN] pressed the same time? */
+            else if (  (MsgId == MSG_KEYS_PRESSED                 )     /* multiple keys */
+                &&(MSG_KEY_STATES(GivenMsg) & (KEY_UP | KEY_DOWN) ) )   /* [UP]&[DOWN] pressed the same time? */
             {                                                           /* uses presses ESC! */
-                strcpy(fpObject->szWorkText, fpObject->szText);         /* reset the work copy to original*/
-                fpObject->State.bits.fEditActive = FALSE;               /* user ended edit mode! */
+                strcpy(fpObject->szWorkText, fpObject->szText); /* reset the work copy to original*/
+                fpObject->State.bits.fEditActive = FALSE;       /* user ended edit mode! */
                 ODS1(DBG_USER, DBG_INFO, "EditText ESC! String [%s] not changed!", fpObject->szWorkText);
+                LEDEsc();                                       /* additional 'ESC' indicator */
+                BeepEsc();                                      /* additional 'ESC' indicator */
             }
 
             /* ------------------------------------------------------------------------ */
@@ -888,7 +899,7 @@ ERRCODE ObjEditNumMsgEntry( EDITNUMBEROBJECT far * fpObject, MESSAGE GivenMsg )
         if (fpObject->State.bits.fEditActive == FALSE)      /* Is edit mode active / inactive? */
         {
             /* ======================================================================== */
-                                                        /* EDITMODE IS INACTIVE! */
+            /* EDITMODE IS INACTIVE! */
             /* ------------------------------------------------------------------------ */
             if (  (MsgId == MSG_KEY_OK                             )    /* [OK] starts the edit mode? */
                 &&(MSG_KEY_TRANSITION(GivenMsg) == KEYTRANS_PRESSED)    /* pressed the first time?*/
@@ -909,8 +920,8 @@ ERRCODE ObjEditNumMsgEntry( EDITNUMBEROBJECT far * fpObject, MESSAGE GivenMsg )
         else
         {
             /* ======================================================================== */
-                                                            /* EDITMODE IS ALREADY ACTIVE! */
-
+            /* EDITMODE IS ALREADY ACTIVE! */
+            /* ------------------------------------------------------------------------ */
             RValue = ERR_MSG_PROCESSED;                         /* we used the msg in any way */
 
             /* ------------------------------------------------------------------------ */
@@ -957,14 +968,14 @@ ERRCODE ObjEditNumMsgEntry( EDITNUMBEROBJECT far * fpObject, MESSAGE GivenMsg )
                 SetTimerMsg(NewMsg, FLASH_ON_TIME);             /* delay: cursor ON time */
             }
             /* ------------------------------------------------------------------------ */
-            else if (  (MsgId == MSG_KEY_OK   )              /* [OK] */
-                &&(MSG_KEY_DURATION(GivenMsg) > KEYSAVE) )   /* pressed 'long'? */
+            else if (  (MsgId == MSG_KEY_OK   )                 /* [OK] */
+                &&(MSG_KEY_DURATION(GivenMsg) > KEYSAVE) )      /* pressed 'long'? */
             {                                                   /* [OK] pressed 'long'! */
                 ObjEditNumCopy(fpObject, FALSE);                /* save copy into original value */
                 fpObject->State.bits.fEditActive = FALSE;       /* user ended edit mode! */
                 ODS1(DBG_USER, DBG_INFO, "EditNumber saved new value [%s]", ObjEditNum2String(fpObject, rgDebugBuff));
-                LEDOk();
-                BeepOk();
+                LEDOk();                                        /* additional 'saved' indicator */
+                BeepOk();                                       /* additional 'saved' indicator */
             }
             /* ------------------------------------------------------------------------ */
             else if (  (MsgId == MSG_KEYS_PRESSED                 )  /* multiple keys */
@@ -973,8 +984,8 @@ ERRCODE ObjEditNumMsgEntry( EDITNUMBEROBJECT far * fpObject, MESSAGE GivenMsg )
                 //strcpy(fpObject->WorkNumber, fpObject->fpNumber);  /* reset the work copy to original*/
                 fpObject->State.bits.fEditActive = FALSE;            /* user ended edit mode! */
                 ODS1(DBG_USER, DBG_INFO, "EditNumber  [%s] not changed!", ObjEditNum2String(fpObject, rgDebugBuff));
-                LEDEsc();
-                BeepEsc();
+                LEDEsc();                                       /* additional 'ESC' indicator */
+                BeepEsc();                                      /* additional 'ESC' indicator */
             }
 
             /* ------------------------------------------------------------------------ */
@@ -982,7 +993,7 @@ ERRCODE ObjEditNumMsgEntry( EDITNUMBEROBJECT far * fpObject, MESSAGE GivenMsg )
                 &&(  (MSG_KEY_TRANSITION(GivenMsg) == KEYTRANS_PRESSED)     /* pressed the first time?*/
                    ||(MSG_KEY_TRANSITION(GivenMsg) == KEYTRANS_ON     ) ) ) /* or longer pressed?*/
             {
-                ObjEditNumToggleNum(fpObject, MsgId);          /* handle selection of one character */
+                ObjEditNumToggleNum(fpObject, MsgId);           /* handle selection of one character */
 
                 /* re-initiate cursor flashing */
                 MSG_FLASH_OFF(NewMsg);                          /* remove all pending cursor OFF messages */
