@@ -69,6 +69,11 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.3  2009/07/11 13:19:21  tuberkel
+ * Improvement:
+ * TextEdit Object now shows/edits complete edit _field_
+ * instead of given edit _string_
+ *
  * Revision 2.2  2009/07/08 21:49:04  tuberkel
  * Changed contact data: Ralf Krizsan ==> Ralf Schwarzer
  *
@@ -107,10 +112,10 @@
 /* character array for edit mode */
 /* NOTE 'ö' and 'ü' are the only characters, that the compiler
         does not handle directly, so we've to use the hex-form! */
-const UINT8 szLowerChars[]="aäbcdefghijklmno\xf6pqrsßtu\xfcvwxyz";
-const UINT8 szUpperChars[]="AÄBCDEFGHIJKLMNOÖPQRSTUÜVWXYZ";
+const UINT8 szLowerChars[]  ="aäbcdefghijklmno\xf6pqrsßtu\xfcvwxyz";
+const UINT8 szUpperChars[]  ="AÄBCDEFGHIJKLMNOÖPQRSTUÜVWXYZ";
 const UINT8 szNumericChars[]="0123456789";
-const UINT8 szPunctChars[]="_-([{)]}!\x22#%&'*,./:;?@\\";
+const UINT8 szPunctChars[]  ="_-([{)]}!\x22#%&'*,./:;?@\\";
 const UINT8 szSpecialChars[]="+<=>|~$^`";
 
 #define MAXCHARLISTSIZE     120     /* max. number of chars if all listed are used together */
@@ -298,21 +303,11 @@ ERRCODE ObjEditTextShow( EDITTEXTOBJECT far * pObject, UINT8 bUpdateMode )
         /* clear buffer  */
         memset( szOutText, 0x0, TXTBUFFSIZE);
 
-        /* get descriptor at left side */
-        strncpy(szOutText, pObject->szDescr, strlen(pObject->szDescr));
-
-        /* set left & right border bracket */
-        //szBuffer[pObject->Window.bWidth - pObject->bLength - 2] = CHAR_SQRBRCK_L;  /* left frame '[' */
-        //szBuffer[pObject->Window.bWidth - 1]                    = CHAR_SQRBRCK_R;  /* left frame ']' */
-        //szBuffer[pObject->Window.bWidth] = 0x0;                                    /* set string end /0 */
-
         /* handling output mode */
-        if (  (pObject->State.bits.fSelected   == TRUE )
-            &&(pObject->State.bits.fEditActive == FALSE) )
-                bMode = DPLINVERS;                                  /* show focused */
-        else    bMode = DPLNORM;                                    /* show unfocused or edit active */
+        bMode = DPLNORM;                    /* always show normal */
 
-        /* show descriptor and frame  */
+        /* get & show descriptor at left side */
+        strncpy(szOutText, pObject->szDescr, strlen(pObject->szDescr));
         PixelCoord.wXPos = pObject->Org.wXPos;
         DisplPrintAString( szOutText, &PixelCoord, pObject->eFont, bMode );
     }
@@ -323,12 +318,12 @@ ERRCODE ObjEditTextShow( EDITTEXTOBJECT far * pObject, UINT8 bUpdateMode )
         ||(bUpdateMode & SHOW_EDIT ) )
     {
         /* clear buffer to spaces */
-        memset( szOutText, 0x0, TXTBUFFSIZE);
+        memset( szOutText, 0x20, TXTBUFFSIZE);
 
-        /* use original or work copy */
+        /* insert original or working copy of string */
         if (pObject->State.bits.fEditActive == TRUE)
-             strcpy(szOutText, pObject->szWorkText);
-        else strcpy(szOutText, pObject->szText);
+             memcpy(szOutText, pObject->szWorkText, strlen(pObject->szWorkText));
+        else memcpy(szOutText, pObject->szText,     strlen(pObject->szText));
 
         /* get a well sized copy of edit text */
         szOutText[pObject->bLength] = 0x0;
@@ -343,7 +338,6 @@ ERRCODE ObjEditTextShow( EDITTEXTOBJECT far * pObject, UINT8 bUpdateMode )
                  bMode = DPLUNDERL;                             /* show unfocused or edit active */
             else bMode = 0x0;                                   /* avoid showing underline */
         }
-
 
         /* set pixel coordinates: begin of edit text */
         PixelCoord.wXPos =   pObject->Org.wXPos
@@ -456,7 +450,11 @@ ERRCODE ObjEditTextMsgEntry( EDITTEXTOBJECT far * fpObject, MESSAGE GivenMsg )
                 fpObject->bCursorPos  = 0;                      /* cursor on left position */
                 fpObject->State.bits.fCursorOn   = TRUE;        /* cursor is visible */
                 fpObject->State.bits.fEditActive = TRUE;        /* set new state! */
-                strcpy(fpObject->szWorkText, fpObject->szText); /* get a work copy */
+
+                /* first fill buffer withs spaces, then insert current string */
+                memset(fpObject->szWorkText, CHAR_SPACE,       fpObject->bLength);
+                memcpy(fpObject->szWorkText, fpObject->szText, strlen(fpObject->szText));
+
                 ObjEditTextShow( fpObject, SHOW_ALL);           /* show new state immediatly */
                 MSG_FLASH_OFF(NewMsg);                          /* next: cursor OFF */
                 SetTimerMsg(NewMsg, FLASH_ON_TIME);             /* delay: cursor ON time */
