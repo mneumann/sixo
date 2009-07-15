@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.8  2009/07/15 08:55:53  tuberkel
+ * NEW: #define TESTSCREEN for GUI Tests
+ *
  * Revision 2.7  2009/07/08 21:49:03  tuberkel
  * Changed contact data: Ralf Krizsan ==> Ralf Schwarzer
  *
@@ -248,6 +251,9 @@ int main()
         Error = LapCntDeviceInit();                                 /* LapCounter device */
         #endif // BIKE_MOTOBAU
         Error = SetDeviceInit();                                    /* settings device */
+        #if(TESTSCREEN==1)
+        Error = TestScreenInit();                                   /* testscreen device */
+        #endif
 
         /* Display & LED 'HW pseudo test' ---------------- */
         LCDDrvSetBacklightLevel(TRUE, 63);  // switch on Backlight
@@ -270,16 +276,28 @@ int main()
         #endif // BIKE_MOTOBAU
 
         // set start screen ------------------------------ */
-        if (  (gSystemFlags.flags.ActDevNr <  DEVID_MAIN)           /* check for basic eeprom content error */
+
+        /* check for basic eeprom content error */
+        if (  (gSystemFlags.flags.ActDevNr <  DEVID_MAIN)           /* eeprom value in valid area? */
             ||(gSystemFlags.flags.ActDevNr >= DEVID_LAST) )
         {   ODS1( DBG_SYS, DBG_ERROR, "Invalid gSystemFlags.flags.ActDevNr %u corrected!", gSystemFlags.flags.ActDevNr );
-            gSystemFlags.flags.ActDevNr = DEVID_MAIN;
+            gSystemFlags.flags.ActDevNr = DEVID_MAIN;               /* set main device as default */
         }
-        if (gSystemFlags.flags.ActDevNr == DEVID_HWTEST)            /* prevent from starting with HW-Test all the time */
-            gSystemFlags.flags.ActDevNr = DEVID_MAIN;
-        eStartDevice = gSystemFlags.flags.ActDevNr;                 /* start NORMAL USER MODE */
+
+        /* prevent from starting with HW-Test all the time */
+        if (gSystemFlags.flags.ActDevNr == DEVID_HWTEST)            /* eeprom saved hw test state? */
+            gSystemFlags.flags.ActDevNr = DEVID_MAIN;               /* set main device as default */
+
+        /* for device/objects test only: bring GUI testscreen to top */
+        #if(TESTSCREEN==1)
+        gSystemFlags.flags.ActDevNr = DEVID_TESTSCREEN;             /* enable our gui testscreen */
+        #endif
+
+        /* start NORMAL USER MODE */
+        eStartDevice = gSystemFlags.flags.ActDevNr;                 /* select start device */
         MSG_BUILD_SETFOCUS(Msg, DEVID_UNKNOWN, eStartDevice);       /* give focus to that device */
         MsgQPostMsg(Msg, MSGQ_PRIO_LOW);                            /* post message */
+
     }
 
     /* THE main loop --------------------------------- */
@@ -344,7 +362,7 @@ void VehicleSimulation(void)
         }
     }
 }
-#endif
+#endif // VEHICSIM
 
 
 
