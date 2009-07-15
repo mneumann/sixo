@@ -14,7 +14,7 @@
  *  Comments:       -
  *
  *  --------------------------------------------------------------------
- * 
+ *
  *  Compiler:       Renesas NC30WA V.5.00 Release 2
  *  Options:        if MINIEMU is defined, debug out is given to
  *                  uart0, else debug out uses uart1
@@ -24,33 +24,33 @@
  *  Licence details
  *
  *  This software is copyright © 2001-2004 by N&K Development, Germany
- *  
- *  You can redistribute it and/or modify it under the terms of the 
- *  GNU General Public License version 2 as published by the 
- *  Free Software Foundation. 
- *  
- *  This program is distributed in the hope that it will be useful, 
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of 
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+ *
+ *  You can redistribute it and/or modify it under the terms of the
+ *  GNU General Public License version 2 as published by the
+ *  Free Software Foundation.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  *  GNU General Public License for more details.
- *  
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, 
+ *  Foundation, Inc., 59 Temple Place - Suite 330, Boston,
  *  MA  02111-1307, USA.
  *
  *  To purchase support or enhancements for this software, contact:
- *  
- *      N&K Development                     N&K Development         
- *      Arnold Neugebauer                   Ralf Schwarzer            
- *      Stöckener Str. 115                  Hudeplan 37 A            
- *      30419 Hannover                      30453 Hannover     
+ *
+ *      N&K Development                     N&K Development
+ *      Arnold Neugebauer                   Ralf Schwarzer
+ *      Stöckener Str. 115                  Hudeplan 37 A
+ *      30419 Hannover                      30453 Hannover
  *      arnold.neugebauer@web.de            ralf.schwarzer@htp-tel.de
- *      
+ *
  *      or try http://www.sixo.de
  *
  *  --------------------------------------------------------------------
- * 
+ *
  *  Disclaimer of warrenty
  *
  *  The software is provided as is without warranties of
@@ -102,7 +102,7 @@ extern   UINT16 wSecCounter;          /* valid values: 0h .. ffffh */
 ERRCODE DebugSetFilterDetails(DBGFILT_TYPE bFilter, DBGDETDIR_TYPE bDetails)
 {
     ERRCODE wErrorCode = ERR_OK;            /* return value */
-#ifdef DEBUG
+#if(DEBUG==1)
     CHAR    szFilter[100] = "";
     STRING  szLevel;
     STRING  szDevice;
@@ -276,7 +276,7 @@ ERRCODE DebugSetFilterDetails(DBGFILT_TYPE bFilter, DBGDETDIR_TYPE bDetails)
  *********************************************************************** */
 ERRCODE DebugInitHW(void)
 {
-#ifdef DEBUG
+#if(DEBUG==1)
     /* port 6 usage as uart */
 #endif
     return ERR_OK;
@@ -295,16 +295,16 @@ ERRCODE DebugInit(DBGFILT_TYPE bFilter, DBGDETDIR_TYPE bDetails)
 {
    ERRCODE wErrorCode = ERR_OK;            /* return value */
 
-#ifdef DEBUG
+#if(DEBUG==1)
    wErrorCode = DebugInitHW();
    wErrorCode = DebugOut("\r\n\r\n# ----------------------------------------\r\n");
    wErrorCode = DebugOut("# WELCOME TO SIxO DEBUGGING ! \r\n");
    DebugSetFilterDetails(bFilter,bDetails);
-#ifdef MINIEMU
-   wErrorCode = DebugOut("# Debug Port:    UART0 \r\n");
-#else
-   wErrorCode = DebugOut("# Debug Port:    UART1 \r\n");
-#endif /* MINIEMU */
+   #if(MINIEMU==1)
+      wErrorCode = DebugOut("# Debug Port:    UART0 \r\n");
+   #else
+      wErrorCode = DebugOut("# Debug Port:    UART1 \r\n");
+   #endif /* MINIEMU */
    wErrorCode = DebugOut("# now starting..\r\n\r\n");
 #endif /* DEBUG */
    return wErrorCode;

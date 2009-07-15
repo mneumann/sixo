@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.2  2009/07/15 09:02:50  tuberkel
+ * D-Options reviewed
+ *
  * Revision 2.1  2009/07/08 21:49:04  tuberkel
  * Changed contact data: Ralf Krizsan ==> Ralf Schwarzer
  *
@@ -137,7 +140,7 @@
 
 /* ------------------------------------------------------------------ */
 /* standard usage */
-#ifdef DEBUG
+#if(DEBUG==1)
 #define DEF_DBGFILT   DBG_ALL                       // debug filter settings
 #define DEF_DBGDETDIR (DEF_DBGDET | DEF_DBGDIR)     // debug details & directions setting
 #else
@@ -203,7 +206,7 @@ ERRCODE DebugPrint(UINT8 chLevel, STRING szText, UINT16 wSrcLine, STRING szSrcFi
 
 
 /* ODS macros to be used in source modules */
-#ifdef DEBUG
+#if(DEBUG==1)
 #define ODS(dev,lvl,txt)                (void)DebugPrint(dev|lvl, txt, (UINT16)__LINE__, __FILE__)
 #define ODS1(dev,lvl,txt,a)             (void)DebugPrint(dev|lvl, txt, (UINT16)__LINE__, __FILE__, a)
 #define ODS2(dev,lvl,txt,a,b)           (void)DebugPrint(dev|lvl, txt, (UINT16)__LINE__, __FILE__, a,b)
@@ -229,7 +232,7 @@ ERRCODE DebugPrint(UINT8 chLevel, STRING szText, UINT16 wSrcLine, STRING szSrcFi
 /* @func | ASSERT	|  halt with debug message if result is zero .
  * @parm Pointer |	n	|     Pointer: if NULL ->  DEBUG_FATAL .
  */
-#ifdef DEBUG
+#if(DEBUG==1)
 #define ASSERT(n) /*lint -save -e506 -e792*/ \
         if (!(n)) { ODS(DBG_FATAL, 0, "Assertion: program halted"); InitFatalError((ERRCODE)(n),"Assert");}\
                            /*lint -restore*/

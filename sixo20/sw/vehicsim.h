@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.2  2009/07/15 09:01:48  tuberkel
+ * D-Options reviewed
+ *
  * Revision 2.1  2009/07/08 21:49:04  tuberkel
  * Changed contact data: Ralf Krizsan ==> Ralf Schwarzer
  *
@@ -83,6 +86,12 @@
 
 #ifndef _SIMULATOR_H
 #define _SIMULATOR_H
+
+
+/* main switch for this module */
+#ifndef VEHICSIM
+#define VEHICSIM    1   // default: vehicle simulaton supported
+#endif
 
 
 /* defines */

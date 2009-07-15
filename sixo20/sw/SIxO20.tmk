@@ -5,7 +5,7 @@
 # All Rights Reserved.
 #
 #	Notice	:	Don't edit.
-#	Date	:	2009 07(July) 08(Wednesday) PM.11.35
+#	Date	:	2009 07(July) 15(Wednesday) AM.10.51
 #	Project	:	SIxO20
 ####################################################################
 
@@ -29,8 +29,8 @@ ECHO	=	@-echo
 MKFILE	=	$(PROJECT).tmk
 PROJECT	=	SIxO20
 TYPE	=	@-type
-CFLAGS	=	-c -I. -silent -dir $(OUTDIR) -Wall -DVEHICSIM=1 -DLANG=0 -DCOMPASS_=0 -DDEBUG=1 -DMINIEMU=1 -finfo
-AFLAGS	=	-. -DCOMPASS=0:DEBUG=1:MINIEMU=1 -finfo -O$(OUTDIR)
+CFLAGS	=	-c -I. -silent -dir $(OUTDIR) -Wall -DDEBUG=0 -DMINIEMU=0 -DTESTSCREEN=0 -DDBGMSGQ=0 -finfo
+AFLAGS	=	-. -DCOMPASS=0:DEBUG=0:MINIEMU=0 -finfo -O$(OUTDIR)
 LFLAGS	=	-MS -L nc30lib -. -G -O $(OUTDIR)\$(TARGET)
 LIBFLAGS	=	-C
 UTLFLAGS	=	
@@ -409,7 +409,9 @@ $(OUTDIR)\introdev.r30: \
 		.\bitmaps.h \
 		$(MTOOLINC)\stdio.h \
 		$(MTOOLINC)\string.h \
-		.\resource_de.h 
+		.\resource_de.h \
+		.\measdrv.h \
+		.\vehicsim.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) introdev.c
 $(OUTDIR)\lapcdev.r30: \
 		.\lapcdev.c \

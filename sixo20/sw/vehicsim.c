@@ -69,6 +69,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.3  2009/07/15 09:01:26  tuberkel
+ * D-Options reviewed
+ *
  * Revision 2.2  2009/07/08 21:49:04  tuberkel
  * Changed contact data: Ralf Krizsan ==> Ralf Schwarzer
  *
@@ -88,10 +91,6 @@
  ************************************************************************ */
 
 
-/* main switch for this module */
-#if(VEHICSIM==1)
-
-
 
 /* includes */
 #include "m16c.h"
@@ -99,6 +98,10 @@
 #include "timer.h"
 #include "measdrv.h"
 #include "vehicsim.h"
+
+
+/* main switch for this module */
+#if(VEHICSIM==1)
 
 
 
@@ -113,7 +116,7 @@ static PSIM_TYPE    WheelSim;
 static PSIM_TYPE    RPMSim;
 
 
-/* speed simulation sequence */
+/* speed & rpm simulation sequence */
 SIMULCNTR SimulCntrl[] =
 {
     // km/h    km/h     RPM     RPM
@@ -300,13 +303,6 @@ void SimWheelSpeedSequence(void)
     }
     wLastSimCall = wThisSimCall;                            // save last call time
 }
-
-
-
-
-
-
-
 
 
 

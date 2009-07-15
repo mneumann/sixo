@@ -14,15 +14,15 @@ Version=V.5.00 Release 2
 [MEMBER]
 Count=8
 Name1=A+C-FLAG: MINIEMU
-Section1== 0 / 1 NOTE: Set both A-FLAGS & C-FLAGS !!!
+Section1== 0 / 1 (def:0)   ==> SEE NOTES!!!
 Mail1=if 1, activates KD30 V3.0 Monitor usage on Uart1
 TEL1=if DEBUG = 1, printf() is moved from Uart1 to Uart0
-ETC1=
+ETC1=Set both - A-FLAGS & C-FLAGS !!!
 Name2=A+C-FLAG: DEBUG
-Section2== 0 / 1 NOTE: Set both A-FLAGS & C-FLAGS !!!
+Section2== 0 / 1 (def:0)   ==> SEE NOTES!!!
 Mail2=if 1, activates DebugOut with printf() on Uart1 or Uart0 (see MINIEMU)
 TEL2=activates several modules debug code too
-ETC2=
+ETC2=Set both - A-FLAGS & C-FLAGS !!!
 Name3=C-FLAG: TOGGLE_PADS
 Section3== 0 / 1 (def:0)
 Mail3=if 1, enables usage of macros like TOGGLE_PAD27
@@ -34,14 +34,14 @@ Mail4=if 1, enables additional message queue debug outputs
 TEL4=only to be used with DEBUG defined
 ETC4=
 Name5=C-FLAG: VEHICSIM
-Section5== 0 / 1 (def:0)
+Section5== 0 / 1 (def:1)
 Mail5=if 1, enables RPM & WHEEL ISR calls form main loop
 TEL5=Only active if WHEELSIZE eq. exact 2000 mm!
 ETC5=ISR calls are not accurate, values might toggle a bit :-)
 Name6=C-FLAG: LANG
 Section6== 0..n (def:0)
-Mail6=0=DE, 1=EN-UK, 2=NL
-TEL6=selected language
+Mail6=selects language of firmware (german as default)
+TEL6=0=DE, 1=EN-UK, 2=NL
 ETC6=
 Name7=C-FLAG: HARDCOPY
 Section7== 0 / 1 (def:0)
@@ -49,10 +49,10 @@ Mail7=if 1, switching input HIGHBEAM to ON starts a ScreenDumps as BMP via Uart1
 TEL7=only to be used with DEBUG defined
 ETC7=to be used for documentation only
 Name8=A+C-FLAG: COMPASS
-Section8== 0 / 1 NOTE: Set both A-FLAGS & C-FLAGS !!!
+Section8== 0 / 1 (def:0)   ==> SEE NOTES!!!
 Mail8=if 1, enables use of COMPASS attached to Uart0
 TEL8=only two of COMPASS, DEBUG, MINIEMU can be defined
-ETC8=
+ETC8=Set both - A-FLAGS & C-FLAGS !!!
 Name9=C-FLAG: SENSOR_TOIL
 Section9=- / def
 Mail9=if defined, enables use of oil temperature sensor
