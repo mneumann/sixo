@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.11  2009/07/15 08:53:29  tuberkel
+ * Just comments
+ *
  * Revision 2.10  2009/07/08 21:49:03  tuberkel
  * Changed contact data: Ralf Krizsan ==> Ralf Schwarzer
  *
@@ -661,12 +664,18 @@ ERRCODE SetDeviceMsgEntry(MESSAGE GivenMsg)
             case MSG_KEY_DOWN:
             case MSG_DPL_FLASH_ON:
             case MSG_DPL_FLASH_OFF:
+
+                /* let the objects try the msg first */
                 if( RValue == ERR_MSG_NOT_PROCESSED )
-                    RValue = SetDeviceTryObjects(GivenMsg);                 // try all objects
+                    RValue = SetDeviceTryObjects(GivenMsg);
+
+                /* try to move focus (if possible) */
                 if( RValue == ERR_MSG_NOT_PROCESSED )
-                    RValue = SetDeviceStateMachine(GivenMsg);               // try move focus
+                    RValue = SetDeviceStateMachine(GivenMsg);
+
+                /* try to give focus to next device */
                 if (  (RValue == ERR_MSG_NOT_PROCESSED                    )
-                    &&(MSG_KEY_STATES(GivenMsg) == (KEYFL_UP | KEYFL_DOWN)) // try to give msg to next device
+                    &&(MSG_KEY_STATES(GivenMsg) == (KEYFL_UP | KEYFL_DOWN))
                     &&(MSG_KEY_DURATION(GivenMsg) < KEYSHORT              ) )
                 {
                     // give focus immediatly to next screen
@@ -786,7 +795,7 @@ ERRCODE SetDeviceStateMachine(MESSAGE Msg)
 
 
 /***********************************************************************
- *  FUNCTION:       SetDeviceStateMachine
+ *  FUNCTION:       SetDeviceSetFocus
  *  DESCRIPTION:    focus handles over all selectable objects
  *  PARAMETER:      new state to be set
  *  RETURN:         -
