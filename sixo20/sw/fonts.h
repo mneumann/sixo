@@ -76,6 +76,7 @@
 #define CHAR_ZERO       48
 #define CHAR_NINE       57
 #define CHAR_DBLPOINT   58
+#define CHAR_CROSS      88
 #define CHAR_SQRBRCK_L  91      /* [ */
 #define CHAR_SQRBRCK_R  93      /* ] */
 
@@ -86,6 +87,7 @@
 #define FREEASCIIFIRST 127  // first FREE DEFINED ascii char
 #define FREEASCIILAST  160  // last  FREE DEFINED ascii char
 #define EXTASCIIFIRST  161  // first EXTRA        ascii char
+#define SMALL_CROSS    164  // prepared '¤'
 #define EXTASCIILAST   255  // last  EXTRA        ascii char
 
 
