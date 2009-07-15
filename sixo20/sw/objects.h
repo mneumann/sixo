@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.2  2009/07/15 09:04:51  tuberkel
+ * NEW: Boolean edit object
+ *
  * Revision 2.1  2009/07/08 21:49:04  tuberkel
  * Changed contact data: Ralf Krizsan ==> Ralf Schwarzer
  *
@@ -512,7 +515,7 @@ typedef struct
 
 
 
-/* edit text object prototypes */
+/* edit number object prototypes */
 ERRCODE ObjEditNumMsgEntry( EDITNUMBEROBJECT far * fpObject, MESSAGE msg );
 ERRCODE ObjEditNumShow( EDITNUMBEROBJECT far * fpObject, UINT8 bUpdateMode );
 ERRCODE ObjEditNumInit( EDITNUMBEROBJECT far * fpObject,
@@ -541,6 +544,90 @@ UINT8 bCharToByte(CHAR cChar);
 
 
 
+
+
+
+/* ================================================ */
+/* EDIT BOOL OBJECT - edit boolean object data
+
+    edit boolean object features:
+
+        - ptr to external descriptor, edit boolean
+        - local buffer for edit work
+        - flickering cursor if edit mode active
+        - descriptor is left aligned, boolean right aligned
+        - fixed window width and boolean field length
+        - two dedicated symbols to show TRUE / FALSE: [x] / [ ]
+
+    boolean object behaviour:
+
+        - start edit mode by focusing and pressing ok key
+        - change boolean state with up/down key
+        - save state by pressing ok-key 1 second
+        - escape from edit mode by pressing up&down key together
+
+    boolean object examples (border is 'text window'):
+
+        +------------------------+
+        |decriptor:           [x]|
+        +------------------------+
+
+   ================================================ */
+
+
+/* ------------------------------------------- */
+/* EDIT BOOLEAN TYPES
+
+   used for boolean types only */
+
+
+/* object structure */
+typedef struct
+{
+    OBJSTATE        State;              /* bitfields to handle display state */
+    DISPLXY         Org;                /* origin in pixel coord. (0,0 = upper left) */
+    TXTWINDIM       Window;             /* text windows dimension (in chars units) */
+    DPLFONT         eFont;              /* used font */
+    BOOL far *      fpValue;            /* address of original boolean value */
+    STRING          szDescr;            /* address of description string (left aligned) */
+    BOOL far *      fpWorkValue;        /* address of buffer for edit work
+                                           (original number remains unchanged until [OK]) */
+} EDITBOOLOBJECT;
+
+
+/* init object structure */
+typedef struct
+{
+    EDITBOOLOBJECT far *    fpObject;
+    UINT16                  wOrgPosX;
+    UINT16                  wOrgPosY;
+    DPLFONT                 eFont;
+    UINT8                   bWindWidth;
+    BOOL far *              fpValue;
+    BOOL far *              fpWorkValue;
+    STRING                  szDescr;
+    UINT8                   bState;
+} EDITBOOL_INITTYPE;
+
+
+
+/* edit bool object prototypes */
+ERRCODE ObjEditBoolMsgEntry(EDITBOOLOBJECT far * fpObject, MESSAGE msg );
+ERRCODE ObjEditBoolShow(    EDITBOOLOBJECT far * fpObject, UINT8 bUpdateMode );
+ERRCODE ObjEditBoolInit(    EDITBOOLOBJECT far * fpObject,
+                            UINT16       wOrgPosX,
+                            UINT16       wOrgPosY,
+                            DPLFONT      eFont,
+                            UINT8        bWindWidth,
+                            BOOL far *   fpValue,
+                            BOOL far *   fpWorkValue,
+                            STRING       szDescr,
+                            UINT8        bState );
+
+#define EDITBOOL_TEXTFIELD  "[ ]"           // bool text field, icl. state 'FALSE'
+//#define EDITBOOL_TEXTTRUE   SMALL_CROSS     // state TRUE indicator
+#define EDITBOOL_TEXTTRUE   CHAR_HOOK_OK    // state TRUE indicator
+#define EDITBOOL_TEXTWIDTH  3               // length of the '[_]' icon
 
 #endif /* _OBJECTS_H */
 
