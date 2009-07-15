@@ -68,6 +68,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.6  2009/07/15 08:57:04  tuberkel
+ * - new TESTSCREEN texts
+ * - language settings renamed
+ *
  * Revision 2.5  2009/07/08 21:49:03  tuberkel
  * Changed contact data: Ralf Krizsan ==> Ralf Schwarzer
  *
@@ -103,33 +107,33 @@
 
 
 /****************************************  L A N G U A G E S  ****************************************/
-#define GERMAN		0
-#define ENGLISH_UK	1
-#define NETHERLANDS	2
+#define LANG_GERMAN		    0
+#define LANG_ENGLISH_UK	    1
+#define LANG_NETHERLANDS	2
 
 
-// set your language here	
-#ifndef LANG                    // may be controlled via project editor
-#define LANG		GERMAN		
+// set your language here
+#ifndef LANG                        // may be controlled via project editor
+#define LANG		LANG_GERMAN		// default: german
 #endif
 
 /*******************************************  G E R M A N  *******************************************/
-#if LANG == GERMAN
+#if LANG == LANG_GERMAN
 #include "resource_de.h"
 
 
 /************************************** E N G L I S H   U K  ***************************************/
-#elif LANG == ENGLISH_UK
+#elif LANG == LANG_ENGLISH_UK
 #include "resource_en_uk.h"
 
 
 /************************************** N E T H E R L A N D S ***************************************/
-#elif LANG == NETHERLANDS
+#elif LANG == LANG_NETHERLANDS
 #include "resource_nl.h"
 
 
 /****************************************************************************************************/
-#else 
+#else
 #error Undefined Language!
 #endif
 
@@ -217,32 +221,39 @@ Note: We use the Text-Object property to automatically
 
 
 /* test resources */
-#define RESTXT_TEST1    "Eingabetest"
-#define RESTXT_TEST2    "12340"
-#define RESTXT_TEST3    "BMW"
-                      /*!....!....!....!....!.*/
-#define RESTXT_TEST4    "Hey Mann, das ist ein" \
-                        "sehr langer Text, der" \
-                        "aus dem ROM kommt und" \
-                        "deshalb das RAM kaum " \
-                        "belastet. Trotzdem   " \
-                        "sollte er in das def-" \
-                        "inierte Fenster pas- " \
-                        "sen, allerding etwas " \
-                        "wirkürlich umgebroch-" \
-                        "en."
-                      /*!....!....!....!....!....!....!..*/
-#define RESTXT_TEST5    "Hey Mann, das ist ein sehr lan- " \
-                        "ger Text, der aus dem ROM kommt " \
-                        "und deshalb das RAM kaum belas- " \
-                        "tet. Trotzdem sollte er in das  " \
-                        "definierte Fenster passen, aller" \
-                        "ding etwas willkürlich umgebroch" \
-                        "en."
-                      /*!....!....!....!.*/
-#define RESTXT_TEST6    "  Hey Mann, das " \
-                        "  ist ein sehr  " \
-                        "  langer Text!  "
+                            /*!....!....!....!....!.*/
+
+#define RESTXT_TEST_GUITEST   "     > GUI-Test <    "
+
+#define RESTXT_TEST_ET_DSC    "EditText:"
+#define RESTXT_TEST_EN_DSC    "EditN32:"
+#define RESTXT_TEST_EN_UNIT   " units"
+#define RESTXT_TEST_EB_DSC    "EditBool:"
+
+#define RESTXT_TEST3          "BMW"
+                            /*!....!....!....!....!.*/
+#define RESTXT_TEST4          "Hey Mann, das ist ein" \
+                              "sehr langer Text, der" \
+                              "aus dem ROM kommt und" \
+                              "deshalb das RAM kaum " \
+                              "belastet. Trotzdem   " \
+                              "sollte er in das def-" \
+                              "inierte Fenster pas- " \
+                              "sen, allerding etwas " \
+                              "wirkürlich umgebroch-" \
+                              "en."
+                            /*!....!....!....!....!....!....!..*/
+#define RESTXT_TEST5          "Hey Mann, das ist ein sehr lan- " \
+                              "ger Text, der aus dem ROM kommt " \
+                              "und deshalb das RAM kaum belas- " \
+                              "tet. Trotzdem sollte er in das  " \
+                              "definierte Fenster passen, aller" \
+                              "ding etwas willkürlich umgebroch" \
+                              "en."
+                            /*!....!....!....!.*/
+#define RESTXT_TEST6          "  Hey Mann, das " \
+                              "  ist ein sehr  " \
+                              "  langer Text!  "
 
 
 #endif /* _RESOURCE_H */
