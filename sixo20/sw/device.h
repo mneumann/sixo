@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.2  2009/07/15 09:03:27  tuberkel
+ * NEW: #define TESTSCREEN for GUI Tests
+ *
  * Revision 2.1  2009/07/08 21:49:04  tuberkel
  * Changed contact data: Ralf Krizsan ==> Ralf Schwarzer
  *
@@ -93,20 +96,24 @@
 typedef enum
 {
     DEVID_UNKNOWN,          // to unknown recipient device
+
+    // these devices are currently supported
     DEVID_ALL,              // to all devices
     DEVID_MAIN,             // Main device
     DEVID_INTRO,            // IntroScreen device
     DEVID_TRIPCOUNT,        // TripCounter device
     DEVID_SET,              // Settings device
+    DEVID_STATISTIC,        // Statistic device
+    DEVID_LAPCNT,           // LapCounter device
+    DEVID_HWTEST,           // HW test Device
+
+    // these device IDs are prepared for future use
     DEVID_MENU,             // Menu device
-    DEVID_TEST,             // Test device
     DEVID_DIAGN,            // Diagnose device
     DEVID_DEBUG,            // Debug device
     DEVID_WARNING,          // Warning device
     DEVID_MONITOR,          // Monitor device
-    DEVID_STATISTIC,        // Statistic device
-    DEVID_LAPCNT,           // LapCounter device
-    DEVID_HWTEST,           // HW test Device
+    DEVID_TESTSCREEN,       // Testscreen device
     DEVID_LAST              // invalid ID
 } DEVICE_ID;
 
@@ -131,7 +138,6 @@ typedef struct
     char    cCurrentLap:4;  // currently focused (active) lap, valid 0..15
 
 } LCSTATE_TYPE;
-
 #define LAPS_MAX    16  // we have 16 laps max
 
 
@@ -189,13 +195,16 @@ void    HWTestDeviceShow(BOOL fShow);
 ERRCODE HWTestDeviceMsgEntry(MESSAGE msg);
 
 /* test device (for development purpose only) */
+#ifndef TESTSCREEN
+#define TESTSCREEN 0
+#endif
+
+#if(TESTSCREEN==1)
 ERRCODE TestScreenInit(void);
 void    TestScreenShow(BOOL fShow);
 ERRCODE TestScreenMsgEntry(MESSAGE msg);
-void    Test_TestScreenStartMsg(void);
-void    Test_ValueInkrMsg(MESSAGE GivenMsg);
-INT16   Test_ValueInkr(MESSAGE KeyMsg);
-
+void    TestScreenStartMsg(UINT16);
+#endif// TESTSCREEN
 
 
 #endif /* _DEVICES_H */

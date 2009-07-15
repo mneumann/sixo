@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.4  2009/07/15 09:00:52  tuberkel
+ * NEW: #define TESTSCREEN for GUI Tests
+ *
  * Revision 2.3  2009/07/08 21:49:03  tuberkel
  * Changed contact data: Ralf Krizsan ==> Ralf Schwarzer
  *
@@ -393,8 +396,10 @@ ERRCODE MsgQPumpMsg(MESSAGE_ID bID)
           if (err == ERR_MSG_NOT_PROCESSED)     /* settings device */
             err = SetDeviceMsgEntry(msg);
 
+          #if(TESTSCREEN==1)
           if (err == ERR_MSG_NOT_PROCESSED)
             err = TestScreenMsgEntry(msg);      /* device 'test screen' */
+          #endif //(TESTSCREEN==1)
 
           if (err == ERR_MSG_NOT_PROCESSED)
             err = LEDMsgEntry(msg);             /* LED service */
@@ -511,22 +516,25 @@ STRING MsgQGiveMsgAsString(MESSAGE_ID bID)
 
     switch(bID)
     {
-        case MSG_NULL_MSG:        szBuffer = "MSG_NULL_MSG"; break;
-        case MSG_TIMER:           szBuffer = "MSG_TIMER"; break;
-        case MSG_KEY_OK:          szBuffer = "MSG_KEY_OK"; break;
-        case MSG_KEY_UP:          szBuffer = "MSG_KEY_UP"; break;
-        case MSG_KEY_DOWN:        szBuffer = "MSG_KEY_DOWN"; break;
-        case MSG_KEYS_PRESSED:    szBuffer = "MSG_KEYS_PRESSED"; break;
-        case MSG_DPL_FLASH_ON:    szBuffer = "MSG_DPL_FLASH_ON"; break;
-        case MSG_DPL_FLASH_OFF:   szBuffer = "MSG_DPL_FLASH_OFF"; break;
-        case MSG_LED_SET:         szBuffer = "MSG_LED_SET"; break;
-        case MSG_LED_ON:          szBuffer = "MSG_LED_ON"; break;
-        case MSG_LED_OFF:         szBuffer = "MSG_LED_OFF"; break;
-        case MSG_GET_FOCUS:       szBuffer = "MSG_GET_FOCUS"; break;
-        case MSG_SET_FOCUS:       szBuffer = "MSG_SET_FOCUS"; break;
-        case MSG_SCREEN_REFRESH:  szBuffer = "MSG_SCREEN_REFRESH"; break;
-        case MSG_COMPASS_REFRESH: szBuffer = "MSG_COMPASS_REFRESH"; break;
-        default: szBuffer = "UNKNOWN MESSAGE!"; break;
+        case MSG_NULL_MSG:                  szBuffer = "MSG_NULL_MSG"; break;
+        case MSG_TIMER:                     szBuffer = "MSG_TIMER"; break;
+        case MSG_KEY_OK:                    szBuffer = "MSG_KEY_OK"; break;
+        case MSG_KEY_UP:                    szBuffer = "MSG_KEY_UP"; break;
+        case MSG_KEY_DOWN:                  szBuffer = "MSG_KEY_DOWN"; break;
+        case MSG_KEYS_PRESSED:              szBuffer = "MSG_KEYS_PRESSED"; break;
+        case MSG_DPL_FLASH_ON:              szBuffer = "MSG_DPL_FLASH_ON"; break;
+        case MSG_DPL_FLASH_OFF:             szBuffer = "MSG_DPL_FLASH_OFF"; break;
+        case MSG_LED_SET:                   szBuffer = "MSG_LED_SET"; break;
+        case MSG_LED_ON:                    szBuffer = "MSG_LED_ON"; break;
+        case MSG_LED_OFF:                   szBuffer = "MSG_LED_OFF"; break;
+        case MSG_GET_FOCUS:                 szBuffer = "MSG_GET_FOCUS"; break;
+        case MSG_SET_FOCUS:                 szBuffer = "MSG_SET_FOCUS"; break;
+        case MSG_SCREEN_REFRESH:            szBuffer = "MSG_SCREEN_REFRESH"; break;
+        case MSG_COMPASS_REFRESH:           szBuffer = "MSG_COMPASS_REFRESH"; break;
+        case MSG_TIMEDATE_SECOND_GONE:      szBuffer = "MSG_TIMEDATE_SECOND_GONE"; break;
+        case MSG_MAINDEV_VEHIC_STATE_SHOW:  szBuffer = "MSG_MAINDEV_VEHIC_STATE_SHOW"; break;
+        case MSG_MAINDEV_VEHIC_STATE_HIDE:  szBuffer = "MSG_MAINDEV_VEHIC_STATE_HIDE"; break;
+        default:                            szBuffer = "UNKNOWN MESSAGE!"; break;
     }
     return szBuffer;
 }
