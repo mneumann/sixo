@@ -69,6 +69,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.8  2009/07/15 08:55:11  tuberkel
+ * additional includes for global #defines
+ *
  * Revision 2.7  2009/07/08 21:49:03  tuberkel
  * Changed contact data: Ralf Krizsan ==> Ralf Schwarzer
  *
@@ -126,7 +129,8 @@
 #include "digindrv.h"
 #include "sysparam.h"
 #include "bitmaps.h"
-
+#include "measdrv.h"
+#include "vehicsim.h"
 
 
 
