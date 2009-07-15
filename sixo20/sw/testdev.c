@@ -69,6 +69,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.2  2009/07/15 09:05:29  tuberkel
+ * - completely reviewed for GUI tests
+ *
  * Revision 2.1  2009/07/08 21:49:04  tuberkel
  * Changed contact data: Ralf Krizsan ==> Ralf Schwarzer
  *
@@ -96,35 +99,50 @@
 #include "sysparam.h"
 
 
+/* main switch for this module */
+#if(TESTSCREEN==1)
+
+
 /* device static objects */
 static DEVDATA      TestScreenDev;
-static TEXTOBJECT   TextObj1;
-static TEXTOBJECT   TextObj2;
-static UINT16       wTestValue = 8877;
-const static CHAR   szFormat[] = "%5d";
-static CHAR         szBuffer[20];
 
-/* text object */
-static EDITTEXTOBJECT   EditTextObj1;
-static CHAR             szDescr1[] = "Lower:";
-static CHAR             szEditText1[] = "abcdefgh";
 
-/* number object */
-extern UINT16           wWheelSize;                         /* original wheel size from eeprom in mm */
-static UINT16           wWheelSizeCopy;                     /* copy value to edit */
-static EDITNUMBEROBJECT EditWheelSizeObj;                   /* complete number object */
-static CHAR             szWheelSizeDescr[] = RESTXT_SET_WHEELSIZEDESC;  /* descriptor string */
-static CHAR             szWheelSizeUnits[] = RESTXT_SET_WHEELSIZEUNIT;   /* units string */
-static UINT32           dwTest32 = 99000;
-static UINT32            dwTest32Copy;
+/* static headline text object */
+static TEXTOBJECT   TextObj_Headline;
+
+
+/* edit text object */
+static EDITTEXTOBJECT   EditTextObj;
+static CHAR             szEditTextDescr[]    = "EditText:";
+static CHAR             szEditTextBuffer[20] = "abcdefgh";
+
+
+/* edit number object */
+static EDITNUMBEROBJECT EditNumObj;                 /* complete number object */
+static UINT32           dwEditNumValue = 99000;     /* object value */
+
+
+/* edit bool object */
+static EDITBOOLOBJECT   EditBoolObj;                /* complete boolean object */
+static BOOL             bEditBoolValue = FALSE;     /* object value */
+
 
 /* external symbols */
 extern UINT16           wMilliSecCounter;       // valid values: 0h .. ffffh
 extern STRING far       szDevName[];            // device names
 extern SYSFLAGS_TYPE    gSystemFlags;           /* system parameters */
 
+
+/* some helper / buffer variables */
+static UINT32           dwEditBuffer;
+static CHAR             szBuffer[32];
+static BOOL             bEditBoolBuffer;
+
 /* internal prototypes */
-INT16 Test_ValueInkr(MESSAGE msg);
+ERRCODE TestScreenSetFocus(MESSAGE GivenMsg);
+
+
+
 
 
 /***********************************************************************
@@ -138,44 +156,54 @@ INT16 Test_ValueInkr(MESSAGE msg);
 ERRCODE TestScreenInit(void)
 {
     /* device main data */
-    TestScreenDev.eDevID       = DEVID_TEST;
-    TestScreenDev.szDevName    = szDevName[DEVID_TEST];
+    TestScreenDev.eDevID       = DEVID_TESTSCREEN;
+    TestScreenDev.szDevName    = szDevName[DEVID_TESTSCREEN];
     TestScreenDev.fFocused     = FALSE;
     TestScreenDev.fScreenInit  = FALSE;
 
-    /* init objects */
-    sprintf(szBuffer,szFormat, wTestValue);
-
     /* Headline */
-    ObjTextInit(    &TextObj1,
-                    0, 0, DPLFONT_8X16, 1, 16, TXT_CENTER, TXT_UNDERL,
-                    RESTXT_TEST1,
+    ObjTextInit(    &TextObj_Headline,
+                    0, 0, DPLFONT_6X8, 1, 21, TXT_CENTER, TXT_INVERS,
+                    RESTXT_TEST_GUITEST,
                     OC_DISPL );
 
-    /* edit field 1 */
-    ObjEditTextInit(    &EditTextObj1,
-                        5, 25, DPLFONT_6X8, 16,
-                        szEditText1, szDescr1, 3,
-                        CHARL_LOWER,
-                        OC_DISPL | OC_SELECT | OC_EDIT );
+    /* edit text field */
+    ObjEditTextInit(    &EditTextObj,       // object to be initilized
+                        0, 10,              // X / Y origin
+                        DPLFONT_6X8,        // used font
+                        21,                 // overall window width in chars
+                        szEditTextBuffer,   // pointer to original value
+                        RESTXT_TEST_ET_DSC, // descriptor string
+                        10,                 // edit field length in chars
+                        CHARL_LOWER,        // available character list
+                        OC_DISPL | OC_SELECT | OC_EDIT );   // init states
 
     /* number object */
-    ObjEditNumInit( &EditWheelSizeObj,      // object to be initilized
-                    0, 35,                  // X / Y origin
+    ObjEditNumInit( &EditNumObj,            // object to be initilized
+                    0, 20,                  // X / Y origin
                     DPLFONT_6X8,            // used font
                     21,                     // overall window width in chars
-                    &dwTest32,              // pointer to original value
-                    &dwTest32Copy,          // pointer to work copy buffer
+                    &dwEditNumValue,        // pointer to original value
+                    &dwEditBuffer,          // pointer to work copy buffer
                     eULONG,0L, 999999L, 0L, // type of number, min, max Limits, stepsize
                     eDez, eColumn, 0,       // dez display format, column edit mode, comma pos
-                    "",//szWheelSizeDescr,       // descriptor string
-                    "",//szWheelSizeUnits,       // units string
+                    RESTXT_TEST_EN_DSC,     // descriptor string
+                    RESTXT_TEST_EN_UNIT,    // units string
                     6,                      // edit field length in chars
                     OC_DISPL | OC_SELECT | OC_EDIT ); // init states
 
-    /* TEST */
-    //Test_TestScreenStartMsg();
+    /* number object */
+    ObjEditBoolInit(&EditBoolObj,           // object to be initilized
+                    0, 30,                  // X / Y origin
+                    DPLFONT_6X8,            // used font
+                    21,                     // overall window width in chars
+                    &bEditBoolValue,        // pointer to original value
+                    &bEditBoolBuffer,       // pointer to work copy buffer
+                    RESTXT_TEST_EB_DSC,     // descriptor string
+                    OC_DISPL | OC_SELECT | OC_EDIT ); // init states
 
+    /* set edit text object focused per default */
+    EditTextObj.State.bits.fSelected = TRUE;
 
     return ERR_OK;
 }
@@ -184,22 +212,21 @@ ERRCODE TestScreenInit(void)
  *  FUNCTION:       TestScreenShow
  *  DESCRIPTION:    bring updated 'test screen device' to display
  *                  by calling Show-Fct. of all objects
- *  PARAMETER:      -
+ *  PARAMETER:      fShow   if TRUE, then shows all
+ *                          if FALSE, then clears all
  *  RETURN:         -
  *  COMMENT:        -
  *********************************************************************** */
 void TestScreenShow(BOOL fShow)
 {
-    /* update data */
-    sprintf(szBuffer,szFormat, wTestValue);
-
     /* its on screen? */
     if (fShow == TRUE)
     {
         /* show objects */
-        ObjTextShow( &TextObj1 );
-        ObjEditTextShow( &EditTextObj1, SHOW_ALL);
-        ObjEditNumShow( &EditWheelSizeObj, SHOW_ALL);
+        ObjTextShow    ( &TextObj_Headline );
+        ObjEditTextShow( &EditTextObj, SHOW_ALL);
+        ObjEditNumShow ( &EditNumObj, SHOW_ALL);
+        ObjEditBoolShow( &EditBoolObj, SHOW_ALL);
         TestScreenDev.fScreenInit = TRUE;
     }
     else
@@ -224,7 +251,6 @@ ERRCODE TestScreenMsgEntry(MESSAGE GivenMsg)
     MESSAGE_ID  MsgId;
     MESSAGE     NewMsg;
 
-
     /* analyze message: it's for us? */
     MsgId = MSG_ID(GivenMsg);        /* get message id */
     switch (MsgId)
@@ -239,36 +265,36 @@ ERRCODE TestScreenMsgEntry(MESSAGE GivenMsg)
                 ODS2(   DBG_SYS, DBG_INFO,
                         "%s wants to have focus from %s!",
                         szDevName[MSG_SENDER_ID(GivenMsg)],
-                        szDevName[DEVID_TEST]);
-                MSG_BUILD_SETFOCUS(NewMsg,DEVID_TEST,MSG_SENDER_ID(GivenMsg));   /* build answer message */
-                RValue = MsgQPostMsg(NewMsg, MSGQ_PRIO_LOW);                            /* send answer message */
-                TestScreenDev.fFocused = FALSE;                                        /* clear our focus */
-                TestScreenShow(FALSE);                                                 /* clear our screen */
+                        szDevName[DEVID_TESTSCREEN]);
+                MSG_BUILD_SETFOCUS(NewMsg,DEVID_TESTSCREEN,MSG_SENDER_ID(GivenMsg));   /* build answer message */
+                RValue = MsgQPostMsg(NewMsg, MSGQ_PRIO_LOW);                     /* send answer message */
+                TestScreenDev.fFocused = FALSE;                                  /* clear our focus */
+                TestScreenShow(TRUE);                                            /* clear our screen */
                 RValue = ERR_MSG_PROCESSED;
             }
         } break;
         case MSG_SET_FOCUS:
         {
             /* messsage for us? */
-            if (MSG_RECEIVER_ID(GivenMsg) == DEVID_TEST)
+            if (MSG_RECEIVER_ID(GivenMsg) == DEVID_TESTSCREEN)
             {
                 /*  Someone wants us to take the focus?
                     We assume, that nobody else has the focus
                     and we've got the the screen now for us! */
                 if (  (TestScreenDev.fFocused   == TRUE             )
-                    &&(MSG_RECEIVER_ID(GivenMsg) == DEVID_TEST) )
+                    &&(MSG_RECEIVER_ID(GivenMsg) == DEVID_TESTSCREEN) )
                     ODS2(   DBG_SYS, DBG_WARNING,
                             "FOCUS: %s -> %s, but it already has focus!",
                             szDevName[MSG_SENDER_ID(GivenMsg)],
-                            szDevName[DEVID_TEST]);
+                            szDevName[DEVID_TESTSCREEN]);
                 else /*
                     ODS2(   DBG_SYS, DBG_INFO,
                             "FOCUS: %s -> %s!",
                             szDevName[MSG_SENDER_ID(GivenMsg)],
-                            szDevName[DEVID_TEST]) */ ;
+                            szDevName[DEVID_TESTSCREEN]) */ ;
                 TestScreenDev.fFocused = TRUE;                          /* set our focus */
-                TestScreenShow(TRUE);                                   /* show our screen */
-                gSystemFlags.flags.ActDevNr = DEVID_TEST;               /* save device# for restore */
+                TestScreenShow(FALSE);                                  /* show our screen */
+                gSystemFlags.flags.ActDevNr = DEVID_TESTSCREEN;               /* save device# for restore */
                 RValue = ERR_MSG_PROCESSED;
              }
              else
@@ -282,11 +308,11 @@ ERRCODE TestScreenMsgEntry(MESSAGE GivenMsg)
                             "FOCUS: %s -> %s, but %s had focus!",
                             szDevName[MSG_SENDER_ID(GivenMsg)],
                             szDevName[MSG_RECEIVER_ID(GivenMsg)],
-                            szDevName[DEVID_TEST]);
+                            szDevName[DEVID_TESTSCREEN]);
                     TestScreenDev.fFocused = FALSE;                        /* loose our focus */
                     ODS1(   DBG_SYS, DBG_WARNING,
                             "%s now loosing focus :-( ",
-                            szDevName[DEVID_TEST]);
+                            szDevName[DEVID_TESTSCREEN]);
                     RValue = ERR_MSG_PROCESSED;
                 }
              }
@@ -300,26 +326,35 @@ ERRCODE TestScreenMsgEntry(MESSAGE GivenMsg)
     {
         switch (MsgId)
         {
+            /* ------------------------------------------------------------ */
+            /* The system tells focused device to refresh its screen! */
             case MSG_SCREEN_REFRESH:
-                TestScreenShow(TRUE);              /*  The system tells focused device to refresh its screen! */
+                TestScreenShow(TRUE);
                 RValue = ERR_MSG_PROCESSED;
                 break;
 
+            /* ------------------------------------------------------------ */
             /* all these messages handled by objects */
             case MSG_DPL_FLASH_ON:
             case MSG_DPL_FLASH_OFF:
             case MSG_KEY_OK:
             case MSG_KEYS_PRESSED:
+            case MSG_KEY_UP:
+            case MSG_KEY_DOWN:
+
+                /* let one of the objects use the msg */
                 if (RValue == ERR_MSG_NOT_PROCESSED)
-                    RValue = ObjEditTextMsgEntry(&EditTextObj1, GivenMsg);
+                    RValue = ObjEditTextMsgEntry(&EditTextObj, GivenMsg);
                 if (RValue == ERR_MSG_NOT_PROCESSED)
-                    RValue = ObjEditNumMsgEntry(&EditWheelSizeObj, GivenMsg);
-                if (RValue == ERR_MSG_PROCESSED)
-                {
-                    /* something changed -> Refresh! */
-                    TestScreenShow(TRUE);
-                }
-                /* check if UP&DOWN are pressed */
+                    RValue = ObjEditNumMsgEntry(&EditNumObj, GivenMsg);
+                if (RValue == ERR_MSG_NOT_PROCESSED)
+                    RValue = ObjEditBoolMsgEntry(&EditBoolObj, GivenMsg);
+
+                /* try to move focus to next object */
+                if (RValue == ERR_MSG_NOT_PROCESSED)
+                    RValue = TestScreenSetFocus(GivenMsg);
+
+                /* try to give focus to next device */
                 if (  (RValue == ERR_MSG_NOT_PROCESSED      )
                     &&(MSG_KEY_STATES(GivenMsg) == (KEYFL_UP | KEYFL_DOWN))
                     &&(MSG_KEY_DURATION(GivenMsg) < KEYSHORT              ) )
@@ -327,153 +362,100 @@ ERRCODE TestScreenMsgEntry(MESSAGE GivenMsg)
                     /* give focus immediatly to IntroScreen */
                     TestScreenDev.fFocused = FALSE;                         /* clear our focus */
                     TestScreenShow(FALSE);                                  /* clear our screen */
-                    MSG_BUILD_SETFOCUS(NewMsg, DEVID_TEST, DEVID_INTRO);
+
+                    // just test: stay inside DEVID_TESTSCREEN!
+                    //MSG_BUILD_SETFOCUS(NewMsg, DEVID_TESTSCREEN, DEVID_TESTSCREEN);
+                    MSG_BUILD_SETFOCUS(NewMsg, DEVID_TESTSCREEN, DEVID_INTRO);
                     MsgQPostMsg(NewMsg, MSGQ_PRIO_LOW);
                     RValue = ERR_MSG_PROCESSED;
                 }
-                break;
-            case MSG_KEY_UP:
-                ObjEditTextMsgEntry(&EditTextObj1, GivenMsg);
-                ObjEditNumMsgEntry(&EditWheelSizeObj, GivenMsg);
-                if (  (EditTextObj1.State.bits.fEditActive == FALSE)
-                    &&(EditWheelSizeObj.State.bits.fEditActive == FALSE) )
-                {
-                    EditTextObj1.State.bits.fSelected = TRUE;
-                    EditWheelSizeObj.State.bits.fSelected = FALSE;
-                }
+
+                /* something changed -> Refresh! */
                 TestScreenShow(TRUE);
-                RValue = ERR_MSG_PROCESSED;
                 break;
-            case MSG_KEY_DOWN:
-                if (  (EditTextObj1.State.bits.fEditActive == TRUE)
-                    ||(EditWheelSizeObj.State.bits.fEditActive == TRUE) )
-                {
-                    ObjEditTextMsgEntry(&EditTextObj1, GivenMsg);
-                    ObjEditNumMsgEntry(&EditWheelSizeObj, GivenMsg);
-                }
-                else
-                {
-                    EditTextObj1.State.bits.fSelected = FALSE;
-                    EditWheelSizeObj.State.bits.fSelected = TRUE;
-                }
-                TestScreenShow(TRUE);
-                RValue = ERR_MSG_PROCESSED;
-                break;
-            default: return ERR_MSG_NOT_PROCESSED;
+
+            /* ------------------------------------------------------------ */
+            default:
+                return ERR_MSG_NOT_PROCESSED;
         }
     }
     return RValue;
 }
 
-
-
-
-
-void Test_TestScreenStartMsg(void)
-{
-    MESSAGE NewMsg;
-    ERRCODE RValue;
-
-    /* Test A: get focus after 2 sec from 'unknown' */
-    MSG_BUILD_SETFOCUS( NewMsg, DEVID_UNKNOWN, DEVID_TEST);
-    RValue = SetTimerMsg(NewMsg, MS2TICKS(20));
-
-    /* Test B: loose focus after 4 sec to 'unknown' */
-    //MSG_BUILD_GETFOCUS( NewMsg, DEVID_ALL, DEVID_UNKNOWN);
-    //RValue = SetTimerMsg(NewMsg, SEC2TICKS(4));
-
-    /* Test C: reset  focus after 6 sec to 'unknown' */
-    //MSG_BUILD_SETFOCUS( NewMsg, DEVID_UNKNOWN, DEVID_TEST);
-    //RValue = SetTimerMsg(NewMsg, SEC2TICKS(6));
-}
-
-
-
-
-
-void Test_ValueInkrMsg(MESSAGE GivenMsg)
+/***********************************************************************
+ *  FUNCTION:       TestScreenSetFocus
+ *  DESCRIPTION:    focus handles over all selectable objects
+ *  PARAMETER:      new state to be set
+ *  RETURN:         -
+ *  COMMENT:        -
+ *********************************************************************** */
+ERRCODE TestScreenSetFocus(MESSAGE GivenMsg)
 {
     ERRCODE     RValue = ERR_MSG_NOT_PROCESSED;
     MESSAGE_ID  MsgId;
-    MESSAGE     NewMsg;
-
-    /* Test */
     MsgId = MSG_ID(GivenMsg);        /* get message id */
-    switch (MsgId)
+
+    // check: use only first pressed msg!
+    if(MSG_KEY_TRANSITION(GivenMsg) != KEYTRANS_PRESSED)
+        return (RValue);
+
+    // check: none of the objects is still in edit mode?
+    if (  (EditTextObj.State.bits.fEditActive == FALSE)
+        &&(EditNumObj.State.bits.fEditActive  == FALSE)
+        &&(EditBoolObj.State.bits.fEditActive == FALSE) )
     {
-        case MSG_KEY_UP:
-            wTestValue += Test_ValueInkr(GivenMsg);
-            if ( TestScreenDev.fFocused == TRUE )
-            {
-                TestScreenShow(TRUE);
+        // ok: try to move the focus down:
+        if (MsgId == MSG_KEY_DOWN)
+        {
+            // msg processed anyway
+            RValue = ERR_MSG_PROCESSED;
+
+            // try to move from EditTextObj => EditNumObj
+            if (EditTextObj.State.bits.fSelected == TRUE)
+            {   EditTextObj.State.bits.fSelected = FALSE;
+                EditNumObj.State.bits.fSelected  = TRUE;
+                EditBoolObj.State.bits.fSelected = FALSE;
             }
-            break;
-        case MSG_KEY_DOWN:
-            wTestValue -= Test_ValueInkr(GivenMsg);
-            if (wTestValue < 0)
-                wTestValue = 0;
-            {
-                TestScreenShow(TRUE);            }
-            break;
-        case MSG_KEY_OK:
-            wTestValue = 0;
-            if ( TestScreenDev.fFocused == TRUE )
-                TestScreenShow(TRUE);
-            break;
-        default: RValue = ERR_MSG_NOT_PROCESSED;
+            // try to move from EditNumObj => EditBoolObj
+            else if (EditNumObj.State.bits.fSelected == TRUE)
+            {   EditTextObj.State.bits.fSelected = FALSE;
+                EditNumObj.State.bits.fSelected  = FALSE;
+                EditBoolObj.State.bits.fSelected = TRUE;
+            }
+            else
+            {   // already reached lowest element
+            }
+        }
+        // ok: try to move the focus down:
+        else if (MsgId == MSG_KEY_UP)
+        {
+            // msg processed anyway
+            RValue = ERR_MSG_PROCESSED;
+
+            // try to move from EditBoolObj => EditNumObj
+            if (EditBoolObj.State.bits.fSelected == TRUE)
+            {   EditTextObj.State.bits.fSelected = FALSE;
+                EditNumObj.State.bits.fSelected  = TRUE;
+                EditBoolObj.State.bits.fSelected = FALSE;
+            }
+            // try to move from EditNumObj => EditTextObj
+            else if (EditNumObj.State.bits.fSelected == TRUE)
+            {   EditTextObj.State.bits.fSelected = TRUE;
+                EditNumObj.State.bits.fSelected  = FALSE;
+                EditBoolObj.State.bits.fSelected = FALSE;
+            }
+            else
+            {   // already reached most top element
+            }
+        }
+        else
+        {   // not a UP/DOWN msg!
+        }
     }
+    return (RValue);
 }
 
 
 
 
-INT16 Test_ValueInkr(MESSAGE KeyMsg)
-{
-    static UINT16 wLastInkr_ms = 0;
-    UINT16      wActInkr_ms = 0;
-    UINT16      wDuration;
-    KEYTRANSIT  KeyTransition;
-    UINT16      wInterval;
-
-    /* get a time stamp */
-    TimerGetSys_msec(wActInkr_ms);
-
-    /* first message? */
-    KeyTransition = MSG_KEY_TRANSITION(KeyMsg);
-    if (KeyTransition == KEYTRANS_PRESSED)
-    {
-        wLastInkr_ms = wActInkr_ms;
-        return 1;
-    }
-
-    /* set dynamic key interval */
-    wDuration = MSG_KEY_DURATION(KeyMsg);
-    if (wDuration < 3000)
-        wInterval = 300;
-    else if (wDuration < 8000)
-        wInterval = 500;
-    else if (wDuration < 16000)
-        wInterval = 800;
-    else if (wDuration < 24000)
-        wInterval = 800;
-    else wInterval = 800;
-
-    /* longer pressed, time to update? */
-    if (  ((wActInkr_ms - wLastInkr_ms) > wInterval)
-        &&(KeyTransition == KEYTRANS_ON      ) )
-    {
-        wLastInkr_ms = wActInkr_ms;
-
-        /* set return value */
-        if (wDuration < 3000)
-            return 1;
-        else if (wDuration < 8000)
-            return 10;
-        else if (wDuration < 16000)
-            return 100;
-        else if (wDuration < 24000)
-            return 1000;
-        else return 10000;
-    }
-    else return 0;
-}
+#endif // TESTSCREEN
