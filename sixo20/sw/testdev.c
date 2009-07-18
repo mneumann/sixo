@@ -69,6 +69,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.3  2009/07/18 06:29:57  tuberkel
+ * - NEW: SelectObject
+ *
  * Revision 2.2  2009/07/15 09:05:29  tuberkel
  * - completely reviewed for GUI tests
  *
@@ -126,6 +129,16 @@ static UINT32           dwEditNumValue = 99000;     /* object value */
 static EDITBOOLOBJECT   EditBoolObj;                /* complete boolean object */
 static BOOL             bEditBoolValue = FALSE;     /* object value */
 
+/* select object */
+static SELECTOBJECT     SelectObj;                  /* complete select object */
+static UINT8            u8SelectValue = FALSE;      /* object value */
+static const STRING     pszSelectList[RESTXT_TEST_SLCT_MAX] =
+                        {   RESTXT_TEST_SLCT_A,
+                            RESTXT_TEST_SLCT_B,
+                            RESTXT_TEST_SLCT_C,
+                            RESTXT_TEST_SLCT_D,
+                            RESTXT_TEST_SLCT_E };
+
 
 /* external symbols */
 extern UINT16           wMilliSecCounter;       // valid values: 0h .. ffffh
@@ -135,6 +148,7 @@ extern SYSFLAGS_TYPE    gSystemFlags;           /* system parameters */
 
 /* some helper / buffer variables */
 static UINT32           dwEditBuffer;
+static UINT8            u8EditBuffer;
 static CHAR             szBuffer[32];
 static BOOL             bEditBoolBuffer;
 
@@ -192,7 +206,7 @@ ERRCODE TestScreenInit(void)
                     6,                      // edit field length in chars
                     OC_DISPL | OC_SELECT | OC_EDIT ); // init states
 
-    /* number object */
+    /* boolean object */
     ObjEditBoolInit(&EditBoolObj,           // object to be initilized
                     0, 30,                  // X / Y origin
                     DPLFONT_6X8,            // used font
@@ -201,6 +215,23 @@ ERRCODE TestScreenInit(void)
                     &bEditBoolBuffer,       // pointer to work copy buffer
                     RESTXT_TEST_EB_DSC,     // descriptor string
                     OC_DISPL | OC_SELECT | OC_EDIT ); // init states
+
+    /* select object */
+    ObjSelectInit(  &SelectObj,             // object to be initilized
+                    0, 40,                  // X / Y origin
+                    DPLFONT_6X8,            // used font
+                    21,                     // overall window width in chars
+                    &u8SelectValue,         // pointer to original value
+                    RESTXT_TEST_SLCT_MAX,   // select obj max value
+                    &u8EditBuffer,          // pointer to work copy buffer
+                    RESTXT_TEST_SLCT_DSC,   // descriptor string
+                    pszSelectList,          // list of choice texts
+                    RESTXT_TEST_SLCT_WIDTH, // field width
+                    OC_DISPL | OC_SELECT | OC_EDIT ); // init states
+
+
+
+
 
     /* set edit text object focused per default */
     EditTextObj.State.bits.fSelected = TRUE;
@@ -224,9 +255,10 @@ void TestScreenShow(BOOL fShow)
     {
         /* show objects */
         ObjTextShow    ( &TextObj_Headline );
-        ObjEditTextShow( &EditTextObj, SHOW_ALL);
-        ObjEditNumShow ( &EditNumObj, SHOW_ALL);
-        ObjEditBoolShow( &EditBoolObj, SHOW_ALL);
+        ObjEditTextShow( &EditTextObj,  SHOW_ALL);
+        ObjEditNumShow ( &EditNumObj,   SHOW_ALL);
+        ObjEditBoolShow( &EditBoolObj,  SHOW_ALL);
+        ObjSelectShow  ( &SelectObj,    SHOW_ALL);
         TestScreenDev.fScreenInit = TRUE;
     }
     else
@@ -349,6 +381,8 @@ ERRCODE TestScreenMsgEntry(MESSAGE GivenMsg)
                     RValue = ObjEditNumMsgEntry(&EditNumObj, GivenMsg);
                 if (RValue == ERR_MSG_NOT_PROCESSED)
                     RValue = ObjEditBoolMsgEntry(&EditBoolObj, GivenMsg);
+                if (RValue == ERR_MSG_NOT_PROCESSED)
+                    RValue = ObjSelectMsgEntry(&SelectObj, GivenMsg);
 
                 /* try to move focus to next object */
                 if (RValue == ERR_MSG_NOT_PROCESSED)
@@ -402,7 +436,8 @@ ERRCODE TestScreenSetFocus(MESSAGE GivenMsg)
     // check: none of the objects is still in edit mode?
     if (  (EditTextObj.State.bits.fEditActive == FALSE)
         &&(EditNumObj.State.bits.fEditActive  == FALSE)
-        &&(EditBoolObj.State.bits.fEditActive == FALSE) )
+        &&(EditBoolObj.State.bits.fEditActive == FALSE)
+        &&(SelectObj.State.bits.fEditActive   == FALSE) )
     {
         // ok: try to move the focus down:
         if (MsgId == MSG_KEY_DOWN)
@@ -414,13 +449,16 @@ ERRCODE TestScreenSetFocus(MESSAGE GivenMsg)
             if (EditTextObj.State.bits.fSelected == TRUE)
             {   EditTextObj.State.bits.fSelected = FALSE;
                 EditNumObj.State.bits.fSelected  = TRUE;
-                EditBoolObj.State.bits.fSelected = FALSE;
             }
             // try to move from EditNumObj => EditBoolObj
             else if (EditNumObj.State.bits.fSelected == TRUE)
-            {   EditTextObj.State.bits.fSelected = FALSE;
-                EditNumObj.State.bits.fSelected  = FALSE;
+            {   EditNumObj.State.bits.fSelected  = FALSE;
                 EditBoolObj.State.bits.fSelected = TRUE;
+            }
+            // try to move from EditBoolObj => SelectBoolObj
+            else if (EditBoolObj.State.bits.fSelected == TRUE)
+            {   EditBoolObj.State.bits.fSelected = FALSE;
+                SelectObj.State.bits.fSelected   = TRUE;
             }
             else
             {   // already reached lowest element
@@ -432,17 +470,20 @@ ERRCODE TestScreenSetFocus(MESSAGE GivenMsg)
             // msg processed anyway
             RValue = ERR_MSG_PROCESSED;
 
+            // try to move from SelectObj => EditBoolObj
+            if (SelectObj.State.bits.fSelected  == TRUE)
+            {   SelectObj.State.bits.fSelected   = FALSE;
+                EditBoolObj.State.bits.fSelected = TRUE;
+            }
             // try to move from EditBoolObj => EditNumObj
-            if (EditBoolObj.State.bits.fSelected == TRUE)
-            {   EditTextObj.State.bits.fSelected = FALSE;
+            else if (EditBoolObj.State.bits.fSelected == TRUE)
+            {   EditBoolObj.State.bits.fSelected = FALSE;
                 EditNumObj.State.bits.fSelected  = TRUE;
-                EditBoolObj.State.bits.fSelected = FALSE;
             }
             // try to move from EditNumObj => EditTextObj
             else if (EditNumObj.State.bits.fSelected == TRUE)
-            {   EditTextObj.State.bits.fSelected = TRUE;
-                EditNumObj.State.bits.fSelected  = FALSE;
-                EditBoolObj.State.bits.fSelected = FALSE;
+            {   EditNumObj.State.bits.fSelected  = FALSE;
+                EditTextObj.State.bits.fSelected = TRUE;
             }
             else
             {   // already reached most top element

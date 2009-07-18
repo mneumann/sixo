@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.3  2009/07/18 06:27:45  tuberkel
+ * - NEW: SelectObject
+ *
  * Revision 2.2  2009/07/15 09:04:51  tuberkel
  * NEW: Boolean edit object
  *
@@ -628,6 +631,103 @@ ERRCODE ObjEditBoolInit(    EDITBOOLOBJECT far * fpObject,
 //#define EDITBOOL_TEXTTRUE   SMALL_CROSS     // state TRUE indicator
 #define EDITBOOL_TEXTTRUE   CHAR_HOOK_OK    // state TRUE indicator
 #define EDITBOOL_TEXTWIDTH  3               // length of the '[_]' icon
+
+
+
+
+
+
+
+
+/* ================================================ */
+/* SELECT OBJECT - select object data
+
+    select object features:
+
+        - ptr to external descriptor,
+        - ptr to external choice text list
+        - ptr to ext. enum value
+        - local buffer for edit work
+        - flickering cursor if choice mode active
+        - descriptor is left aligned, select text right aligned
+        - fixed window width and select text field length
+
+    select object behaviour:
+
+        - start edit mode by focusing and pressing ok key
+        - change selection with up/down key
+        - save state by pressing ok-key 1 second
+        - escape from edit mode by pressing up&down key together
+
+    select object examples (border is 'text window'):
+
+        +------------------------+
+        |decriptor:    selecttext|
+        +------------------------+
+
+   ================================================ */
+
+
+/* ------------------------------------------- */
+/* SELECT TYPES
+
+   used for select types only */
+
+
+/* object structure */
+typedef struct
+{
+    OBJSTATE        State;              /* bitfields to handle display state */
+    DISPLXY         Org;                /* origin in pixel coord. (0,0 = upper left) */
+    TXTWINDIM       Window;             /* text windows dimension (in chars units) */
+    DPLFONT         eFont;              /* used font */
+    UINT8 far *     fpValue;            /* address of original enum value */
+    UINT8           u8Max;              /* max. edit value (0..u8Max) */
+    STRING          szDescr;            /* address of description string (left aligned) */
+    STRING far *    pszSlctTxtList;     /* address of list of select texts represanting the value */
+    UINT8           bSelectWidth;       /* field size of select text */
+    UINT8 far *     fpWorkValue;        /* address of buffer for edit work
+                                           (original number remains unchanged until [OK]) */
+} SELECTOBJECT;
+
+
+/* init object structure */
+typedef struct
+{
+    SELECTOBJECT far *      fpObject;
+    UINT16                  wOrgPosX;
+    UINT16                  wOrgPosY;
+    DPLFONT                 eFont;
+    UINT8                   bWindWidth;
+    UINT8 far *             fpValue;
+    UINT8                   u8Max;
+    UINT8 far *             fpWorkValue;
+    STRING                  szDescr;
+    STRING far *            pszSlctTxtList;
+    UINT8                   bSelectWidth;
+    UINT8                   bState;
+} SELECT_INITTYPE;
+
+
+
+/* select object prototypes */
+ERRCODE ObjSelectMsgEntry(  SELECTOBJECT    far * fpObject, MESSAGE msg );
+ERRCODE ObjSelectShow(      SELECTOBJECT    far * fpObject, UINT8 bUpdateMode );
+ERRCODE ObjSelectInit(      SELECTOBJECT    far * fpObject,
+                            UINT16          wOrgPosX,
+                            UINT16          wOrgPosY,
+                            DPLFONT         eFont,
+                            UINT8           bWindWidth,
+                            UINT8 far *     fpValue,
+                            UINT8           u8Max,
+                            UINT8 far *     fpWorkValue,
+                            STRING          szDescr,
+                            STRING far *    szSlctTxtList,
+                            UINT8           bSelectWidth,
+                            UINT8           bState );
+
+
+#define SELECT_TEXTWIDTH    20
 
 #endif /* _OBJECTS_H */
 
