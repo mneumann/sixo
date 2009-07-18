@@ -75,6 +75,10 @@
 ;  changes to CVC ('Log message'):
 ;
 ; $Log$
+; Revision 2.3  2009/07/18 06:29:34  tuberkel
+; Heapsize reduced from 0x1000 ==> 0x400
+; Heap only used for Bitmap-DrawLine
+;
 ; Revision 2.2  2009/07/08 21:49:04  tuberkel
 ; Changed contact data: Ralf Krizsan ==> Ralf Schwarzer
 ;
@@ -135,7 +139,7 @@ M62TYPE                 .equ         1          ; for var vector table format
 
 ; ram sizes -------------------------------------------------------------
 ;   ! adapt these settings if neccessary !
-HEAPSIZE                .equ    01000h          ; heap size
+HEAPSIZE                .equ    00400h          ; heap size
 STACKSIZE               .equ    00400h          ; stack size
 ISTACKSIZE              .equ     0200h          ; interrupt stack size
 
