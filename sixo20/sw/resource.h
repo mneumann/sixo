@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.7  2009/07/18 06:28:19  tuberkel
+ * Test-Ressources for new SelectObject
+ *
  * Revision 2.6  2009/07/15 08:57:04  tuberkel
  * - new TESTSCREEN texts
  * - language settings renamed
@@ -229,6 +232,17 @@ Note: We use the Text-Object property to automatically
 #define RESTXT_TEST_EN_DSC    "EditN32:"
 #define RESTXT_TEST_EN_UNIT   " units"
 #define RESTXT_TEST_EB_DSC    "EditBool:"
+
+#define RESTXT_TEST_SLCT_DSC    "Select:"
+#define RESTXT_TEST_SLCT_MAX    5                           /* choice of 0..4 */
+#define RESTXT_TEST_SLCT_WIDTH  10                          /* max field width */
+#define RESTXT_TEST_SLCT_A      "choice A  "
+#define RESTXT_TEST_SLCT_B      "choice B  "
+#define RESTXT_TEST_SLCT_C      "choice C  "
+#define RESTXT_TEST_SLCT_D      "choice D  "
+#define RESTXT_TEST_SLCT_E      "choice E  "
+
+
 
 #define RESTXT_TEST3          "BMW"
                             /*!....!....!....!....!.*/
