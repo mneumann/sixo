@@ -68,6 +68,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.5  2009/07/19 12:26:01  tuberkel
+ * - ObjectInit reviewed
+ * - dyn. text handling disabled
+ *
  * Revision 2.4  2009/07/08 21:49:03  tuberkel
  * Changed contact data: Ralf Krizsan ==> Ralf Schwarzer
  *
@@ -283,77 +287,64 @@ static TEXTOBJECT   StatObj_KEY2;
 
 
 // HW Test  device resources ----------------------------
-static struct {
-  TEXTOBJECT far * pObject;
-  UINT16      wOrgPosX;
-  UINT16      wOrgPosY;
-  DPLFONT     eFont;
-  UINT8       bWindHeight;
-  UINT8       bWindWidth;
-  TXTALIGN    eAlign;
-  TXTFORMAT   eFormat;
-  STRING      szText;
-  UINT8       bState;
-  UINT8       bDynamicContent;
-} TextObjects[] = {
-
+static const TEXTOBJECT_INITTYPE TextObjects[] =
+{
     /* basic screen content ------------------- */
 
-    /* Object Name        X        Y       Font         H  W    align     format    src                   state      content */
-    /* ----------------- -------  -------  ------------ -- -- ---------- --------- --------------------  --------- -- */
-    { &HWTestScreen,     C2PH(0), C2PV(0), DPLFONT_4X6, 8, 32, TXT_LEFT,  TXT_NORM, RESTXT_HWTDEV_SCREEN_32x8,  OC_DISPL, 0 },
+    /* Object Name        X        Y       Font         H  W    align     format    src                  state     */
+    /* ----------------- -------  -------  ------------ -- -- ---------- --------- --------------------  --------- */
+    { &HWTestScreen,     C2PH(0), C2PV(0), DPLFONT_4X6, 8, 32, TXT_LEFT,  TXT_NORM, RESTXT_HWTDEV_SCREEN_32x8,  OC_DISPL },
 
     /* analog values ------  */
-    { &VoltageObj,       C2PH(5), C2PV(0), DPLFONT_4X6, 1,  4, TXT_RIGHT, TXT_NORM, szVoltage,  OC_DISPL, 1 },
-    { &AltWObj,          C2PH(5), C2PV(1), DPLFONT_4X6, 1,  4, TXT_RIGHT, TXT_NORM, szAltW,     OC_DISPL, 1 },
-    { &RPMObj,           C2PH(5), C2PV(2), DPLFONT_4X6, 1,  5, TXT_RIGHT, TXT_NORM, szRPM,      OC_DISPL, 1 },
-    { &KmhObj,           C2PH(6), C2PV(3), DPLFONT_4X6, 1,  4, TXT_RIGHT, TXT_NORM, szKmh,      OC_DISPL, 1 },
-    { &WatTempObj,       C2PH(5), C2PV(4), DPLFONT_4X6, 1,  3, TXT_RIGHT, TXT_NORM, szWatTemp,  OC_DISPL, 1 },
-    { &ExtTempObj,       C2PH(5), C2PV(5), DPLFONT_4X6, 1,  3, TXT_RIGHT, TXT_NORM, szExtTemp,  OC_DISPL, 1 },
-    { &OilTempObj,       C2PH(5), C2PV(6), DPLFONT_4X6, 1,  3, TXT_RIGHT, TXT_NORM, szOilTemp,  OC_DISPL, 1 },
-    { &IntTempObj,       C2PH(5), C2PV(7), DPLFONT_4X6, 1,  3, TXT_RIGHT, TXT_NORM, szIntTemp,  OC_DISPL, 1 },
+    { &VoltageObj,       C2PH(5), C2PV(0), DPLFONT_4X6, 1,  4, TXT_RIGHT, TXT_NORM, szVoltage,  OC_DISPL | OC_DYN },
+    { &AltWObj,          C2PH(5), C2PV(1), DPLFONT_4X6, 1,  4, TXT_RIGHT, TXT_NORM, szAltW,     OC_DISPL | OC_DYN },
+    { &RPMObj,           C2PH(5), C2PV(2), DPLFONT_4X6, 1,  5, TXT_RIGHT, TXT_NORM, szRPM,      OC_DISPL | OC_DYN },
+    { &KmhObj,           C2PH(6), C2PV(3), DPLFONT_4X6, 1,  4, TXT_RIGHT, TXT_NORM, szKmh,      OC_DISPL | OC_DYN },
+    { &WatTempObj,       C2PH(5), C2PV(4), DPLFONT_4X6, 1,  3, TXT_RIGHT, TXT_NORM, szWatTemp,  OC_DISPL | OC_DYN },
+    { &ExtTempObj,       C2PH(5), C2PV(5), DPLFONT_4X6, 1,  3, TXT_RIGHT, TXT_NORM, szExtTemp,  OC_DISPL | OC_DYN },
+    { &OilTempObj,       C2PH(5), C2PV(6), DPLFONT_4X6, 1,  3, TXT_RIGHT, TXT_NORM, szOilTemp,  OC_DISPL | OC_DYN },
+    { &IntTempObj,       C2PH(5), C2PV(7), DPLFONT_4X6, 1,  3, TXT_RIGHT, TXT_NORM, szIntTemp,  OC_DISPL | OC_DYN },
 
 
     /* test status objects */
-    { &StatObj_VBAT,    C2PH(11), C2PV(0), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown,OC_DISPL, 1 },
-    { &StatObj_ALTW,    C2PH(11), C2PV(1), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown,OC_DISPL, 1 },
-    { &StatObj_RPM,     C2PH(11), C2PV(2), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown,OC_DISPL, 1 },
-    { &StatObj_KMH,     C2PH(11), C2PV(3), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown,OC_DISPL, 1 },
-    { &StatObj_TOIL,    C2PH(11), C2PV(4), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown,OC_DISPL, 1 },
-    { &StatObj_TWAT,    C2PH(11), C2PV(5), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown,OC_DISPL, 1 },
-    { &StatObj_TAIR,    C2PH(11), C2PV(6), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown,OC_DISPL, 1 },
-    { &StatObj_TDEV,    C2PH(11), C2PV(7), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown,OC_DISPL, 1 },
+    { &StatObj_VBAT,    C2PH(11), C2PV(0), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown, OC_DISPL | OC_DYN },
+    { &StatObj_ALTW,    C2PH(11), C2PV(1), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown, OC_DISPL | OC_DYN },
+    { &StatObj_RPM,     C2PH(11), C2PV(2), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown, OC_DISPL | OC_DYN },
+    { &StatObj_KMH,     C2PH(11), C2PV(3), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown, OC_DISPL | OC_DYN },
+    { &StatObj_TOIL,    C2PH(11), C2PV(4), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown, OC_DISPL | OC_DYN },
+    { &StatObj_TWAT,    C2PH(11), C2PV(5), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown, OC_DISPL | OC_DYN },
+    { &StatObj_TAIR,    C2PH(11), C2PV(6), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown, OC_DISPL | OC_DYN },
+    { &StatObj_TDEV,    C2PH(11), C2PV(7), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown, OC_DISPL | OC_DYN },
 
-    { &StatObj_EEPR,    C2PH(23), C2PV(0), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown,OC_DISPL, 1 },
-    { &StatObj_NVRAM,   C2PH(23), C2PV(1), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown,OC_DISPL, 1 },
-    { &StatObj_UART0,   C2PH(22), C2PV(2), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown,OC_DISPL, 1 },
-    { &StatObj_UART1,   C2PH(23), C2PV(2), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown,OC_DISPL, 1 },
+    { &StatObj_EEPR,    C2PH(23), C2PV(0), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown, OC_DISPL | OC_DYN },
+    { &StatObj_NVRAM,   C2PH(23), C2PV(1), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown, OC_DISPL | OC_DYN },
+    { &StatObj_UART0,   C2PH(22), C2PV(2), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown, OC_DISPL | OC_DYN },
+    { &StatObj_UART1,   C2PH(23), C2PV(2), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown, OC_DISPL | OC_DYN },
 
-    { &LDRObj,          C2PH(19), C2PV(3), DPLFONT_4X6, 1,  3, TXT_RIGHT, TXT_NORM, szLDR,    OC_DISPL, 1 },
-    { &StatObj_LDR,     C2PH(23), C2PV(3), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown,OC_DISPL, 1 },
+    { &LDRObj,          C2PH(19), C2PV(3), DPLFONT_4X6, 1,  3, TXT_RIGHT, TXT_NORM, szLDR,     OC_DISPL | OC_DYN },
+    { &StatObj_LDR,     C2PH(23), C2PV(3), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown, OC_DISPL | OC_DYN },
 
-    { &StatObj_TURNL,   C2PH(22), C2PV(4), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown,OC_DISPL, 1 },
-    { &StatObj_TURNR,   C2PH(23), C2PV(4), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown,OC_DISPL, 1 },
-    { &StatObj_HBEAM,   C2PH(23), C2PV(5), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown,OC_DISPL, 1 },
-    { &StatObj_GPI0,    C2PH(24), C2PV(6), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown,OC_DISPL, 1 },
-    { &StatObj_GPI1,    C2PH(25), C2PV(6), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown,OC_DISPL, 1 },
-    { &StatObj_GPI2,    C2PH(26), C2PV(6), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown,OC_DISPL, 1 },
-    { &StatObj_GPI3,    C2PH(27), C2PV(6), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown,OC_DISPL, 1 },
-    { &StatObj_KEY0,    C2PH(24), C2PV(7), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown,OC_DISPL, 1 },
-    { &StatObj_KEY1,    C2PH(25), C2PV(7), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown,OC_DISPL, 1 },
-    { &StatObj_KEY2,    C2PH(26), C2PV(7), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown,OC_DISPL, 1 },
+    { &StatObj_TURNL,   C2PH(22), C2PV(4), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown, OC_DISPL | OC_DYN },
+    { &StatObj_TURNR,   C2PH(23), C2PV(4), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown, OC_DISPL | OC_DYN },
+    { &StatObj_HBEAM,   C2PH(23), C2PV(5), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown, OC_DISPL | OC_DYN },
+    { &StatObj_GPI0,    C2PH(24), C2PV(6), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown, OC_DISPL | OC_DYN },
+    { &StatObj_GPI1,    C2PH(25), C2PV(6), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown, OC_DISPL | OC_DYN },
+    { &StatObj_GPI2,    C2PH(26), C2PV(6), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown, OC_DISPL | OC_DYN },
+    { &StatObj_GPI3,    C2PH(27), C2PV(6), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown, OC_DISPL | OC_DYN },
+    { &StatObj_KEY0,    C2PH(24), C2PV(7), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown, OC_DISPL | OC_DYN },
+    { &StatObj_KEY1,    C2PH(25), C2PV(7), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown, OC_DISPL | OC_DYN },
+    { &StatObj_KEY2,    C2PH(26), C2PV(7), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown, OC_DISPL | OC_DYN },
 
-    { &StatObj_BAT,     C2PH(31), C2PV(0), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown,OC_DISPL, 1 },
-//  { &RebootObj,       C2PH(29), C2PV(0), DPLFONT_4X6, 1,  2, TXT_RIGHT, TXT_NORM, szRebootSec,OC_DISPL, 1 },
-    { &StatObj_RTC,     C2PH(31), C2PV(1), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown,OC_DISPL, 1 },
-    { &StatObj_HWVER,   C2PH(31), C2PV(2), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown,OC_DISPL, 1 },
-    { &StatObj_WHEEL,   C2PH(31), C2PV(3), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown,OC_DISPL, 1 },
-    { &StatObj_OIL,     C2PH(31), C2PV(4), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown,OC_DISPL, 1 },
-    { &StatObj_NEUTR,   C2PH(31), C2PV(5), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown,OC_DISPL, 1 },
+    { &StatObj_BAT,     C2PH(31), C2PV(0), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown, OC_DISPL | OC_DYN },
+    { &StatObj_RTC,     C2PH(31), C2PV(1), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown, OC_DISPL | OC_DYN },
+    { &StatObj_HWVER,   C2PH(31), C2PV(2), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown, OC_DISPL | OC_DYN },
+    { &StatObj_WHEEL,   C2PH(31), C2PV(3), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown, OC_DISPL | OC_DYN },
+    { &StatObj_OIL,     C2PH(31), C2PV(4), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown, OC_DISPL | OC_DYN },
+    { &StatObj_NEUTR,   C2PH(31), C2PV(5), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown, OC_DISPL | OC_DYN },
 
-    { &KeyUp,           C2PH(29), C2PV(7), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, "U",      OC_DISPL, 1 },
-    { &KeyDown,         C2PH(30), C2PV(7), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, "D",      OC_DISPL, 1 },
-    { &KeyOk,           C2PH(31), C2PV(7), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, "O",      OC_DISPL, 1 },
+    { &KeyUp,           C2PH(29), C2PV(7), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, "U",       OC_DISPL | OC_DYN },
+    { &KeyDown,         C2PH(30), C2PV(7), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, "D",       OC_DISPL | OC_DYN },
+    { &KeyOk,           C2PH(31), C2PV(7), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, "O",       OC_DISPL | OC_DYN },
 };
 
 
@@ -392,16 +383,8 @@ ERRCODE HWTestDeviceInit(void)
     /* create text objects */
     for (i = 0; i < ARRAY_SIZE(TextObjects); i++)
     {
-       ObjTextInit(TextObjects[i].pObject,
-                   TextObjects[i].wOrgPosX,
-                   TextObjects[i].wOrgPosY,
-                   TextObjects[i].eFont,
-                   TextObjects[i].bWindHeight,
-                   TextObjects[i].bWindWidth,
-                   TextObjects[i].eAlign,
-                   TextObjects[i].eFormat,
-                   TextObjects[i].szText,
-                   TextObjects[i].bState);
+       /* convert rom constant array into live objects */
+       ObjTextInit( &TextObjects[i] );
     }
 
     /* initialize HW stuff */
@@ -437,7 +420,7 @@ void HWTestDeviceShow(BOOL fShow)
             /* show all objects */
             for (i = 0; i < ARRAY_SIZE(TextObjects); i++)
             {
-               ObjTextShow( TextObjects[i].pObject );
+               ObjTextShow( TextObjects[i].fpObject );
             }
             HWTestDev.fScreenInit = TRUE;
         }
@@ -446,9 +429,7 @@ void HWTestDeviceShow(BOOL fShow)
         {
             /* only repaint dynamic fields */
             for (i = 0; i < ARRAY_SIZE(TextObjects); i++)
-            {
-               if (TextObjects[i].bDynamicContent)
-                   ObjTextShow( TextObjects[i].pObject );
+            {   ObjTextShow( TextObjects[i].fpObject );
             }
         }
     }
