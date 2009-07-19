@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.12  2009/07/19 12:32:59  tuberkel
+ * - ObjectInit reviewed
+ *
  * Revision 2.11  2009/07/15 08:53:29  tuberkel
  * Just comments
  *
@@ -430,24 +433,7 @@ ERRCODE SetDeviceInit(void)
     /* initialize all edit num objects */
     for (i = 0; i < ARRAY_SIZE(EditNumObj); i++)
     {
-        RValue = ObjEditNumInit( EditNumObj[i].fpObject,
-                                 EditNumObj[i].wOrgPosX,
-                                 EditNumObj[i].wOrgPosY,
-                                 EditNumObj[i].eFont,
-                                 EditNumObj[i].bWindWidth,
-                                 EditNumObj[i].fpNumber,
-                                 EditNumObj[i].fpWorkNumber,
-                                 EditNumObj[i].eType,
-                                 EditNumObj[i].lMin,
-                                 EditNumObj[i].lMax,
-                                 EditNumObj[i].lStepSize,
-                                 EditNumObj[i].eDplType,
-                                 EditNumObj[i].eMode,
-                                 EditNumObj[i].bComma,
-                                 EditNumObj[i].szDescr,
-                                 EditNumObj[i].szUnit,
-                                 EditNumObj[i].bLength,
-                                 EditNumObj[i].bState);
+        RValue = ObjEditNumInit( &EditNumObj[i] );
 
         // special MOTOBAU behaviour post-init-manipulations
         #if(BIKE_MOTOBAU==1)

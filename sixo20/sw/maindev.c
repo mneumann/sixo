@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.7  2009/07/19 12:31:03  tuberkel
+ * - ObjectInit reviewed
+ *
  * Revision 2.6  2009/07/08 21:49:03  tuberkel
  * Changed contact data: Ralf Krizsan ==> Ralf Schwarzer
  *
@@ -249,6 +252,7 @@ void MainDeviceUpdateTimeDate(void);
 /* bitmap object table */
 static const BMPOBJECT_INITTYPE BmpObjects[] =
 {
+    /* object                      x/y    w   h   raw data              mode     state */
     { &FuelSymbolBmpObj,           4, 38, 16, 16, rgFuelSymbo16x16,     DPLNORM, FALSE },
     { &VehicSymbolBmpObj,          0, 38, 29, 16, rgEnduroSymbol29x16,  DPLNORM, FALSE },
 
@@ -342,30 +346,12 @@ ERRCODE MainDeviceInit(void)
 
     /* initialize bitmap objects */
     for (i = 0; i < ARRAY_SIZE(BmpObjects); i++)
-    {
-        ObjBmpInit(BmpObjects[i].pObject,
-                   BmpObjects[i].wOrgPosX,
-                   BmpObjects[i].wOrgPosY,
-                   BmpObjects[i].wWidth,
-                   BmpObjects[i].wHeight,
-                   BmpObjects[i].rgBMPRawData,
-                   BmpObjects[i].bMode,
-                   BmpObjects[i].bState);
+    {   ObjBmpInit( &BmpObjects[i] );
     }
 
     /* initialize text objects */
     for (i = 0; i < ARRAY_SIZE(TextObjects); i++)
-    {
-        ObjTextInit(TextObjects[i].pObject,
-                    TextObjects[i].wOrgPosX,
-                    TextObjects[i].wOrgPosY,
-                    TextObjects[i].eFont,
-                    TextObjects[i].bWindHeight,
-                    TextObjects[i].bWindWidth,
-                    TextObjects[i].eAlign,
-                    TextObjects[i].eFormat,
-                    TextObjects[i].szText,
-                    TextObjects[i].bState);
+    {   ObjTextInit( &TextObjects[i] );
     }
 
     /* return */

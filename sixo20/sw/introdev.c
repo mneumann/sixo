@@ -69,6 +69,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.9  2009/07/19 12:30:08  tuberkel
+ * - ObjectInit reviewed
+ *
  * Revision 2.8  2009/07/15 08:55:11  tuberkel
  * additional includes for global #defines
  *
@@ -142,21 +145,36 @@ extern SWVERS_TYPE      gSWID;              /* software id from eeprom */
 extern UINT8            gLogoSelection;     /* selected logo */
 extern BIKE_TYPE        gBikeType;          /* bike type selcetion */
 
-/* external bitmaps */
-extern const unsigned char far * fpBikeLogos[];
 
-
-/* device static objects */
+/* local device data */
 static DEVDATA      IntroScreenDev;         /* this device */
-static BMPOBJECT    SixoLogoBmpObj;         /* logo object */
+
+/* text objects */
 static TEXTOBJECT   SWVersionTxtObj;        /* version text object */
 static unsigned char szSWVersion[64];       /* buffer to contain formated sw id */
 
+
+static const TEXTOBJECT_INITTYPE TextObjects[] =
+{   /*pObject           X  Y   Font         H  Width  Align     Format    string ptr   State  */
+    { &SWVersionTxtObj, 0, 57, DPLFONT_6X8, 1, 21,    TXT_LEFT, TXT_NORM, szSWVersion, OC_DISPL }
+};
+
+
+
+/* bitmap object */
+extern const unsigned char far *    fpBikeLogos[];
+static BMPOBJECT                    SixoLogoBmpObj;         /* logo object */
+static const BMPOBJECT_INITTYPE     BmpObjects[] =          /* init data */
+{   /* object         x  y  w    h   raw data   mode     state */
+    {&SixoLogoBmpObj, 0, 0, 128, 56, NULL,      DPLNORM, FALSE  }
+};
 
 
 
 /* internal prototypes */
 ERRCODE IntroScreenChangeLogo(MESSAGE Msg);
+
+
 
 
 
@@ -177,16 +195,8 @@ ERRCODE IntroScreenInit(void)
     IntroScreenDev.fScreenInit  = FALSE;
 
     /* init objects */
-    ObjBmpInit( &SixoLogoBmpObj,                    /* logo bitmap */
-                0, 0, 128, 56,
-                fpBikeLogos[0],                     /* per default, will later be changed */
-                DPLNORM, FALSE);
-
-    ObjTextInit( &SWVersionTxtObj,                  /* sw version id */
-                 0, 57, DPLFONT_6X8,
-                 1, 21, TXT_LEFT, TXT_NORM,
-                 szSWVersion,
-                 OC_DISPL | OS_INIT | OS_DISPL);
+    ObjBmpInit( &BmpObjects[0] );       /* logo object */
+    ObjTextInit( &TextObjects[0] );     /* sw version id */
 
     /* return */
     return ERR_OK;

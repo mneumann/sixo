@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.8  2009/07/19 12:33:45  tuberkel
+ * - ObjectInit reviewed
+ *
  * Revision 2.7  2009/07/08 21:49:03  tuberkel
  * Changed contact data: Ralf Krizsan ==> Ralf Schwarzer
  *
@@ -228,16 +231,8 @@ ERRCODE TripCntDevInit(void)
     /* initialize text objects */
     for (i = 0; i < ARRAY_SIZE(TextObjects); i++)
     {
-        ObjTextInit(TextObjects[i].pObject,
-                    TextObjects[i].wOrgPosX,
-                    TextObjects[i].wOrgPosY,
-                    TextObjects[i].eFont,
-                    TextObjects[i].bWindHeight,
-                    TextObjects[i].bWindWidth,
-                    TextObjects[i].eAlign,
-                    TextObjects[i].eFormat,
-                    TextObjects[i].szText,
-                    TextObjects[i].bState);
+        /* convert rom constant array into live objects */
+        ObjTextInit( &TextObjects[i] );
     }
 
     /* return */

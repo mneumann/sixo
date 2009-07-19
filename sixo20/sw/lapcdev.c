@@ -76,6 +76,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.3  2009/07/19 12:30:36  tuberkel
+ * - ObjectInit reviewed
+ *
  * Revision 2.2  2009/07/08 21:49:04  tuberkel
  * Changed contact data: Ralf Krizsan ==> Ralf Schwarzer
  *
@@ -166,23 +169,23 @@ static const TEXTOBJECT_INITTYPE TextObject[] =
 {
     /*object              X   Y  Font            H   W  align       format    string                 state    */
     /*----------------    -   -  -------------  --- --- ----------- --------- -------------------    -------- */
-    { &LapCntTxtObj[0],   0,  0, DPLFONT_6X8,    1,  9, TXT_LEFT,  TXT_NORM, &szLapCntText[0][0],  OC_DISPL },
-    { &LapCntTxtObj[1],   0,  8, DPLFONT_6X8,    1,  9, TXT_LEFT,  TXT_NORM, &szLapCntText[1][0],  OC_DISPL },
-    { &LapCntTxtObj[2],   0, 16, DPLFONT_6X8,    1,  9, TXT_LEFT,  TXT_NORM, &szLapCntText[2][0],  OC_DISPL },
-    { &LapCntTxtObj[3],   0, 24, DPLFONT_6X8,    1,  9, TXT_LEFT,  TXT_NORM, &szLapCntText[3][0],  OC_DISPL },
-    { &LapCntTxtObj[4],   0, 32, DPLFONT_6X8,    1,  9, TXT_LEFT,  TXT_NORM, &szLapCntText[4][0],  OC_DISPL },
-    { &LapCntTxtObj[5],   0, 40, DPLFONT_6X8,    1,  9, TXT_LEFT,  TXT_NORM, &szLapCntText[5][0],  OC_DISPL },
-    { &LapCntTxtObj[6],   0, 48, DPLFONT_6X8,    1,  9, TXT_LEFT,  TXT_NORM, &szLapCntText[6][0],  OC_DISPL },
-    { &LapCntTxtObj[7],   0, 56, DPLFONT_6X8,    1,  9, TXT_LEFT,  TXT_NORM, &szLapCntText[7][0],  OC_DISPL },
+    { &LapCntTxtObj[0],   0,  0, DPLFONT_6X8,    1,  9, TXT_LEFT,  TXT_NORM, &szLapCntText[0][0],  OC_DISPL | OC_DYN },
+    { &LapCntTxtObj[1],   0,  8, DPLFONT_6X8,    1,  9, TXT_LEFT,  TXT_NORM, &szLapCntText[1][0],  OC_DISPL | OC_DYN },
+    { &LapCntTxtObj[2],   0, 16, DPLFONT_6X8,    1,  9, TXT_LEFT,  TXT_NORM, &szLapCntText[2][0],  OC_DISPL | OC_DYN },
+    { &LapCntTxtObj[3],   0, 24, DPLFONT_6X8,    1,  9, TXT_LEFT,  TXT_NORM, &szLapCntText[3][0],  OC_DISPL | OC_DYN },
+    { &LapCntTxtObj[4],   0, 32, DPLFONT_6X8,    1,  9, TXT_LEFT,  TXT_NORM, &szLapCntText[4][0],  OC_DISPL | OC_DYN },
+    { &LapCntTxtObj[5],   0, 40, DPLFONT_6X8,    1,  9, TXT_LEFT,  TXT_NORM, &szLapCntText[5][0],  OC_DISPL | OC_DYN },
+    { &LapCntTxtObj[6],   0, 48, DPLFONT_6X8,    1,  9, TXT_LEFT,  TXT_NORM, &szLapCntText[6][0],  OC_DISPL | OC_DYN },
+    { &LapCntTxtObj[7],   0, 56, DPLFONT_6X8,    1,  9, TXT_LEFT,  TXT_NORM, &szLapCntText[7][0],  OC_DISPL | OC_DYN },
 
-    { &LapCntTxtObj[8],  72,  0, DPLFONT_6X8,    1,  9, TXT_LEFT,  TXT_NORM, &szLapCntText[8][0],  OC_DISPL },
-    { &LapCntTxtObj[9],  72,  8, DPLFONT_6X8,    1,  9, TXT_LEFT,  TXT_NORM, &szLapCntText[9][0],  OC_DISPL },
-    { &LapCntTxtObj[10], 72, 16, DPLFONT_6X8,    1,  9, TXT_LEFT,  TXT_NORM, &szLapCntText[10][0], OC_DISPL },
-    { &LapCntTxtObj[11], 72, 24, DPLFONT_6X8,    1,  9, TXT_LEFT,  TXT_NORM, &szLapCntText[11][0], OC_DISPL },
-    { &LapCntTxtObj[12], 72, 32, DPLFONT_6X8,    1,  9, TXT_LEFT,  TXT_NORM, &szLapCntText[12][0], OC_DISPL },
-    { &LapCntTxtObj[13], 72, 40, DPLFONT_6X8,    1,  9, TXT_LEFT,  TXT_NORM, &szLapCntText[13][0], OC_DISPL },
-    { &LapCntTxtObj[14], 72, 48, DPLFONT_6X8,    1,  9, TXT_LEFT,  TXT_NORM, &szLapCntText[14][0], OC_DISPL },
-    { &LapCntTxtObj[15], 72, 56, DPLFONT_6X8,    1,  9, TXT_LEFT,  TXT_NORM, &szLapCntText[15][0], OC_DISPL }
+    { &LapCntTxtObj[8],  72,  0, DPLFONT_6X8,    1,  9, TXT_LEFT,  TXT_NORM, &szLapCntText[8][0],  OC_DISPL | OC_DYN },
+    { &LapCntTxtObj[9],  72,  8, DPLFONT_6X8,    1,  9, TXT_LEFT,  TXT_NORM, &szLapCntText[9][0],  OC_DISPL | OC_DYN },
+    { &LapCntTxtObj[10], 72, 16, DPLFONT_6X8,    1,  9, TXT_LEFT,  TXT_NORM, &szLapCntText[10][0], OC_DISPL | OC_DYN },
+    { &LapCntTxtObj[11], 72, 24, DPLFONT_6X8,    1,  9, TXT_LEFT,  TXT_NORM, &szLapCntText[11][0], OC_DISPL | OC_DYN },
+    { &LapCntTxtObj[12], 72, 32, DPLFONT_6X8,    1,  9, TXT_LEFT,  TXT_NORM, &szLapCntText[12][0], OC_DISPL | OC_DYN },
+    { &LapCntTxtObj[13], 72, 40, DPLFONT_6X8,    1,  9, TXT_LEFT,  TXT_NORM, &szLapCntText[13][0], OC_DISPL | OC_DYN },
+    { &LapCntTxtObj[14], 72, 48, DPLFONT_6X8,    1,  9, TXT_LEFT,  TXT_NORM, &szLapCntText[14][0], OC_DISPL | OC_DYN },
+    { &LapCntTxtObj[15], 72, 56, DPLFONT_6X8,    1,  9, TXT_LEFT,  TXT_NORM, &szLapCntText[15][0], OC_DISPL | OC_DYN }
 
 };
 
@@ -220,16 +223,8 @@ ERRCODE LapCntDeviceInit(void)
     /* initialize text objects */
     for (i = 0; i < ARRAY_SIZE(TextObject); i++)
     {
-        ObjTextInit(TextObject[i].pObject,
-                    TextObject[i].wOrgPosX,
-                    TextObject[i].wOrgPosY,
-                    TextObject[i].eFont,
-                    TextObject[i].bWindHeight,
-                    TextObject[i].bWindWidth,
-                    TextObject[i].eAlign,
-                    TextObject[i].eFormat,
-                    TextObject[i].szText,
-                    TextObject[i].bState);
+        /* convert rom constant array into live objects */
+        ObjTextInit( &TextObject[i]);
 
         // check init process
         if ( RValue != ERR_OK )
@@ -286,7 +281,7 @@ void LapCntDeviceShow(BOOL fShow)
         {
             /* initialize all text objects */
             for (i = 0; i < ARRAY_SIZE(TextObject); i++)
-                ObjTextShow( TextObject[i].pObject);
+                ObjTextShow( TextObject[i].fpObject);
 
             // reset init state
             LapCntDevice.fScreenInit = TRUE;
@@ -297,7 +292,7 @@ void LapCntDeviceShow(BOOL fShow)
 
             // repaint all text objects
             for (i = 0; i < ARRAY_SIZE(TextObject); i++)
-                ObjTextShow( TextObject[i].pObject);
+                ObjTextShow( TextObject[i].fpObject);
         }
     }
     else                                                    // 'clear' screen!
@@ -430,16 +425,16 @@ ERRCODE LapCntDeviceMsgEntry(MESSAGE GivenMsg)
                     MsgQPostMsg(NewMsg, MSGQ_PRIO_LOW);
                     RValue = ERR_MSG_PROCESSED;
                 }
-                
+
                 LapCntDeviceShow(TRUE);     // update screen anyway
                 break;
 
             //case MSG_SCREEN_REFRESH:        /* standard refresh cycle */
-            case MSG_TIMEDATE_SECOND_GONE:  /* additional blink lap trigger */            
+            case MSG_TIMEDATE_SECOND_GONE:  /* additional blink lap trigger */
                 LapCntDeviceShow(TRUE);
                 RValue = ERR_MSG_PROCESSED;
                 break;
-                                
+
             default: return ERR_MSG_NOT_PROCESSED;
         }
     }
@@ -514,18 +509,18 @@ ERRCODE LapCntDeviceSetFocus(UINT8 bLap)
 
     // clear any focus before setting new one
     for (i = 0; i < ARRAY_SIZE(TextObject); i++)
-        TextObject[i].pObject->State.bits.fSelected = 0;
+        TextObject[i].fpObject->State.bits.fSelected = 0;
 
     // set focus to current lap
-    TextObject[bLap].pObject->State.bits.fSelected = 1;
+    TextObject[bLap].fpObject->State.bits.fSelected = 1;
 
     // let the focus blink with 1 Hz, if lap counter active
-    TextObject[bLap].pObject->State.bits.fSelected = 1;
+    TextObject[bLap].fpObject->State.bits.fSelected = 1;
     if (  (  LapCounterState.fActive  == 1 )
         &&( (LapCntTime[bLap].bSec%2) == 0 ) )
-             TextObject[bLap].pObject->State.bits.fSelected = 0;
-    
-    return (RValue);    
+             TextObject[bLap].fpObject->State.bits.fSelected = 0;
+
+    return (RValue);
 }
 
 

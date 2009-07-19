@@ -69,6 +69,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.4  2009/07/19 12:33:23  tuberkel
+ * - ObjectInit reviewed
+ *
  * Revision 2.3  2009/07/18 06:29:57  tuberkel
  * - NEW: SelectObject
  *
@@ -110,36 +113,67 @@
 static DEVDATA      TestScreenDev;
 
 
+/* ----------------------------------------------------------- */
 /* static headline text object */
 static TEXTOBJECT   TextObj_Headline;
+static const TEXTOBJECT_INITTYPE TextObjectsInit[] =
+{   /*pObject           X  Y  Font         H  Width  Align     Format    string ptr           State  */
+    {&TextObj_Headline, 0, 0, DPLFONT_6X8, 1, 21, TXT_CENTER, TXT_INVERS,RESTXT_TEST_GUITEST, OC_DISPL}
+};
 
 
+
+/* ----------------------------------------------------------- */
 /* edit text object */
-static EDITTEXTOBJECT   EditTextObj;
-static CHAR             szEditTextDescr[]    = "EditText:";
-static CHAR             szEditTextBuffer[20] = "abcdefgh";
+static EDITTEXTOBJECT               EditTextObj;
+static CHAR                         szEditText[20] = "abcdefgh";
+static CHAR                         szEditBuffer[32];
+static const EDITTEXT_INITTYPE      EditTextInit[]=
+{   // object       x/y    font         width value       decriptor           edit buffer   length char list    state
+    { &EditTextObj, 0, 10, DPLFONT_6X8, 21,   szEditText, RESTXT_TEST_ET_DSC, szEditBuffer, 10,    CHARL_LOWER, OC_DISPL | OC_SELECT | OC_EDIT }
+};
 
 
+/* ----------------------------------------------------------- */
 /* edit number object */
 static EDITNUMBEROBJECT EditNumObj;                 /* complete number object */
 static UINT32           dwEditNumValue = 99000;     /* object value */
+static UINT32           dwEditBuffer;
+static const EDITNUMBER_INITTYPE EditNumInit[] =
+{   /* fpObject     OrgX OrgY  Font         Width  pNumber          pWorkNumber     Type   Min  Max    Step DplType Mode     C  zDescr                zUnit                L   State                                       */
+    {&EditNumObj,   0,   20,   DPLFONT_6X8, 21,    &dwEditNumValue, &dwEditBuffer,  eULONG,0L,999999L, 0L,  eDez,   eColumn, 0, RESTXT_TEST_EN_DSC,   RESTXT_TEST_EN_UNIT, 6,  OC_DISPL | OC_SELECT | OC_EDIT }
+};
 
 
+/* ----------------------------------------------------------- */
 /* edit bool object */
 static EDITBOOLOBJECT   EditBoolObj;                /* complete boolean object */
 static BOOL             bEditBoolValue = FALSE;     /* object value */
+static BOOL             bEditBoolBuffer;            /* common edit buffer */
+static const EDITBOOL_INITTYPE EditBoolInit[] =
+{   /*pObject           X    Y  Font            Width  Data             EditBuffer        Descriptor            State      */
+    {&EditBoolObj,      0,  30, DPLFONT_6X8,    21,    &bEditBoolValue, &bEditBoolBuffer, RESTXT_TEST_EB_DSC,   OC_DISPL | OC_SELECT | OC_EDIT },
+};
 
+
+/* ----------------------------------------------------------- */
 /* select object */
-static SELECTOBJECT     SelectObj;                  /* complete select object */
-static UINT8            u8SelectValue = FALSE;      /* object value */
-static const STRING     pszSelectList[RESTXT_TEST_SLCT_MAX] =
+static SELECTOBJECT     SelectObj;                              /* complete select object */
+static UINT8            u8SelectValue = FALSE;                  /* object value */
+static UINT8            u8EditBuffer;                           /* common edit buffer */
+static const STRING     pszSelectList[RESTXT_TEST_SLCT_MAX] =   /* list if choice strings representing the value */
                         {   RESTXT_TEST_SLCT_A,
                             RESTXT_TEST_SLCT_B,
                             RESTXT_TEST_SLCT_C,
                             RESTXT_TEST_SLCT_D,
                             RESTXT_TEST_SLCT_E };
+static const SELECT_INITTYPE SelectInit[] =
+{   /*pObject       X    Y  Font            Width   Data            ListSize                EditBuffer      Descriptor              List of choice strings String field width       State   */
+    {&SelectObj,     0, 40, DPLFONT_6X8,    21,     &u8SelectValue, RESTXT_TEST_SLCT_MAX,   &u8EditBuffer,  RESTXT_TEST_SLCT_DSC,   pszSelectList,         RESTXT_TEST_SLCT_WIDTH,  OC_DISPL | OC_SELECT | OC_EDIT  }
+};
 
 
+/* ----------------------------------------------------------- */
 /* external symbols */
 extern UINT16           wMilliSecCounter;       // valid values: 0h .. ffffh
 extern STRING far       szDevName[];            // device names
@@ -147,10 +181,8 @@ extern SYSFLAGS_TYPE    gSystemFlags;           /* system parameters */
 
 
 /* some helper / buffer variables */
-static UINT32           dwEditBuffer;
-static UINT8            u8EditBuffer;
-static CHAR             szBuffer[32];
-static BOOL             bEditBoolBuffer;
+
+
 
 /* internal prototypes */
 ERRCODE TestScreenSetFocus(MESSAGE GivenMsg);
@@ -175,63 +207,12 @@ ERRCODE TestScreenInit(void)
     TestScreenDev.fFocused     = FALSE;
     TestScreenDev.fScreenInit  = FALSE;
 
-    /* Headline */
-    ObjTextInit(    &TextObj_Headline,
-                    0, 0, DPLFONT_6X8, 1, 21, TXT_CENTER, TXT_INVERS,
-                    RESTXT_TEST_GUITEST,
-                    OC_DISPL );
-
-    /* edit text field */
-    ObjEditTextInit(    &EditTextObj,       // object to be initilized
-                        0, 10,              // X / Y origin
-                        DPLFONT_6X8,        // used font
-                        21,                 // overall window width in chars
-                        szEditTextBuffer,   // pointer to original value
-                        RESTXT_TEST_ET_DSC, // descriptor string
-                        10,                 // edit field length in chars
-                        CHARL_LOWER,        // available character list
-                        OC_DISPL | OC_SELECT | OC_EDIT );   // init states
-
-    /* number object */
-    ObjEditNumInit( &EditNumObj,            // object to be initilized
-                    0, 20,                  // X / Y origin
-                    DPLFONT_6X8,            // used font
-                    21,                     // overall window width in chars
-                    &dwEditNumValue,        // pointer to original value
-                    &dwEditBuffer,          // pointer to work copy buffer
-                    eULONG,0L, 999999L, 0L, // type of number, min, max Limits, stepsize
-                    eDez, eColumn, 0,       // dez display format, column edit mode, comma pos
-                    RESTXT_TEST_EN_DSC,     // descriptor string
-                    RESTXT_TEST_EN_UNIT,    // units string
-                    6,                      // edit field length in chars
-                    OC_DISPL | OC_SELECT | OC_EDIT ); // init states
-
-    /* boolean object */
-    ObjEditBoolInit(&EditBoolObj,           // object to be initilized
-                    0, 30,                  // X / Y origin
-                    DPLFONT_6X8,            // used font
-                    21,                     // overall window width in chars
-                    &bEditBoolValue,        // pointer to original value
-                    &bEditBoolBuffer,       // pointer to work copy buffer
-                    RESTXT_TEST_EB_DSC,     // descriptor string
-                    OC_DISPL | OC_SELECT | OC_EDIT ); // init states
-
-    /* select object */
-    ObjSelectInit(  &SelectObj,             // object to be initilized
-                    0, 40,                  // X / Y origin
-                    DPLFONT_6X8,            // used font
-                    21,                     // overall window width in chars
-                    &u8SelectValue,         // pointer to original value
-                    RESTXT_TEST_SLCT_MAX,   // select obj max value
-                    &u8EditBuffer,          // pointer to work copy buffer
-                    RESTXT_TEST_SLCT_DSC,   // descriptor string
-                    pszSelectList,          // list of choice texts
-                    RESTXT_TEST_SLCT_WIDTH, // field width
-                    OC_DISPL | OC_SELECT | OC_EDIT ); // init states
-
-
-
-
+    /* initialize all object types */
+    ObjTextInit     ( TextObjectsInit );    /* Headline */
+    ObjEditTextInit ( EditTextInit );       /* edit text field */
+    ObjEditNumInit  ( EditNumInit );        /* number32 object */
+    ObjEditBoolInit ( EditBoolInit );       /* boolean object */
+    ObjSelectInit   ( SelectInit );         /* select object */
 
     /* set edit text object focused per default */
     EditTextObj.State.bits.fSelected = TRUE;
