@@ -68,6 +68,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.6  2009/07/19 12:31:34  tuberkel
+ * - ObjectInit reviewed
+ * - dyn. text handling disabled
+ *
  * Revision 2.5  2009/07/08 21:49:03  tuberkel
  * Changed contact data: Ralf Krizsan ==> Ralf Schwarzer
  *
@@ -219,61 +223,45 @@ extern char         szVehicState[VEHSTATE_TXT_LEN];    /* vehicle state string *
 
 
 // textobjects type for this device ----------------------------
-typedef struct {
-  TEXTOBJECT  far * pObject;
-  UINT16      wOrgPosX;
-  UINT16      wOrgPosY;
-  DPLFONT     eFont;
-  UINT8       bWindHeight;
-  UINT8       bWindWidth;
-  TXTALIGN    eAlign;
-  TXTFORMAT   eFormat;
-  STRING      szText;
-  UINT8       bState;
-  UINT8       bDynamicContent;
-} TEXTOBJECTS_TYPE;
-
-
-TEXTOBJECTS_TYPE *  TextObjects;        // default pointer, will be mapped to adequate table
-UINT8               TextObjectsNumber;  // number of elements in selected table
 
 
 
-/* special MOTOBAU behaviour */
+static TEXTOBJECT_INITTYPE TextObjects[] =
+{
+
 #if(BIKE_MOTOBAU==1)
 
-static TEXTOBJECTS_TYPE TextObjects_MotoBau[] =
-{
-    /*pObject            X   Y  Font          H  Width  Align     Format    string ptr   State      dyn*/
-    /*----------------- --- --- ------------ --- ----- --------- ---------- ------------ ---------- ---*/
-    { &BattObj,          0,  0, DPLFONT_6X8,  1,   21, TXT_LEFT, TXT_NORM,  szBatt,      OC_DISPL,  1  },
-    { &AirTempObj,       0,  8, DPLFONT_6X8,  1,   21, TXT_LEFT, TXT_NORM,  szAirTemp,   OC_DISPL,  1  },
-    { &OilTempObj,       0, 16, DPLFONT_6X8,  1,   21, TXT_LEFT, TXT_NORM,  szOilTemp,   OC_DISPL,  1  },
-    { &WatTempObj,       0, 24, DPLFONT_6X8,  1,   21, TXT_LEFT, TXT_NORM,  szWatTemp,   OC_DISPL,  1  },
-    { &RPMmaxObj,        0, 32, DPLFONT_6X8,  1,   21, TXT_LEFT, TXT_NORM,  szRPMmax,    OC_DISPL,  1  },
-    { &VmaxObj,          0, 40, DPLFONT_6X8,  1,   21, TXT_LEFT, TXT_NORM,  szVmax,      OC_DISPL,  1  },
-    { &RunTimeObj,       0, 48, DPLFONT_6X8,  1,   21, TXT_LEFT, TXT_NORM,  szRunTime,   OC_DISPL,  1  },
-    { &StatusObj,        0, 56, DPLFONT_6X8,  1,   21, TXT_LEFT, TXT_NORM,  szVehicState,OC_DISPL,  1  }
-    /*----------------- --- --- ------------ --- ----- --------- ---------- ------------ ---------- ---*/
-};
+    // SPECIAL MOTOBAU Monitor device resources ----------------------------
+    /*pObject            X   Y  Font          H  Width  Align     Format    string ptr   State      */
+    /*----------------- --- --- ------------ --- ----- --------- ---------- ------------ ---------- */
+    { &BattObj,          0,  0, DPLFONT_6X8,  1,   21, TXT_LEFT, TXT_NORM,  szBatt,      OC_DISPL | OC_DYN },
+    { &AirTempObj,       0,  8, DPLFONT_6X8,  1,   21, TXT_LEFT, TXT_NORM,  szAirTemp,   OC_DISPL | OC_DYN },
+    { &OilTempObj,       0, 16, DPLFONT_6X8,  1,   21, TXT_LEFT, TXT_NORM,  szOilTemp,   OC_DISPL | OC_DYN },
+    { &WatTempObj,       0, 24, DPLFONT_6X8,  1,   21, TXT_LEFT, TXT_NORM,  szWatTemp,   OC_DISPL | OC_DYN },
+    { &RPMmaxObj,        0, 32, DPLFONT_6X8,  1,   21, TXT_LEFT, TXT_NORM,  szRPMmax,    OC_DISPL | OC_DYN },
+    { &VmaxObj,          0, 40, DPLFONT_6X8,  1,   21, TXT_LEFT, TXT_NORM,  szVmax,      OC_DISPL | OC_DYN },
+    { &RunTimeObj,       0, 48, DPLFONT_6X8,  1,   21, TXT_LEFT, TXT_NORM,  szRunTime,   OC_DISPL | OC_DYN },
+    { &StatusObj,        0, 56, DPLFONT_6X8,  1,   21, TXT_LEFT, TXT_NORM,  szVehicState,OC_DISPL | OC_DYN }
+    /*----------------- --- --- ------------ --- ----- --------- ---------- ------------ ---------- */
 
 #else // BIKE_MOTOBAU
 
-// STANDARD Monitor device resources ----------------------------
-static TEXTOBJECTS_TYPE TextObjects_Standard[] =
-{
-    /*pObject            X   Y  Font          H  Width  Align     Format    string ptr   State      dyn*/
-    /*----------------- --- --- ------------ --- ----- --------- ---------- ------------ ---------- ---*/
-    { &DevTempObj,       0,  0, DPLFONT_6X8,  1,   21, TXT_LEFT, TXT_NORM,  szDevTemp,   OC_DISPL,  1  },
-    { &AirTempObj,       0, 10, DPLFONT_6X8,  1,   21, TXT_LEFT, TXT_NORM,  szAirTemp,   OC_DISPL,  1  },
-    { &WatTempObj,       0, 20, DPLFONT_6X8,  1,   21, TXT_LEFT, TXT_NORM,  szWatTemp,   OC_DISPL,  1  },
-    { &OilTempObj,       0, 30, DPLFONT_6X8,  1,   21, TXT_LEFT, TXT_NORM,  szOilTemp,   OC_DISPL,  1  },
-    { &BattObj,          0, 40, DPLFONT_6X8,  1,   21, TXT_LEFT, TXT_NORM,  szBatt,      OC_DISPL,  1  },
-    { &StatusObj,        0, 56, DPLFONT_6X8,  1,   21, TXT_LEFT, TXT_NORM,  szVehicState,OC_DISPL,  1  }
-    /*----------------- --- --- ------------ --- ----- --------- ---------- ------------ ---------- ---*/
-};
+    // STANDARD Monitor device resources ----------------------------
+    /*pObject            X   Y  Font          H  Width  Align     Format    string ptr   State      */
+    /*----------------- --- --- ------------ --- ----- --------- ---------- ------------ ---------- */
+    { &DevTempObj,       0,  0, DPLFONT_6X8,  1,   21, TXT_LEFT, TXT_NORM,  szDevTemp,   OC_DISPL | OC_DYN  },
+    { &AirTempObj,       0, 10, DPLFONT_6X8,  1,   21, TXT_LEFT, TXT_NORM,  szAirTemp,   OC_DISPL | OC_DYN  },
+    { &WatTempObj,       0, 20, DPLFONT_6X8,  1,   21, TXT_LEFT, TXT_NORM,  szWatTemp,   OC_DISPL | OC_DYN  },
+    { &OilTempObj,       0, 30, DPLFONT_6X8,  1,   21, TXT_LEFT, TXT_NORM,  szOilTemp,   OC_DISPL | OC_DYN  },
+    { &BattObj,          0, 40, DPLFONT_6X8,  1,   21, TXT_LEFT, TXT_NORM,  szBatt,      OC_DISPL | OC_DYN  },
+    { &StatusObj,        0, 56, DPLFONT_6X8,  1,   21, TXT_LEFT, TXT_NORM,  szVehicState,OC_DISPL | OC_DYN  }
+    /*----------------- --- --- ------------ --- ----- --------- ---------- ------------ ---------- */
 
 #endif // BIKE_MOTOBAU
+
+};
+
+
 
 
 /* internal prototypes */
@@ -300,28 +288,11 @@ ERRCODE MonitorDeviceInit(void)
     MonitorScreenDev.fFocused     = FALSE;
     MonitorScreenDev.fScreenInit  = FALSE;
 
-    // special MOTOBAU apearance
-    #if(BIKE_MOTOBAU==1)
-        TextObjects         = TextObjects_MotoBau;
-        TextObjectsNumber   = ARRAY_SIZE(TextObjects_MotoBau);
-    #else // BIKE_MOTOBAU
-        TextObjects         = TextObjects_Standard;
-        TextObjectsNumber   = ARRAY_SIZE(TextObjects_Standard);
-    #endif // BIKE_MOTOBAU
-
-    /* create text objects */
-    for (i = 0; i < TextObjectsNumber; i++)
+    /* initialize text objects */
+    for (i = 0; i < ARRAY_SIZE(TextObjects); i++)
     {
-       ObjTextInit(TextObjects[i].pObject,
-                   TextObjects[i].wOrgPosX,
-                   TextObjects[i].wOrgPosY,
-                   TextObjects[i].eFont,
-                   TextObjects[i].bWindHeight,
-                   TextObjects[i].bWindWidth,
-                   TextObjects[i].eAlign,
-                   TextObjects[i].eFormat,
-                   TextObjects[i].szText,
-                   TextObjects[i].bState);
+       /* convert rom constant array into live objects */
+       ObjTextInit( &TextObjects[i]);
     }
 
     /* return */
@@ -363,23 +334,22 @@ void MonitorDeviceShow(BOOL fShow)
             #endif // BIKE_MOTOBAU
 
             /* show all objects */
-            for (i = 0; i < TextObjectsNumber; i++)
-                ObjTextShow( TextObjects[i].pObject );
+            for (i = 0; i < ARRAY_SIZE(TextObjects); i++)
+            {   ObjTextShow( TextObjects[i].fpObject );
+            }
 
             /* init done */
             MonitorScreenDev.fScreenInit = TRUE;
         }
         else
         {
-            /* only repaint dynamic fields */
-            for (i = 0; i < TextObjectsNumber; i++)
-            {
-               if (TextObjects[i].bDynamicContent)
-                   ObjTextShow( TextObjects[i].pObject );
+            /* repaint all dynamic fields */
+            for (i = 0; i < ARRAY_SIZE(TextObjects); i++)
+            {   ObjTextShow( TextObjects[i].fpObject );
             }
         }
     }
-    else
+    else // parameter FALSE: clear screen only!
     {
         DisplClearScreen(0x0);
         MonitorScreenDev.fScreenInit  = FALSE;
