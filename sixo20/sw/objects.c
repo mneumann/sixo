@@ -69,6 +69,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.7  2009/07/19 12:38:37  tuberkel
+ * - ObjectInit reviewed
+ * - EditText Object works with EXTERNAL(!) work buffer
+ *
  * Revision 2.6  2009/07/18 06:27:16  tuberkel
  * - BugFixes: EditBoolObject value handling
  * - NEW: SelectObject
@@ -124,16 +128,23 @@
 /* character array for edit mode */
 /* NOTE 'ö' and 'ü' are the only characters, that the compiler
         does not handle directly, so we've to use the hex-form! */
-const UINT8 szLowerChars[]  ="aäbcdefghijklmno\xf6pqrsßtu\xfcvwxyz";
-const UINT8 szUpperChars[]  ="AÄBCDEFGHIJKLMNOÖPQRSTUÜVWXYZ";
-const UINT8 szNumericChars[]="0123456789";
-const UINT8 szPunctChars[]  ="_-([{)]}!\x22#%&'*,./:;?@\\";
-const UINT8 szSpecialChars[]="+<=>|~$^`";
+const UINT8 szLowerChars[]      ="aäbcdefghijklmno\xf6pqrsßtu\xfcvwxyz";
+const UINT8 szUpperChars[]      ="AÄBCDEFGHIJKLMNOÖPQRSTUÜVWXYZ";
+const UINT8 szNumericChars[]    ="0123456789";
+const UINT8 szPunctChars[]      ="_-([{)]}!\x22#%&'*,./:;?@\\";
+const UINT8 szSpecialChars[]    ="+<=>|~$^`";
 
 #define MAXCHARLISTSIZE     120     /* max. number of chars if all listed are used together */
 
 
 
+
+
+
+
+/* ====================================================================
+   BITMAP OBJECT
+   ==================================================================== */
 
 
 
@@ -149,6 +160,8 @@ ERRCODE ObjBmpShow( BMPOBJECT far * pObject)
     return DisplPrintABitmap( &pObject->Data, &pObject->Org, pObject->bMode);
 }
 
+
+
 /***********************************************************************
  *  FUNCTION:       ObjBmpInit
  *  DESCRIPTION:    Initializes BMP object
@@ -156,24 +169,30 @@ ERRCODE ObjBmpShow( BMPOBJECT far * pObject)
  *  RETURN:         -
  *  COMMENT:        -
  *********************************************************************** */
-ERRCODE ObjBmpInit( BMPOBJECT far * pObject,
-                    UINT16 wOrgPosX,
-                    UINT16 wOrgPosY,
-                    UINT16 wWidth,
-                    UINT16 wHeight,
-                    unsigned char far * rgBMPRawData,
-                    UINT8 bMode,
-                    UINT8 bState)
+ERRCODE ObjBmpInit( BMPOBJECT_INITTYPE far * fpInitData)
 {
-    pObject->State.byte      = bState;
-    pObject->Org.wXPos       = wOrgPosX;
-    pObject->Org.wYPos       = wOrgPosY;
-    pObject->Data.wWidth     = wWidth;
-    pObject->Data.wHeight    = wHeight;
-    pObject->Data.fpucBitmap = rgBMPRawData;
-    pObject->bMode           = bMode;
+    fpInitData->fpObject->State.byte      = fpInitData->bState;
+    fpInitData->fpObject->Org.wXPos       = fpInitData->wOrgPosX;
+    fpInitData->fpObject->Org.wYPos       = fpInitData->wOrgPosY;
+    fpInitData->fpObject->Data.wWidth     = fpInitData->wWidth;
+    fpInitData->fpObject->Data.wHeight    = fpInitData->wHeight;
+    fpInitData->fpObject->Data.fpucBitmap = (unsigned char far *)fpInitData->rgBMPRawData;
+    fpInitData->fpObject->bMode           = fpInitData->bMode;
     return ERR_OK;
 }
+
+
+
+
+
+
+
+
+/* ====================================================================
+   TEXT OBJECT
+   ==================================================================== */
+
+
 
 
 /***********************************************************************
@@ -190,10 +209,22 @@ ERRCODE ObjTextShow( TEXTOBJECT far * pObject)
     UINT8      bMode;                   /* selected display modes */
     UINT8      bMaxLine;                /* lines to be used */
     UINT8      bLine;                   /* for line loop */
-    CHAR       szBuffer[TXTBUFFSIZE];   /* buffer to split text into WindowLines */
+    CHAR       szBuffer[TXTTEMPBUFF];   /* buffer to split text into WindowLines */
     STRING     szText;                  /* pointer to output string */
     STRING     szRestText;              /* pointer to rest output string */
     DISPLXY    DisplayCaps;             /* display dimensions */
+
+    /* check: do we have to re-paint a static element? */
+    if (  (pObject->State.bits.fDynamic   == FALSE )
+        &&(pObject->State.bits.fDisplayed == TRUE  ) )
+    {
+        /* this is a static text element which already has been shown */
+        /* ==>nothing to do! */
+        // TBD: NOT YET IMPLEMENTED!
+        // If this code is active, any text object has to be reseted
+        // whenever the screen/device is de-focused!
+        // return ERR_OK;
+    }
 
     /* handling output mode */
     switch (pObject->eFormat)
@@ -241,6 +272,10 @@ ERRCODE ObjTextShow( TEXTOBJECT far * pObject)
         /* show this object */
         DisplPrintAString( szText, &PixelCoord, pObject->eFont, bMode );
     }
+
+    /* ok, save, that we displayed this object */
+    pObject->State.bits.fDisplayed = TRUE;
+
     return ERR_OK;
 }
 
@@ -253,27 +288,18 @@ ERRCODE ObjTextShow( TEXTOBJECT far * pObject)
  *  RETURN:         ERR_OK
  *  COMMENT:        -
  *********************************************************************** */
-ERRCODE ObjTextInit(    TEXTOBJECT far * pObject,   // allocated memory for text object
-                        UINT16      wOrgPosX,       // origin X pos in pixel units
-                        UINT16      wOrgPosY,       // origin Y pos in pixel units
-                        DPLFONT     eFont,          // used font enum type
-                        UINT8       bWindHeight,    // text window height in char(!) units
-                        UINT8       bWindWidth,     // text window width in char(!) units
-                        TXTALIGN    eAlign,         // text alignement in text window
-                        TXTFORMAT   eFormat,        // special text output formats
-                        STRING      szText,         // ptr to string buffer / static resource
-                        UINT8       bState       )  // current state when initialized
+ERRCODE ObjTextInit(    TEXTOBJECT_INITTYPE far * fpInitData )
 {
     /* copy text object data */
-    pObject->Org.wXPos      = wOrgPosX;
-    pObject->Org.wYPos      = wOrgPosY;
-    pObject->eFont          = eFont;
-    pObject->Window.bHeight = bWindHeight;
-    pObject->Window.bWidth  = bWindWidth;
-    pObject->eAlign         = eAlign;
-    pObject->eFormat        = eFormat;
-    pObject->szText         = szText;
-    pObject->State.byte     = bState;
+    fpInitData->fpObject->Org.wXPos      = fpInitData->wOrgPosX;
+    fpInitData->fpObject->Org.wYPos      = fpInitData->wOrgPosY;
+    fpInitData->fpObject->eFont          = fpInitData->eFont;
+    fpInitData->fpObject->Window.bHeight = fpInitData->bWindHeight;
+    fpInitData->fpObject->Window.bWidth  = fpInitData->bWindWidth;
+    fpInitData->fpObject->eAlign         = fpInitData->eAlign;
+    fpInitData->fpObject->eFormat        = fpInitData->eFormat;
+    fpInitData->fpObject->szText         = fpInitData->szText;
+    fpInitData->fpObject->State.byte     = fpInitData->bState;
 
     return ERR_OK;
 }
@@ -281,6 +307,10 @@ ERRCODE ObjTextInit(    TEXTOBJECT far * pObject,   // allocated memory for text
 
 
 
+
+/* ====================================================================
+   EDIT TEXT OBJECT
+   ==================================================================== */
 
 
 
@@ -298,7 +328,7 @@ ERRCODE ObjEditTextShow( EDITTEXTOBJECT far * pObject, UINT8 bUpdateMode )
 {
     DISPLXY     PixelCoord;                 /* coord of text parts (lines) */
     UINT8       bMode;                      /* selected display modes */
-    CHAR        szOutText[TXTBUFFSIZE];     /* buffer to split text into WindowLines */
+    CHAR        szOutText[TXTTEMPBUFF];     /* output temp buffer  */
     DISPLXY     DisplayCaps;                /* display dimensions */
     UINT8       bXTextOffset;               /* x offset of edit text in text window oin pixel */
     UINT8       bCharWidth;                 /* character width in pixel */
@@ -313,7 +343,7 @@ ERRCODE ObjEditTextShow( EDITTEXTOBJECT far * pObject, UINT8 bUpdateMode )
     if (bUpdateMode & SHOW_DESCR)
     {
         /* clear buffer  */
-        memset( szOutText, 0x0, TXTBUFFSIZE);
+        memset( szOutText, 0x0, TXTTEMPBUFF);
 
         /* handling output mode */
         bMode = DPLNORM;                    /* always show normal */
@@ -330,7 +360,7 @@ ERRCODE ObjEditTextShow( EDITTEXTOBJECT far * pObject, UINT8 bUpdateMode )
         ||(bUpdateMode & SHOW_EDIT ) )
     {
         /* clear buffer to spaces */
-        memset( szOutText, 0x20, TXTBUFFSIZE);
+        memset( szOutText, 0x20, TXTTEMPBUFF);
 
         /* insert original or working copy of string */
         if (pObject->State.bits.fEditActive == TRUE)
@@ -399,32 +429,25 @@ ERRCODE ObjEditTextShow( EDITTEXTOBJECT far * pObject, UINT8 bUpdateMode )
  *  RETURN:         error code
  *  COMMENT:        -
  *********************************************************************** */
-ERRCODE ObjEditTextInit(    EDITTEXTOBJECT far * pObject,
-                            UINT16      wOrgPosX,
-                            UINT16      wOrgPosY,
-                            DPLFONT     eFont,
-                            UINT8       bWindWidth,
-                            STRING      szText,
-                            STRING      szDescr,
-                            UINT8       bLength,
-                            UINT8       bCharList,
-                            UINT8       bState)
+ERRCODE ObjEditTextInit( EDITTEXT_INITTYPE far * fpInitData )
 {
     /* check parameters first */
-    if ( (strlen(szDescr) + bLength + 2) > bWindWidth)  /* descr + text + border fits into window? */
+    /* descr + text + border fits into window? */
+    if ( (strlen(fpInitData->szDescr) + fpInitData->bLength + 2) > fpInitData->bWindWidth)
         return ERR_PARAM_ERR;
 
     /* copy object data */
-    pObject->Org.wXPos      = wOrgPosX;         /* X origin in pixel coord. (0 = left) */
-    pObject->Org.wYPos      = wOrgPosY;         /* Y origin in pixel coord. (0 = upper) */
-    pObject->eFont          = eFont;            /* used font */
-    pObject->Window.bWidth  = bWindWidth;       /* text windows width in chars */
-    pObject->szText         = szText;           /* address of string to be edited */
-    pObject->szDescr        = szDescr;          /* address of description string */
-    pObject->bLength        = bLength;          /* length of edit field in chars */
-    pObject->bCharList      = bCharList;        /* bitcoded list of chars to be used to edit */
-    pObject->bCursorPos     = 0;                /* cursor on left position */
-    pObject->State.byte     = bState;           /* all states initilzed */
+    fpInitData->fpObject->Org.wXPos      = fpInitData->wOrgPosX;         /* X origin in pixel coord. (0 = left) */
+    fpInitData->fpObject->Org.wYPos      = fpInitData->wOrgPosY;         /* Y origin in pixel coord. (0 = upper) */
+    fpInitData->fpObject->eFont          = fpInitData->eFont;            /* used font */
+    fpInitData->fpObject->Window.bWidth  = fpInitData->bWindWidth;       /* text windows width in chars */
+    fpInitData->fpObject->szText         = fpInitData->szText;           /* address of string to be edited */
+    fpInitData->fpObject->szDescr        = fpInitData->szDescr;          /* address of description string */
+    fpInitData->fpObject->szWorkText     = fpInitData->szWorkText;       /* address of buffer for editing */
+    fpInitData->fpObject->bLength        = fpInitData->bLength;          /* length of edit field in chars */
+    fpInitData->fpObject->bCharList      = fpInitData->bCharList;        /* bitcoded list of chars to be used to edit */
+    fpInitData->fpObject->bCursorPos     = 0;                            /* cursor on left position */
+    fpInitData->fpObject->State.byte     = fpInitData->bState;           /* all states initilzed */
 
     return ERR_OK;
 }
@@ -542,6 +565,7 @@ ERRCODE ObjEditTextMsgEntry( EDITTEXTOBJECT far * fpObject, MESSAGE GivenMsg )
                 &&(  (MSG_KEY_TRANSITION(GivenMsg) == KEYTRANS_PRESSED)     /* pressed the first time?*/
                    ||(MSG_KEY_TRANSITION(GivenMsg) == KEYTRANS_ON     ) ) ) /* or longer pressed?*/
             {
+                /* change character under cursor */
                 ObjEditTextToggleChar(fpObject, MsgId);          /* handle selection of one character */
 
                 /* re-initiate cursor flashing */
@@ -559,6 +583,7 @@ ERRCODE ObjEditTextMsgEntry( EDITTEXTOBJECT far * fpObject, MESSAGE GivenMsg )
                 &&(  (MSG_KEY_TRANSITION(GivenMsg) == KEYTRANS_PRESSED)     /* pressed the first time?*/
                    ||(MSG_KEY_TRANSITION(GivenMsg) == KEYTRANS_ON     ) ) ) /* or longer pressed?*/
             {
+                /* change character under cursor */
                 ObjEditTextToggleChar(fpObject, MsgId);          /* handle selection of one character */
 
                 /* re-initiate cursor flashing */
@@ -671,6 +696,14 @@ ERRCODE ObjEditTextToggleChar(EDITTEXTOBJECT far * fpObject, MESSAGE_ID MsgID)
 
 
 
+
+/* ====================================================================
+   EDIT NUMBER OBJECT
+   ==================================================================== */
+
+
+
+
 /***********************************************************************
  *  FUNCTION:       ObjEditNumShow
  *  DESCRIPTION:    updates display appearance of edit number field
@@ -690,7 +723,7 @@ ERRCODE ObjEditNumShow( EDITNUMBEROBJECT far * fpObject, UINT8 bUpdateMode )
 {
     DISPLXY     PixelCoord;                 /* coord of text parts (lines) */
     UINT8       bMode;                      /* selected display modes */
-    CHAR        rgTextBuffer[TXTBUFFSIZE];  /* textbuffer for output purpose */
+    CHAR        rgTextBuffer[TXTTEMPBUFF];  /* textbuffer for output purpose */
     STRING      szOutText;                  /* pointer to output string */
     DISPLXY     DisplayCaps;                /* display dimensions */
     UINT8       bXTextOffset;               /* x offset of edit text in text window oin pixel */
@@ -715,14 +748,14 @@ ERRCODE ObjEditNumShow( EDITNUMBEROBJECT far * fpObject, UINT8 bUpdateMode )
 
         /* --------------------------- */
         /* decriptor stuff: */
-        memset( rgTextBuffer, 0x0, TXTBUFFSIZE);                            /* clear buffer to spaces */
+        memset( rgTextBuffer, 0x0, TXTTEMPBUFF);                            /* clear buffer to spaces */
         strncpy(szOutText, fpObject->szDescr, strlen(fpObject->szDescr));   /* get descriptor string */
         PixelCoord.wXPos = fpObject->Org.wXPos;                             /* show descriptor at left side */
         DisplPrintAString( szOutText, &PixelCoord, fpObject->eFont, bMode );/* print out text */
 
         /* --------------------------- */
         /* units stuff: */
-        memset( rgTextBuffer, 0x0, TXTBUFFSIZE);                                    /* clear buffer to spaces */
+        memset( rgTextBuffer, 0x0, TXTTEMPBUFF);                                    /* clear buffer to spaces */
         strncpy(szOutText, fpObject->szUnit, strlen(fpObject->szUnit));             /* get unit string */
         PixelCoord.wXPos =  fpObject->Org.wXPos
                             + bCharWidth *
@@ -761,7 +794,7 @@ ERRCODE ObjEditNumShow( EDITNUMBEROBJECT far * fpObject, UINT8 bUpdateMode )
         }
 
         /* clear buffer to spaces */
-        memset( rgTextBuffer, 0x0, TXTBUFFSIZE);
+        memset( rgTextBuffer, 0x0, TXTTEMPBUFF);
 
         /* get a well formated string from number  */
         ObjEditNum2String( fpObject, szOutText );
@@ -824,57 +857,40 @@ ERRCODE ObjEditNumShow( EDITNUMBEROBJECT far * fpObject, UINT8 bUpdateMode )
  *  RETURN:         error code
  *  COMMENT:        -
  *********************************************************************** */
-ERRCODE ObjEditNumInit( EDITNUMBEROBJECT far * fpObject,
-                        UINT16       wOrgPosX,
-                        UINT16       wOrgPosY,
-                        DPLFONT      eFont,
-                        UINT8        bWindWidth,
-                        void far *   fpNumber,
-                        void far *   fpWorkNumber,
-                        NUMTYPE      eType,
-                        INT32        lMin,
-                        INT32        lMax,
-                        INT32        lStepSize,
-                        NUMDPLTYPE   eDplType,
-                        NUMMODETYPE  eMode,
-                        UINT8        bComma,
-                        STRING       szDescr,
-                        STRING       szUnit,
-                        UINT8        bLength,
-                        UINT8        bState )
+ERRCODE ObjEditNumInit( EDITNUMBER_INITTYPE far * fpInitData )
 {
     /* check parameters first */
     /* descr + text + border fits into window? */
-    if ( (strlen(szDescr) + bLength + strlen(szUnit) ) > bWindWidth)
+    if ( (strlen(fpInitData->szDescr) + fpInitData->bLength + strlen(fpInitData->szUnit) ) > fpInitData->bWindWidth)
     {
         ODS(DBG_USER, DBG_WARNING, "ObjEditNumInit() Object does not fit into window!");
-        fpObject->State.byte = 0;   // object remains completely disabled
+        fpInitData->fpObject->State.byte = 0;   // object remains completely disabled
         return ERR_PARAM_ERR;
     }
 
 
     /* copy object data */
-    fpObject->Org.wXPos     = wOrgPosX;         /* X origin in pixel coord. (0 = left) */
-    fpObject->Org.wYPos     = wOrgPosY;         /* Y origin in pixel coord. (0 = upper) */
-    fpObject->eFont         = eFont;            /* used font */
-    fpObject->Window.bWidth = bWindWidth;       /* text windows width in chars */
-    fpObject->fpNumber      = fpNumber;         /* original number to be edited */
-    fpObject->fpWorkNumber  = fpWorkNumber;     /* number copy to be edited */
-    fpObject->eType         = eType;            /* type of number */
-    fpObject->Limits.lMin   = lMin;             /* min limit */
-    fpObject->Limits.lMax   = lMax;             /* max limit */
-    fpObject->Limits.lStep  = lStepSize;        /* step size */
-    fpObject->eDplType      = eDplType;         /* display type */
-    fpObject->eMode         = eMode;            /* edit mode */
-    fpObject->bComma        = bComma;           /* comma position */
-    fpObject->szDescr       = szDescr;          /* address of description string */
-    fpObject->szUnit        = szUnit;           /* address of description string */
-    fpObject->bLength       = bLength;          /* length of edit field in chars */
-    fpObject->State.byte    = bState;           /* prepared caps & states */
+    fpInitData->fpObject->Org.wXPos     = fpInitData->wOrgPosX;         /* X origin in pixel coord. (0 = left) */
+    fpInitData->fpObject->Org.wYPos     = fpInitData->wOrgPosY;         /* Y origin in pixel coord. (0 = upper) */
+    fpInitData->fpObject->eFont         = fpInitData->eFont;            /* used font */
+    fpInitData->fpObject->Window.bWidth = fpInitData->bWindWidth;       /* text windows width in chars */
+    fpInitData->fpObject->fpNumber      = fpInitData->fpNumber;         /* original number to be edited */
+    fpInitData->fpObject->fpWorkNumber  = fpInitData->fpWorkNumber;     /* number copy to be edited */
+    fpInitData->fpObject->eType         = fpInitData->eType;            /* type of number */
+    fpInitData->fpObject->Limits.lMin   = fpInitData->lMin;             /* min limit */
+    fpInitData->fpObject->Limits.lMax   = fpInitData->lMax;             /* max limit */
+    fpInitData->fpObject->Limits.lStep  = fpInitData->lStepSize;        /* step size */
+    fpInitData->fpObject->eDplType      = fpInitData->eDplType;         /* display type */
+    fpInitData->fpObject->eMode         = fpInitData->eMode;            /* edit mode */
+    fpInitData->fpObject->bComma        = fpInitData->bComma;           /* comma position */
+    fpInitData->fpObject->szDescr       = fpInitData->szDescr;          /* address of description string */
+    fpInitData->fpObject->szUnit        = fpInitData->szUnit;           /* address of description string */
+    fpInitData->fpObject->bLength       = fpInitData->bLength;          /* length of edit field in chars */
+    fpInitData->fpObject->State.byte    = fpInitData->bState;           /* prepared caps & states */
 
     /* default values */
-    fpObject->bCursorPos     = 0;                /* cursor on left position */
-    fpObject->Window.bHeight = 1;                /* text windows height in chars */
+    fpInitData->fpObject->bCursorPos     = 0;                /* cursor on left position */
+    fpInitData->fpObject->Window.bHeight = 1;                /* text windows height in chars */
 
     return ERR_OK;
 }
@@ -1232,7 +1248,7 @@ ERRCODE ObjEditNumToggleNum(EDITNUMBEROBJECT far * fpObject, MESSAGE_ID MsgID)
     UINT8 bExp;                     /* exponent value for inc/decr value calculations: 0..32 (32 eq. 2^32) */
     UINT8 bCursorVal;               /* value ofchar under cursor for incr/decr-carry detection */
     CHAR  cCursorChar[2] = {0,0};   /* buffer to handle copy of cursor string /0 closed */
-    CHAR  szBuffer[TXTBUFFSIZE];    /* textbuffer */
+    CHAR  szBuffer[TXTTEMPBUFF];    /* temp textbuffer */
 
     /* determine base */
     /* (check used display base format) */
@@ -1599,6 +1615,14 @@ UINT8 bCharToByte(CHAR cChar)
 
 
 
+
+
+/* ====================================================================
+   EDIT BOOL OBJECT
+   ==================================================================== */
+
+
+
 /***********************************************************************
  *  FUNCTION:       ObjEditBoolShow
  *  DESCRIPTION:    updates display appearance of edit bool field
@@ -1618,7 +1642,7 @@ ERRCODE ObjEditBoolShow( EDITBOOLOBJECT far * fpObject, UINT8 bUpdateMode )
 {
     DISPLXY     PixelCoord;                 /* coord of text parts (lines) */
     UINT8       bMode;                      /* selected display modes */
-    CHAR        rgTextBuffer[TXTBUFFSIZE];  /* textbuffer for output purpose */
+    CHAR        rgTextBuffer[TXTTEMPBUFF];  /* textbuffer for output purpose */
     STRING      szOutText;                  /* pointer to output string */
     DISPLXY     DisplayCaps;                /* display dimensions */
     UINT8       bXTextOffset;               /* x offset of edit text in text window oin pixel */
@@ -1643,7 +1667,7 @@ ERRCODE ObjEditBoolShow( EDITBOOLOBJECT far * fpObject, UINT8 bUpdateMode )
 
         /* --------------------------- */
         /* decriptor stuff: */
-        memset( rgTextBuffer, 0x0, TXTBUFFSIZE);                            /* clear buffer to spaces */
+        memset( rgTextBuffer, 0x0, TXTTEMPBUFF);                            /* clear buffer to spaces */
         strncpy(szOutText, fpObject->szDescr, strlen(fpObject->szDescr));   /* get descriptor string */
         PixelCoord.wXPos = fpObject->Org.wXPos;                             /* show descriptor at left side */
         DisplPrintAString( szOutText, &PixelCoord, fpObject->eFont, bMode );/* print out text */
@@ -1718,38 +1742,34 @@ ERRCODE ObjEditBoolShow( EDITBOOLOBJECT far * fpObject, UINT8 bUpdateMode )
  *  RETURN:         error code
  *  COMMENT:        -
  *********************************************************************** */
-ERRCODE ObjEditBoolInit(EDITBOOLOBJECT far * fpObject,
-                        UINT16       wOrgPosX,
-                        UINT16       wOrgPosY,
-                        DPLFONT      eFont,
-                        UINT8        bWindWidth,
-                        BOOL far *   fpValue,
-                        BOOL far *   fpWorkValue,
-                        STRING       szDescr,
-                        UINT8        bState )
+ERRCODE ObjEditBoolInit(EDITBOOL_INITTYPE far * fpInitData )
 {
+    EDITBOOLOBJECT fpObject;
+
     /* check parameters first */
+    if (fpInitData->fpObject == NULL)
+         return ERR_PARAM_ERR;
+
     /* descr + text + border fits into window? */
-    if ( (strlen(szDescr) + EDITBOOL_TEXTWIDTH ) > bWindWidth)
+    if ( (strlen(fpInitData->szDescr) + EDITBOOL_TEXTWIDTH ) > fpInitData->bWindWidth)
     {
         ODS(DBG_USER, DBG_WARNING, "ObjEditBoolInit() Object does not fit into window!");
-        fpObject->State.byte = 0;   // object remains completely disabled
+        fpInitData->fpObject->State.byte = 0;   // object remains completely disabled
         return ERR_PARAM_ERR;
     }
 
-
-    /* copy object data */
-    fpObject->Org.wXPos     = wOrgPosX;         /* X origin in pixel coord. (0 = left) */
-    fpObject->Org.wYPos     = wOrgPosY;         /* Y origin in pixel coord. (0 = upper) */
-    fpObject->eFont         = eFont;            /* used font */
-    fpObject->Window.bWidth = bWindWidth;       /* text windows width in chars */
-    fpObject->fpValue       = fpValue;          /* original value to be edited */
-    fpObject->fpWorkValue   = fpWorkValue;      /* value copy to be edited */
-    fpObject->szDescr       = szDescr;          /* address of description string */
-    fpObject->State.byte    = bState;           /* prepared caps & states */
+    /* copy const rom data into object data */
+    fpInitData->fpObject->Org.wXPos     = fpInitData->wOrgPosX;     /* X origin in pixel coord. (0 = left) */
+    fpInitData->fpObject->Org.wYPos     = fpInitData->wOrgPosY;     /* Y origin in pixel coord. (0 = upper) */
+    fpInitData->fpObject->eFont         = fpInitData->eFont;        /* used font */
+    fpInitData->fpObject->Window.bWidth = fpInitData->bWindWidth;   /* text windows width in chars */
+    fpInitData->fpObject->fpValue       = fpInitData->fpValue;      /* original value to be edited */
+    fpInitData->fpObject->fpWorkValue   = fpInitData->fpWorkValue;  /* value copy to be edited */
+    fpInitData->fpObject->szDescr       = fpInitData->szDescr;      /* address of description string */
+    fpInitData->fpObject->State.byte    = fpInitData->bState;       /* prepared caps & states */
 
     /* default values */
-    fpObject->Window.bHeight = 1;                /* text windows height in chars */
+    fpInitData->fpObject->Window.bHeight = 1;                       /* text windows height in chars */
 
     return ERR_OK;
 }
@@ -1900,6 +1920,9 @@ ERRCODE ObjEditBoolMsgEntry( EDITBOOLOBJECT far * fpObject, MESSAGE GivenMsg )
 
 
 
+/* ====================================================================
+   SELECT OBJECT
+   ==================================================================== */
 
 
 
@@ -1923,7 +1946,7 @@ ERRCODE ObjSelectShow( SELECTOBJECT far * fpObject, UINT8 bUpdateMode )
 {
     DISPLXY     PixelCoord;                 /* coord of text parts (lines) */
     UINT8       bMode;                      /* selected display modes */
-    CHAR        rgTextBuffer[TXTBUFFSIZE];  /* textbuffer for output purpose */
+    CHAR        rgTextBuffer[TXTTEMPBUFF];  /* textbuffer for output purpose */
     STRING      szOutText;                  /* pointer to output string */
     DISPLXY     DisplayCaps;                /* display dimensions */
     UINT8       bXTextOffset;               /* x offset of edit text in text window oin pixel */
@@ -1948,7 +1971,7 @@ ERRCODE ObjSelectShow( SELECTOBJECT far * fpObject, UINT8 bUpdateMode )
 
         /* --------------------------- */
         /* decriptor stuff: */
-        memset( rgTextBuffer, 0x0, TXTBUFFSIZE);                            /* clear buffer to spaces */
+        memset( rgTextBuffer, 0x0, TXTTEMPBUFF);                            /* clear buffer to spaces */
         strncpy(szOutText, fpObject->szDescr, strlen(fpObject->szDescr));   /* get descriptor string */
         PixelCoord.wXPos = fpObject->Org.wXPos;                             /* show descriptor at left side */
         DisplPrintAString( szOutText, &PixelCoord, fpObject->eFont, bMode );/* print out text */
@@ -2017,44 +2040,32 @@ ERRCODE ObjSelectShow( SELECTOBJECT far * fpObject, UINT8 bUpdateMode )
  *  RETURN:         error code
  *  COMMENT:        -
  *********************************************************************** */
-ERRCODE ObjSelectInit(  SELECTOBJECT far * fpObject,
-                        UINT16       wOrgPosX,
-                        UINT16       wOrgPosY,
-                        DPLFONT      eFont,
-                        UINT8        bWindWidth,
-                        UINT8 far *  fpValue,
-                        UINT8        u8Max,
-                        UINT8 far *  fpWorkValue,
-                        STRING       szDescr,
-                        STRING far * pszSlctTxtList,
-                        UINT8        bSelectWidth,
-                        UINT8        bState )
+ERRCODE ObjSelectInit(  SELECT_INITTYPE far * fpInitData )
 {
     /* check parameters first */
     /* descr + text + border fits into window? */
-    if ( (strlen(szDescr) + bSelectWidth ) > bWindWidth)
+    if ( (strlen(fpInitData->szDescr) + fpInitData->bSelectWidth ) > fpInitData->bWindWidth)
     {
         ODS(DBG_USER, DBG_WARNING, "ObjSelectInit() Object does not fit into window!");
-        fpObject->State.byte = 0;   // object remains completely disabled
+        fpInitData->fpObject->State.byte = 0;   // object remains completely disabled
         return ERR_PARAM_ERR;
     }
 
-
-    /* copy object data */
-    fpObject->Org.wXPos     = wOrgPosX;         /* X origin in pixel coord. (0 = left) */
-    fpObject->Org.wYPos     = wOrgPosY;         /* Y origin in pixel coord. (0 = upper) */
-    fpObject->eFont         = eFont;            /* used font */
-    fpObject->Window.bWidth = bWindWidth;       /* text windows width in chars */
-    fpObject->fpValue       = fpValue;          /* original value to be edited */
-    fpObject->u8Max         = u8Max;            /* max value = list size */
-    fpObject->fpWorkValue   = fpWorkValue;      /* value copy to be edited */
-    fpObject->szDescr       = szDescr;          /* address of description string */
-    fpObject->pszSlctTxtList = pszSlctTxtList;  /* address of selection text list */
-    fpObject->bSelectWidth  = bSelectWidth;     /* field width of select text */
-    fpObject->State.byte    = bState;           /* prepared caps & states */
+    /* copy rom init data into object data */
+    fpInitData->fpObject->Org.wXPos      = fpInitData->wOrgPosX;        /* X origin in pixel coord. (0 = left) */
+    fpInitData->fpObject->Org.wYPos      = fpInitData->wOrgPosY;        /* Y origin in pixel coord. (0 = upper) */
+    fpInitData->fpObject->eFont          = fpInitData->eFont;           /* used font */
+    fpInitData->fpObject->Window.bWidth  = fpInitData->bWindWidth;      /* text windows width in chars */
+    fpInitData->fpObject->fpValue        = fpInitData->fpValue;         /* original value to be edited */
+    fpInitData->fpObject->u8Max          = fpInitData->u8Max;           /* max value = list size */
+    fpInitData->fpObject->fpWorkValue    = fpInitData->fpWorkValue;     /* value copy to be edited */
+    fpInitData->fpObject->szDescr        = fpInitData->szDescr;         /* address of description string */
+    fpInitData->fpObject->pszSlctTxtList = (STRING far *)fpInitData->pszSlctTxtList;  /* address of selection text list */
+    fpInitData->fpObject->bSelectWidth   = fpInitData->bSelectWidth;    /* field width of select text */
+    fpInitData->fpObject->State.byte     = fpInitData->bState;          /* prepared caps & states */
 
     /* default values */
-    fpObject->Window.bHeight = 1;                /* text windows height in chars */
+    fpInitData->fpObject->Window.bHeight = 1;                           /* text windows height in chars */
 
     return ERR_OK;
 }
