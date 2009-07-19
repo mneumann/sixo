@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.8  2009/07/19 12:34:23  tuberkel
+ * Choice text samples changed
+ *
  * Revision 2.7  2009/07/18 06:28:19  tuberkel
  * Test-Ressources for new SelectObject
  *
@@ -235,12 +238,13 @@ Note: We use the Text-Object property to automatically
 
 #define RESTXT_TEST_SLCT_DSC    "Select:"
 #define RESTXT_TEST_SLCT_MAX    5                           /* choice of 0..4 */
-#define RESTXT_TEST_SLCT_WIDTH  10                          /* max field width */
-#define RESTXT_TEST_SLCT_A      "choice A  "
-#define RESTXT_TEST_SLCT_B      "choice B  "
-#define RESTXT_TEST_SLCT_C      "choice C  "
-#define RESTXT_TEST_SLCT_D      "choice D  "
-#define RESTXT_TEST_SLCT_E      "choice E  "
+#define RESTXT_TEST_SLCT_WIDTH  12                          /* max field width */
+                              /*!....!....!....!....!.*/
+#define RESTXT_TEST_SLCT_A      "       Typ_A"
+#define RESTXT_TEST_SLCT_B      "  was andres"
+#define RESTXT_TEST_SLCT_C      "    Choice C"
+#define RESTXT_TEST_SLCT_D      "         ???"
+#define RESTXT_TEST_SLCT_E      "   unbekannt"
 
 
 
