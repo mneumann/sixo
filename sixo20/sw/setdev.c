@@ -68,6 +68,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.13  2009/07/22 12:45:08  tuberkel
+ * Device Object Focus handling simplified:
+ * - now used standard DevObjFocusMove() / DevObjFocusReset() functions
+ *
  * Revision 2.12  2009/07/19 12:32:59  tuberkel
  * - ObjectInit reviewed
  *
@@ -194,41 +198,6 @@
 
 
 
-// device states = focus handling
-// NOTE:    these enums have to be in the same order like the
-//          objects in EditNumObj[]
-typedef enum
-{
-    eSetFirst,          // INVALID STATE
-    eSetWheelsize,      // wheel size
-    eSetCCFNom,         // CCF nominator
-    eSetCCFDenom,       // CCF denominator
-    eSetDisplLight,     // display backlight
-    eSetDisplHellgk,    // backlight level
-    eSetDisplContr,     // display contrast
-    eSetRPMFlash,       // RPM flash light
-
-    eSetBikeType,       // bike type selection
-    eSetCompassCalib,   // compass calibration
-    eSetTripCntFl,      // tripCounter Flag
-
-    // special MOTOBAU selection
-    eSetServHours,      // EngineRuntimeHours Service
-    eSetAllHours,       // EngineRuntimeHours Overall
-
-    // standard SIXO selection
-    eSetServKm,         // next service required at km x
-
-    eSetVehicDist,      // vehicle distance
-    eSetDay,            // RTC day
-    eSetMonth,          // RTC month
-    eSetYear,           // RTC year
-    eSetHour,           // RTC hours
-    eSetMin,            // RTC minutes
-    eSetSec,            // RTC seconds
-    eSetClkCalib,       // RTC calibration
-    eSetLast,           // INVALID STATE
-} SETDEVSTATE;
 
 
 // device object data
@@ -341,9 +310,10 @@ extern UINT16           wMilliSecCounter;                           // valid val
 // non public prototypes
 void    SetDeviceShow(BOOL fShow);
 ERRCODE SetDeviceTryObjects(MESSAGE GivenMsg);
-ERRCODE SetDeviceStateMachine(MESSAGE Msg);
 void    SetDeviceCheckChanges(void);
-ERRCODE SetDeviceSetFocus(SETDEVSTATE eState);
+
+
+
 
 
 /* EDIT NUMBER INIT TABLE */
@@ -363,8 +333,8 @@ static const EDITNUMBER_INITTYPE EditNumObj[] =
     { &EditCompassCalibObj,  36,   27,  DPLFONT_6X8,     5, &bSavedCmpCalState,     &bEditBuffer,   eUCHAR, 0L,     6L,  0L, eDez,   eColumn, 0, RESTXT_SET_COMPCAL,         "",                         1,  OC_DISPL | OC_SELECT | OC_EDIT              },
     { &EditTripCntFlObj,     72,   27,  DPLFONT_6X8,     9, &bTripCntFl,            &bEditBuffer,   eUCHAR, 0L,     7L,  0L, eDez,   eColumn, 0, RESTXT_SET_TRIPCNTFL,       "",                         1,  OC_DISPL | OC_SELECT | OC_EDIT              },
       // EngRun EngServ will modified in init routine for BIKE_MOTOBAU version
-    { &EditEngRunSrvObj,      0,   36,  DPLFONT_6X8,    10, &EngRunTime_Srv.wHour,  &wEditBuffer,   eUINT,  0L,   999L,  0L, eDez,   eColumn, 0, RESTXT_SET_ERT_SRV,         RESTXT_SET_ERT_UNIT,        3,  OC_DISPL | OC_SELECT | OC_EDIT              },
-    { &EditEngRunAllObj,     66,   36,  DPLFONT_6X8,    10, &EngRunTime_All.wHour,  &wEditBuffer,   eUINT,  0L,  9999L,  0L, eDez,   eColumn, 0, RESTXT_SET_ERT_ALL,         RESTXT_SET_ERT_UNIT,        4,  OC_DISPL | OC_SELECT | OC_EDIT              },
+    //{ &EditEngRunSrvObj,      0,   36,  DPLFONT_6X8,    10, &EngRunTime_Srv.wHour,  &wEditBuffer,   eUINT,  0L,   999L,  0L, eDez,   eColumn, 0, RESTXT_SET_ERT_SRV,         RESTXT_SET_ERT_UNIT,        3,  OC_DISPL | OC_SELECT | OC_EDIT              },
+    //{ &EditEngRunAllObj,     66,   36,  DPLFONT_6X8,    10, &EngRunTime_All.wHour,  &wEditBuffer,   eUINT,  0L,  9999L,  0L, eDez,   eColumn, 0, RESTXT_SET_ERT_ALL,         RESTXT_SET_ERT_UNIT,        4,  OC_DISPL | OC_SELECT | OC_EDIT              },
       // Servkm will modified in init routine for NOT BIKE_MOTOBAU version
     { &EditServKmObj,         0,   36,  DPLFONT_6X8,    21, &dwServKm,              &dwEditBuffer,  eULONG, 0L, 999999L, 0L, eDez,   eColumn, 3, RESTXT_SET_SERVKM,          RESTXT_SET_VEHICKMUNIT,     7,  OC_DISPL | OC_SELECT | OC_EDIT              },
     { &EditVehicDistObj,      0,   45,  DPLFONT_6X8,    21, &dwVehicDist,           &dwEditBuffer,  eULONG, 0L, 999999L, 0L, eDez,   eColumn, 3, RESTXT_SET_VEHICKMDESC,     RESTXT_SET_VEHICKMUNIT,     7,  OC_DISPL | OC_SELECT | OC_EDIT              },
@@ -377,6 +347,38 @@ static const EDITNUMBER_INITTYPE EditNumObj[] =
     { &EditClkCalibObj,     102,   54,  DPLFONT_6X8,     4, &bClkCalib,             &bEditBuffer,   eUCHAR, 0L,   255L,  0L, eDez,   eColumn, 0, RESTXT_CLKCALIBDESC,        "",                         3,  OC_DISPL | OC_SELECT | OC_EDIT              }
     /* ------------------ ------ ------ ------------ ----- -----------------------  --------------- ------ ---- ------- --- ------- -------- - ------------------------ ----------------------- -- -------------------------------------------- */
 };
+
+
+
+/* this devices object focus handling - list of SELECTABLE objects */
+/* NOTE: this handling assumes the object data 'OBJSTATE' being the FIRST
+         structure element of the object type! */
+static const void far * FocusObjList[] =
+{   (void far *) &EditWheelSizeObj,
+    (void far *) &EditCCFNomObj,
+    (void far *) &EditCCFDenomObj,
+    (void far *) &EditBacklObj,
+    (void far *) &EditBacklLevObj,
+    (void far *) &EditContrLevObj,
+    (void far *) &EditRPMFlashObj,
+
+    (void far *) &EditBikeTypeObj,
+    (void far *) &EditCompassCalibObj,
+    (void far *) &EditTripCntFlObj,
+
+    //(void far *) &EditEngRunSrvObj,
+    //(void far *) &EditEngRunAllObj,
+    (void far *) &EditServKmObj,
+    (void far *) &EditVehicDistObj,
+    (void far *) &EditDayObj,
+    (void far *) &EditMonthObj,
+    (void far *) &EditYearObj,
+    (void far *) &EditHourObj,
+    (void far *) &EditMinObj,
+    (void far *) &EditSecObj,
+    (void far *) &EditClkCalibObj,
+};
+#define FOCUSLISTSIZE   (sizeof(FocusObjList)/sizeof(OBJSTATE)/sizeof(void far *))
 
 
 
@@ -405,7 +407,6 @@ ERRCODE SetDeviceInit(void)
     SetDevice.szDevName    = szDevName[DEVID_SET];
     SetDevice.fFocused     = FALSE;
     SetDevice.fScreenInit  = FALSE;
-    SetDevice.wDevState    = eSetWheelsize;
 
     // ----------------------------------
     // get local copies of global unions to handle EditNumObjects
@@ -449,8 +450,10 @@ ERRCODE SetDeviceInit(void)
         {
             ODS1(   DBG_SYS, DBG_WARNING, "SetDeviceInit(): EditNumObj[%u] not initialized!", i);
         }
-
     }
+
+    /* reset focus handling to start values */
+    DevObjFocusReset( &SetDevice, FocusObjList, FOCUSLISTSIZE );
 
     // return
     return ERR_OK;
@@ -657,7 +660,7 @@ ERRCODE SetDeviceMsgEntry(MESSAGE GivenMsg)
 
                 /* try to move focus (if possible) */
                 if( RValue == ERR_MSG_NOT_PROCESSED )
-                    RValue = SetDeviceStateMachine(GivenMsg);
+                    RValue = DevObjFocusMove(&SetDevice, FocusObjList, FOCUSLISTSIZE, GivenMsg);
 
                 /* try to give focus to next device */
                 if (  (RValue == ERR_MSG_NOT_PROCESSED                    )
@@ -671,6 +674,10 @@ ERRCODE SetDeviceMsgEntry(MESSAGE GivenMsg)
                     MsgQPostMsg(NewMsg, MSGQ_PRIO_LOW);
                     RValue = ERR_MSG_PROCESSED;
                 }
+
+                /* something changed -> Refresh! */
+                SetDeviceShow(TRUE);
+
                 break;
             case MSG_SCREEN_REFRESH:
                 /* backlight automatic,
@@ -720,129 +727,6 @@ ERRCODE SetDeviceTryObjects(MESSAGE GivenMsg)
 }
 
 
-
-/***********************************************************************
- *  FUNCTION:       SetDeviceStateMachine
- *  DESCRIPTION:    focus handles over all selectable objects
- *  PARAMETER:      message id (up/down)
- *  RETURN:         -
- *  COMMENT:        -
- *********************************************************************** */
-ERRCODE SetDeviceStateMachine(MESSAGE Msg)
-{
-    MESSAGE_ID  MsgId = MSG_ID(Msg);                            // get message id
-    ERRCODE     RValue = ERR_MSG_NOT_PROCESSED;
-
-    // scroll up? --------------------------------------------------------------
-    if (  (RValue == ERR_MSG_NOT_PROCESSED                )     // still unpocessed
-        &&(MsgId  == MSG_KEY_UP                           )     // [UP]
-        &&(  (MSG_KEY_TRANSITION(Msg) == KEYTRANS_PRESSED )     // now pressed
-           ||(MSG_KEY_TRANSITION(Msg) == KEYTRANS_ON      ) ) ) // or longer pressed?
-    {
-        SetDevice.wDevState--;                          // previous selection state
-        if (SetDevice.wDevState == eSetFirst)           // wrap around?
-            SetDevice.wDevState = (eSetLast-1);
-        #if(BIKE_MOTOBAU==1)
-            if (SetDevice.wDevState == eSetServKm )         // do not select 'service km'
-                SetDevice.wDevState = eSetAllHours;         // jump over it!
-        #else // BIKE_MOTOBAU                               // special NOT MOTOBAU behaviour
-            if (SetDevice.wDevState == eSetAllHours)        // do not select 'eSetAllHours'
-                SetDevice.wDevState = eSetTripCntFl;        // jump over it!
-        #endif // BIKE_MOTOBAU
-        SetDeviceSetFocus(SetDevice.wDevState);         // now use this focus...
-        SetDeviceShow(TRUE);
-        RValue = ERR_MSG_PROCESSED;
-        ODS1( DBG_SYS, DBG_INFO, "SetDevState: %u", SetDevice.wDevState);
-    }
-
-    // scroll down? ------------------------------------------------------------
-    if (  (RValue == ERR_MSG_NOT_PROCESSED                )     // still unpocessed
-        &&(MsgId  == MSG_KEY_DOWN                         )     // [DOWN]
-        &&(  (MSG_KEY_TRANSITION(Msg) == KEYTRANS_PRESSED )     // now pressed
-           ||(MSG_KEY_TRANSITION(Msg) == KEYTRANS_ON      ) ) ) // or longer pressed?
-    {
-        SetDevice.wDevState++;                          // next selection state
-        if (SetDevice.wDevState  == eSetLast)           // wrap around?
-            SetDevice.wDevState = (eSetFirst+1);
-        #if(BIKE_MOTOBAU==1)                             // special MOTOBAU behaviour
-            if (SetDevice.wDevState == eSetServKm)          // do not select 'service km'
-                SetDevice.wDevState = eSetVehicDist;        // jump over it!
-        #else // BIKE_MOTOBAU                           // special NOT MOTOBAU behaviour
-            if (SetDevice.wDevState == eSetServHours)       // do not select 'eSetServHours'
-                SetDevice.wDevState = eSetServKm;           // jump over it!
-        #endif // BIKE_MOTOBAU
-        SetDeviceSetFocus(SetDevice.wDevState);         // now use this focus...
-        SetDeviceShow(TRUE);
-        RValue = ERR_MSG_PROCESSED;
-        ODS1( DBG_SYS, DBG_INFO, "SetDevState: %u", SetDevice.wDevState);
-    }
-    return RValue;
-}
-
-
-/***********************************************************************
- *  FUNCTION:       SetDeviceSetFocus
- *  DESCRIPTION:    focus handles over all selectable objects
- *  PARAMETER:      new state to be set
- *  RETURN:         -
- *  COMMENT:        -
- *********************************************************************** */
-ERRCODE SetDeviceSetFocus(SETDEVSTATE eState)
-{
-    int     i;
-    ERRCODE RValue = ERR_MSG_NOT_PROCESSED;
-
-    // clear any focus before setting next one
-    EditWheelSizeObj.State.bits.fSelected = FALSE;
-    EditCCFNomObj.State.bits.fSelected    = FALSE;
-    EditCCFDenomObj.State.bits.fSelected  = FALSE;
-    EditBacklObj.State.bits.fSelected     = FALSE;
-    EditVehicDistObj.State.bits.fSelected = FALSE;
-    EditRPMFlashObj.State.bits.fSelected  = FALSE;
-    EditBikeTypeObj.State.bits.fSelected  = FALSE;
-    EditCompassCalibObj.State.bits.fSelected  = FALSE;
-    EditTripCntFlObj.State.bits.fSelected = FALSE;
-    EditEngRunSrvObj.State.bits.fSelected = FALSE;
-    EditEngRunAllObj.State.bits.fSelected = FALSE;
-    EditServKmObj.State.bits.fSelected    = FALSE;
-    EditBacklLevObj.State.bits.fSelected  = FALSE;
-    EditContrLevObj.State.bits.fSelected  = FALSE;
-    EditDayObj.State.bits.fSelected       = FALSE;
-    EditMonthObj.State.bits.fSelected     = FALSE;
-    EditYearObj.State.bits.fSelected      = FALSE;
-    EditHourObj.State.bits.fSelected      = FALSE;
-    EditMinObj.State.bits.fSelected       = FALSE;
-    EditSecObj.State.bits.fSelected       = FALSE;
-    EditClkCalibObj.State.bits.fSelected  = FALSE;
-
-    // enable visible focus for selected object:
-    switch (eState)
-    {
-        case eSetWheelsize:     EditWheelSizeObj.State.bits.fSelected = TRUE; break;
-        case eSetCCFNom:        EditCCFNomObj.State.bits.fSelected    = TRUE; break;
-        case eSetCCFDenom:      EditCCFDenomObj.State.bits.fSelected  = TRUE; break;
-        case eSetDisplLight:    EditBacklObj.State.bits.fSelected     = TRUE; break;
-        case eSetVehicDist:     EditVehicDistObj.State.bits.fSelected = TRUE; break;
-        case eSetDisplHellgk:   EditBacklLevObj.State.bits.fSelected  = TRUE; break;
-        case eSetDisplContr:    EditContrLevObj.State.bits.fSelected  = TRUE; break;
-        case eSetRPMFlash:      EditRPMFlashObj.State.bits.fSelected  = TRUE; break;
-        case eSetBikeType:      EditBikeTypeObj.State.bits.fSelected  = TRUE; break;
-        case eSetCompassCalib:  EditCompassCalibObj.State.bits.fSelected  = TRUE; break;
-        case eSetTripCntFl:     EditTripCntFlObj.State.bits.fSelected = TRUE; break;
-        case eSetServHours:     EditEngRunSrvObj.State.bits.fSelected = TRUE; break;
-        case eSetAllHours:      EditEngRunAllObj.State.bits.fSelected = TRUE; break;
-        case eSetServKm:        EditServKmObj.State.bits.fSelected    = TRUE; break;
-        case eSetDay:           EditDayObj.State.bits.fSelected       = TRUE; break;
-        case eSetMonth:         EditMonthObj.State.bits.fSelected     = TRUE; break;
-        case eSetYear:          EditYearObj.State.bits.fSelected      = TRUE; break;
-        case eSetHour:          EditHourObj.State.bits.fSelected      = TRUE; break;
-        case eSetMin:           EditMinObj.State.bits.fSelected       = TRUE; break;
-        case eSetSec:           EditSecObj.State.bits.fSelected       = TRUE; break;
-        case eSetClkCalib:      EditClkCalibObj.State.bits.fSelected  = TRUE; break;
-
-        default: ODS1( DBG_SYS, DBG_INFO, "Unknown DevState: %u", SetDevice.wDevState);
-    }
-}
 
 
 /***********************************************************************

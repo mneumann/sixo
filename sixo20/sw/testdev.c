@@ -69,6 +69,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.5  2009/07/22 12:45:34  tuberkel
+ * Device Object Focus handling simplified:
+ * - now used standard DevObjFocusMove() / DevObjFocusReset() functions
+ *
  * Revision 2.4  2009/07/19 12:33:23  tuberkel
  * - ObjectInit reviewed
  *
@@ -180,14 +184,20 @@ extern STRING far       szDevName[];            // device names
 extern SYSFLAGS_TYPE    gSystemFlags;           /* system parameters */
 
 
-/* some helper / buffer variables */
+/* this devices object focus handling - list of SELECTABLE objects */
+/* NOTE: this handling assumes the object data 'OBJSTATE' being the FIRST
+         structure element of the object type! */
+static const void far * FocusObjList[] =
+{   (void far *) &EditTextObj,
+    (void far *) &EditNumObj,
+    (void far *) &EditBoolObj,
+    (void far *) &SelectObj
+};
+#define FOCUSLISTSIZE   (sizeof(FocusObjList)/sizeof(OBJSTATE)/sizeof(void far *))
 
 
 
 /* internal prototypes */
-ERRCODE TestScreenSetFocus(MESSAGE GivenMsg);
-
-
 
 
 
@@ -214,8 +224,8 @@ ERRCODE TestScreenInit(void)
     ObjEditBoolInit ( EditBoolInit );       /* boolean object */
     ObjSelectInit   ( SelectInit );         /* select object */
 
-    /* set edit text object focused per default */
-    EditTextObj.State.bits.fSelected = TRUE;
+    /* reset focus handling to start values */
+    DevObjFocusReset( &TestScreenDev, FocusObjList, FOCUSLISTSIZE );
 
     return ERR_OK;
 }
@@ -365,9 +375,9 @@ ERRCODE TestScreenMsgEntry(MESSAGE GivenMsg)
                 if (RValue == ERR_MSG_NOT_PROCESSED)
                     RValue = ObjSelectMsgEntry(&SelectObj, GivenMsg);
 
-                /* try to move focus to next object */
+                /* try to move focus to next/previous object */
                 if (RValue == ERR_MSG_NOT_PROCESSED)
-                    RValue = TestScreenSetFocus(GivenMsg);
+                    RValue = DevObjFocusMove(&TestScreenDev, FocusObjList, FOCUSLISTSIZE, GivenMsg);
 
                 /* try to give focus to next device */
                 if (  (RValue == ERR_MSG_NOT_PROCESSED      )
@@ -397,87 +407,8 @@ ERRCODE TestScreenMsgEntry(MESSAGE GivenMsg)
     return RValue;
 }
 
-/***********************************************************************
- *  FUNCTION:       TestScreenSetFocus
- *  DESCRIPTION:    focus handles over all selectable objects
- *  PARAMETER:      new state to be set
- *  RETURN:         -
- *  COMMENT:        -
- *********************************************************************** */
-ERRCODE TestScreenSetFocus(MESSAGE GivenMsg)
-{
-    ERRCODE     RValue = ERR_MSG_NOT_PROCESSED;
-    MESSAGE_ID  MsgId;
-    MsgId = MSG_ID(GivenMsg);        /* get message id */
-
-    // check: use only first pressed msg!
-    if(MSG_KEY_TRANSITION(GivenMsg) != KEYTRANS_PRESSED)
-        return (RValue);
-
-    // check: none of the objects is still in edit mode?
-    if (  (EditTextObj.State.bits.fEditActive == FALSE)
-        &&(EditNumObj.State.bits.fEditActive  == FALSE)
-        &&(EditBoolObj.State.bits.fEditActive == FALSE)
-        &&(SelectObj.State.bits.fEditActive   == FALSE) )
-    {
-        // ok: try to move the focus down:
-        if (MsgId == MSG_KEY_DOWN)
-        {
-            // msg processed anyway
-            RValue = ERR_MSG_PROCESSED;
-
-            // try to move from EditTextObj => EditNumObj
-            if (EditTextObj.State.bits.fSelected == TRUE)
-            {   EditTextObj.State.bits.fSelected = FALSE;
-                EditNumObj.State.bits.fSelected  = TRUE;
-            }
-            // try to move from EditNumObj => EditBoolObj
-            else if (EditNumObj.State.bits.fSelected == TRUE)
-            {   EditNumObj.State.bits.fSelected  = FALSE;
-                EditBoolObj.State.bits.fSelected = TRUE;
-            }
-            // try to move from EditBoolObj => SelectBoolObj
-            else if (EditBoolObj.State.bits.fSelected == TRUE)
-            {   EditBoolObj.State.bits.fSelected = FALSE;
-                SelectObj.State.bits.fSelected   = TRUE;
-            }
-            else
-            {   // already reached lowest element
-            }
-        }
-        // ok: try to move the focus down:
-        else if (MsgId == MSG_KEY_UP)
-        {
-            // msg processed anyway
-            RValue = ERR_MSG_PROCESSED;
-
-            // try to move from SelectObj => EditBoolObj
-            if (SelectObj.State.bits.fSelected  == TRUE)
-            {   SelectObj.State.bits.fSelected   = FALSE;
-                EditBoolObj.State.bits.fSelected = TRUE;
-            }
-            // try to move from EditBoolObj => EditNumObj
-            else if (EditBoolObj.State.bits.fSelected == TRUE)
-            {   EditBoolObj.State.bits.fSelected = FALSE;
-                EditNumObj.State.bits.fSelected  = TRUE;
-            }
-            // try to move from EditNumObj => EditTextObj
-            else if (EditNumObj.State.bits.fSelected == TRUE)
-            {   EditNumObj.State.bits.fSelected  = FALSE;
-                EditTextObj.State.bits.fSelected = TRUE;
-            }
-            else
-            {   // already reached most top element
-            }
-        }
-        else
-        {   // not a UP/DOWN msg!
-        }
-    }
-    return (RValue);
-}
-
 
 
 
 #endif // TESTSCREEN
+
