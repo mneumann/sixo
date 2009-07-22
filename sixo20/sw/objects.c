@@ -69,6 +69,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.8  2009/07/22 08:29:41  tuberkel
+ * BugFix: in ODS 'EditBool set to [%s]'
+ *
  * Revision 2.7  2009/07/19 12:38:37  tuberkel
  * - ObjectInit reviewed
  * - EditText Object works with EXTERNAL(!) work buffer
@@ -1874,7 +1877,7 @@ ERRCODE ObjEditBoolMsgEntry( EDITBOOLOBJECT far * fpObject, MESSAGE GivenMsg )
             {
                 /* set TRUE boolean state! */
                 *fpObject->fpWorkValue = FALSE;
-                ODS1(DBG_USER, DBG_INFO, "EditBool set to [%s]!", (*fpObject->fpValue==TRUE)? "x" : "_" );
+                ODS1(DBG_USER, DBG_INFO, "EditBool set to [%s]!", (*fpObject->fpWorkValue==TRUE)? "x" : "_" );
 
                 /* re-initiate cursor flashing */
                 MSG_FLASH_OFF(NewMsg);                          /* remove all pending cursor OFF messages */
@@ -1892,7 +1895,7 @@ ERRCODE ObjEditBoolMsgEntry( EDITBOOLOBJECT far * fpObject, MESSAGE GivenMsg )
             {
                 /* set TRUE boolean state! */
                 *fpObject->fpWorkValue = TRUE;
-                ODS1(DBG_USER, DBG_INFO, "EditBool set to [%s]!", (*fpObject->fpValue==TRUE)? "x" : "_" );
+                ODS1(DBG_USER, DBG_INFO, "EditBool set to [%s]!", (*fpObject->fpWorkValue==TRUE)? "x" : "_" );
 
                 /* re-initiate cursor flashing */
                 MSG_FLASH_OFF(NewMsg);                          /* remove all pending cursor OFF messages */
