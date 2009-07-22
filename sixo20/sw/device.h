@@ -68,6 +68,12 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.3  2009/07/22 12:46:30  tuberkel
+ * Device Object Focus handling simplified:
+ * - use DevObjFocusMove() / DevObjFocusReset() inside any device
+ * - DevObjFocusReset() to set focus to default state
+ * - use DevObjFocusMove() to move focus based on UP/DOWN key
+ *
  * Revision 2.2  2009/07/15 09:03:27  tuberkel
  * NEW: #define TESTSCREEN for GUI Tests
  *
@@ -127,7 +133,9 @@ typedef struct
     BOOL        fFocused;       /* flag to show device is 'on screen' */
     BOOL        fScreenInit;    /* flag to show that device screen is initialized */
     UINT16      wDevState;      /* device state machine */
+    UINT8       bFocusObj;      /* index of currently focused object inside device */
 } DEVDATA;
+
 
 
 /* special LapCounter device state */
@@ -151,6 +159,10 @@ typedef struct
 
 /* undedicated device functions */
 ERRCODE DevCyclicRefresh(void);
+ERRCODE DevObjFocusMove (DEVDATA far * fpDevData, void far * far * fppFocusList, UINT8 FocusListSize, MESSAGE GivenMsg);
+ERRCODE DevObjFocusReset(DEVDATA far * fpDevData, void far * far * FocusObjList, UINT8 FocusListSize );
+
+
 
 /* SetDevice function prototypes */
 ERRCODE SetDeviceInit(void);
