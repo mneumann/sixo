@@ -73,6 +73,12 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.2  2009/07/22 12:36:35  tuberkel
+ * Device Object Focus handling simplified:
+ * - use DevObjFocusMove() / DevObjFocusReset() inside any device
+ * - DevObjFocusReset() to set focus to default state
+ * - use DevObjFocusMove() to move focus based on UP/DOWN key
+ *
  * Revision 2.1  2009/07/08 21:49:04  tuberkel
  * Changed contact data: Ralf Krizsan ==> Ralf Schwarzer
  *
@@ -98,6 +104,12 @@
 #include "displdrv.h"
 #include "display.h"
 #include "sysparam.h"
+#include "objects.h"
+#include "digindrv.h"
+#include "debug.h"
+
+
+
 
 /* external stuff */
 extern  UINT16  wMilliSecCounter;       // valid values: 0h .. ffffh
@@ -168,5 +180,103 @@ ERRCODE DevCyclicRefresh(void)
     }
     return ERR_OK;
 }
+
+
+/***********************************************************************
+ *  FUNCTION:       DevObjFocusMove
+ *  DESCRIPTION:    Moves focus to next/prev. object
+ *  PARAMETER:      fpDevData       device to support focus
+ *                  ObjList         list og selectable(!) objects of the device
+ *                  FocusListSize   number of objects inside the list
+ *                  Msg             to be processed/move focus
+ *  RETURN:         -
+ *  COMMENT:        -
+ *********************************************************************** */
+ERRCODE DevObjFocusMove(    DEVDATA far *       fpDevData,
+                            void far * far *    ObjList,
+                            UINT8               FocusListSize,
+                            MESSAGE             Msg)
+{
+    ERRCODE                 RValue = ERR_MSG_NOT_PROCESSED;
+    MESSAGE_ID              MsgId;
+    UINT8                   i;
+    OBJSTATE far * far *    FocusObjList;
+
+    /* extract and check message parameters: UP/DOWN and 1st/longer TIME? */
+    MsgId = MSG_ID(Msg);
+    if (  (  (MsgId                   == MSG_KEY_DOWN )
+           ||(MsgId                   == MSG_KEY_UP   ) )
+        &&(  (MSG_KEY_TRANSITION(Msg) == KEYTRANS_PRESSED )     // right now pressed?
+           ||(MSG_KEY_TRANSITION(Msg) == KEYTRANS_ON      ) ) ) // or key repitition active?
+    {
+        /* convert the object list ptr for eassier access */
+        FocusObjList = (OBJSTATE far * far *) ObjList;
+
+        /* clear focus of all objects per default */
+        for (i = 0; i < FocusListSize; i++)
+            FocusObjList[i]->bits.fSelected = FALSE;
+
+        /* move focus down (incl. wrap around) */
+        if ( MsgId == MSG_KEY_DOWN )
+        {   if ( fpDevData->bFocusObj < (FocusListSize-1) )
+                 fpDevData->bFocusObj++;
+            else fpDevData->bFocusObj = 0;
+        }
+
+        /* try to move focus up (incl. wrap around) */
+        if ( MsgId == MSG_KEY_UP )
+        {   if ( fpDevData->bFocusObj > 0 )
+                 fpDevData->bFocusObj--;
+            else fpDevData->bFocusObj = FocusListSize-1;
+        }
+
+        /* activate focus of current object */
+        FocusObjList[fpDevData->bFocusObj]->bits.fSelected = TRUE;
+        ODS1( DBG_SYS, DBG_INFO, "OBJ-FOCUS moved to %u", fpDevData->bFocusObj);
+
+        // msg processed anyway
+        RValue = ERR_MSG_PROCESSED;
+    }
+    else
+    {   // irrelevant message
+    }
+
+    return (RValue);
+}
+
+
+
+/***********************************************************************
+ *  FUNCTION:       DevObjFocusReset
+ *  DESCRIPTION:    resets focus of all selectable objects and activates
+ *                  the focus fr the first object
+ *  PARAMETER:      fpDevData       device to support focus
+ *                  ObjList         list og selectable(!) objects of the device
+ *                  FocusListSize   number of objects inside the list
+ *  RETURN:         -
+ *  COMMENT:        -
+ *********************************************************************** */
+ERRCODE DevObjFocusReset(   DEVDATA far *       fpDevData,
+                            void far * far *    ObjList,
+                            UINT8               FocusListSize )
+{
+    OBJSTATE far * far *    FocusObjList;
+    UINT8           i;
+
+    /* convert the object list ptr for eassier access */
+    FocusObjList = (OBJSTATE far * far *) ObjList;
+
+    /* clear focus of all objects per default */
+    for (i = 0; i < FocusListSize; i++)
+        FocusObjList[i]->bits.fSelected = FALSE;
+
+    /* activate focus of most first object */
+    fpDevData->bFocusObj = 0;
+    FocusObjList[fpDevData->bFocusObj]->bits.fSelected = TRUE;
+    ODS1( DBG_SYS, DBG_INFO, "OBJ-FOCUS reseted to %u", fpDevData->bFocusObj);
+    return (ERR_OK);
+}
+
+
 
 
