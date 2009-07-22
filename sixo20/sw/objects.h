@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.5  2009/07/22 12:47:04  tuberkel
+ * Just comments
+ *
  * Revision 2.4  2009/07/19 12:40:28  tuberkel
  * - ObjectInit reviewed
  * - bugfix in SELECT_INITTYPE
@@ -152,6 +155,8 @@ typedef struct
 #define OS_EDIT     0x40    /* state:      currently edit mode is active */
 #define OS_CURSOR   0x80    /* state:      currently shows cursor (used to blink cursor) */
 
+/* object state and capabilities
+   NOTE: MUST BE THE FIRST data in every object for focus handling */
 typedef union
 {
     OBJSTATEBF  bits;       /* to acces state bits seperatly */
@@ -161,7 +166,7 @@ typedef union
 
 
 /* ------------------------------------------- */
-/* COMMON OBJECT TYPES */
+/* COMMON TEXT BASED OBJECT TYPES */
 
 typedef struct
 {
@@ -200,7 +205,7 @@ typedef enum
    ================================================ */
 typedef struct
 {
-    OBJSTATE    State;       /* bitfields to handle display state */
+    OBJSTATE    State;       /* MUST BE THE FIRST: bitfields to handle display state */
     DISPLXY     Org;         /* bitmaps origin coordinates (0,0 = upper left corner ) */
     BITMAP      Data;        /* bitmap height, width, addr raw data */
     UINT8       bMode;       /* display mode (f.e. DPLNORM, DPLXOR, .. ) */
@@ -209,14 +214,14 @@ typedef struct
 /* BMP init data */
 typedef struct
 {
-    BMPOBJECT far *     fpObject;
-    UINT16              wOrgPosX;
-    UINT16              wOrgPosY;
-    UINT16              wWidth;
-    UINT16              wHeight;
-    const unsigned char far * rgBMPRawData;
-    UINT8               bMode;
-    UINT8               bState;
+    BMPOBJECT far *     fpObject;               /* bitmap object to be intialized */
+    UINT16              wOrgPosX;               /* x-pos origin in pixel */
+    UINT16              wOrgPosY;               /* y-pos origin in pixel */
+    UINT16              wWidth;                 /* bitmap width in pixel */
+    UINT16              wHeight;                /* bitmap height in pixel */
+    const unsigned char far * rgBMPRawData;     /* bitmap raw data */
+    UINT8               bMode;                  /* display mode */
+    UINT8               bState;                 /* object state */
 } BMPOBJECT_INITTYPE;
 
 
@@ -252,7 +257,7 @@ ERRCODE ObjBmpInit( BMPOBJECT_INITTYPE far * fpInitData );
    ======================================================= */
 typedef struct
 {
-    OBJSTATE    State;          /* bitfields to handle display state */
+    OBJSTATE    State;          /* MUST BE THE FIRST: bitfields to handle display state */
     DISPLXY     Org;            /* origin in pixel coord. (0,0 = upper left) */
     TXTWINDIM   Window;         /* text windows dimension (in char units) */
     DPLFONT     eFont;          /* used font */
@@ -316,7 +321,7 @@ ERRCODE ObjTextInit( TEXTOBJECT_INITTYPE far *  fpInitData);
 
 typedef struct
 {
-    OBJSTATE    State;          /* bitfields to handle display state */
+    OBJSTATE    State;          /* MUST BE THE FIRST: bitfields to handle display state */
     DISPLXY     Org;            /* origin in pixel coord. (0,0 = upper left) */
     TXTWINDIM   Window;         /* text windows dimension (in chars units) */
     DPLFONT     eFont;          /* used font */
@@ -447,7 +452,7 @@ typedef struct
 /* object structure */
 typedef struct
 {
-    OBJSTATE        State;              /* bitfields to handle display state */
+    OBJSTATE        State;              /* MUST BE THE FIRST: bitfields to handle display state */
     DISPLXY         Org;                /* origin in pixel coord. (0,0 = upper left) */
     TXTWINDIM       Window;             /* text windows dimension (in chars units) */
     DPLFONT         eFont;              /* used font */
@@ -543,14 +548,14 @@ UINT8   bCharToByte         ( CHAR cChar);
 /* object structure */
 typedef struct
 {
-    OBJSTATE        State;              /* bitfields to handle display state */
-    DISPLXY         Org;                /* origin in pixel coord. (0,0 = upper left) */
-    TXTWINDIM       Window;             /* text windows dimension (in chars units) */
-    DPLFONT         eFont;              /* used font */
-    BOOL far *      fpValue;            /* address of original boolean value */
-    STRING          szDescr;            /* address of description string (left aligned) */
-    BOOL far *      fpWorkValue;        /* address of buffer for edit work
-                                           (original number remains unchanged until [OK]) */
+    OBJSTATE        State;          /* MUST BE THE FIRST: bitfields to handle display state */
+    DISPLXY         Org;            /* origin in pixel coord. (0,0 = upper left) */
+    TXTWINDIM       Window;         /* text windows dimension (in chars units) */
+    DPLFONT         eFont;          /* used font */
+    BOOL far *      fpValue;        /* address of original boolean value */
+    STRING          szDescr;        /* address of description string (left aligned) */
+    BOOL far *      fpWorkValue;    /* address of buffer for edit work
+                                       (original number remains unchanged until [OK]) */
 } EDITBOOLOBJECT;
 
 
@@ -625,7 +630,7 @@ ERRCODE ObjEditBoolInit(    EDITBOOL_INITTYPE   far * fpInitData );
 /* object structure */
 typedef struct
 {
-    OBJSTATE        State;              /* bitfields to handle display state */
+    OBJSTATE        State;              /* MUST BE THE FIRST: bitfields to handle display state */
     DISPLXY         Org;                /* origin in pixel coord. (0,0 = upper left) */
     TXTWINDIM       Window;             /* text windows dimension (in chars units) */
     DPLFONT         eFont;              /* used font */

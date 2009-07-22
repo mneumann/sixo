@@ -69,6 +69,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.9  2009/07/22 12:42:31  tuberkel
+ * Just comments
+ *
  * Revision 2.8  2009/07/22 08:29:41  tuberkel
  * BugFix: in ODS 'EditBool set to [%s]'
  *
@@ -1804,8 +1807,10 @@ ERRCODE ObjEditBoolMsgEntry( EDITBOOLOBJECT far * fpObject, MESSAGE GivenMsg )
         if (fpObject->State.bits.fEditActive == FALSE)      /* Is edit mode active / inactive? */
         {
             /* ======================================================================== */
-            /* EDITMODE IS INACTIVE! */
+            /* EDITMODE IS NOT ACTIVE! */
+
             /* ------------------------------------------------------------------------ */
+            /* check: start edit mode? */
             if (  (MsgId == MSG_KEY_OK                             )    /* [OK] starts the edit mode? */
                 &&(MSG_KEY_TRANSITION(GivenMsg) == KEYTRANS_PRESSED)    /* pressed the first time?*/
                 &&(fpObject->State.bits.fEditable == TRUE          ) )  /* object is editable? */
@@ -1820,11 +1825,17 @@ ERRCODE ObjEditBoolMsgEntry( EDITBOOLOBJECT far * fpObject, MESSAGE GivenMsg )
                 ODS1(DBG_USER, DBG_INFO, "EditBool started with [%s]", (*fpObject->fpValue==TRUE)? "x" : "_" );
                 RValue = ERR_MSG_PROCESSED;                         /* we used the msg in any way */
             }
+            else
+            {   /* nothing to be done here
+                   up/down - move focus - will be processed in device for itself */
+            }
+
         }
         else
         {
             /* ======================================================================== */
             /* EDITMODE IS ALREADY ACTIVE! */
+
             /* ------------------------------------------------------------------------ */
             RValue = ERR_MSG_PROCESSED;                         /* we used the msg in any way */
 
