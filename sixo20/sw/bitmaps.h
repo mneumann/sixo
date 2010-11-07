@@ -77,6 +77,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.0  2010/11/07 12:50:38  tuberkel
+ * V30 Preparations:
+ * - new Bike Logo enumtype
+ *
  * Revision 2.1  2009/07/08 21:49:04  tuberkel
  * Changed contact data: Ralf Krizsan ==> Ralf Schwarzer
  *
@@ -110,7 +114,7 @@ typedef enum
     eLogo_HPN,
     eLogo_Motobau,
     eLogo_vforce,
-};
+} LOGO_TYPE;
 
 
 
