@@ -68,6 +68,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.0  2010/11/07 13:40:55  tuberkel
+ * V30 Preparations:
+ * -  new DEF_WHEELIMPULSE
+ *
  * Revision 2.1  2009/07/08 21:49:04  tuberkel
  * Changed contact data: Ralf Krizsan ==> Ralf Schwarzer
  *
@@ -92,6 +96,7 @@
 
 /* default values to initialize eeprom/nvram */
 #define DEF_WHEELSIZE    2100   /* wheel circumdistance in Millimeters */
+#define DEF_WHEELIMPULSE    1   /* number of impulses / wheel rotation */
 #define DEF_CCF_NOM      0x01   /* low nibble: cylinder correktur factor nominator   (default: 1) */
 #define DEF_CCF_DENOM    0x10   /* high nibble cylinder correktur factor denominator (default: 1) */
 
