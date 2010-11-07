@@ -72,6 +72,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.0  2010/11/07 09:53:13  tuberkel
+ * V30 Preparations:
+ * - New: DayLightSaving 'CEST' supported
+ *
  * Revision 2.3  2009/07/08 21:49:04  tuberkel
  * Changed contact data: Ralf Krizsan ==> Ralf Schwarzer
  *
@@ -104,7 +108,8 @@
 #include "resource.h"
 #include "stdmsgs.h"
 #include "msgqueue.h"
-
+#include "sysparam.h"
+#include "surveill.h"
 
 
 /* non public variables for internal use */
@@ -114,9 +119,11 @@ static TIME_TYPE    RTCTime;            // time READ access, always up2date
 static DATE_TYPE    RTCDate;            // date READ access, always up2date
 
 /* external symbols */
-extern UINT16  wMilliSecCounter;        // high resolution short distance timer, ms,  max  65 sec
-extern UINT16  wSecCounter;             // low  resolution long  distance timer, sec, max. 18 h
-extern UINT16  dwSystemTime;            // high resolution long  distance timer, ms,  max. 49 days
+extern UINT16           wMilliSecCounter;       // high resolution short distance timer, ms,  max  65 sec
+extern UINT16           wSecCounter;            // low  resolution long  distance timer, sec, max. 18 h
+extern UINT16           dwSystemTime;           // high resolution long  distance timer, ms,  max. 49 days
+extern DEVFLAGS2_TYPE   gDeviceFlags2;          // daylight saving settings
+extern BOOL             fCESTChanged;           // DaylaightSaving 'CET/CEST changed flag'
 
 
 
@@ -236,10 +243,13 @@ void TimeDateUpdate (void)
  *********************************************************************** */
 void TimeDateUpdateTime (void)
 {
-            UINT16 wThisCall_ms = 0;
-    static  UINT16 wLastCall_ms = 0;
-    static  UINT16 wLastCompleteSec_ms = 0;
-    static  UINT8  bLastSecond = 0;
+            UINT16 wThisCall_ms         = 0;
+    static  UINT16 wLastCall_ms         = 0;
+    static  UINT16 wLastCompleteSec_ms  = 0;
+    static  UINT8  bLastSecond          = 0;
+    static  UINT8  bLastHour            = 0;
+    static  UINT8  bLastDay             = 0;
+    static  UINT8  bLastMonth           = 0;
             MESSAGE Msg;                            /* for building messages */
 
     // check: do we have to update seconds (e.g. 5 times/second) ?
@@ -264,11 +274,11 @@ void TimeDateUpdateTime (void)
             if( RTCTime.bHour > 23 ) RTCTime.bHour = 0;
         }
         else
-        {
-            ODS(DBG_SYS,DBG_ERROR,"TimeDateUpdateTime(): Error reading clock time!");
+        {   ODS(DBG_SYS,DBG_ERROR,"TimeDateUpdateTime(): Error reading clock time!");
         }
     }
-    // send a seconds trigger to application
+
+    // support devices which show seconds with an extra update msg
     if ( bLastSecond != RTCTime.bSec )
     {
         // save current second
@@ -277,6 +287,17 @@ void TimeDateUpdateTime (void)
         // trigger screen refresh for time objects for any device...
         MSG_BUILD_UINT8(Msg, MSG_TIMEDATE_SECOND_GONE, 0xff, 0xff, 0xff);
         MsgQPostMsg( Msg, MSGQ_PRIO_LOW);
+    }
+
+    // support daylight saving too - only if MON/DAY/HOUR changed (at PowerUp & runtime)
+    if (  ( bLastMonth != RTCDate.bMonth )
+        ||( bLastDay   != RTCDate.bDate  )
+        ||( bLastHour  != RTCTime.bHour  ) )
+    {
+        TimeDate_CheckDaylightSaving(); // check & execute DLS changes
+        bLastMonth = RTCDate.bMonth;     // save new state for next use
+        bLastDay   = RTCDate.bDate;
+        bLastHour  = RTCTime.bHour;
     }
 }
 
@@ -606,6 +627,146 @@ ERRCODE TimeDate_SetCalib( INT32 lDuration, INT32 lDeviation )
     return iicSetClockCalib( lDuration, lDeviation );
 }
 
+
+
+
+/***********************************************************************
+ *  FUNCTION:       TimeDate_UpdateCEST
+ *  DESCRIPTION:    Just updates the global CEST flag to be used,
+ *                  whenever DaylightSaving Automatic is on.
+ *  PARAMETER:      -
+ *  RETURN:         -
+ *  COMMENT:        Should be called, whenever one of the Daylight Saving
+ *                  parameters (month, day, hour) have manually been changed!
+ *                  Note: This functions expects RTCDate/RTCTime right
+ *                  before being updated!
+ *********************************************************************** */
+void TimeDate_UpdateCEST( void )
+{
+    // if DaylightSave automatic enabled, update CEST state here too!
+    if( gDeviceFlags2.flags.DaylightSaveAuto == TRUE )
+    {   gDeviceFlags2.flags.CESTActive = TimeDate_GetCEST();// update CEST state too
+        ODS1(DBG_SYS,DBG_INFO,"CEST: %s", (gDeviceFlags2.flags.CESTActive == TRUE)?"ON":"off");
+    }
+}
+
+
+
+/***********************************************************************
+ *  FUNCTION:       TimeDate_GetCEST
+ *  DESCRIPTION:    Tries to determine, wether current date/time resides
+ *                  inside CentralEuropeanSummerTime (CEST)
+ *                  between 28.03. 02:00 until 31.10. 3:00.
+ *  PARAMETER:      -
+ *  RETURN:         TRUE        if current date/time is inside CEST
+ *                  FALSE       if not CEST (=CET)
+ *  COMMENT:        We distinguish betwwen these 3 time areas:
+ *                      a) before beginning of CEST -> return FALSE
+ *                      b) inside CEST              -> return TRUE
+ *                      c) behind of end of CEST    -> return FALSE
+ *
+ *                  Note: This functions expects RTCDate/RTCTime right
+ *                  before being updated!
+ *********************************************************************** */
+BOOL TimeDate_GetCEST( void )
+{
+    BOOL RValue = FALSE;
+
+    // check a): before beginning of CEST?
+    if         ( RTCDate.bMonth <  TIME_DLS_SUM_MONTH )
+    {   RValue = FALSE;
+    }
+    else if (  ( RTCDate.bMonth == TIME_DLS_SUM_MONTH )
+             &&( RTCDate.bDate  <  TIME_DLS_SUM_DAY   ) )
+    {   RValue = FALSE;
+    }
+    else if (  ( RTCDate.bMonth == TIME_DLS_SUM_MONTH )
+             &&( RTCDate.bDate  == TIME_DLS_SUM_DAY   )
+             &&( RTCTime.bHour  <  TIME_DLS_SUM_HOUR  ) )
+    {   RValue = FALSE;
+    }
+    else if (  ( RTCDate.bMonth == TIME_DLS_SUM_MONTH )
+             &&( RTCDate.bDate  == TIME_DLS_SUM_DAY   )
+             &&( RTCTime.bHour  >= TIME_DLS_SUM_HOUR  ) )
+    {   RValue = TRUE;
+    }
+
+    // check c): after end of CEST?
+    else if    ( RTCDate.bMonth >  TIME_DLS_WIN_MONTH )
+    {   RValue = FALSE;
+    }
+    else if (  ( RTCDate.bMonth == TIME_DLS_WIN_MONTH )
+             &&( RTCDate.bDate  >  TIME_DLS_WIN_DAY   ) )
+    {   RValue = FALSE;
+    }
+    else if (  ( RTCDate.bMonth == TIME_DLS_WIN_MONTH )
+             &&( RTCDate.bDate  == TIME_DLS_WIN_DAY   )
+             &&( RTCTime.bHour  >= TIME_DLS_WIN_HOUR  ) )
+    {   RValue = FALSE;
+    }
+    // check b): remaining state must be case b: It's CEST!
+    else
+    {   RValue = TRUE;
+    }
+    return (RValue);
+}
+
+
+
+/***********************************************************************
+ *  FUNCTION:       TimeDate_CheckDaylightSaving
+ *  DESCRIPTION:    Supports automatic setting of daylight saving for
+ *                  Europe (if enabled). Changes RTC Time, if necessary.
+ *  PARAMETER:      -
+ *  RETURN:         ERR_OK               success
+ *  COMMENT:        Should only be called once/hour if RTC-hour changed!
+ *
+ *                  Note: The surveillance module will generates an additonal Info-Msg
+ *                  ONCE at screen to tell user about changes, which will be
+ *                  cleared at next power up.
+ *
+ *                  Note: This functions expects RTCDate/RTCTime right
+ *                  before being updated!
+ *********************************************************************** */
+ERRCODE TimeDate_CheckDaylightSaving( void )
+{
+    // check: Daylight Saving Automatic enabled by user?
+    if (gDeviceFlags2.flags.DaylightSaveAuto == TRUE)
+    {
+        // check: Change CET => CEST detected?
+        if(  gDeviceFlags2.flags.CESTActive == FALSE )
+        {
+            if ( TimeDate_GetCEST() == TRUE  )
+            {   ODS(DBG_SYS,DBG_INFO,"Summertime CEST detected -> set Hour++!");
+                fCESTChanged = TRUE;                        // set for surveillance module
+                RTCTime.bHour++;                            // incr. 1 hour
+                TimeDate_SetTime( &RTCTime );               // setup new time
+                gDeviceFlags2.flags.CESTActive = TRUE;      // save new DaylightSaving State
+            }
+            else
+            {   // CEST active and valid -> nothing tbd.
+            }
+        }
+        // check: Change CEST => CET detected?
+        else
+        {   if ( TimeDate_GetCEST() == FALSE )
+            {   ODS(DBG_SYS,DBG_INFO,"Wintertime CET detected -> set Hour--!");
+                fCESTChanged = TRUE;                        // set for surveillance module
+                RTCTime.bHour--;                            // decr. 1 hour
+                TimeDate_SetTime( &RTCTime );               // setup new time
+                gDeviceFlags2.flags.CESTActive = FALSE;     // save new DaylightSaving State
+            }
+            else
+            {   // CET active and valid -> nothing tbd.
+            }
+        }
+    }
+    else
+    {   // DLS automatic not enabled, just let RTC as is...
+    }
+
+    return (ERR_OK);
+}
 
 
 

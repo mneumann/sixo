@@ -68,6 +68,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.0  2010/11/07 09:54:53  tuberkel
+ * V30 Preparations:
+ * - New: DayLightSaving 'CEST' supported
+ *
  * Revision 2.2  2009/07/08 21:49:04  tuberkel
  * Changed contact data: Ralf Krizsan ==> Ralf Schwarzer
  *
@@ -91,6 +95,16 @@
 
 // common defines
 #define TIMEDATEREFRESH_MS      100     // refresh cycle of RTC-TimeDate copy in MilliSeconds
+
+// European Daylight Saving SummerTime (CEST): 28 March, 2:00 ==> 3:00
+#define TIME_DLS_SUM_MONTH   3
+#define TIME_DLS_SUM_DAY    28
+#define TIME_DLS_SUM_HOUR    2
+
+// European Daylight Saving WinterTime (CET):  31 October, 3:00 ==> 2:00
+#define TIME_DLS_WIN_MONTH  10
+#define TIME_DLS_WIN_DAY    31
+#define TIME_DLS_WIN_HOUR    3
 
 
 /* clock time structure
@@ -186,6 +200,7 @@ typedef UINT32 TIME_TYPE_SYS;  // system time since application start in MilliSe
 ERRCODE TimeDateInit(void);
 void    TimeDateUpdate (void);
 
+
 ERRCODE TimeDate_GetTime( TIME_TYPE * pTime );
 ERRCODE TimeDate_GetDate( DATE_TYPE * pDate );
 ERRCODE TimeDate_GetString( DATETIME_STRFORMAT, STRING szBuffer );
@@ -200,9 +215,11 @@ ERRCODE TimeDate_SetCalibDirect( UINT8* pcCalib );
 
 
 // private interface functions
-void    TimeDateUpdateTime(void);
-void    TimeDateUpdateDate(void);
-DOW_TYPE TimeDate_GetDayOfWeek(DATE_TYPE * pDate);
-
+void        TimeDateUpdateTime          (void);
+void        TimeDateUpdateDate          (void);
+DOW_TYPE    TimeDate_GetDayOfWeek       (DATE_TYPE * pDate);
+ERRCODE     TimeDate_CheckDaylightSaving( void );
+BOOL        TimeDate_GetCEST            ( void );
+void        TimeDate_UpdateCEST         ( void );
 
 #endif // _TIMEDATE_H
