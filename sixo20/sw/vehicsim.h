@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.0  2010/11/07 12:28:57  tuberkel
+ * V30 Preparations - no changes
+ *
  * Revision 2.3  2010/11/07 11:58:46  tuberkel
  * V30 Preparations:
  * - Module 'Vehicle Simulation' ALWAYS supported
