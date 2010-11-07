@@ -69,6 +69,16 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.0  2010/11/07 09:33:29  tuberkel
+ * V30 Preparations:
+ * - New System Parameters:
+ *   - DayLightSavin, Beeper, VehSimulation, Hardcopy
+ *   - WheelImpulses/Revolution
+ *   - CompassDisplayMode
+ *   - Language
+ *   - Fuel Capacity/Consumption
+ *   - IntroLogoDelay
+ *
  * Revision 2.8  2009/07/08 21:49:03  tuberkel
  * Changed contact data: Ralf Krizsan ==> Ralf Schwarzer
  *
@@ -156,33 +166,38 @@ typedef union TAG_SWVERS_TYPE
 /* ================================================== */
 /* 'MAGIC NUMBER' HANDLING
 
-    Note: This helps to distinguish between
-                a) a never used hardware -> initialize complete eeprom/nvram
-                b) a software update     -> initialize partial eeprom/nvram
-          In case of b), vehicle unique all parameters (like e.g. wheelsize etc.)
-          will not be re-initilized.
+    Note: This helps to distinguish between necessary automatic eeprom handling at startup:
+
+          a) EEPR_MAGICNUM_VAL not found!
+                - a never used hardware
+                - initialize COMPLETE eeprom/nvram
+          b) EEPR_MAGICNUM_VAL ok, but Eeprom gSWID != DEF_SWID_NUMBER!
+                - a software update is detected
+                - initialize PARTIAL eeprom/nvram
+                - NVRAM_SEC + EEPROM_SEC will NOT be changed!
+          c) EEPR_MAGICNUM_VAL + DEF_SWID_NUMBER ok
+                - normal start behavior
+                - nothing to be changed
 
     Note:   Changing the 'magic number' results in a completely re-initialized eeprom,
-            any application/user settings will be erased!
-          */
+            any application/user settings will be erased!     */
 #define EEPR_MAGICNUM_SIZE       2        // size of magic number (last two bytes in eeprom)
 #define EEPR_MAGICNUM_VAL   0xfedc        // THE magic number (might be a very 'unusual' number ;-) )
 
 
 
-
+/* ----------------------------------------------------------------------------- */
 /* common defines */
 #define MAXPARAMSIZE      4     /* size of biggest possible system parameter in bytes */
-#define PARAM_CYCLE     100     /* time period in [ms] to save one(!) system parameter */
+#define PARAM_CYCLE      20     /* time period in [ms] to save one(!) system parameter */
 #define COMPLETE        TRUE    /* for eeprom / vnram init */
 #define PARTIAL         FALSE   /* for eeprom / vnram init */
 
 
 
 
-/* device status flags
-    - used to reconstruct system after power up
-    - handles all device specific static stuff */
+/* ----------------------------------------------------------------------------- */
+/* DEVICE STATUS FLAGS 1 - used to reconstruct system after power up  */
 typedef union
 {
     UINT8           byte;
@@ -191,48 +206,79 @@ typedef union
         unsigned char   ActDevNr:4;         /* Active device nibble, saves last used device (valid: DEVID_MAIN..DEVID_SET) */
         unsigned char   MainDevState:4;     /* State of Main Device (scrollable sub area) */
     } flags;
-} SYSFLAGS_TYPE;
-#define DEF_SYSFLAGS (0x10 | DEVID_MAIN )  /* default: set device# of 'MainDevice' and RPM in main device */
+} DEVFLAGS1_TYPE;
+#define DEF_DEVFLAGS1 (0x10 | DEVID_MAIN )  /* default: set device# of 'MainDevice' and RPM in main device */
 
 
-
-/* tripcounter flags
-    - used for permanent settings of tripcounter */
+/* ----------------------------------------------------------------------------- */
+/* DEVICE STATUS FLAGS 2 - used to reconstruct system after power up  */
 typedef union
 {
     UINT8           byte;
     struct
     {
-        unsigned char   LongDistUp:1;       /* LongDistance: 1=upside (like roadbook), 0=downside */
-        unsigned char   ShowCompassValue:1; /* CompassValue: 1=show, 0=off */
-        unsigned char   ShowCompassBar:1;   /* CompassBargragh: 1=show, 0=off */
-        unsigned char   reserved:5;         /* reserved */
+        unsigned char   TripCLongDistUp:1;  /* TripCounterLongDist: 1=upside (like roadbook), 0=downside */
+        unsigned char   BeeperAvail:1;      /* Beeper:              1=available, 0=not available */
+        unsigned char   DaylightSaveAuto:1; /* DaylightSavingAuto:  1=on (automatic on), 0=Off */
+        unsigned char   CESTActive:1;       /* DaylightSaving CEST: 1=on (summertime active), 0=Off */
+        unsigned char   ShowCompassValue:1; /* CompassValue:        1=show, 0=off */
+        unsigned char   ShowCompassBar:1;   /* CompassBargragh:     1=show, 0=off */
+        unsigned char   VehicSimul:1;       /* vehicle Simulation:  1=on, 0=off */
+        unsigned char   Hardcopy:1;         /* Hardcopy via Uart:   1=available, 0=off (via Highbeam switch) */
     } flags;
-} TRPCNTFL_TYPE;
-#define DEF_TRPCNTFL (0x01 )  /* default: Long Distance up like in Roadbook, CompassBar off, CompassValue off*/
+} DEVFLAGS2_TYPE;
+#define DEF_DEVFLAGS2 (0x03 )  /* default: LongDistUp=on, BeeperAvail=1 */
 
 
+/* ----------------------------------------------------------------------------- */
+/* DEVICE STATUS FLAGS 3 - used to reconstruct system after power up  */
+typedef union
+{
+    UINT8           byte;
+    struct
+    {
+        unsigned char   Metric:1;           /* Metric:              0=km, 1=miles */
+        unsigned char   LedWarnMode:1;      /* LedWarningMode:      0=Sixo-like, 1=common (Warning lamps ON at ignition like in cars) */
+        unsigned char   res6:6;             /* reserved */
+    } flags;
+} DEVFLAGS3_TYPE;
+#define DEF_DEVFLAGS3 (0x00 )  /* default: Metric:Meter, WarnStd:SIxO */
 
-/* bike type - used to indicate kind of special bike adaption */
+
+/* ----------------------------------------------------------------------------- */
+/* bike type - used to indicate kind of special bike adaption
+   NOTE: This list must be identical to ressource text list RESTXT_SET_BIKE_xxx !*/
 typedef enum
 {
     eBIKE_STANDARD,      // default bike version
     eBIKE_R100GS,        // BMW R100 GS version
-    eBIKE_R1100GS,       // BMW R1100 GS version
     eBIKE_AFRICATWIN,    // Honda AfricaTwin version
-    eBIKE_AFRICATWINRD07,// Honda AfricaTwin RD07 version
     eBIKE_BAGHIRA,       // MuZ Baghia version
-    eBIKE_HUSQV,         // Husqvarna version
-    eBIKE_HUSQVRS,       // Husqvarna RS version
-    eBIKE_KTM,           // KTM version
     eBIKE_F650,          // BMW F650 version
     eBIKE_INVALID        // invalid bike type
 } BIKE_TYPE;
 
+/* NOTE: For bike LOGOs - please use LOGO_TYPE from bitmaps.h */
 
 
 
+/* ----------------------------------------------------------------------------- */
+/* Compass setup flags */
+typedef union
+{
+    UINT8           byte;
+    struct
+    {
+        unsigned char   CompassAvail:1;     /* Compass available: 1=driver active, 0: driver inactive */
+        unsigned char   ShowCompassValue:1; /* Show Compass Heading in TripCounter: 1=show, 0=off */
+        unsigned char   ShowCompassBar:1;   /* Show Compass Bargraph in TripCounter: 1=show, 0=off */
+        unsigned char   reserved:5;         /* reserved */
+    } flags;
+} COMPASSCNTFL_TYPE;
+#define DEF_COMPASSCNTFL (0x00 )  /* default: complete off*/
 
+
+/* ----------------------------------------------------------------------------- */
 /* parameter ID type for simple interface to requested eeprom / nvram value:
     - enum type, does not refer to value size or address!
     - up to 255 IDs possible
@@ -271,12 +317,12 @@ typedef enum
     PID_SWVERSION = PID_EEPROM_START,       // software version number byte
     PID_WHEELSIZE,                          // wheel size
     PID_RPM_CCF,                            // rpm cylinder correcture factor
-    PID_SYSFL,                              // system status (e.g. current device shown)
+    PID_DEVFLAGS1,                          // device flags 1 (e.g. current device shown)
     PID_DPLFL,                              // bit flags for display status
     PID_DBGFILTFL,                          // bit flags for debug status
     PID_DBGDETDIRFL,                        // bit flags for debug details and direction
     PID_LOGO,                               // number of currently selected logo (enum)
-    PID_TRIPCNTFL,                          // trip counter flags
+    PID_DEVFLAGS2,                          // device flags 1 (e.g. trip counter flags and show flags)
     PID_SPEED_MAX,                          // max vehicle speed
     PID_RPM_MAX,                            // max engine speed
     PID_RPM_FLASH,                          // rpm to activate flash (rpm warning)
@@ -290,6 +336,11 @@ typedef enum
     PID_TWAT_MAX,                           // water temp maximum
     PID_BIKETYPE,                           // definition of bike version (enum)
     PID_SERV_KM,                            // km, at which next service is required
+    PID_FUEL_CAP,                           // fuel reservoir
+    PID_FUEL_CONS,                          // fuel consumption in l/100 km
+    PID_BOOT_DELAY,                         // start screen dealy in 1/10 s
+    PID_WHEEL_IMP,                          // number of impulses / wheel rotation
+    PID_DEVFLAGS3,                          // device flags 3 (e.g. metric)
 
     PID_LAPCSTAT,                           // lap counter status
     PID_LAPC_0,                             // lap timer #
@@ -318,10 +369,10 @@ typedef enum
 /* memory type defines for easier debugging */
 typedef enum
 {
-    NVRAM,      // NVRAM  memory area, will be cleared with any software update
-    EEPROM,     // EEPROM memory area, will be cleared with any software update
-    NVRAM_SEC,  // NVRAM  memory area, will NOT be changed with any software update
-    EEPROM_SEC  // EEPROM memory area, will NOT be changed with any software update
+    NVRAM,      // NVRAM , automatically reseted to default by software update!
+    EEPROM,     // EEPROM, automatically reseted to default by software update!
+    NVRAM_SEC,  // NVRAM , not changed by software update
+    EEPROM_SEC  // EEPROM, not changed by software update
 } MEM_TYPE;
 
 
@@ -342,16 +393,16 @@ typedef struct
 
 
 /* public function prototypes */
-ERRCODE ParReadSysParam(const PARAM_ID_TYPE eParamID, void far * fpParamBuffer);
-ERRCODE ParWriteSysParam(const PARAM_ID_TYPE eParamID, void far * fpGivenParam);
-ERRCODE ParInitSystemParam(void);
-ERRCODE ParSetDefaults(BOOL fComplete);
-ERRCODE ParCheckFirstInit(void);
-ERRCODE ParCyclicSaveValues(void);
-ERRCODE ParInitSystemPar(void);
-BOOL    ParCheckMagicNumber(void);
+ERRCODE ParReadSysParam     ( const PARAM_ID_TYPE eParamID, void far * fpParamBuffer );
+ERRCODE ParWriteSysParam    ( const PARAM_ID_TYPE eParamID, void far * fpGivenParam );
+ERRCODE ParInitSystemParam  ( void );
+ERRCODE ParSetDefaults      ( BOOL fComplete );
+ERRCODE ParCheckFirstInit   ( void );
+ERRCODE ParCyclicSaveValues ( void );
+ERRCODE ParInitSystemPar    ( void );
+BOOL    ParCheckMagicNumber ( void );
 void    ParDebugOutParameter( const PARAM_ID_TYPE PID );
-
+void    ParSetupSWVersionStr( void );
 
 /* private function prototypes */
 //SYSPARINFO_TYPE far * ParGetSysParamInfo(const PARAM_ID_TYPE eSearchedID);
