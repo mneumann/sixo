@@ -68,9 +68,15 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.0  2010/11/07 09:04:45  tuberkel
+ * V30 Preparations:
+ * - Device/Object Handling completely revised & simplified
+ * - Device-Substate (devided into multiple Subscreens)
+ * - diverse new Parameters
+ *
  * Revision 2.13  2009/07/22 12:45:08  tuberkel
  * Device Object Focus handling simplified:
- * - now used standard DevObjFocusMove() / DevObjFocusReset() functions
+ * - now used standard DevObjFocusSet() / DevObjFocusReset() functions
  *
  * Revision 2.12  2009/07/19 12:32:59  tuberkel
  * - ObjectInit reviewed
@@ -151,238 +157,557 @@
 #include "bitmaps.h"
 #include "surveill.h"
 #include "compassdrv.h"
+#include "fonts.h"
 
 
 // defines for device data
 
 
-// Screen Appearance:  +----.----.----.----.-+
-// (21 Chars width)    |Radumfang:    2200 mm|
-//                     |Zyl.-Fakt.:    1/1   |
-//     <= V2.3.5       |Lichtsteuerung:  0   |
-//                     |Helligkeit:     63   |
-//                     |Kontrast:       36   |
-//                     |Gesamt:    112.500 km|
-//                     |24.12.04 13:24:25 ±20|
-//                     +----.----.----.----.-+
+// ----------------------------------------------------------------
+// DEVICE OBJECT DATA
+// ----------------------------------------------------------------
+// special types to handle SDObj internal display states
+//
+// NOTE:    Supports completely different device appearance in order
+//          to keep parameters together in different screens
 
-// Screen Appearance:  +----.----.----.----.-+
-// (21 Chars width)    |Rad:2200 mm   ZKF:1/1|
-//                     |Display A:0 H:63 K:36|
-//     >= V2.4.0       |Schaltbl.:10200 U/Min|
-//                     |Serv.:999h Ges.:9999h|
-//                     |                     | später: |Typ:__R1100GS Spr.:DE|
-//                     |Gesamt:    112.500 km|
-//                     |24.12.04 13:24:25 ±20|
-//                     +----.----.----.----.-+
+// Sub-Screen indicator (current diplay state)
+typedef enum
+{                   // currently shows screen with
+    SD_VEHIC,       //   vehicle parameters
+    SD_DEVICE,      //   device parameters
+    SD_OUT,         //   output parameters
+    SD_COMP,        //   input/output parameters
 
-// Screen Appearance:  +----.----.----.----.-+
-// (21 Chars width)    |Rad:2200 mm   ZKF:1/1|
-//                     |Display A:0 H:63 K:36|
-//     >= V2.4.2       |Schaltbl.:10200 U/Min|  Motobau:
-//                     |Mrd-Typ:0   TripCnt:0|
-//                     |Serv. bei  999.999 km|  |Serv.:999h Ges.:9999h|
-//                     |Gesamt:    112.500 km|
-//                     |24.12.04 13:24:25 ±20|
-//                     +----.----.----.----.-+
+  //SD_PORTS,       //   input/output parameters
+  //SD_WARN,        //   warning parameters
+  //SD_DEVLIST,     //   device list choice
 
-// Screen Appearance:  +----.----.----.----.-+
-// (21 Chars width)    |Rad:2200 mm   ZKF:1/1|
-//                     |Display A:0 H:63 K:36|
-//     >= V2.4.7       |Schaltbl.:10200 U/Min|  Motobau:
-//                     |Mrd:0 Cmp:0 TripCnt:0|  Cmp = Compass-Calibration
-//                     |Serv. bei  999.999 km|  |Serv.:999h Ges.:9999h|
-//                     |Gesamt:    112.500 km|
-//                     |24.12.04 13:24:25 ±20|
-//                     +----.----.----.----.-+
+    SD_LAST         // INVALID LAST STATE!
+} SETDEV_STATE;
 
 
+// set device control structure (to handle ALL screens)
+typedef struct
+{   SETDEV_STATE    eState;         // internal show state
+    DEVOBJLIST      List[SD_LAST];  // array of all list control structures
+} SETDEV_CNTRL;
+
+
+static DEVDATA          SDObj;              // settings device object itself
+static SETDEV_CNTRL     SDCntrl;            // special set device show state control
+
+extern STRING far       szDevName[];        // device names
+extern DEVFLAGS1_TYPE   gDeviceFlags1;      // system parameters
+extern unsigned char    szSWVersion[];      /* formated sw version */
+
+
+// ----------------------------------------------------------------
+// universal edit buffers for screen objects
+static BOOL     fEditBuffer;                //  1 bit edit buffer
+static UINT8    bEditBuffer;                //  8 bit edit buffer
+static UINT16   wEditBuffer;                // 16 bit edit buffer
+static UINT32   dwEditBuffer;               // 32 bit edit buffer
 
 
 
-// device object data
-static DEVDATA          SetDevice;                                  // settings device object itself
-extern STRING far       szDevName[];                                // device names
-extern SYSFLAGS_TYPE    gSystemFlags;                               // system parameters
+// ----------------------------------------------------------------
+// OBJECTS TO BE HANDLED IN EDIT MODE
+// ----------------------------------------------------------------
+
+// ----------------------------------------------------------------
+// wheel size / impulse objects
+extern UINT16           wWheelSize;                     // original wheel size from eeprom in mm
+static EDITNUMBEROBJECT EditWheelSizeObj;               // complete wheel size object
+extern UINT16           gwWheelImpulse;                  // original wheel impulse from eeprom
+static EDITNUMBEROBJECT EditWheelImpulseObj;            // complete wheel impulse object
 
 
-// buffers for screen objects to make edit process on
-static BOOL     fEditBuffer;                                        //  1 bit edit buffer
-static UINT8    bEditBuffer;                                        //  8 bit edit buffer
-static UINT16   wEditBuffer;                                        // 16 bit edit buffer
-static UINT32   dwEditBuffer;                                       // 32 bit edit buffer
+
+// ----------------------------------------------------------------
+// cylinder correcture factor:
+extern CCF_TYPE         CCF;                            // original CCF value (with Nom/Denom nibbles) from eeprom
+static EDITNUMBEROBJECT EditCCFNomObj;                  // complete nominator number object
+static EDITNUMBEROBJECT EditCCFDenomObj;                // complete denominator number object
+static UINT8            CCFNom;                         // copy of CCF.Nom as reference
+static UINT8            CCFDenom;                       // copy of CCF.Denom as reference
 
 
-// wheelsize object 'Radumfang:   2200 mm'
-extern UINT16           wWheelSize;                                 // original wheel size from eeprom in mm
-static EDITNUMBEROBJECT EditWheelSizeObj;                           // complete wheel size object
+// ----------------------------------------------------------------
+// EngineRunTime objects:
+extern TIME_TYPE_LD     EngRunTime_Srv;                 // original values from NVRAM, 4 bytes, engine runtime since last service
+extern TIME_TYPE_LD     EngRunTime_All;                 // original values from NVRAM, 4 bytes, engine runtime overall
+static EDITNUMBEROBJECT EditEngRunSrvObj;               // complete EnginRunTime Service object
+static EDITNUMBEROBJECT EditEngRunAllObj;               // complete EnginRunTime All object
 
-// cylinder correcture factor: 'Zyl.-Fakt.: 1/1'
-extern CCF_TYPE         CCF;                                        // original CCF value (with Nom/Denom nibbles) from eeprom
-static EDITNUMBEROBJECT EditCCFNomObj;                              // complete nominator number object
-static EDITNUMBEROBJECT EditCCFDenomObj;                            // complete denominator number object
-static UINT8            CCFNom;                                     // copy of CCF.Nom as reference
-static UINT8            CCFDenom;                                   // copy of CCF.Denom as reference
 
+// ----------------------------------------------------------------
+// vehicle / service km objects:
+extern DIST_TYPE        gNextServKm;                    // to get/set original value
+static UINT32           dwServKm;                       // original vehicle distance in km only
+static EDITNUMBEROBJECT EditServKmObj;                  // complete number object
+static DIST_TYPE        VehicDist;                      // to get/set original value
+static UINT32           dwVehicDist;                    // original vehicle distance in km only
+static EDITNUMBEROBJECT EditVehicDistObj;               // complete number object
+
+
+// ----------------------------------------------------------------
+// tank capacity / fuel consumption objects:
+extern UINT16           gwFuelCap;                      // to get/set original value, in 1/10 liters
+static EDITNUMBEROBJECT EditTankCapObj;                 // complete number object
+extern UINT8            gbFuelCons;                     // to get/set original value, in 1/10 l/100 km
+static EDITNUMBEROBJECT EditFuelConsObj;                // complete number object
+
+
+// ----------------------------------------------------------------
 // Backlight objects:
-extern DPLFLAGS_TYPE    gDisplayFlags;                              // orginal display values
+extern DPLFLAGS_TYPE    gDisplayFlags;                  // orginal display values
 
 // BacklightOnLevel: 'an/aus/auto: 0..63'
-static EDITNUMBEROBJECT EditBacklObj;                               // complete backlight object
-static UINT8            bBacklOnLevel;                              // copy of gDisplayFlags.flags.BacklOnLevel as reference
-static CHAR             szBacklDescr[] = RESTXT_SET_DPLLIGHTDESC;       // descriptor string
+static EDITNUMBEROBJECT EditBacklObj;                   // complete backlight object
+static UINT8            bBacklOnLevel;                  // copy of gDisplayFlags.flags.BacklOnLevel as reference
 
 // Backlight Level: 'Helligkeit: 63'
-static EDITNUMBEROBJECT EditBacklLevObj;                            // complete backlight level object
-static UINT8            bBacklLev;                                  // copy of gDisplayFlags.flags.BacklLev as reference
-static CHAR             szBacklLevDescr[] = RESTXT_SET_DPLHELLGKDESC;   // descriptor string
+static EDITNUMBEROBJECT EditBacklLevObj;                // complete backlight level object
+static UINT8            bBacklLev;                      // copy of gDisplayFlags.flags.BacklLev as reference
 
-// Display Contrast: 'Kontrast: 63'
-static EDITNUMBEROBJECT EditContrLevObj;                            // complete contrast level object
-static UINT8            bContrLev;                                  // copy of gDisplayFlags.flags.ContLev as reference
+// Display Contrast:
+static EDITNUMBEROBJECT EditContrLevObj;                // complete contrast level object
+static UINT8            bContrLev;                      // copy of gDisplayFlags.flags.ContLev as reference
 
-// RPM FlashLight:
-extern RPM_TYPE         RPM_Flash;                                  // original values from EEPROM, engine speed to enable flash lamp,   1 RPM/bit
-static EDITNUMBEROBJECT EditRPMFlashObj;                            // complete RPM Flashlight object
+// LEDs Control
+static EDITNUMBEROBJECT EditLedDimmObj;                 // complete LED dimmer object
+static UINT8            bLEDDimmLev;                    // copy of gDisplayFlags.flags.BacklLev as reference
 
-// BikeType: |Mrd:0 Cmp:0 TripCnt:0|
-static EDITNUMBEROBJECT EditBikeTypeObj;                            // complete bike type object
-extern BIKE_TYPE        gBikeType;
-static BIKE_TYPE        LocalBikeType;
-extern UINT8            gLogoSelection;                             // selected bike logo
+// Display Contrast:
+static EDITNUMBEROBJECT EditDbgOutObj;                  // complete DebugOut control object (level & module)
+extern DBGFILT_TYPE     gDebugFilter;                   // original value
 
-// CompassBikeType: |Mrd:0 Cmp:0 TripCnt:0|
-static EDITNUMBEROBJECT EditCompassCalibObj;                        // compass calibration state object
-static UINT8            bSavedCmpCalState;                               // edit value
-static UINT8            bCurrentCmpCalState;                            // to detect user activity
 
-// TripCounterFlag: |Mrd:0 Cmp:0 TripCnt:0|
-static EDITNUMBEROBJECT EditTripCntFlObj;                            // complete trip counter flag object
-static UINT8            bTripCntFl;                                  // copy of trip counter flag as reference
-extern TRPCNTFL_TYPE    gTripCntFlags;
+// ----------------------------------------------------------------
+// RPM Flash Light:
+extern RPM_TYPE         RPM_Flash;                      // original values from EEPROM, engine speed to enable flash lamp,   1 RPM/bit
+static EDITNUMBEROBJECT EditRPMFlashObj;                // complete RPM Flashlight object
 
-// EngineRunTime objects:
-extern TIME_TYPE_LD  EngRunTime_Srv;                                // original values from NVRAM, 4 bytes, engine runtime since last service
-extern TIME_TYPE_LD  EngRunTime_All;                                // original values from NVRAM, 4 bytes, engine runtime overall
-static EDITNUMBEROBJECT EditEngRunSrvObj;                           // complete EnginRunTime Service object
-static EDITNUMBEROBJECT EditEngRunAllObj;                           // complete EnginRunTime All object
 
-// service km object |Serv. bei  999.999 km|
-extern DIST_TYPE        gNextServKm;                                // to get/set original value
-static UINT32           dwServKm;                                   // original vehicle distance in km only
-static EDITNUMBEROBJECT EditServKmObj;                              // complete number object
+// ----------------------------------------------------------------
+// BikeType:
+static SELECTOBJECT     SelectBikeObj;                  // complete bike type object
+extern BIKE_TYPE        gBikeType;                      // EEprom value
+static BIKE_TYPE        LocalBikeType;                  // local edit buffer
+static const STRING     pszSelectBike[RESTXT_SET_BIKE_CNT] =
+                        {   RESTXT_SET_BIKE_DEFAULT,
+                            RESTXT_SET_BIKE_R100GS ,
+                            RESTXT_SET_BIKE_F650   ,
+                            RESTXT_SET_BIKE_BAGHIRA,
+                            RESTXT_SET_BIKE_AT     ,
+                        };
 
-// vehicle distance object 'Gesamt: 112.500 km'
-static DIST_TYPE        VehicDist;                                  // to get/set original value
-static UINT32           dwVehicDist;                                // original vehicle distance in km only
-static EDITNUMBEROBJECT EditVehicDistObj;                           // complete number object
-
-// Date field objects '24.12.04'
-static DATE_TYPE        RTCDateCopy;                                // buffer to get current RTC data
-static EDITNUMBEROBJECT EditDayObj;                                 // complete day object
-static EDITNUMBEROBJECT EditMonthObj;                               // complete month object
-static EDITNUMBEROBJECT EditYearObj;                                // complete year object
-static UINT8            bDate;                                      // copy of RTC day as reference
-static UINT8            bMonth;                                     // copy of RTC day as reference
-static UINT8            bYear;                                      // copy of RTC day as reference
-
-// time field objects '13:12:24'
-static TIME_TYPE     RTCTimeCopy;                                // buffer to get current RTC data
-static EDITNUMBEROBJECT EditHourObj;                                // complete hour object
-static EDITNUMBEROBJECT EditMinObj;                                 // complete minute object
-static EDITNUMBEROBJECT EditSecObj;                                 // complete seconds object
-static UINT8            bHour;                                      // copy of RTC hour as reference
-static UINT8            bMin;                                       // copy of RTC minute as reference
-static UINT8            bSec;                                       // copy of RTC second as reference
-
-// clock driver calibration value '±68'
-static EDITNUMBEROBJECT EditClkCalibObj;                            // complete calibration object
-static UINT8            bRTCCalib;                                  // buffer to get current RTC value
-static UINT8            bClkCalib;                                  // copy of RTC clock calibration as reference
+// ----------------------------------------------------------------
+// BikeLogo
+static SELECTOBJECT     SelectLogoObj;                  // complete logo type object
+extern UINT8            gLogoSelection;                 // Eeprom value
+static const STRING     pszSelectLogo[RESTXT_SET_LOGO_CNT] =
+                        {   RESTXT_SET_LOGO_NKDEV     ,
+                            RESTXT_SET_LOGO_BMW       ,
+                            RESTXT_SET_LOGO_HUSQV     ,
+                            RESTXT_SET_LOGO_BAGHIRA   ,
+                            RESTXT_SET_LOGO_SIXO      ,
+                            RESTXT_SET_LOGO_AFRICATWIN,
+                            RESTXT_SET_LOGO_BMW_1100GS,
+                            RESTXT_SET_LOGO_KTM       ,
+                            RESTXT_SET_LOGO_HUSQVRS   ,
+                            RESTXT_SET_LOGO_HPN       ,
+                            RESTXT_SET_LOGO_MOTOBAU   ,
+                            RESTXT_SET_LOGO_VFORCE
+                        };
+static EDITNUMBEROBJECT EditLogoDelayObj;               // complete logo delay object
+       UINT8            gbLogoDelay;                    // Eeprom value;
 
 
 
+// ----------------------------------------------------------------
+// Compass Display Mode Object:
+static SELECTOBJECT     SelectCompDplObj;               // compass calibration state object
+extern UINT8            gCompDplMode;                   // Eeprom value
+static const STRING     pszSelectCompD[RESTXT_SET_COMPD_CNT] =
+                        {   RESTXT_SET_COMPD_NA  ,
+                            RESTXT_SET_COMPD_HD  ,
+                            RESTXT_SET_COMPD_GR  ,
+                            RESTXT_SET_COMPD_HDGR
+                        };
+
+
+// ----------------------------------------------------------------
+// Compass Calibration State Object (temporary while calibration mode is active):
+static SELECTOBJECT     SelectCompCalStObj;             // compass display mode object
+static UINT8            bCmpCalState;                   // to detect user pressed buttons/activity
+static const STRING     pszSelectCompC[RESTXT_SET_COMPC_CNT] =
+                        {   RESTXT_SET_COMPC_NA   ,
+                            RESTXT_SET_COMPC_WORK ,
+                            RESTXT_SET_COMPC_HHOLD,
+                            RESTXT_SET_COMPC_HTURN,
+                            RESTXT_SET_COMPC_HSAVE,
+                            RESTXT_SET_COMPC_VHOLD,
+                            RESTXT_SET_COMPC_VTURN,
+                            RESTXT_SET_COMPC_VSAVE
+                        };
+
+
+
+// ----------------------------------------------------------------
+// Language Selection Object
+static SELECTOBJECT     SelectLangObj;                  // Language Selection Object
+extern UINT8            gLanguage;                      // eeprom value
+static const STRING     pszSelectLang[RESTXT_SET_LANG_CNT] =
+                        {   RESTXT_SET_LANG_DE,
+                            RESTXT_SET_LANG_EN,
+                            RESTXT_SET_LANG_NL
+                        };
+
+
+// ----------------------------------------------------------------
+// Device Flags 2:
+extern DEVFLAGS2_TYPE   gDeviceFlags2;
+
+static SELECTOBJECT     SelectTripObj;                // trip counter flag object (taken from gDeviceFlags2 )
+static const STRING     pszSelectTrip[RESTXT_SET_TRIP_CNT] =
+                        {   RESTXT_SET_TRIP_VST,
+                            RESTXT_SET_TRIP_VSB
+                        };
+static BOOL             fTripCntLongUp;               // copy of trip counter flag as reference
+
+
+
+// ----------------------------------------------------------------
+// Device Flags 3:
+extern DEVFLAGS3_TYPE   gDeviceFlags3;
+
+static SELECTOBJECT     SelectMetricObj;              // Metric selection: METER/INCH (taken from gDeviceFlags3 )
+static const STRING     pszSelectMetric[RESTXT_SET_METRIC_CNT] =
+                        {   RESTXT_SET_METRIC_KM,
+                            RESTXT_SET_METRIC_MILES
+                        };
+static BOOL             fMetric;                        // copy of Metric flag as reference
+
+static SELECTOBJECT     SelectLedWMObj;           // Led Warning Mode Selection: SIxO-like / common mode (leds on at ignition), taken from gDeviceFlags3 )
+static const STRING     pszSelectLedWM[RESTXT_SET_LEDWM_CNT] =
+                        {   RESTXT_SET_LEDWM_SIXO,
+                            RESTXT_SET_LEDWM_STD
+                        };
+static BOOL             fLedWarnMode;                   // copy of Metric flag as reference
+
+
+
+// ----------------------------------------------------------------
+// Date field objects
+static DATE_TYPE        RTCDateCopy;                    // buffer to get current RTC data
+static EDITNUMBEROBJECT EditDayObj;                     // complete day object
+static UINT8            bDate;                          // copy of RTC day as reference
+static EDITNUMBEROBJECT EditMonthObj;                   // complete month object
+static UINT8            bMonth;                         // copy of RTC day as reference
+static EDITNUMBEROBJECT EditYearObj;                    // complete year object
+static UINT8            bYear;                          // copy of RTC day as reference
+
+// ----------------------------------------------------------------
+// time field objects
+static TIME_TYPE        RTCTimeCopy;                    // buffer to get current RTC data
+static EDITNUMBEROBJECT EditHourObj;                    // complete hour object
+static UINT8            bHour;                          // copy of RTC hour as reference
+static EDITNUMBEROBJECT EditMinObj;                     // complete minute object
+static UINT8            bMin;                           // copy of RTC minute as reference
+static EDITNUMBEROBJECT EditSecObj;                     // complete seconds object
+static UINT8            bSec;                           // copy of RTC second as reference
+
+// ----------------------------------------------------------------
+// clock driver calibration value '±168'
+static EDITNUMBEROBJECT EditClkCalibObj;                // complete calibration object
+static UINT8            bRTCCalib;                      // buffer to get current RTC value
+static UINT8            bClkCalib;                      // copy of RTC clock calibration as reference
+
+// ----------------------------------------------------------------
+// daylight saving value (on/off, from eeprom)
+static EDITBOOLOBJECT   EditBoolDLSaveObj;              // complete boolean DaylightSavingseconds object
+       BOOL             gfDaylightSave;                 // original value from eeprom
+
+
+// ----------------------------------------------------------------
+// Device Settings objects
+
+// Vehicle simulation object (on/off, from eeprom)
+static EDITBOOLOBJECT   EditBoolVehSimObj;              // complete boolean VehicleSimualtion edit Object
+       BOOL             gfVehicSimulation;              // original value from eeprom
+
+// BMP-Hardcopy via UART and HIGH_BEAM available object (on/off, from eeprom)
+static EDITBOOLOBJECT   EditBoolScrDmpObj;              // complete boolean Hardcopy edit Object
+       BOOL             gfHardcopy;                   // original value from eeprom
+
+// Eeprom Reset object (on = reset)
+static EDITBOOLOBJECT   EditBoolEeprRstObj;             // complete boolean Eeprom reset Object
+       BOOL             gfEepromReset;                  // local value to start reset
+
+// Beeper Control (taken from gDeviceFlags2 )
+static EDITBOOLOBJECT   EditBoolBeepCtrlObj;            // complete boolean Beeper control Object
+       BOOL             gfBeepCtrl;                     // local value
+
+// Compass Available Control
+static EDITBOOLOBJECT   EditBoolCompAvailObj;           // complete boolean Compass main switch Object
+       BOOL             gfCompAvail;                    // local value
+
+
+// ----------------------------------------------------------------
 // other external symbols
-extern UINT16           wMilliSecCounter;                           // valid values: 0h .. ffffh
-
-
-
-// non public prototypes
-void    SetDeviceShow(BOOL fShow);
-ERRCODE SetDeviceTryObjects(MESSAGE GivenMsg);
-void    SetDeviceCheckChanges(void);
+extern UINT16           wMilliSecCounter;               // valid values: 0h .. ffffh
 
 
 
 
 
+/* ----------------------------------------------------------- */
+/* STATIC HEADLINE & OTHER TEXT OBJECTS */
+/* ----------------------------------------------------------- */
+static TEXTOBJECT   TextObj_HL_Vehicle;
+static TEXTOBJECT   TextObj_HL_Device;
+static TEXTOBJECT   TextObj_HL_Out;
+static TEXTOBJECT   TextObj_HL_Compass;
+//static TEXTOBJECT   TextObj_HL_IOPorts;
+//static TEXTOBJECT   TextObj_HL_Warnings;
+
+static TEXTOBJECT   TextObj_Comp_Calib;
+static TEXTOBJECT   TextObj_Comp_Error;
+
+static TEXTOBJECT   TextObj_Led_Desc;
+static TEXTOBJECT   TextObj_Lcd_Desc;
+
+//static TEXTOBJECT   TextObj_Dev_SWVers;
+//static TEXTOBJECT   TextObj_Dev_SWVersDsc;
+
+
+static const TEXTOBJECT_INITTYPE TextObj[] =
+{
+    /* Headline Objects for all Screens: */
+    /*pObject                X   Y   Font         H  Width  Align       Format      string ptr             State  */
+    /*--------------------- ---- --- ------------ -- -----  ----------- ----------- ---------------------- --------- */
+    {&TextObj_HL_Vehicle,   C01, R1, DPLFONT_6X8, 1, 21,    TXT_CENTER, TXT_INVERS, RESTXT_SET_HL_VEHICLE, OC_DISPL},
+    {&TextObj_HL_Device,    C01, R1, DPLFONT_6X8, 1, 21,    TXT_CENTER, TXT_INVERS, RESTXT_SET_HL_DEVICE,  OC_DISPL},
+    {&TextObj_HL_Out,       C01, R1, DPLFONT_6X8, 1, 21,    TXT_CENTER, TXT_INVERS, RESTXT_SET_HL_DISPLAY, OC_DISPL},
+    {&TextObj_HL_Compass,   C01, R1, DPLFONT_6X8, 1, 21,    TXT_CENTER, TXT_INVERS, RESTXT_SET_HL_COMPASS, OC_DISPL},
+  //{&TextObj_HL_IOPorts,   C01, R1, DPLFONT_6X8, 1, 21,    TXT_CENTER, TXT_INVERS, RESTXT_SET_HL_IOPORTS, OC_DISPL},
+  //{&TextObj_HL_Warnings,  C01, R1, DPLFONT_6X8, 1, 21,    TXT_CENTER, TXT_INVERS, RESTXT_SET_HL_WARNINGS,OC_DISPL},
+
+    /* Device Descriptors */
+    /*pObject                X   Y   Font         H  Width  Align       Format      string ptr             State  */
+    /*--------------------- ---- --- ------------ -- -----  ----------- ----------- ---------------------- --------- */
+  //{&TextObj_Dev_SWVersDsc,C01, R7, DPLFONT_6X8, 1,  3,    TXT_LEFT,   TXT_NORM,   RESTXT_SET_SW_VERS,    OC_DISPL},
+  //{&TextObj_Dev_SWVers,   C04, R7, DPLFONT_6X8, 1, 10,    TXT_LEFT,   TXT_NORM,   szSWVersion,           OC_DISPL},
+
+    /* Compass Descriptors */
+    /*pObject                X   Y   Font         H  Width  Align       Format      string ptr             State  */
+    /*--------------------- ---- --- ------------ -- -----  ----------- ----------- ---------------------- --------- */
+    {&TextObj_Comp_Calib,   C01, R4, DPLFONT_6X8, 1, 21,    TXT_LEFT,   TXT_NORM,   RESTXT_SET_COMPC_DESC, OC_DISPL},
+    {&TextObj_Comp_Error,   C01, R6, DPLFONT_6X8, 1, 21,    TXT_LEFT,   TXT_NORM,   RESTXT_SET_COMP_ERR,   OC_DISPL},
+
+    /* Led/Lcd Descriptors */
+    /*pObject                X   Y   Font         H  Width  Align       Format      string ptr             State  */
+    /*--------------------- ---- --- ------------ -- -----  ----------- ----------- ---------------------- --------- */
+    {&TextObj_Led_Desc,     C01, R2, DPLFONT_6X8, 1, 4,     TXT_LEFT,   TXT_NORM,   RESTXT_SET_LCD,        OC_DISPL},
+    {&TextObj_Lcd_Desc,     C01, R5, DPLFONT_6X8, 1, 4,     TXT_LEFT,   TXT_NORM,   RESTXT_SET_LED,        OC_DISPL},
+    /*--------------------- ---- --- ------------ -- -----  ----------- ----------- ---------------------- --------- */
+};
+#define TEXTOBJECTLISTSIZE   (sizeof(TextObj)/sizeof(TEXTOBJECT_INITTYPE))
+
+
+
+/* ----------------------------------------------------------- */
+/* EDIT BOOL OBJECTS INIT TABLE */
+/* ----------------------------------------------------------- */
+static const EDITBOOL_INITTYPE EditBoolObj[] =
+{   /*pObject                X    Y  Font         Width  Data                 EditBuffer    Descriptor              State      */
+    /*-------------------- ---- ---- ------------ -----  -------------------- ------------- ----------------------- --------------------------------- */
+    {&EditBoolDLSaveObj,   C16,  R3, DPLFONT_6X8,    6,  &gfDaylightSave,     &fEditBuffer, RESTXT_SET_RTC_DLS,     OC_DISPL | OC_SELECT | OC_EDIT },
+    {&EditBoolBeepCtrlObj, C16,  R4, DPLFONT_6X8,    6,  &gfBeepCtrl,         &fEditBuffer, RESTXT_SET_BEEP_ON,     OC_DISPL | OC_SELECT | OC_EDIT },
+    {&EditBoolVehSimObj,   C16,  R5, DPLFONT_6X8,    6,  &gfVehicSimulation,  &fEditBuffer, RESTXT_SET_VEHICSIM,    OC_DISPL | OC_SELECT | OC_EDIT },
+    {&EditBoolScrDmpObj,   C16,  R6, DPLFONT_6X8,    6,  &gfHardcopy,         &fEditBuffer, RESTXT_SET_HARDCOPY,    OC_DISPL | OC_SELECT | OC_EDIT },
+    {&EditBoolEeprRstObj,  C16,  R7, DPLFONT_6X8,    6,  &gfEepromReset,      &fEditBuffer, RESTXT_SET_RESETEEPROM, OC_DISPL | OC_SELECT | OC_EDIT },
+    /*-------------------- ---- ---- ------------ -----  -------------------- ------------- ----------------------- --------------------------------- */
+    {&EditBoolCompAvailObj,C01,  R2, DPLFONT_6X8,   21,  &gfCompAvail,        &fEditBuffer, RESTXT_SET_COMPASS,     OC_DISPL | OC_SELECT | OC_EDIT },
+    /*-------------------- ---- ---- ------------ -----  -------------------- ------------- ----------------------- --------------------------------- */
+};
+#define EDITBOOLOBJECTLISTSIZE   (sizeof(EditBoolObj)/sizeof(EDITBOOL_INITTYPE))
+
+
+
+
+/* ----------------------------------------------------------- */
+/* SELECT OBJECTS INIT TABLE */
+/* ----------------------------------------------------------- */
+static const SELECT_INITTYPE SelectObj[] =
+{
+    /* fpObject           OrgX    OrgY  Font         Width pValue                        Max                    WorkValue       szDescr                      SelectTxtList     SelectTxtWidth           State*/
+    /* ------------------ ------ ------ ------------ ----- ----------------------------- ------------------     --------------- ---------------------------- ----------------  ------------------------ --------------------------------- */
+    { &SelectBikeObj,       C01,   R2,  DPLFONT_6X8,   12, (UINT8 far *)&LocalBikeType,  RESTXT_SET_BIKE_CNT,   &bEditBuffer,   RESTXT_SET_BIKE_DESC,        pszSelectBike,    RESTXT_SET_BIKE_WIDTH,   OC_DISPL | OC_SELECT | OC_EDIT   },
+    /* ------------------ ------ ------ ------------ ----- ----------------------------- ------------------     --------------- ---------------------------- ----------------  ------------------------ --------------------------------- */
+    { &SelectTripObj,       C01,   R4,  DPLFONT_6X8,   12, (UINT8 far *)&fTripCntLongUp, RESTXT_SET_TRIP_CNT,   &bEditBuffer,   RESTXT_SET_TRIP_DESC,        pszSelectTrip,    RESTXT_SET_TRIP_WIDTH,   OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &SelectLangObj,       C01,   R5,  DPLFONT_6X8,   12, (UINT8 far *)&gLanguage,      RESTXT_SET_LANG_CNT,   &bEditBuffer,   RESTXT_SET_LANG_DESC,        pszSelectLang,    RESTXT_SET_LANG_WIDTH,   OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &SelectMetricObj,     C01,   R6,  DPLFONT_6X8,   12, (UINT8 far *)&fMetric,        RESTXT_SET_METRIC_CNT, &bEditBuffer,   RESTXT_SET_METRIC_DESC,      pszSelectMetric,  RESTXT_SET_METRIC_WIDTH, OC_DISPL | OC_SELECT | OC_EDIT   },
+    /* ------------------ ------ ------ ------------ ----- ----------------------------- ------------------     --------------- ---------------------------- ----------------  ------------------------ --------------------------------- */
+    { &SelectLedWMObj,      C05,   R6,  DPLFONT_6X8,   17, (UINT8 far *)&fLedWarnMode,   RESTXT_SET_LEDWM_CNT,  &bEditBuffer,   RESTXT_SET_LEDWM_DESC,       pszSelectLedWM,   RESTXT_SET_LEDWM_WIDTH,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    /* ------------------ ------ ------ ------------ ----- ----------------------------- ------------------     --------------- ---------------------------- ----------------  ------------------------ --------------------------------- */
+    { &SelectLogoObj,       C01,   R7,  DPLFONT_6X8,   12, (UINT8 far *)&gLogoSelection, RESTXT_SET_LOGO_CNT,   &bEditBuffer,   RESTXT_SET_LOGO_DESC,        pszSelectLogo,    RESTXT_SET_LOGO_WIDTH,   OC_DISPL | OC_SELECT | OC_EDIT   },
+    /* ------------------ ------ ------ ------------ ----- ----------------------------- ------------------     --------------- ---------------------------- ----------------  ------------------------ --------------------------------- */
+    { &SelectCompDplObj,    C01,   R3,  DPLFONT_6X8,   21, (UINT8 far *)&gCompDplMode,   RESTXT_SET_COMPD_CNT,  &bEditBuffer,   RESTXT_SET_COMPD_DESC,       pszSelectCompD,   RESTXT_SET_COMPD_WIDTH,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &SelectCompCalStObj,  C01,   R5,  DPLFONT_6X8,   21, (UINT8 far *)&bCmpCalState,   RESTXT_SET_COMPC_CNT,  &bEditBuffer,   "",                          pszSelectCompC,   RESTXT_SET_COMPC_WIDTH,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    /* ------------------ ------ ------ ------------ ----- ----------------------------- ------------------     --------------- ---------------------------- ----------------  ------------------------ --------------------------------- */
+
+};
+#define SELECTOBJECTLISTSIZE   (sizeof(SelectObj)/sizeof(SELECT_INITTYPE))
+
+
+
+/* ----------------------------------------------------------- */
 /* EDIT NUMBER INIT TABLE */
+/* ----------------------------------------------------------- */
 static const EDITNUMBER_INITTYPE EditNumObj[] =
 {
-    /* fpObject           OrgX    OrgY  Font         Width  pNumber                 pWorkNumber     Type   Min  Max    Step DplType Mode     C  zDescr                      zUnit                       L   State                                       */
-    /* ------------------ ------ ------ ------------ ----- -----------------------  --------------- ------ ---- ------- --- ------- -------- - ---------------------------- --------------------------- -- -------------------------------------------- */
-    { &EditWheelSizeObj,      0,    0,  DPLFONT_6X8,    13, &wWheelSize,            &wEditBuffer,   eUINT,  0L,  9999L,  0L, eDez,   eColumn, 0, RESTXT_SET_WHEELSIZEDESC,   RESTXT_SET_WHEELSIZEUNIT,   4,  OC_DISPL | OC_SELECT | OC_EDIT | OS_SELECT  },
-    { &EditCCFNomObj,        84,    0,  DPLFONT_6X8,     6, &CCFNom,                &bEditBuffer,   eUCHAR, 1L,     9L,  0L, eDez,   eColumn, 0, RESTXT_SET_CCFNOMDESC,      RESTXT_SET_CCFNOMUNIT,      1,  OC_DISPL | OC_SELECT | OC_EDIT              },
-    { &EditCCFDenomObj,     120,    0,  DPLFONT_6X8,     1, &CCFDenom,              &bEditBuffer,   eUCHAR, 1L,     9L,  0L, eDez,   eColumn, 0, "",                         "",                         1,  OC_DISPL | OC_SELECT | OC_EDIT              },
-    { &EditBacklObj,          0,    9,  DPLFONT_6X8,    11, &bBacklOnLevel,         &bEditBuffer,   eUCHAR, 0L,     7L,  0L, eDez,   eColumn, 0, szBacklDescr,               "",                         1,  OC_DISPL | OC_SELECT | OC_EDIT              },
-    { &EditBacklLevObj,      72,    9,  DPLFONT_6X8,     4, &bBacklLev,             &bEditBuffer,   eUCHAR, 0L,    63L,  0L, eDez,   eColumn, 0, RESTXT_SET_DPLHELLGKDESC,   "",                         2,  OC_DISPL | OC_SELECT | OC_EDIT              },
-    { &EditContrLevObj,     102,    9,  DPLFONT_6X8,     4, &bContrLev,             &bEditBuffer,   eUCHAR, 0L,    63L,  0L, eDez,   eColumn, 0, RESTXT_SET_DPLCONTRDESC,    "",                         2,  OC_DISPL | OC_SELECT | OC_EDIT              },
-    { &EditRPMFlashObj,       0,   18,  DPLFONT_6X8,    21, &RPM_Flash,             &wEditBuffer,   eUINT,  0L, 30000L,  0L, eDez,   eColumn, 0, RESTXT_SET_RPMFLASH,        RESTXT_SET_RPMFLASHUNIT,    5,  OC_DISPL | OC_SELECT | OC_EDIT              },
-      // bike type will modified in init routine for BIKE_MOTOBAU  version
-    { &EditBikeTypeObj,       0,   27,  DPLFONT_6X8,     5, &LocalBikeType,         &bEditBuffer,   eUCHAR, 0L, (UINT32)(eBIKE_INVALID-1),  0L, eDez,   eColumn, 0, RESTXT_SET_BIKETYPE,  "",            1,  OC_DISPL | OC_SELECT | OC_EDIT              },
-    { &EditCompassCalibObj,  36,   27,  DPLFONT_6X8,     5, &bSavedCmpCalState,     &bEditBuffer,   eUCHAR, 0L,     6L,  0L, eDez,   eColumn, 0, RESTXT_SET_COMPCAL,         "",                         1,  OC_DISPL | OC_SELECT | OC_EDIT              },
-    { &EditTripCntFlObj,     72,   27,  DPLFONT_6X8,     9, &bTripCntFl,            &bEditBuffer,   eUCHAR, 0L,     7L,  0L, eDez,   eColumn, 0, RESTXT_SET_TRIPCNTFL,       "",                         1,  OC_DISPL | OC_SELECT | OC_EDIT              },
-      // EngRun EngServ will modified in init routine for BIKE_MOTOBAU version
-    //{ &EditEngRunSrvObj,      0,   36,  DPLFONT_6X8,    10, &EngRunTime_Srv.wHour,  &wEditBuffer,   eUINT,  0L,   999L,  0L, eDez,   eColumn, 0, RESTXT_SET_ERT_SRV,         RESTXT_SET_ERT_UNIT,        3,  OC_DISPL | OC_SELECT | OC_EDIT              },
-    //{ &EditEngRunAllObj,     66,   36,  DPLFONT_6X8,    10, &EngRunTime_All.wHour,  &wEditBuffer,   eUINT,  0L,  9999L,  0L, eDez,   eColumn, 0, RESTXT_SET_ERT_ALL,         RESTXT_SET_ERT_UNIT,        4,  OC_DISPL | OC_SELECT | OC_EDIT              },
-      // Servkm will modified in init routine for NOT BIKE_MOTOBAU version
-    { &EditServKmObj,         0,   36,  DPLFONT_6X8,    21, &dwServKm,              &dwEditBuffer,  eULONG, 0L, 999999L, 0L, eDez,   eColumn, 3, RESTXT_SET_SERVKM,          RESTXT_SET_VEHICKMUNIT,     7,  OC_DISPL | OC_SELECT | OC_EDIT              },
-    { &EditVehicDistObj,      0,   45,  DPLFONT_6X8,    21, &dwVehicDist,           &dwEditBuffer,  eULONG, 0L, 999999L, 0L, eDez,   eColumn, 3, RESTXT_SET_VEHICKMDESC,     RESTXT_SET_VEHICKMUNIT,     7,  OC_DISPL | OC_SELECT | OC_EDIT              },
-    { &EditDayObj,            0,   54,  DPLFONT_6X8,     2, &bDate,                 &bEditBuffer,   eUCHAR, 1L,    31L,  0L, eDez,   eColumn, 0, "",                         "",                         2,  OC_DISPL | OC_SELECT | OC_EDIT              },
-    { &EditMonthObj,         12,   54,  DPLFONT_6X8,     4, &bMonth,                &bEditBuffer,   eUCHAR, 1L,    12L,  0L, eDez,   eColumn, 0, RESTXT_DAYSEPERATOR,        RESTXT_DAYSEPERATOR,        2,  OC_DISPL | OC_SELECT | OC_EDIT              },
-    { &EditYearObj,          36,   54,  DPLFONT_6X8,     2, &bYear,                 &bEditBuffer,   eUCHAR, 0L,    99L,  0L, eDez,   eColumn, 0, "",                         "",                         2,  OC_DISPL | OC_SELECT | OC_EDIT              },
-    { &EditHourObj,          54,   54,  DPLFONT_6X8,     2, &bHour,                 &bEditBuffer,   eUCHAR, 0L,    23L,  0L, eDez,   eColumn, 0, "",                         "",                         2,  OC_DISPL | OC_SELECT | OC_EDIT              },
-    { &EditMinObj,           66,   54,  DPLFONT_6X8,     4, &bMin,                  &bEditBuffer,   eUCHAR, 0L,    59L,  0L, eDez,   eColumn, 0, RESTXT_TIMESEPERATOR,       RESTXT_TIMESEPERATOR,       2,  OC_DISPL | OC_SELECT | OC_EDIT              },
-    { &EditSecObj,           90,   54,  DPLFONT_6X8,     2, &bSec,                  &bEditBuffer,   eUCHAR, 0L,    59L,  0L, eDez,   eColumn, 0, "",                         "",                         2,  OC_DISPL | OC_SELECT | OC_EDIT              },
-    { &EditClkCalibObj,     102,   54,  DPLFONT_6X8,     4, &bClkCalib,             &bEditBuffer,   eUCHAR, 0L,   255L,  0L, eDez,   eColumn, 0, RESTXT_CLKCALIBDESC,        "",                         3,  OC_DISPL | OC_SELECT | OC_EDIT              }
+    /* VEHICLE SETTINGS */
+    /* fpObject           OrgX    OrgY  Font         Width  pNumber                 pWorkNumber     Type   Min  Max    Step DplType  Mode     C  zDescr                      zUnit                       L   State                              */
+    /* ------------------ ------ ------ ------------ ----- -----------------------  --------------- ------ ---- ------- --- -------  -------- - ---------------------------- --------------------------- -- ----------------------------------- */
+    { &EditCCFNomObj,       C15,   R2,  DPLFONT_6X8,     6, &CCFNom,                &bEditBuffer,   eUCHAR, 1L,     9L,  0L, eDez,   eColumn, 0, RESTXT_SET_CCFNOM_DESC,     RESTXT_SET_CCFNOM_UNIT,     1,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &EditCCFDenomObj,     C21,   R2,  DPLFONT_6X8,     1, &CCFDenom,              &bEditBuffer,   eUCHAR, 1L,     9L,  0L, eDez,   eColumn, 0, "",                         "",                         1,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &EditWheelSizeObj,    C01,   R3,  DPLFONT_6X8,    12, &wWheelSize,            &wEditBuffer,   eUINT,  0L,  9999L,  0L, eDez,   eColumn, 0, RESTXT_SET_WHEELSIZE_DESC,  RESTXT_SET_WHEELSIZE_UNIT,  4,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &EditWheelImpulseObj, C16,   R3,  DPLFONT_6X8,     6, &gwWheelImpulse,        &wEditBuffer,   eUINT,  0L,    99L,  0L, eDez,   eColumn, 0, RESTXT_SET_WHEELIMP_DESC,   "",                         2,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &EditVehicDistObj,    C01,   R4,  DPLFONT_6X8,    12, &dwVehicDist,           &dwEditBuffer,  eULONG, 0L,999999L,  0L, eDez,   eColumn, 0, RESTXT_SET_VEHICKM_DESC,    RESTXT_SET_VEHICKM_UNIT,    6,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &EditEngRunAllObj,    C16,   R4,  DPLFONT_6X8,     6, &EngRunTime_All.wHour,  &wEditBuffer,   eUINT,  0L, 65535L,  0L, eDez,   eColumn, 0, "",                         RESTXT_SET_ERT_UNIT,        5,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &EditServKmObj,       C01,   R5,  DPLFONT_6X8,    12, &dwServKm,              &dwEditBuffer,  eULONG, 0L,999999L,  0L, eDez,   eColumn, 0, RESTXT_SET_SERVKM_DESC,     RESTXT_SET_VEHICKM_UNIT,    6,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &EditEngRunSrvObj,    C16,   R5,  DPLFONT_6X8,     6, &EngRunTime_Srv.wHour,  &wEditBuffer,   eUINT,  0L, 65535L,  0L, eDez,   eColumn, 0, "",                         RESTXT_SET_ERT_UNIT,        5,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &EditTankCapObj,      C01,   R6,  DPLFONT_6X8,    12, &gwFuelCap,             &dwEditBuffer,  eUINT,  0L,   999L,  0L, eDez,   eColumn, 1, RESTXT_SET_TANKCAP_DESC,    RESTXT_SET_TANKCAP_UNIT,    4,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &EditFuelConsObj,     C15,   R6,  DPLFONT_6X8,     7, &gbFuelCons,            &bEditBuffer,   eUCHAR, 0L,   255L,  0L, eDez,   eColumn, 1, RESTXT_SET_FUELCONS_DESC,   RESTXT_SET_FUELCONS_UNIT,   4,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &EditLogoDelayObj,    C18,   R7,  DPLFONT_6X8,     4, &gbLogoDelay,           &bEditBuffer,   eUCHAR, 0L,    99L,  0L, eDez,   eColumn, 1, "",                         RESTXT_SET_LOGODELAY_UNIT,  3,  OC_DISPL | OC_SELECT | OC_EDIT   },
+
+    /* DEVICE SETTINGS */
+    /* fpObject           OrgX    OrgY  Font         Width  pNumber                 pWorkNumber     Type   Min  Max    Step DplType  Mode     C  zDescr                      zUnit                       L   State                              */
+    /* ------------------ ------ ------ ------------ ----- -----------------------  --------------- ------ ---- ------- --- -------  -------- - ---------------------------- --------------------------- -- ----------------------------------- */
+    { &EditHourObj,         C01,   R2,  DPLFONT_6X8,     8, &bHour,                 &bEditBuffer,   eUCHAR, 0L,    23L,  0L, eDez,   eColumn, 0, RESTXT_SET_RTC_TIME,        "",                         2,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &EditMinObj,          C09,   R2,  DPLFONT_6X8,     3, &bMin,                  &bEditBuffer,   eUCHAR, 0L,    59L,  0L, eDez,   eColumn, 0, RESTXT_TIMESEPERATOR,       "",                         2,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &EditSecObj,          C12,   R2,  DPLFONT_6X8,     3, &bSec,                  &bEditBuffer,   eUCHAR, 0L,    59L,  0L, eDez,   eColumn, 0, RESTXT_TIMESEPERATOR,       "",                         2,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &EditClkCalibObj,     C16,   R2,  DPLFONT_6X8,     6, &bClkCalib,             &bEditBuffer,   eUCHAR, 0L,   255L,  0L, eDez,   eColumn, 0, RESTXT_SET_RTC_CALIB,       "",                         3,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &EditDayObj,          C01,   R3,  DPLFONT_6X8,     8, &bDate,                 &bEditBuffer,   eUCHAR, 1L,    31L,  0L, eDez,   eColumn, 0, RESTXT_SET_RTC_DATE,        "",                         2,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &EditMonthObj,        C09,   R3,  DPLFONT_6X8,     3, &bMonth,                &bEditBuffer,   eUCHAR, 1L,    12L,  0L, eDez,   eColumn, 0, RESTXT_DAYSEPERATOR,        "",                         2,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &EditYearObj,         C12,   R3,  DPLFONT_6X8,     3, &bYear,                 &bEditBuffer,   eUCHAR, 0L,    99L,  0L, eDez,   eColumn, 0, RESTXT_DAYSEPERATOR,        "",                         2,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &EditDbgOutObj,       C01,   R7,  DPLFONT_6X8,    12, &gDebugFilter,          &bEditBuffer,   eUCHAR, 0L,   255L,  0L, eHex,   eColumn, 0, RESTXT_DBGOUTDESCR,         "",                         2,  OC_DISPL | OC_SELECT | OC_EDIT   },
+
+    /* LED/LCD SETTINGS */
+    /* fpObject           OrgX    OrgY  Font         Width  pNumber                 pWorkNumber     Type   Min  Max    Step DplType  Mode     C  zDescr                      zUnit                       L   State                              */
+    /* ------------------ ------ ------ ------------ ----- -----------------------  --------------- ------ ---- ------- --- -------  -------- - ---------------------------- --------------------------- -- ----------------------------------- */
+    { &EditBacklObj,        C05,   R2,  DPLFONT_6X8,    17, &bBacklOnLevel,         &bEditBuffer,   eUCHAR, 0L,     7L,  0L, eDez,   eColumn, 0, RESTXT_SET_LCD_BL_DESC,     "",                         1,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &EditBacklLevObj,     C05,   R3,  DPLFONT_6X8,    17, &bBacklLev,             &bEditBuffer,   eUCHAR, 0L,    63L,  1L, eDez,   eStep,   0, RESTXT_SET_LCD_BR_DESC,     "",                         2,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &EditContrLevObj,     C05,   R4,  DPLFONT_6X8,    17, &bContrLev,             &bEditBuffer,   eUCHAR, 0L,    63L,  1L, eDez,   eStep,   0, RESTXT_SET_LCD_CNT_DESC,    "",                         2,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &EditLedDimmObj,      C05,   R5,  DPLFONT_6X8,    17, &bLEDDimmLev,           &bEditBuffer,   eUCHAR, 0L,     7L,  1L, eDez,   eStep,   0, RESTXT_SET_LED_DIM_DESC,    "",                         1,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &EditRPMFlashObj,     C05,   R7,  DPLFONT_6X8,    17, &RPM_Flash,             &wEditBuffer,   eUINT,  0L, 30000L,  0L, eDez,   eColumn, 0, RESTXT_SET_RPMFL_DESC,      "",                         5,  OC_DISPL | OC_SELECT | OC_EDIT   },
+
     /* ------------------ ------ ------ ------------ ----- -----------------------  --------------- ------ ---- ------- --- ------- -------- - ------------------------ ----------------------- -- -------------------------------------------- */
 };
+#define EDITNUMOBJECTLISTSIZE   (sizeof(EditNumObj)/sizeof(EDITNUMBER_INITTYPE))
 
 
 
-/* this devices object focus handling - list of SELECTABLE objects */
-/* NOTE: this handling assumes the object data 'OBJSTATE' being the FIRST
-         structure element of the object type! */
-static const void far * FocusObjList[] =
-{   (void far *) &EditWheelSizeObj,
-    (void far *) &EditCCFNomObj,
-    (void far *) &EditCCFDenomObj,
-    (void far *) &EditBacklObj,
-    (void far *) &EditBacklLevObj,
-    (void far *) &EditContrLevObj,
-    (void far *) &EditRPMFlashObj,
 
-    (void far *) &EditBikeTypeObj,
-    (void far *) &EditCompassCalibObj,
-    (void far *) &EditTripCntFlObj,
+// ---------------------------------------------------------------------
+// SCREEN FOCUS ORDER
+// ---------------------------------------------------------------------
 
-    //(void far *) &EditEngRunSrvObj,
-    //(void far *) &EditEngRunAllObj,
-    (void far *) &EditServKmObj,
-    (void far *) &EditVehicDistObj,
-    (void far *) &EditDayObj,
-    (void far *) &EditMonthObj,
-    (void far *) &EditYearObj,
-    (void far *) &EditHourObj,
-    (void far *) &EditMinObj,
-    (void far *) &EditSecObj,
-    (void far *) &EditClkCalibObj,
+// ---------------------------------------------------------------------
+// Vehicle-Settings - Screen Focus Order
+static const void far * ObjectList_Veh[] =
+{
+    (void far *) &TextObj_HL_Vehicle,   // 00
+    (void far *) &SelectBikeObj,        // 01
+    (void far *) &EditCCFNomObj,        // 02
+    (void far *) &EditCCFDenomObj,      // 03
+    (void far *) &EditWheelSizeObj,     // 04
+    (void far *) &EditWheelImpulseObj,  // 05
+    (void far *) &EditVehicDistObj,     // 06
+    (void far *) &EditEngRunAllObj,     // 07
+    (void far *) &EditServKmObj,        // 08
+    (void far *) &EditEngRunSrvObj,     // 09
+    (void far *) &EditTankCapObj,       // 10
+    (void far *) &EditFuelConsObj,      // 11
+    (void far *) &SelectLogoObj,        // 12
+    (void far *) &EditLogoDelayObj      // 13
+
 };
-#define FOCUSLISTSIZE   (sizeof(FocusObjList)/sizeof(OBJSTATE)/sizeof(void far *))
+#define OBJLIST_VEH_CNT (sizeof(ObjectList_Veh)/sizeof(OBJSTATE)/sizeof(void far *))
+
+
+// -------------------------------------------------------------------------
+// Device-Settings - Screen Focus Order
+static const void far * ObjectList_Dev[] =
+{
+    (void far *) &TextObj_HL_Device,    // 00
+    (void far *) &EditHourObj,          // 01
+    (void far *) &EditMinObj,           // 02
+    (void far *) &EditSecObj,           // 03
+    (void far *) &EditClkCalibObj,      // 04
+    (void far *) &EditDayObj,           // 05
+    (void far *) &EditMonthObj,         // 06
+    (void far *) &EditYearObj,          // 07
+    (void far *) &EditBoolDLSaveObj,    // 08
+    (void far *) &SelectTripObj,        // 09
+    (void far *) &EditBoolBeepCtrlObj,  // 10
+    (void far *) &SelectLangObj,        // 11
+    (void far *) &EditBoolVehSimObj,    // 12
+    (void far *) &SelectMetricObj,      // 13
+    (void far *) &EditBoolScrDmpObj,    // 14
+    (void far *) &EditDbgOutObj,        // 15
+    (void far *) &EditBoolEeprRstObj,   // 16
+};
+#define OBJLIST_DEV_CNT (sizeof(ObjectList_Dev)/sizeof(OBJSTATE)/sizeof(void far *))
+
+
+// -------------------------------------------------------------------------
+// LED/LCD Settings Screen Tab order
+static const void far * ObjectList_Out[] =
+{
+    (void far *) &TextObj_HL_Out,       // 0
+    (void far *) &TextObj_Lcd_Desc,     // 1
+    (void far *) &EditBacklObj,         // 2
+    (void far *) &EditBacklLevObj,      // 3
+    (void far *) &EditContrLevObj,      // 4
+    (void far *) &TextObj_Led_Desc,     // 5
+    (void far *) &EditLedDimmObj,       // 6
+    (void far *) &SelectLedWMObj,       // 7
+    (void far *) &EditRPMFlashObj,      // 8
+};
+#define OBJLIST_OUT_CNT   (sizeof(ObjectList_Out)/sizeof(OBJSTATE)/sizeof(void far *))
+
+
+// -------------------------------------------------------------------------
+// Compass Screen Tab order
+static const void far * ObjectList_Compass[] =
+{
+    (void far *) &TextObj_HL_Compass,   // 1
+    (void far *) &EditBoolCompAvailObj, // 2
+    (void far *) &SelectCompDplObj,     // 3
+    (void far *) &TextObj_Comp_Calib,   // 4
+    (void far *) &SelectCompCalStObj,   // 5
+    (void far *) &TextObj_Comp_Error,   // 6
+};
+#define OBJLIST_CMP_CNT (sizeof(ObjectList_Compass)/sizeof(OBJSTATE)/sizeof(void far *))
 
 
 
 
+
+
+// ---------------------------------------------------------------------
+// non public prototypes
+void    SetDeviceShow           (BOOL fShow);
+ERRCODE SetDeviceTryObjects     (MESSAGE GivenMsg);
+void    SetDeviceValuesChanges   (void);
+void    SetDeviceValuesUpdate   (void);
+void    SetDeviceValuesInit     (void);
+void    SetDeviceCheckState    (MESSAGE GivenMsg);
+void    SetDeviceObjListInit    (void);
 
 
 
@@ -402,60 +727,31 @@ ERRCODE SetDeviceInit(void)
     int i;
     ERRCODE  RValue;
 
-    // device main data
-    SetDevice.eDevID       = DEVID_SET;
-    SetDevice.szDevName    = szDevName[DEVID_SET];
-    SetDevice.fFocused     = FALSE;
-    SetDevice.fScreenInit  = FALSE;
+    /* device main data */
+    SDObj.eDevID       = DEVID_SET;
+    SDObj.szDevName    = szDevName[DEVID_SET];
+    SDObj.fFocused     = FALSE;
+    SDObj.fScreenInit  = FALSE;
 
-    // ----------------------------------
-    // get local copies of global unions to handle EditNumObjects
-    CCFNom          = CCF.nibble.nom;
-    CCFDenom        = CCF.nibble.denom;
-    bBacklOnLevel   = gDisplayFlags.flags.BacklOnLevel;
-    bBacklLev       = gDisplayFlags.flags.BacklLev;
-    bContrLev       = gDisplayFlags.flags.ContrLev;
-    LocalBikeType   = gBikeType;
+    /* initialize all kind of object types */
+    DevObjInit( &SDObj, (void far *)TextObj,        TEXTOBJECTLISTSIZE,     OBJT_TXT   );
+    DevObjInit( &SDObj, (void far *)EditNumObj,     EDITNUMOBJECTLISTSIZE,  OBJT_ENUM  );
+    DevObjInit( &SDObj, (void far *)SelectObj,      SELECTOBJECTLISTSIZE,   OBJT_SLCT  );
+    DevObjInit( &SDObj, (void far *)EditBoolObj,    EDITBOOLOBJECTLISTSIZE, OBJT_EBOOL );
 
-    bSavedCmpCalState    = 0;
+    /* special SDObj object lists control handling */
+    SetDeviceObjListInit();
 
-    TimeDate_GetDate( &RTCDateCopy );       // get current date
-    bDate  = RTCDateCopy.bDate;
-    bMonth = RTCDateCopy.bMonth;
-    bYear  = RTCDateCopy.bYear;
+    /* initialize edit values */
+    SetDeviceValuesInit();
 
-    TimeDate_GetTime( &RTCTimeCopy );       // get current date
-    bHour  = RTCTimeCopy.bHour;
-    bMin   = RTCTimeCopy.bMin;
-    bSec   = RTCTimeCopy.bSec;
-
-    TimeDate_GetCalibDirect( &bClkCalib );  // get calibration value
-
-    /* initialize all edit num objects */
-    for (i = 0; i < ARRAY_SIZE(EditNumObj); i++)
-    {
-        RValue = ObjEditNumInit( &EditNumObj[i] );
-
-        // special MOTOBAU behaviour post-init-manipulations
-        #if(BIKE_MOTOBAU==1)
-            EditServKmObj.State.bits.fDisplayable = 0;                  // ServKm: will not be visible
-        #else // BIKE_MOTOBAU
-            // special STANDARD behaviour post-init-manipulations
-            EditEngRunSrvObj.State.bits.fDisplayable = 0;               // EngRunServHours: will not be visible
-            EditEngRunAllObj.State.bits.fDisplayable = 0;               // EngRunAllHours: will not be visible
-        #endif // BIKE_MOTOBAU
-
-        // check init process
-        if ( RValue != ERR_OK )
-        {
-            ODS1(   DBG_SYS, DBG_WARNING, "SetDeviceInit(): EditNumObj[%u] not initialized!", i);
-        }
-    }
-
-    /* reset focus handling to start values */
-    DevObjFocusReset( &SetDevice, FocusObjList, FOCUSLISTSIZE );
+    /* reset focus handling for current screen  */
+    DevObjFocusReset(   &SDObj,
+                        SDCntrl.List[SDCntrl.eState].ObjList,
+                        SDCntrl.List[SDCntrl.eState].ObjCount );
 
     // return
+    ODS( DBG_SYS, DBG_INFO, "- SetDeviceInit() done!");
     return ERR_OK;
 }
 
@@ -472,90 +768,56 @@ ERRCODE SetDeviceInit(void)
  *********************************************************************** */
 void SetDeviceShow(BOOL fShow)
 {
-    int     i;
-    ERRCODE error = ERR_OK;
-    MESSAGE NewMsg;                                         // for screen fresh message
+    MESSAGE NewMsg;
+    UINT8   ShowMode;
+    UINT8   i;
 
     // show mode of complete device
-    if (fShow == TRUE)                                      // 'show' screen ?
+    if (fShow == TRUE)
     {
-        // refresh dynamic values (only if not in edit mode)
-        if (EditVehicDistObj.State.bits.fEditActive == FALSE)
-        {   VehicDist = MeasGetVehicDist(MR_KM);            // get fresh value
-            dwVehicDist = VehicDist.km;                     // get km only
-        }
+        // 'SHOW' SCREEN
 
-        if (EditServKmObj.State.bits.fEditActive == FALSE)
-        {   dwServKm = gNextServKm.km;                      // get km only
-        }
-
-#if (COMPASS==1)
-        if (EditCompassCalibObj.State.bits.fEditActive == FALSE)
-        {   tCompassHeadingInfo *ptHeadingInfo;
-            ptHeadingInfo = CompassGetHeadingInfo();
-            bSavedCmpCalState  = ptHeadingInfo->ucCalState;      // get current driver state
-        }
-#endif //COMPASS
-
-        if (EditTripCntFlObj.State.bits.fEditActive == FALSE)
-        {   bTripCntFl = gTripCntFlags.byte;                    // save complete byte instead of bits
-        }
-
-        if (EditCCFNomObj.State.bits.fEditActive == FALSE)
-            CCFNom = CCF.nibble.nom;
-        if (EditCCFDenomObj.State.bits.fEditActive == FALSE)
-            CCFDenom = CCF.nibble.denom;
-
-        if (EditBacklObj.State.bits.fEditActive == FALSE)
-            bBacklOnLevel = gDisplayFlags.flags.BacklOnLevel;
-        if (EditBacklLevObj.State.bits.fEditActive == FALSE)
-            bBacklLev = gDisplayFlags.flags.BacklLev;
-        if (EditContrLevObj.State.bits.fEditActive == FALSE)
-            bContrLev   = gDisplayFlags.flags.ContrLev;
-
-        TimeDate_GetDate( &RTCDateCopy );       // get current date
-        if (EditDayObj.State.bits.fEditActive == FALSE)
-            bDate = RTCDateCopy.bDate;
-        if (EditMonthObj.State.bits.fEditActive == FALSE)
-            bMonth = RTCDateCopy.bMonth;
-        if (EditYearObj.State.bits.fEditActive == FALSE)
-            bYear = RTCDateCopy.bYear;
-
-        TimeDate_GetTime( &RTCTimeCopy );       // get current date
-        if (EditHourObj.State.bits.fEditActive == FALSE)
-            bHour = RTCTimeCopy.bHour;
-        if (EditMinObj.State.bits.fEditActive == FALSE)
-            bMin = RTCTimeCopy.bMin;
-        if (EditSecObj.State.bits.fEditActive == FALSE)
-            bSec = RTCTimeCopy.bSec;
-
-        if (EditClkCalibObj.State.bits.fEditActive == FALSE)
-            TimeDate_GetCalibDirect( &bClkCalib );  // get calibration value
+        // update all object values
+        SetDeviceValuesUpdate();
 
         // do we have to repaint all?
-        if (SetDevice.fScreenInit == FALSE)
-        {
-            /* initialize all edit num objects */
-            for (i = 0; i < ARRAY_SIZE(EditNumObj); i++)
-                ObjEditNumShow( EditNumObj[i].fpObject, SHOW_ALL );
-
-            SetDevice.fScreenInit = TRUE;                   // reset init state
+        if (SDObj.fScreenInit == FALSE)
+        {   ShowMode = SHOW_ALL;                   // repaint all stuff
+            SDObj.fScreenInit = TRUE;              // afterwards: initailized
         }
         else
-        {
-            // NO, repaint only potential changed stuff
-
-            // repaint edit num objects
-            for (i = 0; i < ARRAY_SIZE(EditNumObj); i++)
-                ObjEditNumShow( EditNumObj[i].fpObject, SHOW_EDIT | SHOW_CURSOR );
+        {   ShowMode = SHOW_EDIT | SHOW_CURSOR;    // repaint only potential changed stuff
         }
+
+        // FOR DISPLAY OBJECTS TEST ONLY: clear & proof display mode of objects!
+        //DisplClearScreen(0xaa);
+
+        /* process complete (active) object to show all objects */
+        DevObjShow( &SDObj,
+                    SDCntrl.List[SDCntrl.eState].ObjList,
+                    SDCntrl.List[SDCntrl.eState].ObjCount,
+                    ShowMode );
+
     }
-    else                                                    // 'clear' screen!
+    else
     {
-        DisplClearScreen(0x0);                              // leave a clear screen for next device
-        SetDevice.fScreenInit = FALSE;                      // reset devices screen state
+        // 'CLEAR' SCREEN
+        DisplClearScreen(0x0);      // leave a clear screen for next device
+
+        // reset states of all objects of this device
+        // NOTE: Do NOT clear OS_SELECT here, object has to focused again
+        //       after re-entering this device!
+        DevObjClearState(   &SDObj,
+                            SDCntrl.List[SDCntrl.eState].ObjList,
+                            SDCntrl.List[SDCntrl.eState].ObjCount,
+                            OS_DISPL | OS_EDIT );
+
+        // set overall device state to 'not init'
+        SDObj.fScreenInit  = FALSE;
+
     }
 }
+
 
 
 /***********************************************************************
@@ -581,7 +843,7 @@ ERRCODE SetDeviceMsgEntry(MESSAGE GivenMsg)
             // Some device want's to get the focus:
             // If we've currently got the focus, we'll
             // answer to SET his focus!
-            if ( SetDevice.fFocused == TRUE)
+            if ( SDObj.fFocused == TRUE)
             {
                 ODS2(   DBG_SYS, DBG_INFO,
                         "%s wants to have focus from %s!",
@@ -589,8 +851,9 @@ ERRCODE SetDeviceMsgEntry(MESSAGE GivenMsg)
                         szDevName[DEVID_SET]);
                 MSG_BUILD_SETFOCUS(NewMsg,DEVID_SET,MSG_SENDER_ID(GivenMsg));   // build answer message
                 RValue = MsgQPostMsg(NewMsg, MSGQ_PRIO_LOW);                    // send answer message
-                SetDevice.fFocused = FALSE;                                     // clear our focus
                 SetDeviceShow(FALSE);                                           // clear our screen
+                SDObj.fScreenInit = FALSE;                                  // reset init state
+                SDObj.fFocused    = FALSE;                                  // clear our focus
                 RValue = ERR_MSG_PROCESSED;
             }
         } break;
@@ -602,7 +865,7 @@ ERRCODE SetDeviceMsgEntry(MESSAGE GivenMsg)
                 // Someone wants us to take the focus?
                 // We assume, that nobody else has the focus
                 // and we've got the the screen now for us!
-                if (  (SetDevice.fFocused        == TRUE      )
+                if (  (SDObj.fFocused        == TRUE      )
                     &&(MSG_RECEIVER_ID(GivenMsg) == DEVID_SET) )
                     ODS2(   DBG_SYS, DBG_WARNING,
                             "FOCUS: %s -> %s, but it already has focus!",
@@ -613,14 +876,15 @@ ERRCODE SetDeviceMsgEntry(MESSAGE GivenMsg)
                             "FOCUS: %s -> %s!",
                             szDevName[MSG_SENDER_ID(GivenMsg)],
                             szDevName[DEVID_SET]) */;
-                SetDevice.fFocused = TRUE;                              // set our focus
                 SetDeviceShow(TRUE);                                    // show our screen immediatly
-                gSystemFlags.flags.ActDevNr = DEVID_SET;                // save device# for restore
+                SDObj.fScreenInit = TRUE;                           // reset init state
+                SDObj.fFocused    = TRUE;                           // set our focus
+                gDeviceFlags1.flags.ActDevNr = DEVID_SET;                // save device# for restore
                 RValue = ERR_MSG_PROCESSED;
              }
              else
              {
-                if ( SetDevice.fFocused == TRUE )
+                if ( SDObj.fFocused == TRUE )
                 {
                     // Some other device should be given the focus,
                     // BUT WE'VE GOT THE FOCUS!
@@ -630,7 +894,7 @@ ERRCODE SetDeviceMsgEntry(MESSAGE GivenMsg)
                             szDevName[MSG_SENDER_ID(GivenMsg)],
                             szDevName[MSG_RECEIVER_ID(GivenMsg)],
                             szDevName[DEVID_SET]);
-                    SetDevice.fFocused = FALSE;                        // loose our focus
+                    SDObj.fFocused = FALSE;                        // loose our focus
                     ODS1(   DBG_SYS, DBG_WARNING,
                             "%s now loosing focus :-( ",
                             szDevName[DEVID_SET]);
@@ -642,7 +906,7 @@ ERRCODE SetDeviceMsgEntry(MESSAGE GivenMsg)
 
     // ----------------------------------------------------------------
     // this part is only for FOCUSED time AND msg not already processed
-    if (  (SetDevice.fFocused == TRUE )
+    if (  (SDObj.fFocused == TRUE )
         &&(RValue == ERR_MSG_NOT_PROCESSED ) )
     {
         switch (MsgId)
@@ -654,30 +918,50 @@ ERRCODE SetDeviceMsgEntry(MESSAGE GivenMsg)
             case MSG_DPL_FLASH_ON:
             case MSG_DPL_FLASH_OFF:
 
-                /* let the objects try the msg first */
+                /* first, let one if the list objects try the msg */
                 if( RValue == ERR_MSG_NOT_PROCESSED )
-                    RValue = SetDeviceTryObjects(GivenMsg);
+                {
+                    /* try all objects of current list */
+                    RValue = DevObjMsg( &SDObj,
+                                        SDCntrl.List[SDCntrl.eState].ObjList,
+                                        SDCntrl.List[SDCntrl.eState].ObjCount,
+                                        GivenMsg);
+                    /* Any change? check & execute & show it! */
+                    if( RValue == ERR_MSG_PROCESSED )
+                    {   SetDeviceValuesChanges();
+                        SetDeviceShow(TRUE);
+                    }
+                }
 
-                /* try to move focus (if possible) */
+                /* try to move focus to next object (if possible) */
                 if( RValue == ERR_MSG_NOT_PROCESSED )
-                    RValue = DevObjFocusMove(&SetDevice, FocusObjList, FOCUSLISTSIZE, GivenMsg);
+                {
+                    /* try move focus through object list */
+                    RValue = DevObjFocusSet( &SDObj,
+                                             SDCntrl.List[SDCntrl.eState].ObjList,
+                                             SDCntrl.List[SDCntrl.eState].ObjCount,
+                                             GivenMsg);
+                    /* Focus moved? => check to change to next/previous screen! */
+                    if (RValue == ERR_MSG_PROCESSED)
+                    {   SetDeviceCheckState(GivenMsg);
+                    }
+                    /* show changes anyway */
+                    SetDeviceShow(TRUE);
+                }
 
                 /* try to give focus to next device */
                 if (  (RValue == ERR_MSG_NOT_PROCESSED                    )
                     &&(MSG_KEY_STATES(GivenMsg) == (KEYFL_UP | KEYFL_DOWN))
                     &&(MSG_KEY_DURATION(GivenMsg) < KEYSHORT              ) )
                 {
-                    // give focus immediatly to next screen
-                    SetDevice.fFocused = FALSE;                            // clear our focus
-                    SetDeviceShow(FALSE);                                  // clear our screen
+                    /* give focus immediatly to next screen */
+                    SDObj.fScreenInit = FALSE;                         // reset init state
+                    SDObj.fFocused    = FALSE;                         // clear our focus
+                    SetDeviceShow(FALSE);                              // clear our screen
                     MSG_BUILD_SETFOCUS(NewMsg, DEVID_SET, DEVID_INTRO);
                     MsgQPostMsg(NewMsg, MSGQ_PRIO_LOW);
                     RValue = ERR_MSG_PROCESSED;
                 }
-
-                /* something changed -> Refresh! */
-                SetDeviceShow(TRUE);
-
                 break;
             case MSG_SCREEN_REFRESH:
                 /* backlight automatic,
@@ -696,48 +980,18 @@ ERRCODE SetDeviceMsgEntry(MESSAGE GivenMsg)
 }
 
 
-/***********************************************************************
- *  FUNCTION:       SetDeviceTryObjects
- *  DESCRIPTION:    message loop over all device objects until one
- *                  objects used the message
- *  PARAMETER:      message given by device
- *  RETURN:         ERR_MSG_NOT_PROCESSED / ERR_MSG_PROCESSED
- *  COMMENT:        TBD: We could improve behaviour, if we use the
- *                  'focus' info of this device!
- *********************************************************************** */
-ERRCODE SetDeviceTryObjects(MESSAGE GivenMsg)
-{
-    int     i;
-    ERRCODE RValue = ERR_MSG_NOT_PROCESSED;
-
-    // try all objects to use that message
-    for (i = 0; i < ARRAY_SIZE(EditNumObj); i++)
-    {
-        // try to give that message to object
-        RValue = ObjEditNumMsgEntry( EditNumObj[i].fpObject, GivenMsg);
-
-        // object used that message? -> ready!
-        if ( RValue == ERR_MSG_PROCESSED)
-            break;
-    }
-
-    // check & execute changes
-    SetDeviceCheckChanges();
-    return RValue;
-}
-
-
 
 
 /***********************************************************************
- *  FUNCTION:       SetDeviceCheckChanges
- *  DESCRIPTION:    compares all screen object data for any change.
+ *  FUNCTION:       SetDeviceValuesChanges
+ *  DESCRIPTION:    Gets called, after OK button pressed:
+ *                  Compares all screen object data for any change.
  *                  If any, the global data sources will be updated too
  *                  and the changed value will be executed immedeatly.
  *  PARAMETER:      -
  *  RETURN:         -
- *  COMMENT:        We here handle only those data, which can not directly
- *                  be accessed by the edit object via an address.
+ *  COMMENT:        WE HERE HANDLE ONLY THOSE DATA, WHICH CAN _NOT_DIRECTLY_
+ *                  BE ACCESSED BY THE EDIT OBJECT VIA AN ADDRESS!
  *
  *                  Special handling: Some changed values will be executed
  *                  while edit mode is STILL ACTIVE (like Contrast Level),
@@ -754,7 +1008,7 @@ ERRCODE SetDeviceTryObjects(MESSAGE GivenMsg)
  *                  while edit mode is active, you should use the EDIT
  *                  BUFFER value instead! (e.g. DisplayContrast)
  *********************************************************************** */
-void SetDeviceCheckChanges( void )
+void SetDeviceValuesChanges( void )
 {
     // Wheel Size changed? -------------------------
     // no check necessary, we directly access global data when editor finishes!
@@ -764,6 +1018,41 @@ void SetDeviceCheckChanges( void )
         ||(CCF.nibble.denom != CCFDenom) )
     {   CCF.nibble.nom   = CCFNom;                              // save global -> auto eeprom update!
         CCF.nibble.denom = CCFDenom;
+    }
+
+    // Eeprom Reset required by user? -----------------
+    if( gfEepromReset == 1 )        // saved with changes?
+    {
+        gfEepromReset  = 0;                     // clear for next use
+        SetDeviceShow(FALSE);                   // clear screen
+        ParSetDefaults(PARTIAL);                // reset ALL parameters
+        Delay_ms(500);                          // wait, simulate a reset
+        SetDeviceShow(TRUE);                    // rebuild screen
+    }
+
+    // Beeper Usage was changed? -----------------
+    if( gDeviceFlags2.flags.BeeperAvail != gfBeepCtrl )         // saved with changes?
+    {   gDeviceFlags2.flags.BeeperAvail  = gfBeepCtrl;          // save global -> auto eeprom update!
+    }
+
+    // Daylight Saving was changed? -----------------
+    // NOTE:    We do not change current time here! We interprete current time
+    //          as being correct right now, independently of switching DLS on/off.
+    //          BUT we update the USGAE of the CEST flag for further automatic checking.
+    if( gDeviceFlags2.flags.DaylightSaveAuto != gfDaylightSave )// saved with changes?
+    {
+        gDeviceFlags2.flags.DaylightSaveAuto  = gfDaylightSave; // save global -> auto eeprom update!
+        TimeDate_UpdateCEST();                                  // update update CEST state here too!
+    }
+
+    // VehicleSimulation was changed? -----------------
+    if( gDeviceFlags2.flags.VehicSimul  != gfVehicSimulation )  // saved with changes?
+    {   gDeviceFlags2.flags.VehicSimul   = gfVehicSimulation;   // save global -> auto eeprom update!
+    }
+
+    // Hardcopy Usage was changed? -----------------
+    if( gDeviceFlags2.flags.Hardcopy  != gfHardcopy )           // saved with changes?
+    {   gDeviceFlags2.flags.Hardcopy   = gfHardcopy;            // save global -> auto eeprom update!
     }
 
     // Backlight on/off and Level ------------------
@@ -831,11 +1120,11 @@ void SetDeviceCheckChanges( void )
     }
     else    // currently not (no longer) in edit mode
     {   // check for changed value after editing finished with ESC / OK
-        if (bSavedCmpCalState == 0)                      // user pressed ESC ?
+        if (bCmpCalState == 0)                      // user pressed ESC ?
         {   ODS( DBG_SYS, DBG_INFO, "Calibration aborted => Reset Calibration Mode!");
             CompassCmdReset();                      // ==> reset calibration process!
         }
-        if (bSavedCmpCalState < 6)                      // user OK before end 'state 6'?
+        if (bCmpCalState < 6)                      // user OK before end 'state 6'?
         {   ODS( DBG_SYS, DBG_INFO, "Calibration not completed => Reset Calibration Mode!");
             CompassCmdReset();                      // ==> reset calibration process!
         }
@@ -843,52 +1132,48 @@ void SetDeviceCheckChanges( void )
         {   // success finished calibration state!
             ODS( DBG_SYS, DBG_INFO, "Calibration successfully completed!");
         }
-        bSavedCmpCalState   = 0;                        // reset to default state
+        bCmpCalState   = 0;                         // reset to default state
         bCurrentCmpCalState = 0;
     }
 #endif // COMPASS
 
     // TripCntFlag was changed? -----------------
-    if( gTripCntFlags.byte != bTripCntFl )              // compare complete byte instead of bits
-    {  gTripCntFlags.byte = bTripCntFl;                 // save global -> auto eeprom update!
+    if( gDeviceFlags2.flags.TripCLongDistUp != fTripCntLongUp )     // compare bits only
+    {   gDeviceFlags2.flags.TripCLongDistUp  = fTripCntLongUp;      // save global -> auto eeprom update!
+    }
+
+    // Metric was changed? -----------------
+    if( gDeviceFlags3.flags.Metric != fMetric )                     // compare bits only
+    {   gDeviceFlags3.flags.Metric  = fMetric;                      // save global -> auto eeprom update!
+    }
+
+    // LED Warning Mode was changed? -----------------
+    if( gDeviceFlags3.flags.LedWarnMode != fLedWarnMode )           // compare bits only
+    {   gDeviceFlags3.flags.LedWarnMode  = fLedWarnMode;            // save global -> auto eeprom update!
     }
 
     // Vehicle Distance changed? -------------------
     if( VehicDist.km != dwVehicDist )
-    {   VehicDist.km = dwVehicDist * 100L;                      // give back km into dkm structure
-        MeasSetVehicDist( &VehicDist );                         // save into system variable -> auto eeprom update!
+    {   VehicDist.km = dwVehicDist * 100L;          // give back km into dkm structure
+        MeasSetVehicDist( &VehicDist );             // save into system variable -> auto eeprom update!
     }
 
     // RPM flash setting changed? ------------------
     // no check necessary, we directly access global data when editor finishes!
 
-    // BikeType changed? ------------------
+    // Bike TYPE changed? ------------------
     if ( gBikeType != LocalBikeType )
-    {   gBikeType = LocalBikeType;  // save that new value
-        switch (gBikeType)          // change logo too!
-        {
-            case eBIKE_STANDARD:
-                                    #if(BIKE_MOTOBAU==1)
-                                    gLogoSelection = eLogo_Motobau;     break;  // motobau is our standard logo
-                                    #else // BIKE_MOTOBAU
-                                    gLogoSelection = eLogo_SIXO;        break;  // sixo is our standard logo
-                                    #endif // BIKE_MOTOBAU
-            case eBIKE_R100GS:      gLogoSelection = eLogo_BMW;         break;
-            case eBIKE_R1100GS:     gLogoSelection = eLogo_BMW_1100GS;  break;
-            case eBIKE_F650:        gLogoSelection = eLogo_BMW;  	    break;
-            case eBIKE_AFRICATWINRD07:  // no break
-            case eBIKE_AFRICATWIN:  gLogoSelection = eLogo_AfricaTwin;  break;
-            case eBIKE_BAGHIRA:     gLogoSelection = eLogo_BAGHIRA;     break;
-            case eBIKE_HUSQV:       gLogoSelection = eLogo_HUSQV;       break;
-            case eBIKE_HUSQVRS:     gLogoSelection = eLogo_HUSQVRS;     break;
-            case eBIKE_KTM:         gLogoSelection = eLogo_KTM;         break;
-            default:                gLogoSelection = eLogo_SIXO;        break;
-        }
+    {    gBikeType  = LocalBikeType;                // save that new value
         // essential: reset all vehicle states to 'all right' too! */
-        SurvResetVehicleStates();
+        SurvResetAllParameters();
         // essential: adapt vehicle specific digital filter settings too! */
         DigInDrv_FilterInit();
     }
+
+    // Bike LOGO changed? ------------------
+    // no check necessary, we directly access global data
+    // 'gLogoSelection' when editor finishes and auto eeprom update!
+
 
     // Display Contrast changed? --------------------
     if( gDisplayFlags.flags.ContrLev != bContrLev ){            // saved with changes?
@@ -939,12 +1224,17 @@ void SetDeviceCheckChanges( void )
     // NOTE2: To prevent detecting 'permanent changes' in time
     //        settings while refreshing values, comparisons are
     //        only done, while object is focused!
+    // NOTE3: If DaylightSaving is enabled, we additonally check CET/CEST
+    //        state too, but we don not change the hour value!
     TimeDate_GetTime( &RTCTimeCopy );                           // get time update to detect changes
     if (  (EditHourObj.State.bits.fSelected == TRUE)            // Hours focused?
         &&(RTCTimeCopy.bHour != bHour              ) )          // AND saved hours with changes?
     {   RTCTimeCopy.bHour = bHour;                              // copy changes
         TimeDate_SetTime( &RTCTimeCopy );                       // save changes in RTC (and correct it)
         bHour = RTCTimeCopy.bHour;                              // read back (corrected) value
+        if( gDeviceFlags2.flags.DaylightSaveAuto == TRUE )      // DaylightSaving Automatic enabled?
+        {   gDeviceFlags2.flags.CESTActive = TimeDate_GetCEST();// set CEST state too
+        }
     }
     else
     {   if (  (EditMinObj.State.bits.fSelected == TRUE)         // Minutes focused?
@@ -976,3 +1266,285 @@ void SetDeviceCheckChanges( void )
         TimeDate_SetCalibDirect( &bClkCalib );                  // save changes in RTC
     }
 }
+
+
+
+
+/***********************************************************************
+ *  FUNCTION:       SetDeviceValuesUpdate
+ *  DESCRIPTION:    Updates all SDObj parameters in order to be
+ *                  shown immediatly.
+ *  PARAMETER:      -
+ *  RETURN:         -
+ *  COMMENT:        We here handle only those data, which can not directly
+ *                  be accessed by the edit object via an address.
+ *
+ *                  Special handling: Some changed values will be executed
+ *                  while edit mode is STILL ACTIVE (like Contrast Level),
+ *                  in order to give the user the chance to 'view' what he
+ *                  is doing!
+ *
+ *                  Note that file-local-copies of global data (e.g.
+ *                  local 'CCFNom' of 'CCF.nibble.nom' are changed by
+ *                  edit object only if 'Save' button was pressed! So,
+ *                  while edit process is still active, these local values
+ *                  won't change!
+ *
+ *                  BUT: If you like to track the current(!) edit value
+ *                  while edit mode is active, you should use the EDIT
+ *                  BUFFER value instead! (e.g. DisplayContrast)
+ *********************************************************************** */
+void SetDeviceValuesUpdate(void)
+{
+
+    // REFRESH ALL DYNAMIC VALUES - ONLY IF NOT IN EDIT MODE
+
+    // vehicle km
+    if (EditVehicDistObj.State.bits.fEditActive == FALSE)
+    {   VehicDist = MeasGetVehicDist(MR_KM);            // get fresh value
+        dwVehicDist = VehicDist.km;                     // get km only
+    }
+
+    // service km
+    if (EditServKmObj.State.bits.fEditActive == FALSE)
+    {   dwServKm = gNextServKm.km;                      // get km only
+    }
+
+    // compass state
+#if (COMPASS==1)
+    if (EditCompassCalibObj.State.bits.fEditActive == FALSE)
+    {   tCompassHeadingInfo *ptHeadingInfo;
+        ptHeadingInfo = CompassGetHeadingInfo();
+        bCmpCalState  = ptHeadingInfo->ucCalState;      // get current driver state
+    }
+#endif //COMPASS
+
+    // tripcounter state
+    if (SelectTripObj.State.bits.fEditActive == FALSE)
+    {   fTripCntLongUp = gDeviceFlags2.flags.TripCLongDistUp;
+    }
+
+    // metric state
+    if (SelectMetricObj.State.bits.fEditActive == FALSE)
+    {   fMetric = gDeviceFlags3.flags.Metric;
+    }
+
+    // Led Warning Mode state
+    if (SelectLedWMObj.State.bits.fEditActive == FALSE)
+    {   fLedWarnMode = gDeviceFlags3.flags.LedWarnMode;
+    }
+
+    // Cylinder Correctur Factor
+    if (EditCCFNomObj.State.bits.fEditActive == FALSE)
+        CCFNom = CCF.nibble.nom;
+    if (EditCCFDenomObj.State.bits.fEditActive == FALSE)
+        CCFDenom = CCF.nibble.denom;
+
+    // backlight level
+    if (EditBacklObj.State.bits.fEditActive == FALSE)
+        bBacklOnLevel = gDisplayFlags.flags.BacklOnLevel;
+    if (EditBacklLevObj.State.bits.fEditActive == FALSE)
+        bBacklLev = gDisplayFlags.flags.BacklLev;
+    if (EditContrLevObj.State.bits.fEditActive == FALSE)
+        bContrLev   = gDisplayFlags.flags.ContrLev;
+
+    // date
+    TimeDate_GetDate( &RTCDateCopy );       // get current date
+    if (EditDayObj.State.bits.fEditActive == FALSE)
+        bDate = RTCDateCopy.bDate;
+    if (EditMonthObj.State.bits.fEditActive == FALSE)
+        bMonth = RTCDateCopy.bMonth;
+    if (EditYearObj.State.bits.fEditActive == FALSE)
+        bYear = RTCDateCopy.bYear;
+
+    // time
+    TimeDate_GetTime( &RTCTimeCopy );       // get current date
+    if (EditHourObj.State.bits.fEditActive == FALSE)
+        bHour = RTCTimeCopy.bHour;
+    if (EditMinObj.State.bits.fEditActive == FALSE)
+        bMin = RTCTimeCopy.bMin;
+    if (EditSecObj.State.bits.fEditActive == FALSE)
+        bSec = RTCTimeCopy.bSec;
+
+    // RTC calibration value
+    if (EditClkCalibObj.State.bits.fEditActive == FALSE)
+        TimeDate_GetCalibDirect( &bClkCalib );  // get calibration value
+
+    // BeeperUsage
+    if( EditBoolBeepCtrlObj.State.bits.fEditActive == FALSE)
+    {   gfBeepCtrl = gDeviceFlags2.flags.BeeperAvail;
+    }
+
+    // DaylightSaving Usage
+    if( EditBoolDLSaveObj.State.bits.fEditActive == FALSE)
+    {   gfDaylightSave = gDeviceFlags2.flags.DaylightSaveAuto;
+    }
+
+    // Vehicle Simulation
+    if( EditBoolVehSimObj.State.bits.fEditActive == FALSE)
+    {   gfVehicSimulation = gDeviceFlags2.flags.VehicSimul;
+    }
+
+    // Hardcopy Usage
+    if( EditBoolScrDmpObj.State.bits.fEditActive == FALSE)
+    {   gfHardcopy = gDeviceFlags2.flags.Hardcopy;
+    }
+
+}
+
+
+
+/***********************************************************************
+ *  FUNCTION:       SetDeviceValuesInit
+ *  DESCRIPTION:    get local copies of global unions
+ *                  to handle edit objects
+ *  PARAMETER:      -
+ *  RETURN:         -
+ *  COMMENT:        -
+ *********************************************************************** */
+void SetDeviceValuesInit(void)
+{
+    // cylinder correctur factor
+    CCFNom          = CCF.nibble.nom;
+    CCFDenom        = CCF.nibble.denom;
+
+    // display
+    bBacklOnLevel   = gDisplayFlags.flags.BacklOnLevel;
+    bBacklLev       = gDisplayFlags.flags.BacklLev;
+    bContrLev       = gDisplayFlags.flags.ContrLev;
+
+    // bike type
+    LocalBikeType   = gBikeType;
+
+    // compass state
+    bCmpCalState    = 0;
+
+    // time/date
+    TimeDate_GetDate( &RTCDateCopy );       // get current date
+    bDate  = RTCDateCopy.bDate;
+    bMonth = RTCDateCopy.bMonth;
+    bYear  = RTCDateCopy.bYear;
+    TimeDate_GetTime( &RTCTimeCopy );       // get current date
+    bHour  = RTCTimeCopy.bHour;
+    bMin   = RTCTimeCopy.bMin;
+    bSec   = RTCTimeCopy.bSec;
+    TimeDate_GetCalibDirect( &bClkCalib );  // get calibration value
+}
+
+
+
+/***********************************************************************
+ *  FUNCTION:       SetDeviceCheckState
+ *  DESCRIPTION:    Checks, wether UP/DOWN was treated as Wraparound
+ *                  of focus inside current object list. If so, the
+ *                  next/previous object LIST is activated by setting
+ *                  the internal state.
+ *  PARAMETER:      -
+ *  RETURN:         -
+ *  COMMENT:        -
+ *********************************************************************** */
+void SetDeviceCheckState(MESSAGE GivenMsg)
+{
+    ERRCODE                 RValue = ERR_MSG_NOT_PROCESSED;
+    MESSAGE_ID              MsgId;
+    DUMMYOBJECT far *       DummyObj;
+    void far * far *        ObjList;
+    DEVOBJLIST far *        ListCntrl;
+    BOOL                    fChanged = FALSE;
+
+    // analyze message: Up/down?
+    MsgId = MSG_ID(GivenMsg);
+
+    /* --------------------------------------------------------------- */
+    /* check: we went UP, but the focus is on LAST? => WrapAround!
+              ==> change Screen to next upper one!
+              ==> change Focus to LAST one! */
+    if (  ( MsgId == MSG_KEY_UP )
+        &&( SDCntrl.eState > SD_VEHIC )
+        &&( SDObj.bFocusObj == SDCntrl.List[SDCntrl.eState].LastSelObj) )
+    {
+        // set new SetDevice state/screen + focus + flag
+        SDCntrl.eState--;
+        SDObj.bFocusObj = SDCntrl.List[SDCntrl.eState].LastSelObj;
+        fChanged = TRUE;
+    }
+
+    /* --------------------------------------------------------------- */
+    /* check: we went DOWN, but the focus is on FIRST? => WrapAround!
+              ==> change Screen to next upper one!
+              ==> change Focus to LAST one! */
+    if (  ( MsgId == MSG_KEY_DOWN)
+        &&( SDCntrl.eState < (SD_LAST-1) )
+        &&( SDObj.bFocusObj == SDCntrl.List[SDCntrl.eState].FirstSelObj) )
+    {
+        // set new SetDevice state/screen + focus + flag
+        SDCntrl.eState++;
+        SDObj.bFocusObj = SDCntrl.List[SDCntrl.eState].FirstSelObj;
+        fChanged = TRUE;
+    }
+
+    /* --------------------------------------------------------------- */
+    /* process changes (if any) */
+    if (fChanged == TRUE)
+    {
+        // reset state of all objects in new list
+        DevObjClearState(   &SDObj,
+                            SDCntrl.List[SDCntrl.eState].ObjList,
+                            SDCntrl.List[SDCntrl.eState].ObjCount,
+                            OS_DISPL | OS_SELECT | OS_EDIT );
+
+        // activate focus of new selected object
+        ListCntrl   = &(SDCntrl.List[SDCntrl.eState]);
+        ObjList     = ListCntrl->ObjList;
+        DummyObj    = (DUMMYOBJECT far *)ObjList[SDObj.bFocusObj];
+        DummyObj->State.bits.fSelected = TRUE;
+
+        // reset screen state
+        SDObj.fScreenInit = FALSE;
+
+        // clear screen
+        SetDeviceShow(FALSE);
+        ODS3( DBG_SYS, DBG_WARNING, "[%s] New Screen/Focus: %u/%u", SDObj.szDevName, SDCntrl.eState, SDObj.bFocusObj);
+    }
+}
+
+
+
+
+/***********************************************************************
+ *  FUNCTION:       SetDeviceObjListInit
+ *  DESCRIPTION:    Initialize special object control structure
+ *                  to handle different screens
+ *  PARAMETER:      -
+ *  RETURN:         -
+ *  COMMENT:        -
+ *********************************************************************** */
+void SetDeviceObjListInit(void)
+{
+    // Setup 1st screen object list: Vehicle settings
+    SDCntrl.List[SD_VEHIC].ObjList       = ObjectList_Veh;
+    SDCntrl.List[SD_VEHIC].ObjCount      = OBJLIST_VEH_CNT;
+    SDCntrl.List[SD_VEHIC].FirstSelObj   = DevObjGetFirstSelectable(&SDObj, ObjectList_Veh, OBJLIST_VEH_CNT);
+    SDCntrl.List[SD_VEHIC].LastSelObj    = DevObjGetLastSelectable (&SDObj, ObjectList_Veh, OBJLIST_VEH_CNT);
+
+    // Setup 2nd screen object list: Device settings
+    SDCntrl.List[SD_DEVICE].ObjList      = ObjectList_Dev;
+    SDCntrl.List[SD_DEVICE].ObjCount     = OBJLIST_DEV_CNT;
+    SDCntrl.List[SD_DEVICE].FirstSelObj  = DevObjGetFirstSelectable(&SDObj, ObjectList_Dev, OBJLIST_DEV_CNT);
+    SDCntrl.List[SD_DEVICE].LastSelObj   = DevObjGetLastSelectable (&SDObj, ObjectList_Dev, OBJLIST_DEV_CNT);
+
+    // Setup 3rd screen object list: Output settings
+    SDCntrl.List[SD_OUT].ObjList         = ObjectList_Out;
+    SDCntrl.List[SD_OUT].ObjCount        = OBJLIST_OUT_CNT;
+    SDCntrl.List[SD_OUT].FirstSelObj     = DevObjGetFirstSelectable(&SDObj, ObjectList_Out, OBJLIST_OUT_CNT);
+    SDCntrl.List[SD_OUT].LastSelObj      = DevObjGetLastSelectable (&SDObj, ObjectList_Out, OBJLIST_OUT_CNT);
+
+    // Setup 4th screen object list: Compass settings
+    SDCntrl.List[SD_COMP].ObjList        = ObjectList_Compass;
+    SDCntrl.List[SD_COMP].ObjCount       = OBJLIST_CMP_CNT;
+    SDCntrl.List[SD_COMP].FirstSelObj    = DevObjGetFirstSelectable(&SDObj, ObjectList_Compass, OBJLIST_CMP_CNT);
+    SDCntrl.List[SD_COMP].LastSelObj     = DevObjGetLastSelectable (&SDObj, ObjectList_Compass, OBJLIST_CMP_CNT);
+
+    SDCntrl.eState = SD_VEHIC;
+}
+
