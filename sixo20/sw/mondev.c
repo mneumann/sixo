@@ -68,6 +68,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.0  2010/11/07 09:12:09  tuberkel
+ * V30 Preparations:
+ * - Device/Object Handling completely revised & simplified
+ *
  * Revision 2.6  2009/07/19 12:31:34  tuberkel
  * - ObjectInit reviewed
  * - dyn. text handling disabled
@@ -136,7 +140,7 @@
 /* external symbols */
 extern UINT16               wMilliSecCounter;           /* valid values: 0h .. ffffh */
 extern STRING far           szDevName[];                /* device names */
-extern SYSFLAGS_TYPE        gSystemFlags;               /* system parameters */
+extern DEVFLAGS1_TYPE        gDeviceFlags1;               /* system parameters */
 
 extern BIKE_TYPE        gBikeType;          /* bike type selcetion */
 
@@ -218,7 +222,8 @@ static char         szVmax[STAT_TXT_LEN];
 static TEXTOBJECT   RunTimeObj;
 static char         szRunTime[STAT_TXT_LEN];
 static TEXTOBJECT   StatusObj;
-extern char         szVehicState[VEHSTATE_TXT_LEN];    /* vehicle state string */
+
+extern char         szSurvGlobalState[VEHSTATE_TXT_LEN];    /* vehicle state string */
 
 
 
@@ -226,7 +231,7 @@ extern char         szVehicState[VEHSTATE_TXT_LEN];    /* vehicle state string *
 
 
 
-static TEXTOBJECT_INITTYPE TextObjects[] =
+static TEXTOBJECT_INITTYPE TextObjInit[] =
 {
 
 #if(BIKE_MOTOBAU==1)
@@ -241,7 +246,7 @@ static TEXTOBJECT_INITTYPE TextObjects[] =
     { &RPMmaxObj,        0, 32, DPLFONT_6X8,  1,   21, TXT_LEFT, TXT_NORM,  szRPMmax,    OC_DISPL | OC_DYN },
     { &VmaxObj,          0, 40, DPLFONT_6X8,  1,   21, TXT_LEFT, TXT_NORM,  szVmax,      OC_DISPL | OC_DYN },
     { &RunTimeObj,       0, 48, DPLFONT_6X8,  1,   21, TXT_LEFT, TXT_NORM,  szRunTime,   OC_DISPL | OC_DYN },
-    { &StatusObj,        0, 56, DPLFONT_6X8,  1,   21, TXT_LEFT, TXT_NORM,  szVehicState,OC_DISPL | OC_DYN }
+    { &StatusObj,        0, 56, DPLFONT_6X8,  1,   21, TXT_LEFT, TXT_NORM,  szSurvGlobalState,OC_DISPL | OC_DYN }
     /*----------------- --- --- ------------ --- ----- --------- ---------- ------------ ---------- */
 
 #else // BIKE_MOTOBAU
@@ -254,14 +259,43 @@ static TEXTOBJECT_INITTYPE TextObjects[] =
     { &WatTempObj,       0, 20, DPLFONT_6X8,  1,   21, TXT_LEFT, TXT_NORM,  szWatTemp,   OC_DISPL | OC_DYN  },
     { &OilTempObj,       0, 30, DPLFONT_6X8,  1,   21, TXT_LEFT, TXT_NORM,  szOilTemp,   OC_DISPL | OC_DYN  },
     { &BattObj,          0, 40, DPLFONT_6X8,  1,   21, TXT_LEFT, TXT_NORM,  szBatt,      OC_DISPL | OC_DYN  },
-    { &StatusObj,        0, 56, DPLFONT_6X8,  1,   21, TXT_LEFT, TXT_NORM,  szVehicState,OC_DISPL | OC_DYN  }
+    { &StatusObj,        0, 56, DPLFONT_6X8,  1,   21, TXT_LEFT, TXT_NORM,  szSurvGlobalState,OC_DISPL | OC_DYN  }
     /*----------------- --- --- ------------ --- ----- --------- ---------- ------------ ---------- */
 
 #endif // BIKE_MOTOBAU
-
 };
+#define TEXTOBJECTLISTSIZE   (sizeof(TextObjInit)/sizeof(TEXTOBJECT_INITTYPE))
 
 
+/* this devices object focus handling - list of all objects */
+/* NOTE:    this device does not need any focus, this
+            list is for common object handling only! */
+static const void far * ObjectList[] =
+{
+    // all text objects
+#if(BIKE_MOTOBAU==1)
+
+    (void far *) &BattObj,
+    (void far *) &AirTempObj,
+    (void far *) &OilTempObj,
+    (void far *) &WatTempObj,
+    (void far *) &RPMmaxObj,
+    (void far *) &VmaxObj,
+    (void far *) &RunTimeObj,
+    (void far *) &StatusObj,
+
+#else // BIKE_MOTOBAU
+
+    (void far *) &DevTempObj,
+    (void far *) &AirTempObj,
+    (void far *) &WatTempObj,
+    (void far *) &OilTempObj,
+    (void far *) &BattObj,
+    (void far *) &StatusObj,
+
+#endif // BIKE_MOTOBAU
+};
+#define OBJECTLIST_SIZE   (sizeof(ObjectList)/sizeof(OBJSTATE)/sizeof(void far *))
 
 
 /* internal prototypes */
@@ -288,14 +322,20 @@ ERRCODE MonitorDeviceInit(void)
     MonitorScreenDev.fFocused     = FALSE;
     MonitorScreenDev.fScreenInit  = FALSE;
 
-    /* initialize text objects */
-    for (i = 0; i < ARRAY_SIZE(TextObjects); i++)
-    {
-       /* convert rom constant array into live objects */
-       ObjTextInit( &TextObjects[i]);
-    }
+    /* initialize all objects of any type */
+    DevObjInit( &MonitorScreenDev, (void far *)TextObjInit,   TEXTOBJECTLISTSIZE,     OBJT_TXT   );
+
+    // initialize this devices objects list
+    MonitorScreenDev.Objects.ObjList       = ObjectList;
+    MonitorScreenDev.Objects.ObjCount      = OBJECTLIST_SIZE;
+    MonitorScreenDev.Objects.FirstSelObj   = DevObjGetFirstSelectable(&MonitorScreenDev, ObjectList, OBJECTLIST_SIZE );
+    MonitorScreenDev.Objects.LastSelObj    = DevObjGetLastSelectable (&MonitorScreenDev, ObjectList, OBJECTLIST_SIZE );
+
+    /* reset focus handling to start values */
+    DevObjFocusReset( &MonitorScreenDev, ObjectList, OBJECTLIST_SIZE );
 
     /* return */
+    ODS( DBG_SYS, DBG_INFO, "- MonitorDeviceInit() done!");
     return ERR_OK;
 }
 
@@ -309,6 +349,7 @@ ERRCODE MonitorDeviceInit(void)
  *********************************************************************** */
 void MonitorDeviceShow(BOOL fShow)
 {
+    UINT8   ShowMode;
     ERRCODE error = ERR_OK;
     int i;
 
@@ -321,37 +362,44 @@ void MonitorDeviceShow(BOOL fShow)
         /* do we have to repaint all? */
         if (MonitorScreenDev.fScreenInit == FALSE)
         {
-            /* yes, repaint complete screen */
-            DisplClearScreen(0x0);
+            // repaint all stuff
+            DisplClearScreen(0x00);
+            MonitorScreenDev.fScreenInit = TRUE;
+            ShowMode = SHOW_ALL;
 
             /* special NOT MOTOBAU behaviour */
             #if(BIKE_MOTOBAU==0)
             /* horizontal line between value list and status lines */
-            {
-                DISPLXY Coord = {0,50};                 /* to be removed to an 'LineObject' !!! */
+            {   DISPLXY Coord = {0,50};                 /* to be removed to an 'LineObject' !!! */
                 DisplDrawHorLine(&Coord, 128, 0x03, DPLXOR);
             }
             #endif // BIKE_MOTOBAU
-
-            /* show all objects */
-            for (i = 0; i < ARRAY_SIZE(TextObjects); i++)
-            {   ObjTextShow( TextObjects[i].fpObject );
-            }
-
-            /* init done */
-            MonitorScreenDev.fScreenInit = TRUE;
         }
         else
-        {
-            /* repaint all dynamic fields */
-            for (i = 0; i < ARRAY_SIZE(TextObjects); i++)
-            {   ObjTextShow( TextObjects[i].fpObject );
-            }
+        {   ShowMode = SHOW_EDIT | SHOW_CURSOR;    // repaint only potential changed stuff
         }
+
+        // FOR DISPLAY OBJECTS TEST ONLY: clear & proof display mode of objects!
+        //DisplClearScreen(0xaa);
+
+        /* process complete (active) object to show all objects */
+        DevObjShow(&MonitorScreenDev,
+                    MonitorScreenDev.Objects.ObjList,
+                    MonitorScreenDev.Objects.ObjCount,
+                    ShowMode );
     }
     else // parameter FALSE: clear screen only!
     {
+        // clear screen
         DisplClearScreen(0x0);
+
+        // reset states of all objects of this device
+        DevObjClearState(  &MonitorScreenDev,
+                            MonitorScreenDev.Objects.ObjList,
+                            MonitorScreenDev.Objects.ObjCount,
+                            OS_DISPL | OS_EDIT );
+
+        // set overall device state to 'not init'
         MonitorScreenDev.fScreenInit  = FALSE;
     }
 }
@@ -414,7 +462,7 @@ ERRCODE MonitorDeviceMsgEntry(MESSAGE GivenMsg)
                             szDevName[DEVID_MONITOR]) */ ;
                 MonitorScreenDev.fFocused = TRUE;                         /* set our focus */
                 MonitorDeviceShow(TRUE);                                  /* show our screen */
-                gSystemFlags.flags.ActDevNr = DEVID_MONITOR;              /* save device# for restore */
+                gDeviceFlags1.flags.ActDevNr = DEVID_MONITOR;              /* save device# for restore */
                 RValue = ERR_MSG_PROCESSED;
              }
              else
@@ -501,8 +549,8 @@ ERRCODE MonitorDeviceMsgEntry(MESSAGE GivenMsg)
  *  FUNCTION:       MonitorDeviceUpdateStrings
  *  DESCRIPTION:    Generates fresh information for all strings
  *                  shown in this device
- *  PARAMETER:      msg
- *  RETURN:         ERR_MSG_NOT_PROCESSED / ERR_MSG_NOT_PROCESSED
+ *  PARAMETER:      -
+ *  RETURN:         -
  *  COMMENT:        -
  *********************************************************************** */
 void MonitorDeviceUpdateStrings ( void )
@@ -564,16 +612,16 @@ void MonitorDeviceUpdateStrings ( void )
         // RPM max string           |DRZ-max:  10200 U/Min|
         sprintf (   (char far *) szRPMmax,
                     "%-10s%5u %s",
-                    RESTXT_STAT_RPM_MAX,
+                    RESTXT_STAT_RPMMAX_DESC,
                     RPM_Max,
-                    RESTXT_STAT_RPM_DESC );
+                    RESTXT_STAT_RPMMAX_UNIT );
 
          // v max string             |v-max:      195 km/h |
         sprintf (   (char far *) szVmax,
                     "%-10s%5u %s ",
-                    RESTXT_STAT_V_MAX,
+                    RESTXT_STAT_VMAX_DESC,
                     Speed_Max,
-                    RESTXT_STAT_V_DESC );
+                    RESTXT_STAT_VMAX_UNIT );
 
         // runtime string           |Serv. 65h  Ges. 1295h|
         sprintf (   (char far *) szRunTime,
