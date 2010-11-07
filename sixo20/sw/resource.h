@@ -68,6 +68,12 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.0  2010/11/07 09:36:43  tuberkel
+ * V30 Preparations:
+ * - diverse new Textblocks for changed Settings/Appearance
+ * - Logo Selection extended
+ * - BikeType Selection new
+ *
  * Revision 2.8  2009/07/19 12:34:23  tuberkel
  * Choice text samples changed
  *
@@ -161,19 +167,70 @@
 #define VEHSTATE_TXT_LEN    22      /* len of vehicle status string, incl. null terminator */
 
 
-/* intro device bike version strings
-   7 characters for up to 15 bikes  "1234567" */
-#define RESTXT_BIKESTRING_DEFAULT   "STD"
-#define RESTXT_BIKESTRING_R100GS    "R100GS"
-#define RESTXT_BIKESTRING_F650      "F650"
-#define RESTXT_BIKESTRING_HUSQV     "HUSQV"
-#define RESTXT_BIKESTRING_BAGHIRA   "BAGHIRA"
-#define RESTXT_BIKESTRING_AT        "AT"
-#define RESTXT_BIKESTRING_ATRD07    "AT RD07"
-#define RESTXT_BIKESTRING_R1100GS   "1100GS"
-#define RESTXT_BIKESTRING_KTM       "KTM"
-#define RESTXT_BIKESTRING_HUSQVRS   "HUSQVRS"
-#define RESTXT_BIKESTRING_MOTOBAU   "MB"
+/* device bike version strings */
+/* NOTE: This list muts be identical to 'BIKE_TYPE' !!! */
+#define RESTXT_SET_BIKE_WIDTH      8            /* max width of below strings in chars */
+#define RESTXT_SET_BIKE_CNT        5            /* number of bikes types */
+                               /* +----.---+ */
+#define RESTXT_SET_BIKE_DEFAULT   "Standard"
+#define RESTXT_SET_BIKE_R100GS    "  R100GS"
+#define RESTXT_SET_BIKE_F650      "    F650"
+#define RESTXT_SET_BIKE_BAGHIRA   " Baghira"
+#define RESTXT_SET_BIKE_AT        "      AT"
+
+
+/* device bike version strings */
+/* NOTE: This list muts be identical to 'LOGO_TYPE' !!! */
+#define RESTXT_SET_LOGO_WIDTH       7           /* max width of below strings in chars */
+#define RESTXT_SET_LOGO_CNT         12          /* number of logos */
+                                 /* +----.--+ */
+#define RESTXT_SET_LOGO_NKDEV       "    N&K"
+#define RESTXT_SET_LOGO_BMW         "    BMW"
+#define RESTXT_SET_LOGO_HUSQV       "   Husq"
+#define RESTXT_SET_LOGO_BAGHIRA     "    MuZ"
+#define RESTXT_SET_LOGO_SIXO        "   SIxO"
+#define RESTXT_SET_LOGO_AFRICATWIN  "     AT"
+#define RESTXT_SET_LOGO_BMW_1100GS  "R1100GS"
+#define RESTXT_SET_LOGO_KTM         "    KTM"
+#define RESTXT_SET_LOGO_HUSQVRS     " HusqRS"
+#define RESTXT_SET_LOGO_HPN         "    HPN"
+#define RESTXT_SET_LOGO_MOTOBAU     "Motobau"
+#define RESTXT_SET_LOGO_VFORCE      " VForce"
+
+
+/* tripcounter display mode flag */
+#define RESTXT_SET_TRIP_WIDTH       1       /* max width of below strings in chars */
+#define RESTXT_SET_TRIP_CNT         2       /* number of values: top/bottom */
+#define RESTXT_SET_TRIP_VSB    "\x8c"       /* Arrow Top */
+#define RESTXT_SET_TRIP_VST    "\x8b"       /* Arrow Bottom */
+
+/* Metric mode flag */
+#define RESTXT_SET_METRIC_WIDTH     5       /* max width of below strings in chars */
+#define RESTXT_SET_METRIC_CNT       2       /* number of values: km/Miles */
+#define RESTXT_SET_METRIC_KM        "   km"
+#define RESTXT_SET_METRIC_MILES     "Miles"
+
+/* LedWarning mode flag */
+#define RESTXT_SET_LEDWM_WIDTH     4       /* max width of below strings in chars */
+#define RESTXT_SET_LEDWM_CNT       2       /* number of values: km/Miles */
+#define RESTXT_SET_LEDWM_SIXO      "SIxO"
+#define RESTXT_SET_LEDWM_STD       " Std"
+
+/* language settings */
+#define RESTXT_SET_LANG_WIDTH       2
+#define RESTXT_SET_LANG_CNT         3
+                                   /*....!....!...*/    // 2 chars available
+#define RESTXT_SET_LANG_DE          "DE"
+#define RESTXT_SET_LANG_EN          "EN"
+#define RESTXT_SET_LANG_NL          "NL"
+
+
+/* compass settings */
+#define RESTXT_SET_COMPD_WIDTH      13
+#define RESTXT_SET_COMPD_CNT        4
+
+#define RESTXT_SET_COMPC_WIDTH      21
+#define RESTXT_SET_COMPC_CNT        8
 
 
 /* analog input formating*/
@@ -181,12 +238,17 @@
 #define RESTXT_NOTCONN      "  -"  // 'not connected'
 
 
+/* some default surveillance state levels */
+#define RESTXT_STATE_LVL_OK         "OK"
+#define RESTXT_STATE_LVL_INFO       "INFO"
+#define RESTXT_STATE_LVL_WARN       "WARNING"
+#define RESTXT_STATE_LVL_ERR        "ERROR"
+
+
 /* intro special sw version strings
    1 character, might be concated  */
 #define RESTXT_SWVER_DEBUG     "D"  // 'D' for DebugOuts on Uart0
 #define RESTXT_SWVER_MINIEMU   "E"  // 'E' for Emulator KD30
-#define RESTXT_SWVER_VEHICSIM  "S"  // 'S' for Simulation of Vehicle
-#define RESTXT_SWVER_HARDCOPY  "H"  // 'H' for Hardcopy on Debug-Uart via 'HighBeam'-switch
 #define RESTXT_SWVER_COMPASS   "C"  // 'C' for Compass
 
 
@@ -213,9 +275,9 @@ Note: We use a single string per complete screen,
 Note: We use the Text-Object property to automatically
       wrap aroung strings longer than 1 character line :-) */
 
-#define RESTXT_HWTDEV_SCREEN_32x8   "V+   xx.xV _   EEPROM  _  BAT  _"  \
-                                    "ALTW xx.xV _   NVRAM   _  RTC  _"  \
-                                    "RPM  xxxxx _   UART01 __  HWID _"  \
+#define RESTXT_HWTDEV_SCREEN_32x8   "V+    x.xV _   EEPROM  _  BAT  _"  \
+                                    "ALTW  x.xV _   NVRAM   _  RTC  _"  \
+                                    "RPM   xxxx _   UART01 __  HWID _"  \
                                     "KM/H   xxx _   LDR xxx _  WHEEL_"  \
                                     "TWAT  xx'C _   TURNLR __  OIL  _"  \
                                     "TAIR  xx'C _   HBEAM   _  NEUTR_"  \
