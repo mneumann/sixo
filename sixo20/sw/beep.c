@@ -68,6 +68,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.0  2010/11/07 12:43:05  tuberkel
+ * V30 Preparations:
+ * - Beeper can be disabled by user setting
+ *
  * Revision 2.2  2009/07/08 21:49:04  tuberkel
  * Changed contact data: Ralf Krizsan ==> Ralf Schwarzer
  *
@@ -93,10 +97,14 @@
 #include "beep.h"
 #include "debug.h"
 #include "digindrv.h"
+#include "sysparam.h"
 
 
 /* global symbols */
 BEEPTIMINGTYPE BeepTiming;
+
+/* external symbols */
+extern DEVFLAGS2_TYPE gDeviceFlags2;
 
 
 /***********************************************************************
@@ -176,6 +184,15 @@ ERRCODE BeepSetNewState(MESSAGE GivenMsg)
     ERRCODE         RValue = ERR_OK;
     MESSAGE_ID      MsgId;
     BOOL            fMode;
+
+    // check: beeper disabled by user/eeprom settings?
+    if ( gDeviceFlags2.flags.BeeperAvail == FALSE )
+    {
+        // do nothing, just ignore message
+        ODS(DBG_SYS,DBG_WARNING,"Unable to use MSG_BEEP_ON/OFF,  beeper disabled!");
+        RValue = ERR_OK;
+        return (RValue);
+    }
 
     /* analyse message: ON/OFF */
     MsgId = MSG_ID(GivenMsg);       /* get message id */
@@ -323,7 +340,8 @@ void BeepClick(void)
  *  DESCRIPTION:    just tests timer and timer messages
  *  PARAMETER:      -
  *  RETURN:         -
- *  COMMENT:        -
+ *  COMMENT:        Sends a few messages wich will activate a
+ *                  sequence of beeps.
  *********************************************************************** */
 #if(TESTBEEP==1)
 void TestBeepSendMessage(void)
