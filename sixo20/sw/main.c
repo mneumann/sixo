@@ -68,6 +68,12 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.0  2010/11/07 09:41:32  tuberkel
+ * V30 Preparations:
+ * - Intro-Screen & LED check duration adjustable by User
+ * - VehicleSimulation adjustable by User
+ * - Hardcopy adjustable by User
+ *
  * Revision 2.8  2009/07/15 08:55:53  tuberkel
  * NEW: #define TESTSCREEN for GUI Tests
  *
@@ -156,8 +162,11 @@ DEVICE_ID eStartDevice;                 // handles startdevice
 
 
 /* external symbols */
-extern SYSFLAGS_TYPE    gSystemFlags;   // system parameters
+extern DEVFLAGS1_TYPE   gDeviceFlags1;  // device parameters
+extern DEVFLAGS2_TYPE   gDeviceFlags2;  // device parameters
 extern UINT16           wWheelSize;     // to control vehicle simulation
+extern UINT8            gbLogoDelay;    // Eeprom value;
+
 
 
 /* external symbols for diagnostic service */
@@ -169,12 +178,11 @@ extern  UINT16  wISPMax;                // interrupt stack pointer max value
 extern  UINT16  wMilliSecCounter;       // valid values: 0h .. ffffh
 extern  UINT16  wSecCounter;            // valid values: 0h .. ffffh
 
-extern  DBGFILT_TYPE    gDebugFilter;   /* default off, use DebugSetFilterDetails() to change */
-extern  DBGDETDIR_TYPE  gDebugDetails;  /* default uart, use DebugSetFilterDetails() to change */
+extern  DBGFILT_TYPE    gDebugFilter;   // default off, use DebugSetFilterDetails() to change
+extern  DBGDETDIR_TYPE  gDebugDetails;  // default uart, use DebugSetFilterDetails() to change
 
-extern BIKE_TYPE        gBikeType;          /* bike type selcetion */
+extern  BIKE_TYPE       gBikeType;      // bike type selcetion
 
-#define LOGODELAY   2000    // in ms
 
 
 
@@ -208,6 +216,7 @@ int main()
     }
 
     /* system init stuff ----------------------------- */
+    ODS(DBG_SYS,DBG_INFO,"\n\rInitialize Drivers:");
     Error = TimerInit();            /* start our both timers (ta0 1kHz, ta1 50 Hz) */
     Error = iicInit();              /* prepare iic ports and eeprom type (needs TimerInit()!)*/
     Error = ParCheckFirstInit();    /* check, wether eeprom/nvram update necessary */
@@ -231,7 +240,6 @@ int main()
     if ( DigInDrv_GetKeyStates() == ( KEYFL_OK | KEYFL_UP | KEYFL_DOWN ) )
     {
         // HW SELF TEST MODE ============================================
-
         TimerRegisterEntryFunction( AnaInDrvTriggerADConverter );   /* generation of AD samples in single sweep mode */
         Error = HWTestDeviceInit();                                 /* HW test device */
         eStartDevice = DEVID_HWTEST;                                /* start HW TEST MODE */
@@ -241,8 +249,8 @@ int main()
     else
     {
         // NORMAL USER MODE =============================================
-
         /* device screen inits --------------------------- */
+        ODS(DBG_SYS,DBG_INFO,"\n\rInitialize Devices:");
         Error = IntroScreenInit();                                  /* intro screen device */
         Error = MainDeviceInit();                                   /* main device (speed&rpm) */
         Error = TripCntDevInit();                                   /* trip counter device */
@@ -257,11 +265,13 @@ int main()
 
         /* Display & LED 'HW pseudo test' ---------------- */
         LCDDrvSetBacklightLevel(TRUE, 63);  // switch on Backlight
-        IntroScreenShow(TRUE);              // show 'splash screen'
-        p9 = LEDS_ALL;                      // all LEDs on
-        Delay_ms(LOGODELAY);                // wait
-        IntroScreenShow(FALSE);             // clear 'splash screen'
-        p9 &= ~LEDS_ALL;                    // all LEDs off
+        if(gbLogoDelay > 0)                 // only if enabled by user:
+        {   IntroScreenShow(TRUE);          //    show 'splash screen'
+            p9 = LEDS_ALL;                  //    all LEDs on
+            Delay_ms(gbLogoDelay*100);      //    wait (given in 1/10 sec, set as ms)
+            IntroScreenShow(FALSE);         //    clear 'splash screen'
+            p9 &= ~LEDS_ALL;                //    all LEDs off
+        }
 
         /* Register cyclicely called (50Hz) fast functions --------- */
         TimerRegisterEntryFunction( DigInDrv_CheckKeyAction );      /* check keys */
@@ -270,31 +280,31 @@ int main()
         TimerRegisterEntryFunction( DevCyclicRefresh );             /* generation of MSG_SCREEN_REFRESH */
         TimerRegisterEntryFunction( TimeDateUpdate );               /* RTC check */
         TimerRegisterEntryFunction( AnaInDrvTriggerADConverter );   /* generation of AD samples in single sweep mode */
-        TimerRegisterEntryFunction( SurvCheckAllValues );           /* check of all digital/analoge values for warnings/errors */
+        TimerRegisterEntryFunction( SurvProcessAll );               /* process complete surveillance for infos/warnings/errors */
         #if(BIKE_MOTOBAU==1)                                        /* special MOTOBAU behaviour */
-            TimerRegisterEntryFunction( LapCntUpdateTime );         /* enable background lapcounter feature */
+        TimerRegisterEntryFunction( LapCntUpdateTime );             /* enable background lapcounter feature */
         #endif // BIKE_MOTOBAU
 
         // set start screen ------------------------------ */
 
         /* check for basic eeprom content error */
-        if (  (gSystemFlags.flags.ActDevNr <  DEVID_MAIN)           /* eeprom value in valid area? */
-            ||(gSystemFlags.flags.ActDevNr >= DEVID_LAST) )
-        {   ODS1( DBG_SYS, DBG_ERROR, "Invalid gSystemFlags.flags.ActDevNr %u corrected!", gSystemFlags.flags.ActDevNr );
-            gSystemFlags.flags.ActDevNr = DEVID_MAIN;               /* set main device as default */
+        if (  (gDeviceFlags1.flags.ActDevNr <  DEVID_MAIN)           /* eeprom value in valid area? */
+            ||(gDeviceFlags1.flags.ActDevNr >= DEVID_LAST) )
+        {   ODS1( DBG_SYS, DBG_ERROR, "Invalid gDeviceFlags1.flags.ActDevNr %u corrected!", gDeviceFlags1.flags.ActDevNr );
+            gDeviceFlags1.flags.ActDevNr = DEVID_MAIN;               /* set main device as default */
         }
 
         /* prevent from starting with HW-Test all the time */
-        if (gSystemFlags.flags.ActDevNr == DEVID_HWTEST)            /* eeprom saved hw test state? */
-            gSystemFlags.flags.ActDevNr = DEVID_MAIN;               /* set main device as default */
+        if (gDeviceFlags1.flags.ActDevNr == DEVID_HWTEST)            /* eeprom saved hw test state? */
+            gDeviceFlags1.flags.ActDevNr = DEVID_MAIN;               /* set main device as default */
 
         /* for device/objects test only: bring GUI testscreen to top */
         #if(TESTSCREEN==1)
-        gSystemFlags.flags.ActDevNr = DEVID_TESTSCREEN;             /* enable our gui testscreen */
+        gDeviceFlags1.flags.ActDevNr = DEVID_TESTSCREEN;             /* enable our gui testscreen */
         #endif
 
         /* start NORMAL USER MODE */
-        eStartDevice = gSystemFlags.flags.ActDevNr;                 /* select start device */
+        eStartDevice = gDeviceFlags1.flags.ActDevNr;                 /* select start device */
         MSG_BUILD_SETFOCUS(Msg, DEVID_UNKNOWN, eStartDevice);       /* give focus to that device */
         MsgQPostMsg(Msg, MSGQ_PRIO_LOW);                            /* post message */
 
@@ -303,17 +313,20 @@ int main()
     /* THE main loop --------------------------------- */
     while (1)
     {
-        Error = MsgQPumpMsg(MSG_NULL_MSG);      /* MessagePump: look for messages & execute them */
+        /* MessagePump: look for messages & execute them */
+        Error = MsgQPumpMsg(MSG_NULL_MSG);
 
-        /* if defined: RPM+WHEEL simulation support */
-        #if(VEHICSIM==1)
-        VehicleSimulation();
-        #endif
+        /* if hw self diagnostic test active */
+        if (eStartDevice == DEVID_HWTEST)
+            HWTestDeviceShow(TRUE);
 
-        /* if defined: Grafic Hardcopy support */
-        #if(HARDCOPY==1)
-        Hardcopy();
-        #endif
+        /* if enabled: RPM+WHEEL simulation support */
+        if (gDeviceFlags2.flags.VehicSimul == TRUE)
+            VehicleSimulation();
+
+        /* if enabled: Grafic Hardcopy support */
+        if (gDeviceFlags2.flags.Hardcopy == TRUE)
+            Hardcopy();
 
         /* if defined: Compass support */
         #if (COMPASS==1)
@@ -328,41 +341,21 @@ int main()
 
 /***********************************************************************
  * FUNCTION:    VehicleSimulation
- * DESCRIPTION: Vehicle Simulation active if WheelSize exactly 2000 mm,
- *              simulated WHEEL + RPM input via ISR calls
+ * DESCRIPTION: Processes a Vehicle Simulation sequence,
+ *              simulates WHEEL + RPM input via ISR calls
  * PARAMETER:   -
  * RETURN:      -
  * COMMENT:     To simulate real SIXO action while nobody moves...
  *********************************************************************** */
-#if(VEHICSIM==1)
 void VehicleSimulation(void)
 {
-    static BOOL fSimEnabled = FALSE;
-
     // delayed start to prevent ISR overflows
     if ( wSecCounter < SIM_STARTDELAY )
         return;
 
-    // enable/disable simulation
-    if ( wWheelSize == SIM_WHEELSIZE  )
-    {
-        SimVehicSimulation(SIM_SEQUENCE);
-        if (fSimEnabled == FALSE)
-        {
-            fSimEnabled = TRUE;
-            ODS(DBG_SYS,DBG_INFO,"==> Vehicle Simulation enabled!");
-        }
-    }
-    else
-    {
-        if (fSimEnabled == TRUE)
-        {
-            fSimEnabled = FALSE;
-            ODS(DBG_SYS,DBG_INFO,"==> Vehicle Simulation disabled!");
-        }
-    }
+    // process simulation sequence
+    SimVehicSimulation(SIM_SEQUENCE);
 }
-#endif // VEHICSIM
 
 
 
@@ -370,35 +363,34 @@ void VehicleSimulation(void)
 /***********************************************************************
  * FUNCTION:    Hardcopy
  * DESCRIPTION: Send a screen hardcopy in BMP format to printf-uart (debug)
- *              if HIGHBEAM state changes from LOW->HIGH
+ *              if HIGHBEAM state changes from LOW->HIGH only!
  * PARAMETER:   -
  * RETURN:      -
  * COMMENT:     FOR DOCUMENATATION PURPOSE ONLY!
  *********************************************************************** */
-#if(HARDCOPY==1)
 void Hardcopy (void)
 {
-#if(DEBUG==0)
-    #error "ERROR: HARDCOPY supported only via uart, please activate DEBUG too!"
-#endif // DEBUG
-
     #include "digindrv.h"
     #include "displdrv.h"
     extern void LCDDrvHardcopy(void);
-    static BOOL fState = 0;
+    static BOOL fOldState = 0;
+
+    // detect state change: HBEAM right now activated?
     if (  (DigIn_HBeam == 1 )
-        &&(fState      == 0 ) )
+        &&(fOldState   == 0 ) )
     {
-        LCDDrvHardcopy();
-        fState = 1;
+        LCDDrvHardcopy();   // send hardcopy!
+        fOldState = 1;
     }
+
+    // detect state change: HBEAM right now released?
     if (  (DigIn_HBeam == 0 )
-        &&(fState      == 1 ) )
+        &&(fOldState      == 1 ) )
     {
-        fState = 0;
+        fOldState = 0;
     }
 }
-#endif // HARDCOPY
+
 
 
 
