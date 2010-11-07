@@ -68,6 +68,11 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.4  2010/11/07 09:15:17  tuberkel
+ * V30 Preparations:
+ * - diverse new Textblocks for changed Settings/Appearance
+ * - NOT yet completed! (compare with DE version)
+ *
  * Revision 2.3  2009/07/08 21:49:04  tuberkel
  * Changed contact data: Ralf Krizsan ==> Ralf Schwarzer
  *
@@ -118,17 +123,17 @@
 #define RESTXT_STAT_TEMP_OIL        "Olie "
 #define RESTXT_STAT_TEMP_WAT        "Water"
 #define RESTXT_STAT_TEMP_DESC       "°C"
-#define RESTXT_STAT_RPM_MAX         "TPM max"
-#define RESTXT_STAT_RPM_DESC        "O/Min"
-#define RESTXT_STAT_V_MAX           "v max "
-#define RESTXT_STAT_V_DESC          "km/u"
+#define RESTXT_STAT_RPMMAX_DESC         "TPM max"
+#define RESTXT_STAT_RPMMAX_UNIT        "O/Min"
+#define RESTXT_STAT_VMAX_DESC           "v max "
+#define RESTXT_STAT_VMAX_UNIT          "km/u"
 #define RESTXT_STAT_H_SERV          "Serv."
 #define RESTXT_STAT_H_ALL           "Tot."
 #define RESTXT_STAT_H_DESC          "u"
 
 
 /* vehicle state texts;
- * NOTE: if you add one here, also add the VEHICLE_STATE_ value in device.h,
+ * NOTE: if you add one here, also add the eSURVP_ value in device.h,
  * as well as an assignment in MonitorDeviceInit() */
                                 // ....!....!....!....!.
 #define RESTXT_STATE_ALLRIGHT     "     \xbb Alles ok \xab    "
@@ -149,29 +154,27 @@
 
 
 /* settings device strings */
-#define RESTXT_SET_WHEELSIZEDESC    "Wiel:"
-#define RESTXT_SET_WHEELSIZEUNIT    "mm"
-#define RESTXT_SET_CCFNOMDESC       "CCF:"
-#define RESTXT_SET_CCFNOMUNIT       "/"
-#define RESTXT_SET_DPLLIGHTDESC     "Display A:"
-#define RESTXT_SET_DPLHELLGKDESC    "L:"
-#define RESTXT_SET_DPLCONTRDESC     "C:"
+#define RESTXT_SET_WHEELSIZE_DESC    "Wiel:"
+#define RESTXT_SET_WHEELSIZE_UNIT    "mm"
+#define RESTXT_SET_CCFNOM_DESC       "CCF:"
+#define RESTXT_SET_CCFNOM_UNIT       "/"
+#define RESTXT_SET_LCD_BL_DESC     "Display A:"
+#define RESTXT_SET_LCD_BR_DESC    "L:"
+#define RESTXT_SET_LCD_CNT_DESC     "C:"
 
-#define RESTXT_SET_RPMFLASH         "Waarschuw:"
-#define RESTXT_SET_RPMFLASHUNIT     " O/Min"
+#define RESTXT_SET_RPMFL_DESC         "Waarschuw:"
+#define RESTXT_SET_RPMFL_UNIT     " O/Min"
 
-#define RESTXT_SET_BIKETYPE         "Mot:"
+#define RESTXT_SET_BIKE_DESC         "Mot:"
 #define RESTXT_SET_COMPCAL          "Kmp:"
 #define RESTXT_SET_TRIPCNTFL        "TripCnt:"
 
 #define RESTXT_SET_SERVKM           "Serv. bij:"
 
-#define RESTXT_SET_ERT_SRV          "Serv.:"
-#define RESTXT_SET_ERT_ALL          "Tot.:"
 #define RESTXT_SET_ERT_UNIT         "u"
 
-#define RESTXT_SET_VEHICKMDESC      "Totaal:"
-#define RESTXT_SET_VEHICKMUNIT      " km"
+#define RESTXT_SET_VEHICKM_DESC      "Totaal:"
+#define RESTXT_SET_VEHICKM_UNIT      " km"
 
 
 /* display light strings */
