@@ -75,6 +75,11 @@
 ;  changes to CVC ('Log message'):
 ;
 ; $Log$
+; Revision 3.0  2010/11/07 09:35:17  tuberkel
+; V30 Preparations:
+; - STACKSIZE   0x400 --> 0x600      ; stack size
+; - ISTACKSIZE  0x200 --> 0x400      ; interrupt stack size
+;
 ; Revision 2.3  2009/07/18 06:29:34  tuberkel
 ; Heapsize reduced from 0x1000 ==> 0x400
 ; Heap only used for Bitmap-DrawLine
@@ -140,8 +145,8 @@ M62TYPE                 .equ         1          ; for var vector table format
 ; ram sizes -------------------------------------------------------------
 ;   ! adapt these settings if neccessary !
 HEAPSIZE                .equ    00400h          ; heap size
-STACKSIZE               .equ    00400h          ; stack size
-ISTACKSIZE              .equ     0200h          ; interrupt stack size
+STACKSIZE               .equ    00600h          ; stack size
+ISTACKSIZE              .equ     0400h          ; interrupt stack size
 
 
 ; rom sizes ------------------------------------------------------------
