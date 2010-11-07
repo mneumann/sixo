@@ -109,9 +109,7 @@
 #include "display.h"
 #include "displdrv.h"
 #include "digindrv.h"
-#if(HARDCOPY==1)
-    #include "stdio.h"    // hardcopy via uart
-#endif // HARDCOPY
+#include "stdio.h"
 
 
 //defines for timeouts and delays
@@ -971,7 +969,6 @@ ERRCODE LCDDrvFillPattern( unsigned char ucPattern )
  *              Note: DebugOut (printf) must be enabled via 'initl.c'
  *              settings!
  *********************************************************************** */
-#if(HARDCOPY==1)
 void LCDDrvHardcopySend( unsigned char *ucData )
 {
    unsigned char ucBitm;
@@ -1058,7 +1055,6 @@ void LCDDrvHardcopy( void )
    //printf("\n---------- BMP ended line before ----------\n");
    return;
 }
-#endif // HARDCOPY
 
 
 
