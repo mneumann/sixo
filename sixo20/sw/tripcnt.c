@@ -68,6 +68,12 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.9  2010/11/07 12:37:05  tuberkel
+ * V30 Preparations:
+ * - Device/Object Handling completely revised & simplified
+ * - New: Compass Display
+ * - Compass display mode Heading/Graph+Head/Graph supported
+ *
  * Revision 2.8  2009/07/19 12:33:45  tuberkel
  * - ObjectInit reviewed
  *
@@ -178,9 +184,12 @@ static CHAR         szTime[10] = "--:--:--a";           /* buffer for time strin
 /* external symbols */
 extern UINT16           wMilliSecCounter;           /* valid values: 0h .. ffffh */
 extern STRING far       szDevName[];                /* device names */
-extern SYSFLAGS_TYPE    gSystemFlags;               /* system parameters */
-extern TRPCNTFL_TYPE    gTripCntFlags;              /* tripcounter flags */
+extern DEVFLAGS1_TYPE    gDeviceFlags1;               /* system parameters */
+extern DEVFLAGS2_TYPE    gDeviceFlags2;              /* tripcounter flags */
 extern BIKE_TYPE        gBikeType;                  /* bike type selecetion */
+
+/* compass display mode */
+COMPASSCNTFL_TYPE gCompDplMode;
 
 /* external bitmaps */
 extern const unsigned char far * rgCompassTop144x8[];
@@ -195,17 +204,31 @@ void    TripCntUpdateCompassHeading(void);
 void    TripCntUpdateCompassBargraph(void);
 
 /* text object table */
-static const TEXTOBJECT_INITTYPE TextObjects[] =
+static const TEXTOBJECT_INITTYPE TextObjInit[] =
 {
     /*pObject                   X    Y  Font            H  Width  Align     Format    string ptr        State      */
     /* ----------------------- ---- --- -------------- --- ----- --------- ---------- ----------------- ---------- */
-    { &BigTripCntObj,            0,  0, DPLFONT_24X32,  1,  6, TXT_RIGHT,  TXT_NORM, BigTripCntTxt,     OC_DISPL },
-    { &SmallTripCntObj,          6, 38, DPLFONT_14X16,  1,  9, TXT_RIGHT,  TXT_NORM, SmallTripCntTxt,   OC_DISPL },
-    { &VehSpeedTxtObj,           2, 56, DPLFONT_6X8,    1,  7, TXT_LEFT,   TXT_NORM, szVehSpeed,        OC_DISPL },
-    { &CompassTxtObj,           52, 56, DPLFONT_6X8,    1,  4, TXT_CENTER, TXT_NORM, szCompass,         OC_DISPL },
-    { &TimeTxtObj,              45, 56, DPLFONT_6X8,    1, 14, TXT_RIGHT,  TXT_NORM, szTime,            OC_DISPL }
+    { &BigTripCntObj,            0,  0, DPLFONT_24X32,  1,  6, TXT_RIGHT,  TXT_NORM, BigTripCntTxt,     OC_DISPL | OC_DYN },
+    { &SmallTripCntObj,          6, 38, DPLFONT_14X16,  1,  9, TXT_RIGHT,  TXT_NORM, SmallTripCntTxt,   OC_DISPL | OC_DYN },
+    { &VehSpeedTxtObj,           2, 56, DPLFONT_6X8,    1,  7, TXT_LEFT,   TXT_NORM, szVehSpeed,        OC_DISPL | OC_DYN },
+    { &CompassTxtObj,           52, 56, DPLFONT_6X8,    1,  4, TXT_CENTER, TXT_NORM, szCompass,         OC_DISPL | OC_DYN },
+    { &TimeTxtObj,              45, 56, DPLFONT_6X8,    1, 14, TXT_RIGHT,  TXT_NORM, szTime,            OC_DISPL | OC_DYN }
 };
+#define TEXTOBJECTLISTSIZE   (sizeof(TextObjInit)/sizeof(TEXTOBJECT_INITTYPE))
 
+
+/* this devices object focus handling - list of all objects */
+/* NOTE:    this device does not need any focus, this
+            list is for common object handling only! */
+static const void far * ObjectList[] =
+{
+    (void far *) &BigTripCntObj,
+    (void far *) &SmallTripCntObj,
+    (void far *) &VehSpeedTxtObj,
+    (void far *) &CompassTxtObj,
+    (void far *) &TimeTxtObj,
+};
+#define OBJECTLIST_SIZE   (sizeof(ObjectList)/sizeof(OBJSTATE)/sizeof(void far *))
 
 
 
@@ -228,14 +251,17 @@ ERRCODE TripCntDevInit(void)
     TripCntDev.fFocused     = FALSE;
     TripCntDev.fScreenInit  = FALSE;
 
-    /* initialize text objects */
-    for (i = 0; i < ARRAY_SIZE(TextObjects); i++)
-    {
-        /* convert rom constant array into live objects */
-        ObjTextInit( &TextObjects[i] );
-    }
+    /* initialize all objects of any type */
+    DevObjInit( &TripCntDev, (void far *)TextObjInit,   TEXTOBJECTLISTSIZE,     OBJT_TXT   );
+
+    // initialize this devices objects list
+    TripCntDev.Objects.ObjList       = ObjectList;
+    TripCntDev.Objects.ObjCount      = OBJECTLIST_SIZE;
+    TripCntDev.Objects.FirstSelObj   = DevObjGetFirstSelectable(&TripCntDev, ObjectList, OBJECTLIST_SIZE );
+    TripCntDev.Objects.LastSelObj    = DevObjGetLastSelectable (&TripCntDev, ObjectList, OBJECTLIST_SIZE );
 
     /* return */
+    ODS( DBG_SYS, DBG_INFO, "- TripCntDevInit() done!");
     return ERR_OK;
 }
 
@@ -267,7 +293,7 @@ void TripCntDevShow(BOOL fShow)
         UINT16   wWheelSpeed;
 
         // User setting: Which counter should be shown as BIG upper one?
-        if (gTripCntFlags.flags.LongDistUp == 1)
+        if (gDeviceFlags2.flags.TripCLongDistUp == 1)
         {   BigTripCnt   = eTRIPC_A;
             SmallTripCnt = eTRIPC_B;
         }
@@ -299,7 +325,7 @@ void TripCntDevShow(BOOL fShow)
             /* yes, repaint complete screen */
 
             /* show BIGCOUNTER onyl if compass BARGRAGH disabled */
-            if (gTripCntFlags.flags.ShowCompassBar == 0)
+            if (gDeviceFlags2.flags.ShowCompassBar == 0)
                 ObjTextShow( &BigTripCntObj);
             ObjTextShow( &SmallTripCntObj );
             ObjTextShow( &VehSpeedTxtObj );
@@ -310,11 +336,11 @@ void TripCntDevShow(BOOL fShow)
 
 #if (COMPASS==1)
             // show compass VALUE only if enabled
-            if (gTripCntFlags.flags.ShowCompassValue == 1)
+            if (gDeviceFlags2.flags.ShowCompassValue == 1)
                 TripCntUpdateCompassHeading();
 
             // show compass BARGRAGH only if enabled
-            if (gTripCntFlags.flags.ShowCompassBar == 1)
+            if (gDeviceFlags2.flags.ShowCompassBar == 1)
                 TripCntUpdateCompassBargraph();
 #endif //COMPASS
 
@@ -329,7 +355,7 @@ void TripCntDevShow(BOOL fShow)
         {
             /* No, repaint only changed stuff */
             /* show BIGCOUNTER onyl if compass BARGRAGH disabled */
-            if (gTripCntFlags.flags.ShowCompassBar == 0)
+            if (gDeviceFlags2.flags.ShowCompassBar == 0)
                 ObjTextShow( &BigTripCntObj);
             ObjTextShow( &SmallTripCntObj );
             ObjTextShow( &VehSpeedTxtObj );
@@ -403,7 +429,7 @@ ERRCODE TripCntMsgEntry(MESSAGE GivenMsg)
                             szDevName[DEVID_TRIPCOUNT]) */;
                 TripCntDev.fFocused = TRUE;                             /* set our focus */
                 TripCntDevShow(TRUE);                                   /* show our screen */
-                gSystemFlags.flags.ActDevNr = DEVID_TRIPCOUNT;          /* save device# for restore */
+                gDeviceFlags1.flags.ActDevNr = DEVID_TRIPCOUNT;          /* save device# for restore */
                 RValue = ERR_MSG_PROCESSED;
              }
              else
@@ -484,10 +510,10 @@ ERRCODE TripCntMsgEntry(MESSAGE GivenMsg)
             /* got a fresh compass heading information */
             case MSG_COMPASS_REFRESH:
                 // show compass VALUE only if enabled
-                if (gTripCntFlags.flags.ShowCompassValue == 1)
+                if (gDeviceFlags2.flags.ShowCompassValue == 1)
                     TripCntUpdateCompassHeading();
                 // show compass BARGRAGH only if enabled
-                if (gTripCntFlags.flags.ShowCompassBar == 1)
+                if (gDeviceFlags2.flags.ShowCompassBar == 1)
                     TripCntUpdateCompassBargraph();
                 // msg processed anyway
                 RValue = ERR_MSG_PROCESSED;
