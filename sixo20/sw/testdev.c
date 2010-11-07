@@ -69,9 +69,15 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.0  2010/11/07 13:42:49  tuberkel
+ * V30 Preparations:
+ * - completely reviewed with new GUI testcases
+ * - adapted to new object/device handling
+ * - still enabled by #define TESTSCREEN only
+ *
  * Revision 2.5  2009/07/22 12:45:34  tuberkel
  * Device Object Focus handling simplified:
- * - now used standard DevObjFocusMove() / DevObjFocusReset() functions
+ * - now used standard DevObjFocusSet() / DevObjFocusReset() functions
  *
  * Revision 2.4  2009/07/19 12:33:23  tuberkel
  * - ObjectInit reviewed
@@ -107,7 +113,7 @@
 #include "device.h"
 #include "digindrv.h"
 #include "sysparam.h"
-
+#include "fonts.h"
 
 /* main switch for this module */
 #if(TESTSCREEN==1)
@@ -120,50 +126,61 @@ static DEVDATA      TestScreenDev;
 /* ----------------------------------------------------------- */
 /* static headline text object */
 static TEXTOBJECT   TextObj_Headline;
-static const TEXTOBJECT_INITTYPE TextObjectsInit[] =
-{   /*pObject           X  Y  Font         H  Width  Align     Format    string ptr           State  */
-    {&TextObj_Headline, 0, 0, DPLFONT_6X8, 1, 21, TXT_CENTER, TXT_INVERS,RESTXT_TEST_GUITEST, OC_DISPL}
-};
+static TEXTOBJECT   TextObj_SpecialChars;
+unsigned char       szSpecialChar[60];
 
+static const TEXTOBJECT_INITTYPE TextObjInit[] =
+{   /*pObject               X    Y   Font         H  Width  Align       Format      string ptr           State  */
+    {&TextObj_Headline,     C01, R1, DPLFONT_6X8, 1, 21,    TXT_CENTER, TXT_INVERS, RESTXT_TEST_GUITEST, OC_DISPL},
+    {&TextObj_SpecialChars, C01, R6, DPLFONT_6X8, 2, 21,    TXT_LEFT,   TXT_NORM,   szSpecialChar,       OC_DISPL}
+};
+#define TEXTOBJECTLISTSIZE   (sizeof(TextObjInit)/sizeof(TEXTOBJECT_INITTYPE))
 
 
 /* ----------------------------------------------------------- */
 /* edit text object */
-static EDITTEXTOBJECT               EditTextObj;
+static EDITTEXTOBJECT               EditTextObj_Test;
 static CHAR                         szEditText[20] = "abcdefgh";
 static CHAR                         szEditBuffer[32];
 static const EDITTEXT_INITTYPE      EditTextInit[]=
-{   // object       x/y    font         width value       decriptor           edit buffer   length char list    state
-    { &EditTextObj, 0, 10, DPLFONT_6X8, 21,   szEditText, RESTXT_TEST_ET_DSC, szEditBuffer, 10,    CHARL_LOWER, OC_DISPL | OC_SELECT | OC_EDIT }
+{   // object            x    y    font         width value       decriptor           edit buffer   length char list    state
+    { &EditTextObj_Test, C01, R2,  DPLFONT_6X8, 21,   szEditText, RESTXT_TEST_ET_DSC, szEditBuffer, 10,    CHARL_LOWER, OC_DISPL | OC_SELECT | OC_EDIT }
 };
+#define EDITTEXTOBJECTLISTSIZE   (sizeof(EditTextInit)/sizeof(TEXTOBJECT_INITTYPE))
+
+
 
 
 /* ----------------------------------------------------------- */
 /* edit number object */
-static EDITNUMBEROBJECT EditNumObj;                 /* complete number object */
+static EDITNUMBEROBJECT EditNumObj_Test;                 /* complete number object */
 static UINT32           dwEditNumValue = 99000;     /* object value */
 static UINT32           dwEditBuffer;
 static const EDITNUMBER_INITTYPE EditNumInit[] =
-{   /* fpObject     OrgX OrgY  Font         Width  pNumber          pWorkNumber     Type   Min  Max    Step DplType Mode     C  zDescr                zUnit                L   State                                       */
-    {&EditNumObj,   0,   20,   DPLFONT_6X8, 21,    &dwEditNumValue, &dwEditBuffer,  eULONG,0L,999999L, 0L,  eDez,   eColumn, 0, RESTXT_TEST_EN_DSC,   RESTXT_TEST_EN_UNIT, 6,  OC_DISPL | OC_SELECT | OC_EDIT }
+{   /* fpObject          OrgX OrgY  Font         Width  pNumber          pWorkNumber     Type   Min  Max    Step DplType Mode     C  zDescr                zUnit                L   State                                       */
+    {&EditNumObj_Test,   C01, R3,   DPLFONT_6X8, 21,    &dwEditNumValue, &dwEditBuffer,  eULONG,0L,999999L, 0L,  eDez,   eColumn, 0, RESTXT_TEST_EN_DSC,   RESTXT_TEST_EN_UNIT, 6,  OC_DISPL | OC_SELECT | OC_EDIT }
 };
+#define EDITNUMOBJECTLISTSIZE   (sizeof(EditNumInit)/sizeof(EDITNUMBER_INITTYPE))
+
 
 
 /* ----------------------------------------------------------- */
 /* edit bool object */
-static EDITBOOLOBJECT   EditBoolObj;                /* complete boolean object */
+static EDITBOOLOBJECT   EditBoolObj_Test;                /* complete boolean object */
 static BOOL             bEditBoolValue = FALSE;     /* object value */
 static BOOL             bEditBoolBuffer;            /* common edit buffer */
 static const EDITBOOL_INITTYPE EditBoolInit[] =
-{   /*pObject           X    Y  Font            Width  Data             EditBuffer        Descriptor            State      */
-    {&EditBoolObj,      0,  30, DPLFONT_6X8,    21,    &bEditBoolValue, &bEditBoolBuffer, RESTXT_TEST_EB_DSC,   OC_DISPL | OC_SELECT | OC_EDIT },
+{   /*pObject           X    Y   Font            Width  Data             EditBuffer        Descriptor            State      */
+    {&EditBoolObj_Test, C01, R4, DPLFONT_6X8,    21,    &bEditBoolValue, &bEditBoolBuffer, RESTXT_TEST_EB_DSC,   OC_DISPL | OC_SELECT | OC_EDIT },
 };
+#define EDITBOOLOBJECTLISTSIZE   (sizeof(EditBoolInit)/sizeof(EDITBOOL_INITTYPE))
+
 
 
 /* ----------------------------------------------------------- */
 /* select object */
-static SELECTOBJECT     SelectObj;                              /* complete select object */
-static UINT8            u8SelectValue = FALSE;                  /* object value */
+static SELECTOBJECT     SelectObj_Test;                              /* complete select object */
+static UINT8            u8SelectValue = 0;                      /* object value */
 static UINT8            u8EditBuffer;                           /* common edit buffer */
 static const STRING     pszSelectList[RESTXT_TEST_SLCT_MAX] =   /* list if choice strings representing the value */
                         {   RESTXT_TEST_SLCT_A,
@@ -171,29 +188,33 @@ static const STRING     pszSelectList[RESTXT_TEST_SLCT_MAX] =   /* list if choic
                             RESTXT_TEST_SLCT_C,
                             RESTXT_TEST_SLCT_D,
                             RESTXT_TEST_SLCT_E };
-static const SELECT_INITTYPE SelectInit[] =
-{   /*pObject       X    Y  Font            Width   Data            ListSize                EditBuffer      Descriptor              List of choice strings String field width       State   */
-    {&SelectObj,     0, 40, DPLFONT_6X8,    21,     &u8SelectValue, RESTXT_TEST_SLCT_MAX,   &u8EditBuffer,  RESTXT_TEST_SLCT_DSC,   pszSelectList,         RESTXT_TEST_SLCT_WIDTH,  OC_DISPL | OC_SELECT | OC_EDIT  }
+static const SELECT_INITTYPE SelectObjInit[] =
+{   /*pObject          X    Y   Font            Width   Data            ListSize                EditBuffer      Descriptor              List of choice strings String field width       State   */
+    {&SelectObj_Test,  C01, R5, DPLFONT_6X8,    21,     &u8SelectValue, RESTXT_TEST_SLCT_MAX,   &u8EditBuffer,  RESTXT_TEST_SLCT_DSC,   pszSelectList,         RESTXT_TEST_SLCT_WIDTH,  OC_DISPL | OC_SELECT | OC_EDIT  }
 };
+#define SELECTOBJECTLISTSIZE   (sizeof(SelectObjInit)/sizeof(SELECT_INITTYPE))
+
+
 
 
 /* ----------------------------------------------------------- */
 /* external symbols */
 extern UINT16           wMilliSecCounter;       // valid values: 0h .. ffffh
 extern STRING far       szDevName[];            // device names
-extern SYSFLAGS_TYPE    gSystemFlags;           /* system parameters */
+extern DEVFLAGS1_TYPE    gDeviceFlags1;           /* system parameters */
 
 
-/* this devices object focus handling - list of SELECTABLE objects */
-/* NOTE: this handling assumes the object data 'OBJSTATE' being the FIRST
-         structure element of the object type! */
-static const void far * FocusObjList[] =
-{   (void far *) &EditTextObj,
-    (void far *) &EditNumObj,
-    (void far *) &EditBoolObj,
-    (void far *) &SelectObj
+/* this devices object focus handling - list of all objects */
+static const void far * ObjectList[] =
+{
+    (void far *) &TextObj_Headline,
+    (void far *) &EditTextObj_Test,
+    (void far *) &EditNumObj_Test,
+    (void far *) &EditBoolObj_Test,
+    (void far *) &SelectObj_Test,
+    (void far *) &TextObj_SpecialChars
 };
-#define FOCUSLISTSIZE   (sizeof(FocusObjList)/sizeof(OBJSTATE)/sizeof(void far *))
+#define OBJECTLIST_SIZE   (sizeof(ObjectList)/sizeof(OBJSTATE)/sizeof(void far *))
 
 
 
@@ -217,18 +238,34 @@ ERRCODE TestScreenInit(void)
     TestScreenDev.fFocused     = FALSE;
     TestScreenDev.fScreenInit  = FALSE;
 
-    /* initialize all object types */
-    ObjTextInit     ( TextObjectsInit );    /* Headline */
-    ObjEditTextInit ( EditTextInit );       /* edit text field */
-    ObjEditNumInit  ( EditNumInit );        /* number32 object */
-    ObjEditBoolInit ( EditBoolInit );       /* boolean object */
-    ObjSelectInit   ( SelectInit );         /* select object */
+    // TEST: insert all special chars into textobjects stringbuffer
+    {   int i;
+        for (i=0; i<42; i++ )
+            szSpecialChar[i] = i+127;
+        szSpecialChar[44] = 0x00;
+    }
+
+    /* initialize all objects of any type */
+    DevObjInit( &TestScreenDev, (void far *)TextObjInit,   TEXTOBJECTLISTSIZE,     OBJT_TXT   );
+    DevObjInit( &TestScreenDev, (void far *)EditNumInit,   EDITNUMOBJECTLISTSIZE,  OBJT_ENUM  );
+    DevObjInit( &TestScreenDev, (void far *)SelectObjInit, SELECTOBJECTLISTSIZE,   OBJT_SLCT  );
+    DevObjInit( &TestScreenDev, (void far *)EditBoolInit,  EDITBOOLOBJECTLISTSIZE, OBJT_EBOOL );
+    DevObjInit( &TestScreenDev, (void far *)EditTextInit,  EDITTEXTOBJECTLISTSIZE, OBJT_ETXT );
+
+    // initialize this devices objects list
+    TestScreenDev.Objects.ObjList       = ObjectList;
+    TestScreenDev.Objects.ObjCount      = OBJECTLIST_SIZE;
+    TestScreenDev.Objects.FirstSelObj   = DevObjGetFirstSelectable(&TestScreenDev, ObjectList, OBJECTLIST_SIZE );
+    TestScreenDev.Objects.LastSelObj    = DevObjGetLastSelectable (&TestScreenDev, ObjectList, OBJECTLIST_SIZE );
 
     /* reset focus handling to start values */
-    DevObjFocusReset( &TestScreenDev, FocusObjList, FOCUSLISTSIZE );
+    DevObjFocusReset( &TestScreenDev, ObjectList, OBJECTLIST_SIZE );
 
+    ODS( DBG_SYS, DBG_INFO, "- TestScreenInit() done!");
     return ERR_OK;
 }
+
+
 
 /***********************************************************************
  *  FUNCTION:       TestScreenShow
@@ -241,20 +278,44 @@ ERRCODE TestScreenInit(void)
  *********************************************************************** */
 void TestScreenShow(BOOL fShow)
 {
+    UINT8   ShowMode;
+
     /* its on screen? */
-    if (fShow == TRUE)
+    if ( fShow == TRUE)
     {
-        /* show objects */
-        ObjTextShow    ( &TextObj_Headline );
-        ObjEditTextShow( &EditTextObj,  SHOW_ALL);
-        ObjEditNumShow ( &EditNumObj,   SHOW_ALL);
-        ObjEditBoolShow( &EditBoolObj,  SHOW_ALL);
-        ObjSelectShow  ( &SelectObj,    SHOW_ALL);
-        TestScreenDev.fScreenInit = TRUE;
+        // show first time? ==> clear screen first!
+        if (TestScreenDev.fScreenInit == FALSE)
+        {
+            DisplClearScreen(0x00);
+            TestScreenDev.fScreenInit = TRUE;
+            ShowMode = SHOW_ALL;                   // repaint all stuff
+        }
+        else
+        {   ShowMode = SHOW_EDIT | SHOW_CURSOR;    // repaint only potential changed stuff
+        }
+
+        // FOR DISPLAY OBJECTS TEST ONLY: clear & proof display mode of objects!
+        //DisplClearScreen(0xaa);
+
+        /* process complete (active) object to show all objects */
+        DevObjShow( &TestScreenDev,
+                    TestScreenDev.Objects.ObjList,
+                    TestScreenDev.Objects.ObjCount,
+                    ShowMode );
+
     }
     else
     {
+        // clear screen
         DisplClearScreen(0x0);
+
+        // reset states of all objects of this device
+        DevObjClearState(  &TestScreenDev,
+                            TestScreenDev.Objects.ObjList,
+                            TestScreenDev.Objects.ObjCount,
+                            OS_DISPL | OS_EDIT );
+
+        // set overall device state to 'not init'
         TestScreenDev.fScreenInit  = FALSE;
     }
 }
@@ -317,7 +378,7 @@ ERRCODE TestScreenMsgEntry(MESSAGE GivenMsg)
                             szDevName[DEVID_TESTSCREEN]) */ ;
                 TestScreenDev.fFocused = TRUE;                          /* set our focus */
                 TestScreenShow(FALSE);                                  /* show our screen */
-                gSystemFlags.flags.ActDevNr = DEVID_TESTSCREEN;               /* save device# for restore */
+                gDeviceFlags1.flags.ActDevNr = DEVID_TESTSCREEN;               /* save device# for restore */
                 RValue = ERR_MSG_PROCESSED;
              }
              else
@@ -366,18 +427,11 @@ ERRCODE TestScreenMsgEntry(MESSAGE GivenMsg)
             case MSG_KEY_DOWN:
 
                 /* let one of the objects use the msg */
-                if (RValue == ERR_MSG_NOT_PROCESSED)
-                    RValue = ObjEditTextMsgEntry(&EditTextObj, GivenMsg);
-                if (RValue == ERR_MSG_NOT_PROCESSED)
-                    RValue = ObjEditNumMsgEntry(&EditNumObj, GivenMsg);
-                if (RValue == ERR_MSG_NOT_PROCESSED)
-                    RValue = ObjEditBoolMsgEntry(&EditBoolObj, GivenMsg);
-                if (RValue == ERR_MSG_NOT_PROCESSED)
-                    RValue = ObjSelectMsgEntry(&SelectObj, GivenMsg);
+                RValue = DevObjMsg( &TestScreenDev, TestScreenDev.Objects.ObjList, OBJECTLIST_SIZE, GivenMsg );
 
                 /* try to move focus to next/previous object */
                 if (RValue == ERR_MSG_NOT_PROCESSED)
-                    RValue = DevObjFocusMove(&TestScreenDev, FocusObjList, FOCUSLISTSIZE, GivenMsg);
+                    RValue = DevObjFocusSet(&TestScreenDev, ObjectList, OBJECTLIST_SIZE, GivenMsg);
 
                 /* try to give focus to next device */
                 if (  (RValue == ERR_MSG_NOT_PROCESSED      )
@@ -390,7 +444,7 @@ ERRCODE TestScreenMsgEntry(MESSAGE GivenMsg)
 
                     // just test: stay inside DEVID_TESTSCREEN!
                     //MSG_BUILD_SETFOCUS(NewMsg, DEVID_TESTSCREEN, DEVID_TESTSCREEN);
-                    MSG_BUILD_SETFOCUS(NewMsg, DEVID_TESTSCREEN, DEVID_INTRO);
+                    MSG_BUILD_SETFOCUS(NewMsg, DEVID_TESTSCREEN, DEVID_MAIN);
                     MsgQPostMsg(NewMsg, MSGQ_PRIO_LOW);
                     RValue = ERR_MSG_PROCESSED;
                 }
