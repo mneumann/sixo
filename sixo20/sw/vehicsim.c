@@ -69,6 +69,11 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.0  2010/11/07 12:29:56  tuberkel
+ * V30 Preparations:
+ * - Module 'Vehicle Simualation ' ALWAYS supported
+ * - may be activated by user settings
+ *
  * Revision 2.3  2009/07/15 09:01:26  tuberkel
  * D-Options reviewed
  *
@@ -98,10 +103,6 @@
 #include "timer.h"
 #include "measdrv.h"
 #include "vehicsim.h"
-
-
-/* main switch for this module */
-#if(VEHICSIM==1)
 
 
 
@@ -514,6 +515,4 @@ void SimVehicSimulation(BOOL fSequence)
 }
 
 
-
-#endif //VEHICSIM
 
