@@ -76,6 +76,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.0  2010/11/07 13:55:50  tuberkel
+ * V30 Preparations - no changes
+ *
  * Revision 2.5  2010/11/07 13:55:15  tuberkel
  * Test re-added - because of bug in CVS
  *

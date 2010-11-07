@@ -75,6 +75,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.0  2010/11/07 14:00:50  tuberkel
+ * V30 Preparations - no changes
+ *
  * Revision 2.2  2010/11/07 11:56:57  tuberkel
  * V30 Preparations:
  * - New: gwWheelImpulse

@@ -5,7 +5,7 @@
 # All Rights Reserved.
 #
 #	Notice	:	Don't edit.
-#	Date	:	2009 07(July) 15(Wednesday) AM.10.51
+#	Date	:	2010 11(November) 02(Tuesday) PM.10.28
 #	Project	:	SIxO20
 ####################################################################
 
@@ -29,7 +29,7 @@ ECHO	=	@-echo
 MKFILE	=	$(PROJECT).tmk
 PROJECT	=	SIxO20
 TYPE	=	@-type
-CFLAGS	=	-c -I. -silent -dir $(OUTDIR) -Wall -DDEBUG=0 -DMINIEMU=0 -DTESTSCREEN=0 -DDBGMSGQ=0 -finfo
+CFLAGS	=	-c -I. -silent -dir $(OUTDIR) -Wall -DDEBUG=0 -DMINIEMU=0 -DTESTSCREEN=0 -DBIKE_MOTOBAU=0 -finfo
 AFLAGS	=	-. -DCOMPASS=0:DEBUG=0:MINIEMU=0 -finfo -O$(OUTDIR)
 LFLAGS	=	-MS -L nc30lib -. -G -O $(OUTDIR)\$(TARGET)
 LIBFLAGS	=	-C
@@ -217,7 +217,8 @@ $(OUTDIR)\beep.r30: \
 		.\beepdrv.h \
 		.\beep.h \
 		.\debug.h \
-		.\digindrv.h 
+		.\digindrv.h \
+		.\sysparam.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) beep.c
 $(OUTDIR)\beepdrv.r30: \
 		.\beepdrv.c \
@@ -271,7 +272,10 @@ $(OUTDIR)\device.r30: \
 		.\displdrv.h \
 		.\display.h \
 		.\sysparam.h \
-		.\resource_de.h 
+		.\resource_de.h \
+		.\objects.h \
+		.\digindrv.h \
+		.\debug.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) device.c
 $(OUTDIR)\device_l.r30: \
 		.\device_l.c \
@@ -331,7 +335,8 @@ $(OUTDIR)\displdrv.r30: \
 		.\standard.h \
 		.\sfr62p.h \
 		.\display.h \
-		.\digindrv.h 
+		.\digindrv.h \
+		$(MTOOLINC)\stdio.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) displdrv.c
 $(OUTDIR)\eeprdrv.r30: \
 		.\eeprdrv.c \
@@ -623,7 +628,8 @@ $(OUTDIR)\setdev.r30: \
 		$(MTOOLINC)\stdio.h \
 		$(MTOOLINC)\string.h \
 		.\resource_de.h \
-		.\compassdrv.h 
+		.\compassdrv.h \
+		.\fonts.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) setdev.c
 $(OUTDIR)\surveill.r30: \
 		.\surveill.c \
@@ -664,7 +670,11 @@ $(OUTDIR)\sysparam.r30: \
 		.\timedate.h \
 		.\anain.h \
 		.\bitmaps.h \
-		$(MTOOLINC)\string.h 
+		$(MTOOLINC)\string.h \
+		.\surveill.h \
+		$(MTOOLINC)\stdio.h \
+		.\resource.h \
+		.\resource_de.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) sysparam.c
 $(OUTDIR)\testdev.r30: \
 		.\testdev.c \
@@ -680,7 +690,8 @@ $(OUTDIR)\testdev.r30: \
 		.\digindrv.h \
 		.\sysparam.h \
 		$(MTOOLINC)\stdio.h \
-		.\resource_de.h 
+		.\resource_de.h \
+		.\fonts.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) testdev.c
 $(OUTDIR)\timedate.r30: \
 		.\timedate.c \
@@ -695,7 +706,9 @@ $(OUTDIR)\timedate.r30: \
 		.\resource.h \
 		$(MTOOLINC)\string.h \
 		$(MTOOLINC)\stdio.h \
-		.\resource_de.h 
+		.\resource_de.h \
+		.\sysparam.h \
+		.\surveill.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) timedate.c
 $(OUTDIR)\timer.r30: \
 		.\timer.c \
