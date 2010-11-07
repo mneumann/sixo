@@ -68,6 +68,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.4  2010/11/07 09:05:59  tuberkel
+ * V30 Preparations:
+ * - diverse new textblocks for changed Settings/Appearance
+ *
  * Revision 2.3  2009/07/08 21:49:03  tuberkel
  * Changed contact data: Ralf Krizsan ==> Ralf Schwarzer
  *
@@ -93,13 +97,16 @@
 
 /* main device strings */
 #define RESTXT_SPEED_DESC       "km/h"
-#define RESTXT_RPM_DESC         "U/Min"
+#define RESTXT_SPEEDA_DESC      "km"
+#define RESTXT_SPEEDB_DESC      "h"
+#define RESTXT_RPM_DESC         "/min"
 #define RESTXT_DIST_DESC        "km"
 #define RESTXT_DEGC_DESC        "∞C"
 #define RESTXT_VOLT_DESC        "V"
 #define RESTXT_TRIP1DESC        "T1"
 #define RESTXT_TRIP2DESC        "T2"
 #define RESTXT_SPEEDMAX_DESC    "max"
+#define RESTXT_SPEEDMAX_UNIT    "km/h"
 
 
 /* monitor device resources */
@@ -118,66 +125,139 @@
 #define RESTXT_STAT_TEMP_OIL        "\xd6l   "
 #define RESTXT_STAT_TEMP_WAT        "H2O  "
 #define RESTXT_STAT_TEMP_DESC       "∞C"
-#define RESTXT_STAT_RPM_MAX         "DRZ max "
-#define RESTXT_STAT_RPM_DESC        "U/Min"
-#define RESTXT_STAT_V_MAX           "v max "
-#define RESTXT_STAT_V_DESC          "km/h"
+#define RESTXT_STAT_RPMMAX_DESC     "DRZ max "
+#define RESTXT_STAT_RPMMAX_UNIT     "U/Min"
+#define RESTXT_STAT_VMAX_DESC       "v max "
+#define RESTXT_STAT_VMAX_UNIT       "km/h"
 #define RESTXT_STAT_H_SERV          "Serv."
 #define RESTXT_STAT_H_ALL           "Ges."
 #define RESTXT_STAT_H_DESC          "h"
 
 
-/* vehicle state texts;
- * NOTE: if you add one here, also add the VEHICLE_STATE_ value in device.h,
- * as well as an assignment in MonitorDeviceInit() */
-                                // ....!....!....!....!.
-#define RESTXT_STATE_ALLRIGHT     "     \xbb Alles ok \xab    "
-#define RESTXT_STATE_WATERTEMP    " K\xfchlwasser zu heiﬂ! "
-#define RESTXT_STATE_OILTEMP      "     \xd6l zu heiﬂ!     "
-#define RESTXT_STATE_ENGINE_COLD  " Motor noch zu kalt! "
-#define RESTXT_STATE_VOLTAGE_LOW  " Spannung zu niedrig!"
-#define RESTXT_STATE_VOLTAGE_HIGH "  Spannung zu hoch!  "
-#define RESTXT_STATE_ALTERNATOR   " Ladespg. zu niedrig!"
-#define RESTXT_STATE_OILPRESS     " \xd6ldruck zu niedrig! "
-#define RESTXT_STATE_OILSWDEF     " \xd6ldrucksch. defekt? "
-#define RESTXT_STATE_FUEL8L       "  Unter 8 l. Sprit!  "
-#define RESTXT_STATE_FUEL4L       "  Unter 4 l. Sprit!  "
-#define RESTXT_STATE_ABS          "     ABS inaktiv!    "
-#define RESTXT_STATE_GLACED       "      Glatteis?      "
-#define RESTXT_STATE_SERVICEKM    "  Service-Intervall  "
+/* vehicle/device parameter state texts;
+ * NOTE: if you add one here, also add the eSURVP_ value in device.h,
+ * as well as an assignment in MonitorDeviceInit()
+ *  Note: (max 4+17 chars),
+ *  E.g.: "1/1    <8 l. Sprit!  */
+                                //+....!....!....!..+..+..+
+#define RESTXT_STATE_ALLRIGHT     "   \xbb Alles ok \xab  "      // 00 - special case: 21 char len
+
+#define RESTXT_STATE_WATERTEMP    " K\xfchlw. zu heiﬂ! "    // 01
+#define RESTXT_STATE_OILTEMP      "   \xd6l zu heiﬂ!   "    // 02
+#define RESTXT_STATE_ENGINE_COLD  "   Motor kalt!   "       // 03
+#define RESTXT_STATE_VOLTAGE_LOW  "Spg. zu niedrig! "       // 04
+#define RESTXT_STATE_VOLTAGE_HIGH "  Spg. zu hoch!  "       // 05
+#define RESTXT_STATE_ALTERNATOR   "Ladespg. niedrig!"       // 06
+#define RESTXT_STATE_OILPRESS     "    \xd6ldruck!     "    // 07
+#define RESTXT_STATE_OILSWDEF     "\xd6ldrucksch. def.?"    // 08
+#define RESTXT_STATE_FUEL8L       "   <8 l. Sprit!  "       // 09
+#define RESTXT_STATE_FUEL4L       "   <4 l. Sprit!  "       // 10
+#define RESTXT_STATE_ABS          "   ABS inaktiv!  "       // 11
+#define RESTXT_STATE_WATTEMPSW    " K\xfchlw. zu heiﬂ! "    // 12
+#define RESTXT_STATE_GLACED       "    Glatteis?    "       // 13
+#define RESTXT_STATE_SERVICEKM    "   km-Service!   "       // 14
+#define RESTXT_STATE_SERVICEHOUR  "    h-Service!   "       // 15
+#define RESTXT_STATE_SIMULATION   "Simulation aktiv!"       // 16
+#define RESTXT_STATE_HARDCOPY     " Hardcopy aktiv! "       // 17
+#define RESTXT_STATE_DLS_SUMMER   "Sommerzeit aktiv!"       // 18
+#define RESTXT_STATE_DLS_WINTER   "Winterzeit aktiv!"       // 19
+#define RESTXT_STATE_RTC_BATT     "RTC-Batt. defekt?"       // 20
 
 
-
+/* =============================================== */
 /* settings device strings */
-#define RESTXT_SET_WHEELSIZEDESC    "Rad:"
-#define RESTXT_SET_WHEELSIZEUNIT    " mm"
-#define RESTXT_SET_CCFNOMDESC       "ZKF:"
-#define RESTXT_SET_CCFNOMUNIT       "/"
-#define RESTXT_SET_DPLLIGHTDESC     "Display A:"
-#define RESTXT_SET_DPLHELLGKDESC    "H:"
-#define RESTXT_SET_DPLCONTRDESC     "K:"
+/* =============================================== */
 
-#define RESTXT_SET_RPMFLASH         "Schaltbl.:"
-#define RESTXT_SET_RPMFLASHUNIT     " U/Min"
+// ---------------------------------------------------
+// headline strings                  ....!....!....!....!.
+#define RESTXT_SET_HL_VEHICLE       ">> FAHRZEUG         \x8c"          // Arrow down
+#define RESTXT_SET_HL_DEVICE        ">> GER\xc4T           \x8c\x8b"    // Arrow down/up
+#define RESTXT_SET_HL_DISPLAY       ">> LCD/LED         \x8c\x8b"       // Arrow down/up
+#define RESTXT_SET_HL_COMPASS       ">> KOMPASS          \x8b"          // Arrow up
+#define RESTXT_SET_HL_IOPORTS       ">> ANSCHL\xdcSSE        "          // Arrow up
+#define RESTXT_SET_HL_WARNINGS      ">> WARNUNGEN         "
 
-#define RESTXT_SET_BIKETYPE         "Mrd:"
-#define RESTXT_SET_COMPCAL          "Kmp:"
-#define RESTXT_SET_TRIPCNTFL        "TripCnt:"
+// ---------------------------------------------------
+// Setup Vehicle Screen              ....!....!....!....!.
+#define RESTXT_SET_BIKE_DESC        "Typ:"
+#define RESTXT_SET_LOGO_DESC        "Logo:"
 
-#define RESTXT_SET_SERVKM           "Serv. bei:"
+#define RESTXT_SET_CCFNOM_DESC      "ZKF:"
+#define RESTXT_SET_CCFNOM_UNIT      "/"
 
-#define RESTXT_SET_ERT_SRV          "Serv.:"
-#define RESTXT_SET_ERT_ALL          "Ges.:"
+#define RESTXT_SET_WHEELSIZE_DESC   "Rad:"
+#define RESTXT_SET_WHEELSIZE_UNIT   "mm"
+#define RESTXT_SET_WHEELIMP_DESC    "I/U:"
+
+#define RESTXT_SET_VEHICKM_DESC     "Fzg:"
+#define RESTXT_SET_VEHICKM_UNIT     "km"
+#define RESTXT_SET_SERVKM_DESC      "Srv:"
+#define RESTXT_SET_SERVKM_UNIT      "km"
 #define RESTXT_SET_ERT_UNIT         "h"
+#define RESTXT_SET_TANKCAP_DESC     "Benzin:"
+#define RESTXT_SET_TANKCAP_UNIT     "l"
+#define RESTXT_SET_FUELCONS_DESC    ""
+#define RESTXT_SET_FUELCONS_UNIT    "l/h"
 
-#define RESTXT_SET_VEHICKMDESC      "Fzg. ges.:"
-#define RESTXT_SET_VEHICKMUNIT      " km"
+// ---------------------------------------------------
+// Setup Device Screen               ....!....!....!....!.
+#define RESTXT_SET_RTC_TIME         "Zeit:"
+#define RESTXT_SET_RTC_DATE         "Datum:"
+#define RESTXT_SET_RTC_CALIB        "K:±"
+#define RESTXT_SET_RTC_DLS          "Smz:"
+
+#define RESTXT_SET_TRIP_DESC        "TripC-kurz:"
+#define RESTXT_SET_METRIC_DESC      "Metrik:"
+#define RESTXT_SET_LEDWM_DESC       "WarnModus:"
+#define RESTXT_SET_VEHICSIM         "Sim:"
+#define RESTXT_SET_LOGODELAY_UNIT   "s"
+#define RESTXT_SET_HARDCOPY         "Bmp:"
+#define RESTXT_SET_LANG_DESC        "Sprache:"
+#define RESTXT_DBGOUTDESCR          "DbgOut:"
+#define RESTXT_SET_SW_VERS          "SW:"
+#define RESTXT_SET_BEEP_ON          "Sum:"
+#define RESTXT_SET_RESETEEPROM      "Rst:"
 
 
-/* display light strings */
-#define RESTXT_DPLLIGHTCHOICE_A " an "
-#define RESTXT_DPLLIGHTCHOICE_B " aus"
-#define RESTXT_DPLLIGHTCHOICE_c "auto"
+// ---------------------------------------------------
+// Appearance/output Screen          ....!....!....!....!.
+#define RESTXT_SET_LCD              "LCD:"
+#define RESTXT_SET_LED              "LED:"
+#define RESTXT_SET_LCD_BL_DESC      "Lichtschwelle:"
+#define RESTXT_SET_LCD_BR_DESC      "Helligkeit:"
+#define RESTXT_SET_LCD_CNT_DESC     "Kontrast:"
+#define RESTXT_SET_LED_DIM_DESC     "Helligkeit:"
+#define RESTXT_SET_RPMFL_DESC       "Schaltbl.:"
+#define RESTXT_SET_RPMFL_UNIT       "U/Min"
+
+
+// ---------------------------------------------------
+// Setup Compass Screen              ....!....!....!....!.
+#define RESTXT_SET_COMPASS          "Modul verf\xdcgbar:"
+
+#define RESTXT_SET_COMPD_DESC       "Anzeige:"          // COMPD: Compass Display
+                                   /*....!....!...*/    // 13 chars, right aligned!
+#define RESTXT_SET_COMPD_NA         "        keine"
+#define RESTXT_SET_COMPD_HD         "     nur Kurs"
+#define RESTXT_SET_COMPD_GR         "    nur Graph"
+#define RESTXT_SET_COMPD_HDGR       " Kurs + Graph"
+
+
+#define RESTXT_SET_COMPC_DESC       "Kalibrierung:"     // COMPC: Compass Calibration - descriptor in separate text line
+                                   /*....!....!....!....!.*/   // 21 chars, center aligned!
+#define RESTXT_SET_COMPC_NA         "   nicht m\xf6glich!    "
+#define RESTXT_SET_COMPC_WORK       "   Kompass aktiv..   "
+#define RESTXT_SET_COMPC_HHOLD      "Modul horiz. HALTEN! "
+#define RESTXT_SET_COMPC_HTURN      "Modul horiz. DREHEN! "
+#define RESTXT_SET_COMPC_HSAVE      "Horiz.-Werte SICHERN!"
+#define RESTXT_SET_COMPC_VHOLD      "Modul vert. HALTEN!  "
+#define RESTXT_SET_COMPC_VTURN      "Modul vert. DREHEN!  "
+#define RESTXT_SET_COMPC_VSAVE      "Vert.-Werte SICHERN! "
+
+#define RESTXT_SET_COMP_ERR         "Letzter Fehler:"     // COMPC: Compass Calibration - descriptor in separate text line
+
+
+
 
 
 /* 'day of week' strings */
@@ -203,14 +283,13 @@
 /* time/date format separator */
 #define RESTXT_DAYSEPERATOR     "."
 #define RESTXT_TIMESEPERATOR    ":"
-#define RESTXT_CLKCALIBDESC     "±"
 
-#define RESENUM_HHMM			GERM_HHMM
-#define RESENUM_HHMMSS			GERM_HHMMSS
+#define RESENUM_HHMM	GERM_HHMM
+#define RESENUM_HHMMSS	GERM_HHMMSS
 
-#define RESENUM_DDMMYY			GERM_DDMMYY
-#define RESENUM_DDMMYYYY		GERM_DDMMYYYY
-#define RESENUM_WWDDMMYY		GERM_WWDDMMYY
+#define RESENUM_DDMMYY	GERM_DDMMYY
+#define RESENUM_DDMMYYYY	GERM_DDMMYYYY
+#define RESENUM_WWDDMMYY	GERM_WWDDMMYY
 
 
 #endif /* _RESOURCE_DE_H */
