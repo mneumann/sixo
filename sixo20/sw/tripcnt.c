@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.0  2010/11/07 12:37:58  tuberkel
+ * V30 Preparations - no changes
+ *
  * Revision 2.9  2010/11/07 12:37:05  tuberkel
  * V30 Preparations:
  * - Device/Object Handling completely revised & simplified
