@@ -61,6 +61,18 @@
  *  merchantability, fitness for a particular purpose, and
  *  non-infringement.
  *
+ *  --------------------------------------------------------------------
+ *
+ *  CVS History
+ *
+ *  This information is automatically added while 'commiting' the
+ *  changes to CVC ('Log message'):
+ *
+ * $Log$
+ * Revision 3.1  2010/11/07 09:18:26  tuberkel
+ * Revision History added
+ *
+
  ************************************************************************ */
 
 
