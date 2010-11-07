@@ -68,6 +68,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.0  2010/11/07 12:41:53  tuberkel
+ * V30 Preparations:
+ * - added ODS8()
+ *
  * Revision 2.2  2009/07/15 09:02:50  tuberkel
  * D-Options reviewed
  *
@@ -215,6 +219,7 @@ ERRCODE DebugPrint(UINT8 chLevel, STRING szText, UINT16 wSrcLine, STRING szSrcFi
 #define ODS5(dev,lvl,txt,a,b,c,d,e)     (void)DebugPrint(dev|lvl, txt, (UINT16)__LINE__, __FILE__, a,b,c,d,e)
 #define ODS6(dev,lvl,txt,a,b,c,d,e,f)   (void)DebugPrint(dev|lvl, txt, (UINT16)__LINE__, __FILE__, a,b,c,d,e,f)
 #define ODS7(dev,lvl,txt,a,b,c,d,e,f,g) (void)DebugPrint(dev|lvl, txt, (UINT16)__LINE__, __FILE__, a,b,c,d,e,f,g)
+#define ODS8(dev,lvl,txt,a,b,c,d,e,f,g,h) (void)DebugPrint(dev|lvl, txt, (UINT16)__LINE__, __FILE__, a,b,c,d,e,f,g,h)
 
 #else /* uC release */
 /* tricky preprocessing with ##: reference another macro with first parameter in name */
@@ -226,6 +231,7 @@ ERRCODE DebugPrint(UINT8 chLevel, STRING szText, UINT16 wSrcLine, STRING szSrcFi
 #define ODS5(dev,lvl,txt,a,b,c,d,e)
 #define ODS6(dev,lvl,txt,a,b,c,d,e,f)
 #define ODS7(dev,lvl,txt,a,b,c,d,e,f,g)
+#define ODS8(dev,lvl,txt,a,b,c,d,e,f,g,h)
 #endif
 
 
