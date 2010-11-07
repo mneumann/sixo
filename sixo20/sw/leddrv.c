@@ -70,6 +70,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.0  2010/11/07 09:19:56  tuberkel
+ * V30 Preparations:
+ * - enhanced Debug behaviour
+ *
  * Revision 2.2  2009/07/08 21:49:04  tuberkel
  * Changed contact data: Ralf Krizsan ==> Ralf Schwarzer
  *
@@ -140,21 +144,74 @@ ERRCODE LEDDrvInit(BOOL fFlash)
  *                  fActivate       TRUE = LED on
  *  RETURN:         ERR_OK          ok
  *                  ERR_PARAM_ERR   parameter error
- *  COMMENT:        -
+ *  COMMENT:        LED State could have been set _directly_ with
+ *                  given parameter. But we here distinguish
+ *                  the true/false states to support separate debugging
+ *                  breakpoints for both states.
  *********************************************************************** */
 ERRCODE LEDDrvSetLED(LEDDRV_LEDS eLED, BOOL fActivate)
 {
     switch (eLED)
     {
-        case LEDDRV_WARN:   fLEDDrv_Warn  = fActivate; break;
-        case LEDDRV_ERR:    fLEDDrv_Err   = fActivate; break;
-        case LEDDRV_INFO:   fLEDDrv_Info  = fActivate; break;
-        case LEDDRV_BEAM:   fLEDDrv_Beam  = fActivate; break;
-        case LEDDRV_NEUTR:  fLEDDrv_Neutr = fActivate; break;
-        case LEDDRV_TURN:   fLEDDrv_Turn  = fActivate; break;
-        default: return ERR_PARAM_ERR;
+        case LEDDRV_WARN:
+            if (fActivate)
+                 fLEDDrv_Warn  = 1;
+            else fLEDDrv_Warn  = 0;
+            break;
+        case LEDDRV_ERR:
+            if (fActivate)
+                 fLEDDrv_Err = 1;
+            else fLEDDrv_Err = 0;
+            break;
+        case LEDDRV_INFO:
+            if (fActivate)
+                 fLEDDrv_Info = 1;
+            else fLEDDrv_Info = 0;
+            break;
+        case LEDDRV_BEAM:
+            if (fActivate)
+                 fLEDDrv_Beam = 1;
+            else fLEDDrv_Beam = 0;
+            break;
+        case LEDDRV_NEUTR:
+            if (fActivate)
+                 fLEDDrv_Neutr = 1;
+            else fLEDDrv_Neutr = 0;
+            break;
+        case LEDDRV_TURN:
+            if (fActivate)
+                 fLEDDrv_Turn  = 1;
+            else fLEDDrv_Turn  = 0;
+            break;
+        default:
+            return ERR_PARAM_ERR;
      }
     return ERR_OK;
+}
+
+
+/***********************************************************************
+ *  FUNCTION:       LEDDrvGetLED()
+ *  DESCRIPTION:    Returns current state of single LED
+ *  PARAMETER:      eLED            LED indicator
+ *  RETURN:         fActivate       TRUE  = LED on
+ *                                  FALSE = LED off
+ *  COMMENT:        -
+ *********************************************************************** */
+BOOL LEDDrvGetLED( LEDDRV_LEDS eLED )
+{
+    BOOL fActivated;
+    switch (eLED)
+    {
+        case LEDDRV_WARN:   fActivated = fLEDDrv_Warn;  break;
+        case LEDDRV_ERR:    fActivated = fLEDDrv_Err  ; break;
+        case LEDDRV_INFO:   fActivated = fLEDDrv_Info ; break;
+        case LEDDRV_BEAM:   fActivated = fLEDDrv_Beam ; break;
+        case LEDDRV_NEUTR:  fActivated = fLEDDrv_Neutr; break;
+        case LEDDRV_TURN:   fActivated = fLEDDrv_Turn ; break;
+        default: return fActivated = FALSE;
+     }
+    return fActivated;
 }
 
 /***********************************************************************
