@@ -70,6 +70,15 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.3  2010/11/07 09:31:16  tuberkel
+ * V30 Preparations:
+ * - Surveillance completely reviewed
+ * - new: sorted list of any Info/warning/error
+ * - new: informational states (e.g. SummerTime activated)
+ * - new: internal states (e.g. RTC defect)
+ * - new: API to retrieve currently active StateList
+ * . moved some features from 'MOTO_BAU' version to general version
+ *
  * Revision 2.2  2009/07/08 21:49:04  tuberkel
  * Changed contact data: Ralf Krizsan ==> Ralf Schwarzer
  *
@@ -120,43 +129,70 @@
 #define ENGRUNTIME_SRV_MAX   999    /* h */
 
 
+/* Surveilance start delay in sec. (time for e.g. AD-Values to become valid) */
+#define SURV_STARTDELAY     ANAIN_STARTDELAY    // mapped to ADC value start deleay
 
 
 
-/* all potential vehicle state parameters for any bike */
+/* all surveilled vehicle/device parameter index/id */
 typedef enum
 {
-   VEHICLE_STATE_OILTEMP,       // oil temp sensor
-   VEHICLE_STATE_WATTEMP,       // water temp sensor
-   VEHICLE_STATE_VOLTAGE_LOW,   // RPM + device power supply
-   VEHICLE_STATE_VOLTAGE_HIGH,  // device power supply
-   VEHICLE_STATE_ALTERNATOR,    // RPM + external alternator input
-   VEHICLE_STATE_OILPRESS,      // RPM + oil switch or oil sensor
-   VEHICLE_STATE_OILSWDEF,      // RPM + oil switch defekt?
-   VEHICLE_STATE_ENGINECOLD,    // RPM + oil/water temp sensor
-   VEHICLE_STATE_FUEL8L,        // digital input
-   VEHICLE_STATE_FUEL4L,        // digital input
-   VEHICLE_STATE_ABS,           // digital input   
-   VEHICLE_STATE_WATTEMPSW,     // water temp switch
-   VEHICLE_STATE_GLACED,        // air temp sensor
-   VEHICLE_STATE_SERVICEKM,     // general vehicle service intervall
-   LAST_VEHICLE_STATE_PARM      // --- invalid state --- */
-} VEHICLE_STATE_PARM;
+   eSURVP_NOENTRY = 0,  // 00 MUST BE THE FIRST - default string, indicates 'no problem available'
+   eSURVP_OILTEMP,      // 01 oil temp sensor
+   eSURVP_WATTEMP,      // 02 water temp sensor
+   eSURVP_VOLTAGE_LOW,  // 03 RPM + device power supply
+   eSURVP_VOLTAGE_HIGH, // 04 device power supply
+   eSURVP_ALTERNATOR,   // 05 RPM + external alternator input
+   eSURVP_OILPRESS,     // 06 RPM + oil switch or oil sensor
+   eSURVP_OILSWDEF,     // 07 RPM + oil switch defekt?
+   eSURVP_ENGINECOLD,   // 08 RPM + oil/water temp sensor
+   eSURVP_FUEL8L,       // 09 digital input
+   eSURVP_FUEL4L,       // 10 digital input
+   eSURVP_ABS,          // 11 digital input
+   eSURVP_WATTEMPSW,    // 12 water temp switch
+   eSURVP_GLACED,       // 13 air temp sensor
+   eSURVP_SERVICEKM,    // 14 general distance vehicle service intervall
+   eSURVP_SERVICEHOUR,  // 15 general runtime  vehicle service intervall
+   eSURVP_SIMULATION,   // 16 vehicle simulation is active!
+   eSURVP_HARDCOPY,     // 17 screen hardcopy via HBEAM switch and UART available!
+   eSURVP_DLS_SUMMER,   // 18 changed daylight saving from winter -> summer
+   eSURVP_DLS_WINTER,   // 19 changed daylight saving from summer -> winter
+   eSURVP_RTC_BATT,     // 20 Invalid NVRAM parameters -> RTC Battery defect!
+
+   eSURVP_LAST          // --- invalid state ---
+} SURV_PARAM_ID_TYPE;
 
 
-/* all states for vehicle parameters */
+/* surveillance parameter states */
 typedef enum
 {
-   VEHICLE_STATE_LEVEL_OK,          // indicates 'no error'
-   VEHICLE_STATE_LEVEL_INFO,        // indicates 'just info, no problem!'
-   VEHICLE_STATE_LEVEL_WARNING,     // indicates 'might be a problem!'
-   VEHICLE_STATE_LEVEL_ERROR,       // indicates 'we have a serious problem!'
+   eSURVST_OK = 0,          // MUST BE THE FIRST - default state, indicates 'not info/warning/error'
+   eSURVST_INFO,            // indicates 'just info, no problem!'
+   eSURVST_WARNING,         // indicates 'might be a problem!'
+   eSURVST_ERROR,           // indicates 'we have a serious problem!'
+   eSURVST_INVALID = 255    // --- invalid level ---
+} SURV_PARAM_STATE_TYPE;
 
-   VEHICLE_STATE_LEVEL_INVALID      // invalid level
-} eVEHICLE_STATE_LEVEL;
+/* same surveillance parameter states bitcoded - for masked search */
+#define SURVST_INFO    1    // indicates 'just info, no problem!'
+#define SURVST_WARN    2    // indicates 'might be a problem!'
+#define SURVST_ERR     4    // indicates 'we have a serious problem!'
+#define SURVST_ALL     7    // indicates 'any info/problem!'
 
-typedef UINT8 VEHICLE_STATE_LEVEL;  /* save us some bytes... :-) */
+/* surveillance LED warning mode */
+#define SURV_LWM_SIXO    FALSE       // use SIxO propritary warning mode
+#define SURV_LWM_STD     TRUE        // use SIxO propritary warning mode
 
+
+/* surveillance parameter bundle (id/state) */
+typedef struct
+{
+    SURV_PARAM_ID_TYPE      param;  // parameter ID
+    SURV_PARAM_STATE_TYPE   state;  // state of this parameter
+} SURV_PARAM_TYPE;
+
+#define SURV_PARAM_MAX  9   // max number of supported concurrent infos/warnings/errors
+                            // Note: limited to 1 cipher, because of '1/x error text' format
 
 // parameter for SurvScrollVehicleState()
 #define VST_SCROLL_DOWN     FALSE
@@ -164,19 +200,30 @@ typedef UINT8 VEHICLE_STATE_LEVEL;  /* save us some bytes... :-) */
 
 
 // public prototypes
-ERRCODE SurvInit(void);
-ERRCODE SurvCheckAllValues(void);
+ERRCODE SurvInit                    (void);
+ERRCODE SurvProcessAll              (void);
+void    SurvSetGlobalState          (UINT8 ucIdx);
+void    SurvSetLEDState             (void);
 
-void SurvCheckAllDigitalWarnings(void);
-void SurvCheckAllAnalogWarnings(void);
-void SurvSetVehicleState(VEHICLE_STATE_PARM parameter, VEHICLE_STATE_LEVEL level);
-void SurvScrollVehicleState(BOOL fScrollDir);
-void SurvUpdateAnalogData(void);
-void SurvUpdateEngRunTime(void);
-void SurvCheckRPMFlash(void);
-void SurvResetVehicleStates(void);
-UINT8 SurvGetNOKStates(void);
-VEHICLE_STATE_LEVEL SurvGetVehicleState(VEHICLE_STATE_PARM parameter);
+void    SurvCheckAllDigitalWarnings (void);
+void    SurvCheckAllAnalogWarnings  (void);
+void    SurvCheckAllDeviceWarnings  (void);
+void    SurvListSetParamState       (SURV_PARAM_ID_TYPE parameter, SURV_PARAM_STATE_TYPE level);
+void    SurvScrollVehicleState      (BOOL fScrollDir);
+void    SurvUpdateAnalogData        (void);
+void    SurvUpdateEngRunTime        (void);
+void    SurvCheckRPMFlash           (void);
+void    SurvResetAllParameters      (void);
+
+void    SurvListRemoveParam ( UINT8 bListIndex );
+void    SurvListUpdateParam ( UINT8 bListIndex, SURV_PARAM_STATE_TYPE state );
+void    SurvListAddParam    ( SURV_PARAM_ID_TYPE parameter, SURV_PARAM_STATE_TYPE state );
+UINT8   SurvListGetIndex    ( SURV_PARAM_ID_TYPE parameter );
+UINT8   SurvListGetCount    ( UINT8 statemask );
+void    SurvListShow        ( void );
+
+
+SURV_PARAM_STATE_TYPE SurvListGetParamState         (SURV_PARAM_ID_TYPE parameter);
 
 
 #endif // _SURVEILL_H
