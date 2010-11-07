@@ -69,6 +69,14 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.0  2010/11/07 13:25:12  tuberkel
+ * V30 Preparations:
+ * - Object Handling reviewed
+ * - BugFix in Blinking Cursor in Editmode
+ * - BugFix in ODS() Makros
+ * - EditBoolObj with new 'Box' appearence
+ * - SelectObj with optimized output
+ *
  * Revision 2.9  2009/07/22 12:42:31  tuberkel
  * Just comments
  *
@@ -177,6 +185,7 @@ ERRCODE ObjBmpShow( BMPOBJECT far * pObject)
  *********************************************************************** */
 ERRCODE ObjBmpInit( BMPOBJECT_INITTYPE far * fpInitData)
 {
+    fpInitData->fpObject->eType           = OBJT_BMP;
     fpInitData->fpObject->State.byte      = fpInitData->bState;
     fpInitData->fpObject->Org.wXPos       = fpInitData->wOrgPosX;
     fpInitData->fpObject->Org.wYPos       = fpInitData->wOrgPosY;
@@ -226,6 +235,8 @@ ERRCODE ObjTextShow( TEXTOBJECT far * pObject)
     {
         /* this is a static text element which already has been shown */
         /* ==>nothing to do! */
+        return ERR_OK;
+
         // TBD: NOT YET IMPLEMENTED!
         // If this code is active, any text object has to be reseted
         // whenever the screen/device is de-focused!
@@ -296,16 +307,16 @@ ERRCODE ObjTextShow( TEXTOBJECT far * pObject)
  *********************************************************************** */
 ERRCODE ObjTextInit(    TEXTOBJECT_INITTYPE far * fpInitData )
 {
-    /* copy text object data */
-    fpInitData->fpObject->Org.wXPos      = fpInitData->wOrgPosX;
-    fpInitData->fpObject->Org.wYPos      = fpInitData->wOrgPosY;
-    fpInitData->fpObject->eFont          = fpInitData->eFont;
-    fpInitData->fpObject->Window.bHeight = fpInitData->bWindHeight;
-    fpInitData->fpObject->Window.bWidth  = fpInitData->bWindWidth;
-    fpInitData->fpObject->eAlign         = fpInitData->eAlign;
-    fpInitData->fpObject->eFormat        = fpInitData->eFormat;
-    fpInitData->fpObject->szText         = fpInitData->szText;
-    fpInitData->fpObject->State.byte     = fpInitData->bState;
+    fpInitData->fpObject->eType           = OBJT_TXT;
+    fpInitData->fpObject->Org.wXPos       = fpInitData->wOrgPosX;
+    fpInitData->fpObject->Org.wYPos       = fpInitData->wOrgPosY;
+    fpInitData->fpObject->eFont           = fpInitData->eFont;
+    fpInitData->fpObject->Window.bHeight  = fpInitData->bWindHeight;
+    fpInitData->fpObject->Window.bWidth   = fpInitData->bWindWidth;
+    fpInitData->fpObject->eAlign          = fpInitData->eAlign;
+    fpInitData->fpObject->eFormat         = fpInitData->eFormat;
+    fpInitData->fpObject->szText          = fpInitData->szText;
+    fpInitData->fpObject->State.byte      = fpInitData->bState;
 
     return ERR_OK;
 }
@@ -345,25 +356,31 @@ ERRCODE ObjEditTextShow( EDITTEXTOBJECT far * pObject, UINT8 bUpdateMode )
     PixelCoord.wYPos = pObject->Org.wYPos;      /* local y pos */
 
     /* ------------------------------------- */
-    /* show descriptor & frame */
-    if (bUpdateMode & SHOW_DESCR)
+    /* going to show the descriptor */
+    if ( bUpdateMode && SHOW_DESCR )
     {
-        /* clear buffer  */
-        memset( szOutText, 0x0, TXTTEMPBUFF);
+        /* descriptor/all not yet been shown? */
+        if ( pObject->State.bits.fDisplayed == FALSE )
+        {
+            /* clear buffer  */
+            memset( szOutText, 0x0, TXTTEMPBUFF);
 
-        /* handling output mode */
-        bMode = DPLNORM;                    /* always show normal */
+            /* handling output mode */
+            bMode = DPLNORM;                    /* always show normal */
 
-        /* get & show descriptor at left side */
-        strncpy(szOutText, pObject->szDescr, strlen(pObject->szDescr));
-        PixelCoord.wXPos = pObject->Org.wXPos;
-        DisplPrintAString( szOutText, &PixelCoord, pObject->eFont, bMode );
+            /* get & show descriptor at left side */
+            strncpy(szOutText, pObject->szDescr, strlen(pObject->szDescr));
+            PixelCoord.wXPos = pObject->Org.wXPos;
+            DisplPrintAString( szOutText, &PixelCoord, pObject->eFont, bMode );
+
+            /* save that state */
+            pObject->State.bits.fDisplayed = TRUE;
+        }
     }
 
     /* ------------------------------------- */
     /* show edit text */
-    if (  (bUpdateMode & SHOW_DESCR)
-        ||(bUpdateMode & SHOW_EDIT ) )
+    if ( bUpdateMode && SHOW_EDIT )
     {
         /* clear buffer to spaces */
         memset( szOutText, 0x20, TXTTEMPBUFF);
@@ -398,9 +415,7 @@ ERRCODE ObjEditTextShow( EDITTEXTOBJECT far * pObject, UINT8 bUpdateMode )
 
     /* ------------------------------------- */
     /* show char under cursor, if necesary */
-    if (  (bUpdateMode & SHOW_DESCR  )
-        ||(bUpdateMode & SHOW_EDIT   )
-        ||(bUpdateMode & SHOW_CURSOR ) )
+    if ( bUpdateMode && SHOW_DESCR )
     {
         if (  (pObject->State.bits.fSelected   == TRUE )           /* we are focused? */
             &&(pObject->State.bits.fEditActive == TRUE ) )         /* edit mode is active? */
@@ -443,6 +458,7 @@ ERRCODE ObjEditTextInit( EDITTEXT_INITTYPE far * fpInitData )
         return ERR_PARAM_ERR;
 
     /* copy object data */
+    fpInitData->fpObject->eType          = OBJT_ETXT;
     fpInitData->fpObject->Org.wXPos      = fpInitData->wOrgPosX;         /* X origin in pixel coord. (0 = left) */
     fpInitData->fpObject->Org.wYPos      = fpInitData->wOrgPosY;         /* Y origin in pixel coord. (0 = upper) */
     fpInitData->fpObject->eFont          = fpInitData->eFont;            /* used font */
@@ -874,15 +890,15 @@ ERRCODE ObjEditNumInit( EDITNUMBER_INITTYPE far * fpInitData )
         return ERR_PARAM_ERR;
     }
 
-
     /* copy object data */
+    fpInitData->fpObject->eType         = OBJT_ENUM;
     fpInitData->fpObject->Org.wXPos     = fpInitData->wOrgPosX;         /* X origin in pixel coord. (0 = left) */
     fpInitData->fpObject->Org.wYPos     = fpInitData->wOrgPosY;         /* Y origin in pixel coord. (0 = upper) */
     fpInitData->fpObject->eFont         = fpInitData->eFont;            /* used font */
     fpInitData->fpObject->Window.bWidth = fpInitData->bWindWidth;       /* text windows width in chars */
     fpInitData->fpObject->fpNumber      = fpInitData->fpNumber;         /* original number to be edited */
     fpInitData->fpObject->fpWorkNumber  = fpInitData->fpWorkNumber;     /* number copy to be edited */
-    fpInitData->fpObject->eType         = fpInitData->eType;            /* type of number */
+    fpInitData->fpObject->eNumType      = fpInitData->eNumType;         /* type of number */
     fpInitData->fpObject->Limits.lMin   = fpInitData->lMin;             /* min limit */
     fpInitData->fpObject->Limits.lMax   = fpInitData->lMax;             /* max limit */
     fpInitData->fpObject->Limits.lStep  = fpInitData->lStepSize;        /* step size */
@@ -1072,7 +1088,7 @@ ERRCODE ObjEditNumMsgEntry( EDITNUMBEROBJECT far * fpObject, MESSAGE GivenMsg )
 ERRCODE ObjEditNumCopy(EDITNUMBEROBJECT far * fpObject, BOOL fCopy)
 {
     UINT8   bNumberOfBytes = 0;
-    switch (fpObject->eType)
+    switch (fpObject->eNumType)
     {
         case eUCHAR:
         case eCHAR:
@@ -1138,7 +1154,7 @@ STRING ObjEditNum2String( EDITNUMBEROBJECT far * fpObject, STRING szTargetBuffer
 
     /* ------------------------------------- */
     /* convert number into string */
-    switch (fpObject->eType)
+    switch (fpObject->eNumType)
     {
         case eUCHAR:
             itoa( *(UINT8 far *)fpNumber, szTargetBuffer, iRadix);
@@ -1280,7 +1296,7 @@ ERRCODE ObjEditNumToggleNum(EDITNUMBEROBJECT far * fpObject, MESSAGE_ID MsgID)
     bCursorVal = bCharToByte(cCursorChar[0]);               /* convert ascii char into byte format */
 
     /* check used data type */
-    switch (fpObject->eType)
+    switch (fpObject->eNumType)
     {
         /* === 8 bit unsigned value ======================== */
         case eUCHAR:
@@ -1318,7 +1334,7 @@ ERRCODE ObjEditNumToggleNum(EDITNUMBEROBJECT far * fpObject, MESSAGE_ID MsgID)
                     {
                         *fpValue -= bStep;
                         //ODS6(DBG_SYS, DBG_INFO, "[-%u]: %u (Min:%u Max:%u Base:%u Exp:%u)", bStep, *fpValue, bLowLimit, bUpLimit, bBase, bExp);
-                        ODS2(DBG_SYS, DBG_INFO, "[-%u]: %u", bStep, *fpValue);
+                        ODS2(DBG_SYS, DBG_INFO, "[-%lu]: %lu", (UINT32)bStep, (UINT32)*fpValue);
                     }
                 break;
                 /* UP: increment */
@@ -1329,7 +1345,7 @@ ERRCODE ObjEditNumToggleNum(EDITNUMBEROBJECT far * fpObject, MESSAGE_ID MsgID)
                     {
                         *fpValue += bStep;
                         //ODS6(DBG_SYS, DBG_INFO, "[+%u]: %u (Min:%u Max:%u Base:%u Exp:%u)", bStep, *fpValue, bLowLimit, bUpLimit, bBase, bExp);
-                        ODS2(DBG_SYS, DBG_INFO, "[+%u]: %u ", bStep, *fpValue);
+                        ODS2(DBG_SYS, DBG_INFO, "[+%lu]: %lu ", (UINT32)bStep, (UINT32)*fpValue);
                     }
                 break;
                 default: break;
@@ -1635,7 +1651,7 @@ UINT8 bCharToByte(CHAR cChar)
  *  PARAMETER:      fpObject         ptr edit num object
  *                  bUpdateMode      to show single parts only
  *  RETURN:         ERR_OK
- *  COMMENT:        uses the form "descriptor:   [number] unit"
+ *  COMMENT:        uses the form "descriptor:   [bool]"
  *                  NOTE:   This function only works with FIXED font sizes
  *                          over all characters (non proportional!)
  *
@@ -1688,18 +1704,16 @@ ERRCODE ObjEditBoolShow( EDITBOOLOBJECT far * fpObject, UINT8 bUpdateMode )
         bMode = 0x0;                                   /* default mode */
         if (  (fpObject->State.bits.fSelected   == TRUE )
             &&(fpObject->State.bits.fEditActive == FALSE) )
-                bMode = DPLINVERS;                         /* show focused */
+        { bMode = DPLINVERS; }                         /* show focused */
 
         /* convert boolean value into a displayable icon */
-        strcpy(szOutText, EDITBOOL_TEXTFIELD);
         if (*fpObject->fpValue == TRUE)
-             szOutText[1] = EDITBOOL_TEXTTRUE;      // show TRUE indicator
+             { strcpy(szOutText, EDITBOOL_TEXT_TRUE);  }
+        else { strcpy(szOutText, EDITBOOL_TEXT_FALSE); }
 
         /* set pixel coordinates: begin of bool icon */
-        PixelCoord.wXPos =   fpObject->Org.wXPos
-                            + bCharWidth
-                            * (  fpObject->Window.bWidth
-                               - EDITBOOL_TEXTWIDTH );
+        PixelCoord.wXPos =    fpObject->Org.wXPos
+                            + (bCharWidth * ( fpObject->Window.bWidth - EDITBOOL_TEXT_WIDTH ));
 
         /* show bool value */
         DisplPrintAString( szOutText, &PixelCoord, fpObject->eFont, bMode );
@@ -1714,10 +1728,10 @@ ERRCODE ObjEditBoolShow( EDITBOOLOBJECT far * fpObject, UINT8 bUpdateMode )
         if (  (fpObject->State.bits.fSelected   == TRUE )           /* we are focused? */
             &&(fpObject->State.bits.fEditActive == TRUE ) )         /* edit mode is active? */
         {
-            /* convert boolean value into a displayable icon */
-            strcpy(szOutText, EDITBOOL_TEXTFIELD);
+            /* convert boolean WORK value into a displayable icon */
             if (*fpObject->fpWorkValue == TRUE)
-                 szOutText[1] = EDITBOOL_TEXTTRUE;      // show TRUE indicator
+                 { strcpy(szOutText, EDITBOOL_TEXT_TRUE);  }
+            else { strcpy(szOutText, EDITBOOL_TEXT_FALSE); }
 
             /* handling cursor blink phase */
             if (fpObject->State.bits.fCursorOn  == TRUE )           /* cursur blink is in ON phase? */
@@ -1726,9 +1740,7 @@ ERRCODE ObjEditBoolShow( EDITBOOLOBJECT far * fpObject, UINT8 bUpdateMode )
 
             /* set pixel coordinates: begin of bool icon */
             PixelCoord.wXPos =   fpObject->Org.wXPos
-                                + bCharWidth
-                                * (  fpObject->Window.bWidth
-                                   - EDITBOOL_TEXTWIDTH );
+                                + ( bCharWidth * ( fpObject->Window.bWidth - EDITBOOL_TEXT_WIDTH ) );
 
             /* show cursor */
             DisplPrintAString( szOutText, &PixelCoord, fpObject->eFont, bMode );
@@ -1752,12 +1764,8 @@ ERRCODE ObjEditBoolInit(EDITBOOL_INITTYPE far * fpInitData )
 {
     EDITBOOLOBJECT fpObject;
 
-    /* check parameters first */
-    if (fpInitData->fpObject == NULL)
-         return ERR_PARAM_ERR;
-
     /* descr + text + border fits into window? */
-    if ( (strlen(fpInitData->szDescr) + EDITBOOL_TEXTWIDTH ) > fpInitData->bWindWidth)
+    if ( (strlen(fpInitData->szDescr) + EDITBOOL_TEXT_WIDTH ) > fpInitData->bWindWidth)
     {
         ODS(DBG_USER, DBG_WARNING, "ObjEditBoolInit() Object does not fit into window!");
         fpInitData->fpObject->State.byte = 0;   // object remains completely disabled
@@ -1765,6 +1773,7 @@ ERRCODE ObjEditBoolInit(EDITBOOL_INITTYPE far * fpInitData )
     }
 
     /* copy const rom data into object data */
+    fpInitData->fpObject->eType         = OBJT_EBOOL;
     fpInitData->fpObject->Org.wXPos     = fpInitData->wOrgPosX;     /* X origin in pixel coord. (0 = left) */
     fpInitData->fpObject->Org.wYPos     = fpInitData->wOrgPosY;     /* Y origin in pixel coord. (0 = upper) */
     fpInitData->fpObject->eFont         = fpInitData->eFont;        /* used font */
@@ -1837,7 +1846,7 @@ ERRCODE ObjEditBoolMsgEntry( EDITBOOLOBJECT far * fpObject, MESSAGE GivenMsg )
             /* EDITMODE IS ALREADY ACTIVE! */
 
             /* ------------------------------------------------------------------------ */
-            RValue = ERR_MSG_PROCESSED;                         /* we used the msg in any way */
+            RValue = ERR_MSG_PROCESSED;                     /* we used the msg in any way */
 
             /* ------------------------------------------------------------------------ */
             if ( MsgId == MSG_DPL_FLASH_OFF )               /* FLASH OFF */
@@ -1860,7 +1869,7 @@ ERRCODE ObjEditBoolMsgEntry( EDITBOOLOBJECT far * fpObject, MESSAGE GivenMsg )
             else if (  (MsgId == MSG_KEY_OK   )                 /* [OK] */
                      &&(MSG_KEY_TRANSITION(GivenMsg) == KEYTRANS_PRESSED) ) /* pressed the first time?*/
             {                                                   /* [OK] pressed 'short'! */
-                // no reaction
+                // no reaction, user has to press OK long to save!
             }
             /* ------------------------------------------------------------------------ */
             else if (  (MsgId == MSG_KEY_OK   )                 /* [OK] */
@@ -1868,7 +1877,7 @@ ERRCODE ObjEditBoolMsgEntry( EDITBOOLOBJECT far * fpObject, MESSAGE GivenMsg )
             {                                                   /* [OK] pressed 'long'! */
                 *fpObject->fpValue = *fpObject->fpWorkValue;    /* save the working copy into target */
                 fpObject->State.bits.fEditActive = FALSE;       /* user ended edit mode! */
-                ODS1(DBG_USER, DBG_INFO, "EditBool saved [%s]", (*fpObject->fpValue==TRUE)? "x" : "_" );
+                ODS1(DBG_USER, DBG_INFO, "EditBool saved [%s]", (*fpObject->fpValue==TRUE)? "1" : "0" );
                 LEDOk();                                        /* additional 'saved' indicator */
                 BeepOk();                                       /* additional 'saved' indicator */
             }
@@ -1883,12 +1892,18 @@ ERRCODE ObjEditBoolMsgEntry( EDITBOOLOBJECT far * fpObject, MESSAGE GivenMsg )
             }
 
             /* ------------------------------------------------------------------------ */
-            else if (  (MsgId == MSG_KEY_DOWN )                             /* [DOWN] (short/long pressed) */
-                     &&(MSG_KEY_TRANSITION(GivenMsg) == KEYTRANS_PRESSED))  /* AND pressed the FIRST time?*/
+            else if (  (MsgId == MSG_KEY_DOWN )                             /* [DOWN] */
+                     &&(MSG_KEY_TRANSITION(GivenMsg) == KEYTRANS_ON ) )     /* longer pressed?*/
             {
-                /* set TRUE boolean state! */
+                // no reaction, no key repetition, just ignore...
+            }
+            /* ------------------------------------------------------------------------ */
+            else if (  (MsgId == MSG_KEY_DOWN )                             /* [DOWN]  */
+                     &&(MSG_KEY_TRANSITION(GivenMsg) == KEYTRANS_PRESSED) ) /* pressed the first time?*/
+            {
+                /* set FALSE boolean state! */
                 *fpObject->fpWorkValue = FALSE;
-                ODS1(DBG_USER, DBG_INFO, "EditBool set to [%s]!", (*fpObject->fpWorkValue==TRUE)? "x" : "_" );
+                ODS(DBG_USER, DBG_INFO, "EditBool set to 0!");
 
                 /* re-initiate cursor flashing */
                 MSG_FLASH_OFF(NewMsg);                          /* remove all pending cursor OFF messages */
@@ -1901,12 +1916,18 @@ ERRCODE ObjEditBoolMsgEntry( EDITBOOLOBJECT far * fpObject, MESSAGE GivenMsg )
                 SetTimerMsg(NewMsg, FLASH_ON_TIME);             /* delay: cursor ON time */
             }
             /* ------------------------------------------------------------------------ */
-            else if (  (MsgId == MSG_KEY_UP )                               /* [UP] (short/long pressed) */
-                     &&(MSG_KEY_TRANSITION(GivenMsg) == KEYTRANS_PRESSED))  /* AND pressed the FIRST time?*/
+            else if (  (MsgId == MSG_KEY_UP )                           /* [UP]  */
+                     &&(MSG_KEY_TRANSITION(GivenMsg) == KEYTRANS_ON ) ) /* longer pressed?*/
+            {
+                // no reaction, no key repetition, just ignore...
+            }
+            /* ------------------------------------------------------------------------ */
+            else if (  (MsgId == MSG_KEY_UP )                             /* [UP]  */
+                     &&(MSG_KEY_TRANSITION(GivenMsg) == KEYTRANS_PRESSED) ) /* pressed the first time?*/
             {
                 /* set TRUE boolean state! */
                 *fpObject->fpWorkValue = TRUE;
-                ODS1(DBG_USER, DBG_INFO, "EditBool set to [%s]!", (*fpObject->fpWorkValue==TRUE)? "x" : "_" );
+                ODS(DBG_USER, DBG_INFO, "EditBool set to 1!");
 
                 /* re-initiate cursor flashing */
                 MSG_FLASH_OFF(NewMsg);                          /* remove all pending cursor OFF messages */
@@ -1961,6 +1982,7 @@ ERRCODE ObjSelectShow( SELECTOBJECT far * fpObject, UINT8 bUpdateMode )
     DISPLXY     PixelCoord;                 /* coord of text parts (lines) */
     UINT8       bMode;                      /* selected display modes */
     CHAR        rgTextBuffer[TXTTEMPBUFF];  /* textbuffer for output purpose */
+    CHAR        rgEmptyText[TXTTEMPBUFF];   /* for clear purpose */
     STRING      szOutText;                  /* pointer to output string */
     DISPLXY     DisplayCaps;                /* display dimensions */
     UINT8       bXTextOffset;               /* x offset of edit text in text window oin pixel */
@@ -1972,9 +1994,10 @@ ERRCODE ObjSelectShow( SELECTOBJECT far * fpObject, UINT8 bUpdateMode )
         return ERR_OK;
 
     /* init stuff */
-    szOutText = &rgTextBuffer[0];                   /* set target buffer ptr */
+    szOutText  = &rgTextBuffer[0];                  /* set target buffer ptr */
     bCharWidth = GetFontWidth(fpObject->eFont);     /* for offset calculations */
     PixelCoord.wYPos = fpObject->Org.wYPos;         /* static y pos */
+    memset(rgEmptyText, CHAR_SPACE, TXTTEMPBUFF);   /* generate an empty string */
 
     /* ------------------------------------- */
     /* show descriptor & units */
@@ -1984,7 +2007,7 @@ ERRCODE ObjSelectShow( SELECTOBJECT far * fpObject, UINT8 bUpdateMode )
         bMode = DPLNORM;                                                    /* always show normal */
 
         /* --------------------------- */
-        /* decriptor stuff: */
+        /* descriptor stuff: */
         memset( rgTextBuffer, 0x0, TXTTEMPBUFF);                            /* clear buffer to spaces */
         strncpy(szOutText, fpObject->szDescr, strlen(fpObject->szDescr));   /* get descriptor string */
         PixelCoord.wXPos = fpObject->Org.wXPos;                             /* show descriptor at left side */
@@ -1996,22 +2019,27 @@ ERRCODE ObjSelectShow( SELECTOBJECT far * fpObject, UINT8 bUpdateMode )
     if (  (bUpdateMode & SHOW_DESCR)
         ||(bUpdateMode & SHOW_EDIT ) )
     {
-        /* handling output mode */
-        bMode = 0x0;                                        /* default mode */
-        if (  (fpObject->State.bits.fSelected   == TRUE )
-            &&(fpObject->State.bits.fEditActive == FALSE) )
-                bMode = DPLINVERS;                          /* show focused */
+        // use this case in NON-EDIT mode only! (else: see below 'SHOW_CURSOR')
+        if (fpObject->State.bits.fEditActive == FALSE)
+        {
+            /* handling output mode */
+            bMode = DPLNORM;                                    /* default mode */
+            if ( fpObject->State.bits.fSelected == TRUE )
+                    bMode = DPLINVERS;                          /* show focused */
+            else    bMode = DPLUNDERL;                          /* show unfocused */
 
-        /* convert enum value into a selection text */
-        szOutText = fpObject->pszSlctTxtList[*fpObject->fpValue];
+            /* convert ORIGINAL enum value into a selection text (and clip if too long)*/
+            strcpy(szOutText, fpObject->pszSlctTxtList[*fpObject->fpValue]);
+            szOutText[fpObject->bSelectWidth] = 0x00;
 
-        /* set pixel coordinates: begin of selection text */
-        PixelCoord.wXPos =     fpObject->Org.wXPos
-                            +  bCharWidth
-                            * (fpObject->Window.bWidth - fpObject->bSelectWidth);
+            /* set pixel coordinates: begin of selection text */
+            PixelCoord.wXPos =     fpObject->Org.wXPos
+                                +  bCharWidth
+                                * (fpObject->Window.bWidth - fpObject->bSelectWidth);
 
-        /* show bool value */
-        DisplPrintAString( szOutText, &PixelCoord, fpObject->eFont, bMode );
+            /* show select value */
+            DisplPrintAString( szOutText,   &PixelCoord, fpObject->eFont, bMode  );
+        }
     }
 
     /* ------------------------------------- */
@@ -2023,8 +2051,9 @@ ERRCODE ObjSelectShow( SELECTOBJECT far * fpObject, UINT8 bUpdateMode )
         if (  (fpObject->State.bits.fSelected   == TRUE )           /* we are focused? */
             &&(fpObject->State.bits.fEditActive == TRUE ) )         /* edit mode is active? */
         {
-            /* convert enum value into a selection text */
-            szOutText = fpObject->pszSlctTxtList[*fpObject->fpWorkValue];
+            /* convert WORK enum value into a selection text (and clip if too long)*/
+            strcpy(szOutText, fpObject->pszSlctTxtList[*fpObject->fpWorkValue]);
+            szOutText[fpObject->bSelectWidth] = 0x00;
 
             /* handling cursor blink phase */
             if (fpObject->State.bits.fCursorOn  == TRUE )           /* cursur blink is in ON phase? */
@@ -2036,8 +2065,13 @@ ERRCODE ObjSelectShow( SELECTOBJECT far * fpObject, UINT8 bUpdateMode )
                                 +  bCharWidth
                                 * (fpObject->Window.bWidth - fpObject->bSelectWidth);
 
-            /* show cursor */
-            DisplPrintAString( szOutText, &PixelCoord, fpObject->eFont, bMode );
+            /* show select value */
+            DisplPrintAString( szOutText,   &PixelCoord, fpObject->eFont, bMode  );
+
+            /* clear rest of line */
+            rgEmptyText[fpObject->bSelectWidth - strlen(szOutText)] = 0x00;
+            PixelCoord.wXPos += bCharWidth * strlen(szOutText);
+            DisplPrintAString( rgEmptyText, &PixelCoord, fpObject->eFont, DPLNORM );
         }
     }
     /* else: nothing to do... */
@@ -2056,7 +2090,6 @@ ERRCODE ObjSelectShow( SELECTOBJECT far * fpObject, UINT8 bUpdateMode )
  *********************************************************************** */
 ERRCODE ObjSelectInit(  SELECT_INITTYPE far * fpInitData )
 {
-    /* check parameters first */
     /* descr + text + border fits into window? */
     if ( (strlen(fpInitData->szDescr) + fpInitData->bSelectWidth ) > fpInitData->bWindWidth)
     {
@@ -2066,6 +2099,7 @@ ERRCODE ObjSelectInit(  SELECT_INITTYPE far * fpInitData )
     }
 
     /* copy rom init data into object data */
+    fpInitData->fpObject->eType          = OBJT_SLCT;
     fpInitData->fpObject->Org.wXPos      = fpInitData->wOrgPosX;        /* X origin in pixel coord. (0 = left) */
     fpInitData->fpObject->Org.wYPos      = fpInitData->wOrgPosY;        /* Y origin in pixel coord. (0 = upper) */
     fpInitData->fpObject->eFont          = fpInitData->eFont;           /* used font */
@@ -2178,19 +2212,24 @@ ERRCODE ObjSelectMsgEntry( SELECTOBJECT far * fpObject, MESSAGE GivenMsg )
                 LEDEsc();                                       /* additional 'ESC' indicator */
                 BeepEsc();                                      /* additional 'ESC' indicator */
             }
-
             /* ------------------------------------------------------------------------ */
-            else if (  (MsgId == MSG_KEY_DOWN )                             /* [DOWN] (short/long pressed) */
-                     &&(MSG_KEY_TRANSITION(GivenMsg) == KEYTRANS_PRESSED))  /* AND pressed the FIRST time?*/
+            else if (  (MsgId == MSG_KEY_DOWN )                             /* [DOWN] */
+                     &&(MSG_KEY_TRANSITION(GivenMsg) == KEYTRANS_ON ) )     /* longer pressed?*/
+            {
+                // no reaction, no key repetition, just ignore...
+            }
+            /* ------------------------------------------------------------------------ */
+            else if (  (MsgId == MSG_KEY_DOWN )                             /* [DOWN]  */
+                     &&(MSG_KEY_TRANSITION(GivenMsg) == KEYTRANS_PRESSED) ) /* pressed the first time?*/
             {
                 /* set new selection value! */
-                /* decrement, if not already MIN */
-                if(*fpObject->fpWorkValue > 0)
-                {   (*fpObject->fpWorkValue)--;
+                /* increment, if not already MAX */
+                if(*fpObject->fpWorkValue < (fpObject->u8Max - 1))
+                {   (*fpObject->fpWorkValue)++;
                     ODS1(DBG_USER, DBG_INFO, "Select changed to [%u]", *fpObject->fpWorkValue );
                 }
                 else
-                {   ODS1(DBG_USER, DBG_INFO, "Select reached lower limit [%u]", *fpObject->fpWorkValue );
+                {   ODS1(DBG_USER, DBG_INFO, "Select reached upper limit [%u]", *fpObject->fpWorkValue );
                 }
 
                 /* re-initiate cursor flashing */
@@ -2204,17 +2243,23 @@ ERRCODE ObjSelectMsgEntry( SELECTOBJECT far * fpObject, MESSAGE GivenMsg )
                 SetTimerMsg(NewMsg, FLASH_ON_TIME);             /* delay: cursor ON time */
             }
             /* ------------------------------------------------------------------------ */
-            else if (  (MsgId == MSG_KEY_UP )                               /* [UP] (short/long pressed) */
-                     &&(MSG_KEY_TRANSITION(GivenMsg) == KEYTRANS_PRESSED))  /* AND pressed the FIRST time?*/
+            else if (  (MsgId == MSG_KEY_UP )                           /* [UP]  */
+                     &&(MSG_KEY_TRANSITION(GivenMsg) == KEYTRANS_ON ) ) /* longer pressed?*/
+            {
+                // no reaction, no key repetition, just ignore...
+            }
+            /* ------------------------------------------------------------------------ */
+            else if (  (MsgId == MSG_KEY_UP )                             /* [UP]  */
+                     &&(MSG_KEY_TRANSITION(GivenMsg) == KEYTRANS_PRESSED) ) /* pressed the first time?*/
             {
                 /* set new selection value! */
-                /* increment, if not already MAX */
-                if(*fpObject->fpWorkValue < (fpObject->u8Max - 1))
-                {   (*fpObject->fpWorkValue)++;
+                /* decrement, if not already MIN */
+                if(*fpObject->fpWorkValue > 0)
+                {   (*fpObject->fpWorkValue)--;
                     ODS1(DBG_USER, DBG_INFO, "Select changed to [%u]", *fpObject->fpWorkValue );
                 }
                 else
-                {   ODS1(DBG_USER, DBG_INFO, "Select reached upper limit [%u]", *fpObject->fpWorkValue );
+                {   ODS1(DBG_USER, DBG_INFO, "Select reached lower limit [%u]", *fpObject->fpWorkValue );
                 }
 
                 /* re-initiate cursor flashing */

@@ -68,6 +68,14 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.0  2010/11/07 13:25:12  tuberkel
+ * V30 Preparations:
+ * - Object Handling reviewed
+ * - BugFix in Blinking Cursor in Editmode
+ * - BugFix in ODS() Makros
+ * - EditBoolObj with new 'Box' appearence
+ * - SelectObj with optimized output
+ *
  * Revision 2.5  2009/07/22 12:47:04  tuberkel
  * Just comments
  *
@@ -104,7 +112,7 @@
 /* general defines */
 #define TXTHEX          "0x"       /* for hex formated output */
 
-#define TXTTEMPBUFF     32         /* text temp buffer */
+#define TXTTEMPBUFF     34         /* text temp buffer - MUST BE GREATER THAN LONGEST DISPLAY TEXT LINE */
 
 /* flashing cursor */
 #define MSG_FLASH_ON(msg)    MSG_BUILD_UINT8(msg,MSG_DPL_FLASH_ON,0xff,0xff,0xff)
@@ -123,6 +131,25 @@
 
 
 /* -------------------------------------------
+   OBJECT TYPE NUMBER
+
+   to indicate the kind of object and select correct methods
+   while showing and providing with messages */
+typedef enum
+{
+    OBJT_BMP,        // bitmap object
+    OBJT_TXT,        // text object
+    OBJT_ETXT,       // edit text object
+    OBJT_ENUM,       // edit number object
+    OBJT_EBOOL,      // edit boolean object
+    OBJT_SLCT        // select object
+} OBJTYPE;
+
+
+
+
+
+/* -------------------------------------------
    OBJECT CAPAPILITIES AND STATE                */
 
 /* standard status flags for objects */
@@ -134,20 +161,20 @@
 /* capabilities and states struct (for bit access) */
 typedef struct
 {
-    char fDisplayable:1;    /* able to be shown in display */
-    char fSelectable :1;    /* able to focused, disabled underline too if FALSE */
-    char fEditable   :1;    /* able to be edited */
-    char fDynamic    :1;    /* able to change content (needs repaint) */
-    char fDisplayed  :1;    /* currently displayed (at least once, if fDynamic = 0) */
-    char fSelected   :1;    /* currently focused */
-    char fEditActive :1;    /* edit mode is currently active */
-    char fCursorOn   :1;    /* currently shows cursor (used to blink cursor) */
+    char fDisplayable:1;    /* capability: able to be shown in display */
+    char fSelectable :1;    /* capability: able to focused, disabled underline too if FALSE */
+    char fEditable   :1;    /* capability: able to be edited */
+    char fDynamic    :1;    /* capability: able to change content (needs repaint) */
+    char fDisplayed  :1;    /* state:      currently displayed (at least once, if fDynamic = 0) */
+    char fSelected   :1;    /* state:      currently focused */
+    char fEditActive :1;    /* state:      edit mode is currently active */
+    char fCursorOn   :1;    /* state:      currently shows cursor (used to blink cursor) */
 } OBJSTATEBF;
 
 
 /* defines for byte access level (same as OBJSTATEBF type) */
 #define OC_DISPL    0x01    /* capability: able to be shown in display */
-#define OC_SELECT   0x02    /* capability: able to focused */
+#define OC_SELECT   0x02    /* capability: able to be focused */
 #define OC_EDIT     0x04    /* capability: able to be edited */
 #define OC_DYN      0x08    /* capability: able to change content (needs repaint) */
 #define OS_DISPL    0x10    /* state:      currently displayed at least once (works together with OC_DYN) */
@@ -194,6 +221,29 @@ typedef enum
 
 
 
+
+/* ================================================ */
+/* DUMMY OBJECT - Dummy object data
+
+    dummy object features:
+
+        - just a helper to support common object properties
+        - supports object capabilities
+        - supports object type
+
+   ================================================ */
+typedef struct
+{
+    OBJSTATE    State;      /* MUST BE THE 1st: bitfields to handle display state */
+    OBJTYPE     eType;      /* MUST BE THE 2nd: object type indicator (always OBJ_BMP */
+} DUMMYOBJECT;
+
+
+
+
+
+
+
 /* ================================================ */
 /* BITMAP OBJECT - BMP object data
 
@@ -205,10 +255,11 @@ typedef enum
    ================================================ */
 typedef struct
 {
-    OBJSTATE    State;       /* MUST BE THE FIRST: bitfields to handle display state */
-    DISPLXY     Org;         /* bitmaps origin coordinates (0,0 = upper left corner ) */
-    BITMAP      Data;        /* bitmap height, width, addr raw data */
-    UINT8       bMode;       /* display mode (f.e. DPLNORM, DPLXOR, .. ) */
+    OBJSTATE    State;      /* MUST BE THE 1st: bitfields to handle display state */
+    OBJTYPE     eType;      /* MUST BE THE 2nd: object type indicator (always OBJ_BMP */
+    DISPLXY     Org;        /* bitmaps origin coordinates (0,0 = upper left corner ) */
+    BITMAP      Data;       /* bitmap height, width, addr raw data */
+    UINT8       bMode;      /* display mode (f.e. DPLNORM, DPLXOR, .. ) */
 } BMPOBJECT;
 
 /* BMP init data */
@@ -257,13 +308,14 @@ ERRCODE ObjBmpInit( BMPOBJECT_INITTYPE far * fpInitData );
    ======================================================= */
 typedef struct
 {
-    OBJSTATE    State;          /* MUST BE THE FIRST: bitfields to handle display state */
-    DISPLXY     Org;            /* origin in pixel coord. (0,0 = upper left) */
-    TXTWINDIM   Window;         /* text windows dimension (in char units) */
-    DPLFONT     eFont;          /* used font */
-    STRING      szText;         /* address of string to be displayed */
-    TXTALIGN    eAlign;         /* alignment of text in text window (left, right,..) */
-    TXTFORMAT   eFormat;        /* format of text in text window (normal, invers,..) */
+    OBJSTATE    State;      /* MUST BE THE FIRST: bitfields to handle display state */
+    OBJTYPE     eType;      /* MUST BE THE 2nd: object type indicator (always OBJ_TXT) */
+    DISPLXY     Org;        /* origin in pixel coord. (0,0 = upper left) */
+    TXTWINDIM   Window;     /* text windows dimension (in char units) */
+    DPLFONT     eFont;      /* used font */
+    STRING      szText;     /* address of string to be displayed */
+    TXTALIGN    eAlign;     /* alignment of text in text window (left, right,..) */
+    TXTFORMAT   eFormat;    /* format of text in text window (normal, invers,..) */
 } TEXTOBJECT;
 
 /* TextObject init data */
@@ -322,6 +374,7 @@ ERRCODE ObjTextInit( TEXTOBJECT_INITTYPE far *  fpInitData);
 typedef struct
 {
     OBJSTATE    State;          /* MUST BE THE FIRST: bitfields to handle display state */
+    OBJTYPE     eType;          /* MUST BE THE 2nd: object type indicator (always OBJ_ETXT) */
     DISPLXY     Org;            /* origin in pixel coord. (0,0 = upper left) */
     TXTWINDIM   Window;         /* text windows dimension (in chars units) */
     DPLFONT     eFont;          /* used font */
@@ -453,13 +506,14 @@ typedef struct
 typedef struct
 {
     OBJSTATE        State;              /* MUST BE THE FIRST: bitfields to handle display state */
+    OBJTYPE         eType;              /* MUST BE THE 2nd: object type indicator (always OBJ_ENUM) */
     DISPLXY         Org;                /* origin in pixel coord. (0,0 = upper left) */
     TXTWINDIM       Window;             /* text windows dimension (in chars units) */
     DPLFONT         eFont;              /* used font */
-    NUMTYPE         eType;              /* bit size and signed type of edit number */
+    NUMTYPE         eNumType;           /* bit size and signed type of edit number */
     NUMDPLTYPE      eDplType;           /* used display format (bin/dez/hex) */
     NUMMODETYPE     eMode;              /* used edit mode (eColumn/eStep) */
-    UINT8           bComma;             /* display '.' as a seperator (f.e.: 0='1234'; 1='123.4'; 2='12.34' */
+    UINT8           bComma;             /* displays '.' as a seperator at given position (f.e.: 0='1234'; 1='123.4'; 2='12.34' */
     EDTNUMLIMITS    Limits;             /* struct to contain value limits and incr. steps */
     void far *      fpNumber;           /* address of original number */
     STRING          szDescr;            /* address of description string (left aligned) */
@@ -481,7 +535,7 @@ typedef struct
     UINT8                   bWindWidth;
     void far *              fpNumber;
     void far *              fpWorkNumber;
-    NUMTYPE                 eType;
+    NUMTYPE                 eNumType;
     INT32                   lMin;
     INT32                   lMax;
     INT32                   lStepSize;
@@ -549,6 +603,7 @@ UINT8   bCharToByte         ( CHAR cChar);
 typedef struct
 {
     OBJSTATE        State;          /* MUST BE THE FIRST: bitfields to handle display state */
+    OBJTYPE         eType;          /* MUST BE THE 2nd: object type indicator (always OBJ_EBOOL) */
     DISPLXY         Org;            /* origin in pixel coord. (0,0 = upper left) */
     TXTWINDIM       Window;         /* text windows dimension (in chars units) */
     DPLFONT         eFont;          /* used font */
@@ -580,10 +635,12 @@ ERRCODE ObjEditBoolMsgEntry(EDITBOOLOBJECT      far * fpObject, MESSAGE msg );
 ERRCODE ObjEditBoolShow(    EDITBOOLOBJECT      far * fpObject, UINT8 bUpdateMode );
 ERRCODE ObjEditBoolInit(    EDITBOOL_INITTYPE   far * fpInitData );
 
-#define EDITBOOL_TEXTFIELD  "[ ]"           // bool text field, icl. state 'FALSE'
-//#define EDITBOOL_TEXTTRUE   SMALL_CROSS     // state TRUE indicator
-#define EDITBOOL_TEXTTRUE   CHAR_HOOK_OK    // state TRUE indicator
-#define EDITBOOL_TEXTWIDTH  3               // length of the '[_]' icon
+#define EDITBOOL_TEXT_WIDTH  2          // length of true/false indicator text in chars
+//#define EDITBOOL_TEXT_TRUE   "\x83\x84"   // state TRUE indicator dez 131+132 = CHAR_HOOK_L + R
+//#define EDITBOOL_TEXT_FALSE  "\x85\x86"   // state FALSE indicator
+#define EDITBOOL_TEXT_FALSE  "\x7f\x80"     // state TRUE indicator dez 127+128 = CHAR_HOOK_L + R
+#define EDITBOOL_TEXT_TRUE   "\x81\x82"     // state FALSE indicator dez 129+130 = CHAR_HOOK_L + R
+
 
 
 
@@ -631,6 +688,7 @@ ERRCODE ObjEditBoolInit(    EDITBOOL_INITTYPE   far * fpInitData );
 typedef struct
 {
     OBJSTATE        State;              /* MUST BE THE FIRST: bitfields to handle display state */
+    OBJTYPE         eType;              /* MUST BE THE 2nd: object type indicator (always OBJ_SLCT) */
     DISPLXY         Org;                /* origin in pixel coord. (0,0 = upper left) */
     TXTWINDIM       Window;             /* text windows dimension (in chars units) */
     DPLFONT         eFont;              /* used font */
