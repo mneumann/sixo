@@ -69,6 +69,12 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.0  2010/11/07 13:45:46  tuberkel
+ * V30 Preparations:
+ * - Device/Object Handling completely revised & simplified
+ * - changed BIKE Type logo handling
+ * - SW Version String adapted
+ *
  * Revision 2.9  2009/07/19 12:30:08  tuberkel
  * - ObjectInit reviewed
  *
@@ -140,34 +146,52 @@
 /* external symbols */
 extern UINT16           wMilliSecCounter;   /* valid values: 0h .. ffffh */
 extern STRING far       szDevName[];        /* device names */
-extern SYSFLAGS_TYPE    gSystemFlags;       /* system parameters */
+extern DEVFLAGS1_TYPE   gDeviceFlags1;      /* system parameters */
 extern SWVERS_TYPE      gSWID;              /* software id from eeprom */
 extern UINT8            gLogoSelection;     /* selected logo */
 extern BIKE_TYPE        gBikeType;          /* bike type selcetion */
-
+extern unsigned char    szSWVersion[];      /* formated sw version */
 
 /* local device data */
 static DEVDATA      IntroScreenDev;         /* this device */
 
 /* text objects */
 static TEXTOBJECT   SWVersionTxtObj;        /* version text object */
-static unsigned char szSWVersion[64];       /* buffer to contain formated sw id */
 
 
-static const TEXTOBJECT_INITTYPE TextObjects[] =
+/* text object table of this device */
+static const TEXTOBJECT_INITTYPE TextObjInit[] =
 {   /*pObject           X  Y   Font         H  Width  Align     Format    string ptr   State  */
     { &SWVersionTxtObj, 0, 57, DPLFONT_6X8, 1, 21,    TXT_LEFT, TXT_NORM, szSWVersion, OC_DISPL }
 };
-
+#define TEXTOBJECTLISTSIZE   (sizeof(TextObjInit)/sizeof(TEXTOBJECT_INITTYPE))
 
 
 /* bitmap object */
 extern const unsigned char far *    fpBikeLogos[];
 static BMPOBJECT                    SixoLogoBmpObj;         /* logo object */
-static const BMPOBJECT_INITTYPE     BmpObjects[] =          /* init data */
+
+
+/* bitmap object table of this device */
+static const BMPOBJECT_INITTYPE     BmpObjInit[] =          /* init data */
 {   /* object         x  y  w    h   raw data   mode     state */
     {&SixoLogoBmpObj, 0, 0, 128, 56, NULL,      DPLNORM, FALSE  }
 };
+#define BMPOBJECTLISTSIZE   (sizeof(BmpObjInit)/sizeof(BMPOBJECT_INITTYPE))
+
+
+/* this devices object focus handling - list of all objects */
+/* NOTE:    this device does not need any focus, this
+            list is for common object handling only! */
+static const void far * ObjectList[] =
+{
+    // all bitmap objects
+    (void far *) &SixoLogoBmpObj,
+    // all text objects
+    (void far *) &SWVersionTxtObj,
+};
+#define OBJECTLIST_SIZE   (sizeof(ObjectList)/sizeof(OBJSTATE)/sizeof(void far *))
+
 
 
 
@@ -194,13 +218,29 @@ ERRCODE IntroScreenInit(void)
     IntroScreenDev.fFocused     = FALSE;
     IntroScreenDev.fScreenInit  = FALSE;
 
-    /* init objects */
-    ObjBmpInit( &BmpObjects[0] );       /* logo object */
-    ObjTextInit( &TextObjects[0] );     /* sw version id */
+    /* initialize all objects of any type */
+    DevObjInit( &IntroScreenDev, (void far *)TextObjInit,   TEXTOBJECTLISTSIZE, OBJT_TXT  );
+    DevObjInit( &IntroScreenDev, (void far *)BmpObjInit,    BMPOBJECTLISTSIZE,  OBJT_BMP  );
+
+    /* initialize this devices objects list */
+    IntroScreenDev.Objects.ObjList       = ObjectList;
+    IntroScreenDev.Objects.ObjCount      = OBJECTLIST_SIZE;
+    IntroScreenDev.Objects.FirstSelObj   = DevObjGetFirstSelectable(&IntroScreenDev,ObjectList,OBJECTLIST_SIZE);
+    IntroScreenDev.Objects.LastSelObj    = DevObjGetLastSelectable (&IntroScreenDev,ObjectList,OBJECTLIST_SIZE);
+
+    /* reset focus handling to start values */
+    DevObjFocusReset( &IntroScreenDev, ObjectList, OBJECTLIST_SIZE );
 
     /* return */
+    ODS( DBG_SYS, DBG_INFO, "- IntroScreenInit() done!");
     return ERR_OK;
 }
+
+
+
+
+
+
 
 /***********************************************************************
  *  FUNCTION:       IntroScreenShow
@@ -230,62 +270,11 @@ void IntroScreenShow(BOOL fShow)
                     We have up to 21 characters space. Example:
                     'V12.13.11 BAGHIRA EDS' (E=Emulator, D=Debug, S=VehicleSimulation */
 
-        /* get formated sw version */
-        szSWVersion[0] = 0x0;
-        sprintf( szSWVersion, "V%u.%u.%u", gSWID.Fields.apl, gSWID.Fields.swv, gSWID.Fields.bld);
-
-
-        /* insert language */
-        strcat ( szSWVersion, "-");
-        strcat ( szSWVersion, RESTXT_LANG );
-
-        /* add formated bike version string depending on special compiler settings */
-        strcat ( szSWVersion, " ");
-        switch ( gBikeType )
-        {
-            case eBIKE_AFRICATWIN:     strcat ( szSWVersion, RESTXT_BIKESTRING_AT);     break;
-            case eBIKE_AFRICATWINRD07: strcat ( szSWVersion, RESTXT_BIKESTRING_ATRD07); break;
-            case eBIKE_R100GS:         strcat ( szSWVersion, RESTXT_BIKESTRING_R100GS); break;
-            case eBIKE_R1100GS:        strcat ( szSWVersion, RESTXT_BIKESTRING_R1100GS);break;
-            case eBIKE_F650:           strcat ( szSWVersion, RESTXT_BIKESTRING_F650);   break;
-            case eBIKE_BAGHIRA:        strcat ( szSWVersion, RESTXT_BIKESTRING_BAGHIRA);break;
-            case eBIKE_HUSQV:          strcat ( szSWVersion, RESTXT_BIKESTRING_HUSQV);  break;
-            case eBIKE_HUSQVRS:        strcat ( szSWVersion, RESTXT_BIKESTRING_HUSQVRS);break;
-            case eBIKE_KTM:            strcat ( szSWVersion, RESTXT_BIKESTRING_KTM);    break;
-            default:                   strcat ( szSWVersion, RESTXT_BIKESTRING_DEFAULT);break;
-        }
-
-        /* add MOTOBAU infos */
-        #if(BIKE_MOTOBAU==1)
-            strcat ( szSWVersion, " ");
-            strcat ( szSWVersion, RESTXT_BIKESTRING_MOTOBAU);
-        #endif // BIKE_MOTOBAU
-
-        /* add formated debug infos for special versions */
-        strcat ( szSWVersion, " ");
-        #if(DEBUG==1)
-            strcat ( szSWVersion, RESTXT_SWVER_DEBUG);
-        #endif
-        #if(MINIEMU==1)
-            strcat ( szSWVersion, RESTXT_SWVER_MINIEMU);
-        #endif
-        #if(VEHICSIM==1)
-            strcat ( szSWVersion, RESTXT_SWVER_VEHICSIM);
-        #endif
-        #if(HARDCOPY==1)
-            strcat ( szSWVersion, RESTXT_SWVER_HARDCOPY);
-        #endif
-        #if(COMPASS==1)
-            strcat ( szSWVersion, RESTXT_SWVER_COMPASS);
-        #endif
-
-        /* limit string to max 21 chars */
-        szSWVersion[21] = 0x0;
 
         /* do we have to repaint all? */
         if (IntroScreenDev.fScreenInit == FALSE)
         {
-            error = ObjBmpShow( &SixoLogoBmpObj );
+            error = ObjBmpShow ( &SixoLogoBmpObj );
             error = ObjTextShow( &SWVersionTxtObj );
             IntroScreenDev.fScreenInit  = TRUE;
         }
@@ -297,7 +286,16 @@ void IntroScreenShow(BOOL fShow)
     }
     else
     {
+        // clear screen
         DisplClearScreen(0x0);
+
+        // reset states of all objects of this device
+        DevObjClearState(  &IntroScreenDev,
+                            IntroScreenDev.Objects.ObjList,
+                            IntroScreenDev.Objects.ObjCount,
+                            OS_DISPL | OS_EDIT );
+
+        // reset devices screen state
         IntroScreenDev.fScreenInit  = FALSE;
     }
 }
@@ -361,7 +359,7 @@ ERRCODE IntroScreenMsgEntry(MESSAGE GivenMsg)
                             szDevName[DEVID_INTRO]) */ ;
                 IntroScreenDev.fFocused = TRUE;                         /* set our focus */
                 IntroScreenShow(TRUE);                                  /* show our screen */
-                gSystemFlags.flags.ActDevNr = DEVID_INTRO;                /* save device# for restore */
+                gDeviceFlags1.flags.ActDevNr = DEVID_INTRO;              /* save device# for restore */
                 RValue = ERR_MSG_PROCESSED;
              }
              else
@@ -406,7 +404,11 @@ ERRCODE IntroScreenMsgEntry(MESSAGE GivenMsg)
                     /* give focus immediatly to next device  */
                     IntroScreenDev.fFocused = FALSE;                                        /* clear our focus */
                     IntroScreenShow(FALSE);                                                 /* clear our screen */
-                    MSG_BUILD_SETFOCUS(NewMsg, DEVID_INTRO, DEVID_MAIN);
+                    #if(TESTSCREEN==1)
+                        MSG_BUILD_SETFOCUS(NewMsg, DEVID_INTRO, DEVID_TESTSCREEN);
+                    #else
+                        MSG_BUILD_SETFOCUS(NewMsg, DEVID_INTRO, DEVID_MAIN);
+                    #endif
                     MsgQPostMsg(NewMsg, MSGQ_PRIO_LOW);
                     RValue = ERR_MSG_PROCESSED;
                 }
@@ -444,13 +446,13 @@ ERRCODE IntroScreenChangeLogo(MESSAGE Msg)
     static UINT16   wLastChange = 0;
 
     /* get current time stamp */
-    #define LOGO_DELAY  1000    // in ms
+    #define CHANGE_LOGO_DELAY  1000    // in ms
     TimerGetSys_msec(wActTime);
 
     /* user presses UP/DOWN Button > 2 sec: change logo! */
     if (  (MsgId == MSG_KEY_UP                   )                /* [UP] */
         &&(MSG_KEY_DURATION(Msg) > KEYSAVE       )                /* pressed 'long'? */
-        &&( (wActTime - wLastChange) > LOGO_DELAY) )              /* delay? */
+        &&( (wActTime - wLastChange) > CHANGE_LOGO_DELAY) )              /* delay? */
     {
         if ( gLogoSelection > BIKELOGO_FIRST)
              gLogoSelection--;
@@ -460,7 +462,7 @@ ERRCODE IntroScreenChangeLogo(MESSAGE Msg)
     }
     else if (  (MsgId == MSG_KEY_DOWN                  )           /* [DOWN] */
              &&(MSG_KEY_DURATION(Msg) > KEYSAVE        )           /* pressed 'long'? */
-             &&( (wActTime - wLastChange) > LOGO_DELAY ) )         /* delay? */
+             &&( (wActTime - wLastChange) > CHANGE_LOGO_DELAY ) )         /* delay? */
     {
         if ( gLogoSelection < BIKELOGOG_LAST )
              gLogoSelection++;
