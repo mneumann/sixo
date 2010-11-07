@@ -99,9 +99,10 @@ typedef enum
 
 
 /* function protoypes */
-ERRCODE LEDDrvInit(BOOL fFlash);
-ERRCODE LEDDrvSetLED(LEDDRV_LEDS bLEDIndex, BOOL fActivate);
-ERRCODE LEDDrvSetBright(unsigned char bBrightness);
+ERRCODE LEDDrvInit      ( BOOL fFlash );
+ERRCODE LEDDrvSetLED    ( LEDDRV_LEDS bLEDIndex, BOOL fActivate);
+ERRCODE LEDDrvSetBright ( unsigned char bBrightness);
+BOOL    LEDDrvGetLED    ( LEDDRV_LEDS eLED );
 
 
 /* optional LED test functions (default: off) */
