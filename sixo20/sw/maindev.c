@@ -68,6 +68,12 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.0  2010/11/07 08:58:07  tuberkel
+ * V30 Preparations:
+ * - Device/Object Handling completely revised & simplified
+ * - Device-Substate introduced
+ * - Display Appearance reviewed (Gearbox Display, Icons)
+ *
  * Revision 2.7  2009/07/19 12:31:03  tuberkel
  * - ObjectInit reviewed
  *
@@ -133,190 +139,492 @@
 #define RPM_STRSIZE     6               /* to contain max. string '13500' U/Min */
 
 
-/* main device states
-   defines, which object to be shown under
-   line of tachometer */
+
+/* ============================================================= */
+/* Main Device objects */
+
+/* device appearance can be changed via up/down keys */
 typedef enum
 {
-    eMainFirst,         /* invalid state*/
-    eMainMonitor,       /* monitor sub screen (tempereatures, voltage...) */
-    eMainRPM,           /* show engine speed RPM */
-    eMainFuelKm,        /* show fuel distance */
-    eMainTrip1Km,       /* show TripCounter1 distance */
-    eMainTrip2Km,       /* show TripCounter2 distance */
-    eMainVehKm,         /* show vehicle overall distance */
-    eMainSpeedMax,      /* show Speed Max value */
-    eMainLast,          /* invalid state*/
-} MAINDEVSTATE;
+    MD_FIRST,       /* invalid state*/
 
+    MD_MONITOR,     /* monitor sub screen (tempereatures, voltage...) */
+    MD_RPM,         /* show engine speed RPM */
+    MD_FUEL,        /* show fuel distance */
+    MD_TRIP1,       /* show TripCounter1 distance */
+    MD_TRIP2,       /* show TripCounter2 distance */
+    MD_VEHDIST,   /* show vehicle overall distance */
+    MD_SPEEDMAX,    /* show Speed Max value */
+
+    MD_LAST,        /* invalid state*/
+} MAINDEV_STATE;
+
+
+// main device control structure (to handle ALL screens)
+typedef struct
+{   MAINDEV_STATE   eState;         // internal show state
+    DEVOBJLIST      List[MD_LAST];  // array of all list control structures
+} MAINDEV_CNTRL;
+
+static DEVDATA          MDObj;      // this device
+static MAINDEV_CNTRL    MDCntrl;    // special device show state control
+
+
+
+/* ============================================================= */
 /* external symbols */
-extern UINT16            wMilliSecCounter;                  /* valid values: 0h .. ffffh */
-extern STRING far        szDevName[];                       /* device names */
-extern SYSFLAGS_TYPE     gSystemFlags;                      /* system parameters */
-extern char              szVehicState[VEHSTATE_TXT_LEN];    /* vehicle state string */
+extern UINT16           wMilliSecCounter;                   /* valid values: 0h .. ffffh */
+extern UINT16           wSecCounter;                        /* valid values: 0h .. ffffh */
+extern STRING far       szDevName[];                        /* device names */
+extern DEVFLAGS1_TYPE   gDeviceFlags1;                      /* system parameters */
+extern char             szSurvGlobalState[VEHSTATE_TXT_LEN];/* vehicle state string */
 
 
-/* external bitmaps */
+
+/* ============================================================= */
+/* external Bitmap Raw data */
+
+
+/* bitmaps for main selection lower area */
 extern unsigned char far rgEnduroSymbol29x16[];     /* enduro symbol  */
+extern unsigned char far rgRPMSymbo16x16[];         /* big RPM symbol */
 extern unsigned char far rgFuelSymbo16x16[];        /* fuel symbol */
-extern unsigned char far rgFuelSymbol8x8[];         /* fuel symbol small */
-extern unsigned char far rgInfoSymbol16x16[];       /* info symbol */
-extern unsigned char far rgHazardSymbol16x16[];     /* Hazard symbol */
+
+/* bitmaps for info/warning/error display */
+extern unsigned char far rgInfoSymbol16x16[];       /* INFO symbol */
+extern unsigned char far rgWarningSymbol16x16[];    /* WARNING symbol */
+extern unsigned char far rgErrorSymbol16x16[];      /* ERROR symbol */
+
+/* bitmaps for monitor/measuremnt data  */
 extern unsigned char far rgOilSymbol8x8[];          /* oil symbol */
 extern unsigned char far rgWaterSymbol8x8[];        /* water symbol */
 extern unsigned char far rgTempSymbol8x8[];         /* temperature symbol */
 extern unsigned char far rgBatterySymbol8x8[];      /* battery symbol */
 extern unsigned char far rgClockSymbol8x8[];        /* clock symbol */
-extern unsigned char far rgRPMSymbol8x8[];          /* RPM symbol */
+extern unsigned char far rgRPMSymbol8x8[];          /* RPM symbol samll */
+extern unsigned char far rgFuelSymbol8x8[];         /* fuel symbol small */
+
+/* bitmaps for gear display  */
+extern unsigned char far rg7Seg_0_16x16[];          /* 7 segment bitmaps for gear display */
+extern unsigned char far rg7Seg_1_16x16[];
+extern unsigned char far rg7Seg_2_16x16[];
+extern unsigned char far rg7Seg_3_16x16[];
+extern unsigned char far rg7Seg_4_16x16[];
+extern unsigned char far rg7Seg_5_16x16[];
+extern unsigned char far rg7Seg_6_16x16[];
+extern unsigned char far rg7Seg_7_16x16[];
+extern unsigned char far rg7Seg_8_16x16[];
+extern unsigned char far rg7Seg_9_16x16[];
 
 
-/* device static objects */
-static DEVDATA      MainDevice;                 /* this device */
 
-static TEXTOBJECT   SpeedTxtObj;                /* speed text object */
-static TEXTOBJECT   SpeedDescTxtObj;            /* speed descriptor 'km/h' text object */
-static CHAR         szSpeed[6] = "0,0";         /* buffer for current speed, max. string '333,3' */
+/* --------------------------------------------- */
+/* upper area: speed display */
+static TEXTOBJECT   SpeedTxtObj;                /* speed text '000' object */
+static TEXTOBJECT   SpeedDescATxtObj;           /* speed descriptor 'km' (or 'mi' for EN) text object */
+static TEXTOBJECT   SpeedDescBTxtObj;           /* speed descriptor 'h' text object */
+static CHAR         szSpeed[4] = "0";           /* buffer for current speed, max. string '999' */
 
-static TEXTOBJECT   RPMTxtObj;                  /* rpm text object */
-static TEXTOBJECT   RPMDescTxtObj;              /* rpm descriptor 'U/Min' text object */
+
+/* --------------------------------------------- */
+/* lower area mode 1: Rounds Per Minute */
+static TEXTOBJECT   RPMTxtObj;                  /* rpm text '00000' object */
+static TEXTOBJECT   RPMDescTxtObj;              /* rpm descriptor 'U/Min' (or RPM for DE) text object */
 static CHAR         szRPM[6] = "0";             /* buffer current eng speed, max. string '13500' */
+static BMPOBJECT    RPMBmpObj;         /* symbol to indicate RPM */
 
+/* lower area mode 2: Fuel Distance */
 static TEXTOBJECT   FuelDistTxtObj;             /* fuel distance text object */
 static CHAR         szFuelDist[10] = "0,0";     /* buffer to contain fuel distance, max. string '9999999,9' */
-static BMPOBJECT    FuelSymbolBmpObj;           /* symbol to indicate fuel distance display mode */
+static BMPOBJECT    FuelDistBmpObj;           /* symbol to indicate fuel distance display mode */
 
+/* lower area mode 3: Vehicle Distance */
 static TEXTOBJECT   VehDistTxtObj;              /* vehicle distance text object */
 static CHAR         szVehDist[10] = "0,0";      /* buffer to contain fuel distance, max. string '9999999,9' */
-static BMPOBJECT    VehicSymbolBmpObj;          /* symbol to indicate vehicle distance display mode */
+static BMPOBJECT    VehDistBmpObj;          /* symbol to indicate vehicle distance display mode */
 
+/* lower area mode 4: TripCounter 1 Distance */
 static TEXTOBJECT   Trip1DescTxtObj;            /* tripcounter1 descriptor text object 'T1' */
 static TEXTOBJECT   Trip1DistTxtObj;            /* tripcounter1 distance text object */
 static CHAR         szTrip1Dist[10] = "0,0";    /* buffer to contain tripcounter1 distance, max. string '9999,9' */
 
+/* lower area mode 5: TripCounter 2 Distance */
 static TEXTOBJECT   Trip2DescTxtObj;            /* tripcounter1 descriptor text object 'T2' */
 static TEXTOBJECT   Trip2DistTxtObj;            /* tripcounter2 distance text object */
 static CHAR         szTrip2Dist[10] = "0,0";    /* buffer to contain tripcounter2 distance, max. string '9999,9' */
 
+/* lower area mode 2..5: common distance descriptor */
 static TEXTOBJECT   DistDescTxtObj;             /* COMMON vehicle & fuel distance decriptor for 'km' */
 
+
+/* lower area mode 6: Max Speed */
 static TEXTOBJECT   SpeedMaxDescTxtObj;         /* SpeedMax descriptor text object for 'v(max)' */
 static TEXTOBJECT   SpeedMaxUnitTxtObj;         /* speed max desciptor text object 'km/h' */
 static TEXTOBJECT   SpeedMaxTxtObj;             /* SpeedMax descriptor text object for '110.0' */
 static CHAR         szSpeedMax[4] = "  0";      /* buffer to contain SpeedMax, max. string '999' km/h*/
 extern SPEED_TYPE   Speed_Max;                  /* prepared value */
 
+/* lower area: Date & Time Display */
 static TEXTOBJECT   TimeDateTxtObj;             /* time & date output opbject */
-static CHAR         szTimeDate[22] = "Mo  01.01.01 00:00:00";   /* buffer for timedate string */
+static CHAR         szTimeDate[22] = "Mo 01.01.01  00:00:00";   /* buffer for timedate string */
 
-static BMPOBJECT    InfoSymbolBmpObj;           /* info symbol for monitor */
-static BMPOBJECT    HazardSymbolBmpObj;         /* hazard symbol for monitor */
-static BMPOBJECT    BatterySymbolBmpObj;        /* battery symbol for monitor */
-static BMPOBJECT    TempSymbolBmpObj;           /* temp symbol for monitor */
 
-static TEXTOBJECT   TempTxtObj;                 /* temperature from external air / internal NTC sensor */
-static TEXTOBJECT   TempDescTxtObj;
+/* --------------------------------------------- */
+/* upper area bitmap objects & vehicle state */
+static BMPOBJECT    GearSymbolBmpObj;           /* selected gear indicator */
+
+static BMPOBJECT    SurvInfoBmpObj;             /* info symbol for monitor */
+static BMPOBJECT    SurvWarningBmpObj;          /* warning symbol for monitor */
+static BMPOBJECT    SurvErrorBmpObj;            /* error symbol for monitor */
+static TEXTOBJECT   SurvVehStateTxtObj;         /* Vehicle State detected by MonitorDevice */
+extern INT8         SurvParamListCount;         /* number of states currently not ok */
+static INT8         SurvShowVehState = 0;       /* != 0 if vehicle state is to be displayed */
+
+
+
+/* --------------------------------------------- */
+/* lower area mode 7: Monitor/measurement objects */
+
+
+/* measure data 1: temperature from external air / internal NTC sensor */
+static BMPOBJECT    MonAmbientTempBmpObj;
+static TEXTOBJECT   MonAmbientTempTxtObj;
+static TEXTOBJECT   MonAmbientTempDescTxtObj;
 static CHAR         szTemp[5];
 
-static TEXTOBJECT   VehicStateTxtObj;           /* Vehicle State detected by MonitorDevice */
 
-static TEXTOBJECT   VoltageTxtObj;              /* system voltage */
-static TEXTOBJECT   VoltageDescTxtObj;
+/* measure data 2: battery voltage */
+static BMPOBJECT    MonVoltageBmpObj;
+static TEXTOBJECT   MonVoltageTxtObj;
+static TEXTOBJECT   MonVoltageDescTxtObj;
 static CHAR         szVoltage[5];
 
-static TEXTOBJECT   OilTempTxtObj;              /* oil temp */
-static TEXTOBJECT   OilTempDescTxtObj;
-static BMPOBJECT    OilTempSymbolBmpObj;        /* oil temp symbol for monitor */
+/* measure data 3: motor oil temperature */
+static TEXTOBJECT   MonOilTempTxtObj;
+static TEXTOBJECT   MonOilTempDescTxtObj;
+static BMPOBJECT    MonOilTempBmpObj;
 static CHAR         szOilTemp[5];
-/* RPM displayed in monitor mode if no oil temp available */
-static TEXTOBJECT   RPM2TxtObj;                 /* RPM */
-static BMPOBJECT    RPMSymbolBmpObj;
 
-static TEXTOBJECT   WaterTempTxtObj;            /* water temp */
-static TEXTOBJECT   WaterTempDescTxtObj;
+
+/* measure data 4: motor RPM (used, if no oil temp sensor connected) */
+static TEXTOBJECT   MonRPMTxtObj;
+static BMPOBJECT    MonRPMBmpObj;
+
+
+/* measure data 5: water temperature */
+static TEXTOBJECT   MonWaterTempTxtObj;
+static TEXTOBJECT   MonWaterTempDescTxtObj;
 static CHAR         szWaterTemp[5];
-static BMPOBJECT    WaterTempSymbolBmpObj;      /* water temp symbol for monitor */
-/* fuel distance displayed in monitor mode if water temp not available */
-static TEXTOBJECT   FuelDist2TxtObj;            /* fuel distance text object */
-static BMPOBJECT    Fuel2SymbolBmpObj;
+static BMPOBJECT    MonWaterTempBmpObj;
 
-extern INT8         CurrentNOKStates;           /* number of states currently not ok */
-static INT8         ShowVehicleState = 0;       /* != 0 if vehicle state is to be displayed */
 
+/* measure data 5: fuel distance (used, if water temp sensor not available) */
+static TEXTOBJECT   MonFuelTxtObj;
+static BMPOBJECT    MonFuelBmpObj;
+
+
+
+
+/* ============================================================= */
 /* internal prototypes */
-ERRCODE MainDeviceStateMachine(MESSAGE Msg);
-ERRCODE MainDeviceResetMsg(MESSAGE Msg);
-ERRCODE MainDeviceShowVehicStateMsg(MESSAGE Msg);
-void MainDeviceUpdateTimeDate(void);
+ERRCODE MainDeviceStateMachine      (MESSAGE Msg);
+ERRCODE MainDeviceResetMsg          (MESSAGE Msg);
+ERRCODE MainDeviceShowVehicStateMsg (MESSAGE Msg);
+void    MainDeviceUpdateTimeDate    (void);
+void    MainDeviceObjListInit       (void);
 
 
-/* bitmap object table */
-static const BMPOBJECT_INITTYPE BmpObjects[] =
+
+/* ============================================================= */
+/* bitmap object table of this device */
+static const BMPOBJECT_INITTYPE BmpObjInit[] =
 {
-    /* object                      x/y    w   h   raw data              mode     state */
-    { &FuelSymbolBmpObj,           4, 38, 16, 16, rgFuelSymbo16x16,     DPLNORM, FALSE },
-    { &VehicSymbolBmpObj,          0, 38, 29, 16, rgEnduroSymbol29x16,  DPLNORM, FALSE },
+    /*                             x   y  w   h   raw data              mode     state */
+    /* --------------------------- -- --- --- --- --------------------- -------- ----- */
 
-    /* monitor symbols ------------------------ */
-    { &InfoSymbolBmpObj,           2, 37, 16, 16, rgInfoSymbol16x16,    DPLNORM, FALSE },
-    { &HazardSymbolBmpObj,         2, 37, 16, 16, rgHazardSymbol16x16,  DPLNORM, FALSE },
-    { &BatterySymbolBmpObj,       77, 37,  8,  8, rgBatterySymbol8x8,   DPLNORM, FALSE },
-    { &TempSymbolBmpObj,          25, 37,  8,  8, rgTempSymbol8x8,      DPLNORM, FALSE },
-    { &WaterTempSymbolBmpObj,     24, 46,  8,  8, rgWaterSymbol8x8,     DPLNORM, FALSE },
-    { &Fuel2SymbolBmpObj,         24, 46,  8,  8, rgFuelSymbol8x8,      DPLNORM, FALSE },
-    { &OilTempSymbolBmpObj,       77, 46,  8,  8, rgOilSymbol8x8,       DPLNORM, FALSE },
-    { &RPMSymbolBmpObj,           77, 46,  8,  8, rgRPMSymbol8x8,       DPLNORM, FALSE }
+    /* selected info icons */
+    /* --------------------------- -- --- --- --- --------------------- -------- ----- */
+    { &FuelDistBmpObj,              0, 38, 16, 16, rgFuelSymbo16x16,     DPLNORM, FALSE },
+    { &VehDistBmpObj,               0, 38, 29, 16, rgEnduroSymbol29x16,  DPLNORM, FALSE },
+    { &RPMBmpObj,                   0, 38, 16, 16, rgRPMSymbo16x16,      DPLNORM, FALSE },
+
+    /* Gear Symbol */
+    /* --------------------------- -- --- --- --- --------------------- -------- ----- */
+    { &GearSymbolBmpObj,            0,  0, 16, 16, rg7Seg_0_16x16,       DPLNORM, FALSE },
+
+    /* error status icons */
+    /* --------------------------- -- --- --- --- --------------------- -------- ----- */
+    { &SurvInfoBmpObj,              1, 17, 16, 16, rgInfoSymbol16x16,    DPLNORM, FALSE },
+    { &SurvWarningBmpObj,           1, 17, 16, 16, rgWarningSymbol16x16, DPLNORM, FALSE },
+    { &SurvErrorBmpObj,             1, 17, 16, 16, rgErrorSymbol16x16,   DPLNORM, FALSE },
+
+    /* monitor symbols  */
+    /* --------------------------- -- --- --- --- --------------------- -------- ----- */
+    { &MonAmbientTempBmpObj,        2, 37,  8,  8, rgTempSymbol8x8,      DPLNORM, FALSE },
+    { &MonWaterTempBmpObj,          2, 46,  8,  8, rgWaterSymbol8x8,     DPLNORM, FALSE },
+    { &MonFuelBmpObj,               2, 46,  8,  8, rgFuelSymbol8x8,      DPLNORM, FALSE },
+    { &MonVoltageBmpObj,           77, 37,  8,  8, rgBatterySymbol8x8,   DPLNORM, FALSE },
+    { &MonOilTempBmpObj,           77, 46,  8,  8, rgOilSymbol8x8,       DPLNORM, FALSE },
+    { &MonRPMBmpObj,               77, 46,  8,  8, rgRPMSymbol8x8,       DPLNORM, FALSE }
+    /* --------------------------- -- --- --- --- --------------------- -------- ----- */
 };
+#define BMPOBJECTLISTSIZE   (sizeof(BmpObjInit)/sizeof(BMPOBJECT_INITTYPE))
 
 
+/* ============================================================= */
 /* text object table */
-static const TEXTOBJECT_INITTYPE TextObjects[] =
+static const TEXTOBJECT_INITTYPE TextObjInit[] =
 {
-    /*pObject                   X    Y  Font            H  Width  Align     Format    string ptr        State      */
-    /* speed ----------------- ---- --- -------------- --- ----- --------- ---------- ----------------- ---------- */
-    { &SpeedTxtObj,              8,  0, DPLFONT_24X32,  1,  3, TXT_RIGHT,  TXT_NORM, szSpeed,           OC_DISPL },
-    { &SpeedDescTxtObj,         90,  8, DPLFONT_8X16,   1,  4, TXT_LEFT,   TXT_NORM, RESTXT_SPEED_DESC, OC_DISPL },
+    /*pObject                   X    Y  Font            H  Width  Align     Format    string ptr            State      */
+    /* ----------------------- ---- --- -------------- --- ----- --------- ---------- -----------------     ---------- */
 
-    /* rpm ------------------- ---- --- -------------- --- ----- --------- ---------- ----------------- ---------- */
-    { &RPMTxtObj,                8, 38, DPLFONT_14X16,  1,  5, TXT_RIGHT,  TXT_NORM, szRPM,             OC_DISPL },
-    { &RPMDescTxtObj,           86, 38, DPLFONT_8X16,   1,  5, TXT_LEFT,   TXT_NORM, RESTXT_RPM_DESC,   OC_DISPL },
+    /* BIG Vehicle Speed + Unit */
+    /* ----------------------- ---- --- -------------- --- ----- --------- ---------- -----------------     ---------- */
+    { &SpeedTxtObj,             28,  0, DPLFONT_24X32,  1,  3, TXT_RIGHT,  TXT_NORM, szSpeed,               OC_DISPL | OC_DYN   },
+    { &SpeedDescATxtObj,       108,  1, DPLFONT_8X16,   1,  2, TXT_LEFT,   TXT_NORM | TXT_UNDERL, RESTXT_SPEEDA_DESC,  OC_DISPL },
+    { &SpeedDescBTxtObj,       112, 17, DPLFONT_8X16,   1,  1, TXT_LEFT,   TXT_NORM, RESTXT_SPEEDB_DESC,    OC_DISPL            },
 
-    /* fuel / vehicle distance ---- --- -------------- --- ----- --------- ---------- ----------------- ---------- */
-    { &DistDescTxtObj,         106, 38, DPLFONT_8X16,   1,  2, TXT_LEFT,   TXT_NORM, RESTXT_DIST_DESC,  OC_DISPL },
-    { &FuelDistTxtObj,          24, 38, DPLFONT_14X16,  1,  6, TXT_RIGHT,  TXT_NORM, szFuelDist,        OC_DISPL },
-    { &VehDistTxtObj,           46, 38, DPLFONT_8X16,   1,  6, TXT_RIGHT,  TXT_NORM, szVehDist,         OC_DISPL },
-    { &Trip1DescTxtObj,          4, 38, DPLFONT_8X16,   1,  2, TXT_LEFT,   TXT_NORM, RESTXT_TRIP1DESC,  OC_DISPL },
-    { &Trip1DistTxtObj,         24, 38, DPLFONT_14X16,  1,  6, TXT_RIGHT,  TXT_NORM, szTrip1Dist,       OC_DISPL },
-    { &Trip2DescTxtObj,          4, 38, DPLFONT_8X16,   1,  2, TXT_LEFT,   TXT_NORM, RESTXT_TRIP2DESC,  OC_DISPL },
-    { &Trip2DistTxtObj,         24, 38, DPLFONT_14X16,  1,  6, TXT_RIGHT,  TXT_NORM, szTrip2Dist,       OC_DISPL },
-    { &SpeedMaxDescTxtObj,       4, 38, DPLFONT_8X16,   1,  3, TXT_LEFT,   TXT_NORM, RESTXT_SPEEDMAX_DESC, OC_DISPL },
-    { &SpeedMaxUnitTxtObj,      94, 38, DPLFONT_8X16,   1,  4, TXT_LEFT,   TXT_NORM, RESTXT_SPEED_DESC, OC_DISPL },
-    { &SpeedMaxTxtObj,          44, 38, DPLFONT_14X16,  1,  3, TXT_RIGHT,  TXT_NORM, szSpeedMax,        OC_DISPL },
+    /* Selected BIG Information */
+    /* ----------------------- ---- --- -------------- --- ----- --------- ---------- -----------------     ---------- */
+    { &RPMTxtObj,               22, 38, DPLFONT_14X16,  1,  5, TXT_RIGHT,  TXT_NORM, szRPM,                 OC_DISPL | OC_DYN   },
+    { &RPMDescTxtObj,           96, 38, DPLFONT_8X16,   1,  5, TXT_LEFT,   TXT_NORM, RESTXT_RPM_DESC,       OC_DISPL            },
+    { &DistDescTxtObj,         106, 38, DPLFONT_8X16,   1,  2, TXT_LEFT,   TXT_NORM, RESTXT_DIST_DESC,      OC_DISPL            },
+    { &FuelDistTxtObj,          24, 38, DPLFONT_14X16,  1,  6, TXT_RIGHT,  TXT_NORM, szFuelDist,            OC_DISPL | OC_DYN   },
+    { &VehDistTxtObj,           46, 38, DPLFONT_8X16,   1,  6, TXT_RIGHT,  TXT_NORM, szVehDist,             OC_DISPL | OC_DYN   },
+    { &Trip1DescTxtObj,          4, 38, DPLFONT_8X16,   1,  2, TXT_LEFT,   TXT_NORM, RESTXT_TRIP1DESC,      OC_DISPL            },
+    { &Trip1DistTxtObj,         24, 38, DPLFONT_14X16,  1,  6, TXT_RIGHT,  TXT_NORM, szTrip1Dist,           OC_DISPL | OC_DYN   },
+    { &Trip2DescTxtObj,          4, 38, DPLFONT_8X16,   1,  2, TXT_LEFT,   TXT_NORM, RESTXT_TRIP2DESC,      OC_DISPL            },
+    { &Trip2DistTxtObj,         24, 38, DPLFONT_14X16,  1,  6, TXT_RIGHT,  TXT_NORM, szTrip2Dist,           OC_DISPL | OC_DYN   },
+    { &SpeedMaxDescTxtObj,       4, 38, DPLFONT_8X16,   1,  3, TXT_LEFT,   TXT_NORM, RESTXT_SPEEDMAX_DESC,  OC_DISPL            },
+    { &SpeedMaxUnitTxtObj,      94, 38, DPLFONT_8X16,   1,  4, TXT_LEFT,   TXT_NORM, RESTXT_SPEEDMAX_UNIT,  OC_DISPL            },
+    { &SpeedMaxTxtObj,          44, 38, DPLFONT_14X16,  1,  3, TXT_RIGHT,  TXT_NORM, szSpeedMax,            OC_DISPL | OC_DYN   },
 
-    /* temperature from internal sensor -------------- --- ----- --------- ---------- ----------------- ---------- */
-    { &TempTxtObj,              36, 38, DPLFONT_6X8,    1,  3, TXT_RIGHT,  TXT_NORM, szTemp,            OC_DISPL },
-    { &TempDescTxtObj,          55, 38, DPLFONT_6X8,    1,  2, TXT_RIGHT,  TXT_NORM, RESTXT_DEGC_DESC,  OC_DISPL },
+    /* Monitor Device Information */
+    /* ----------------------- ---- --- -------------- --- ----- --------- ---------- -----------------     ---------- */
+    { &MonAmbientTempTxtObj,    20, 38, DPLFONT_6X8,    1,  3, TXT_RIGHT,  TXT_NORM, szTemp,                OC_DISPL | OC_DYN   },
+    { &MonAmbientTempDescTxtObj,40, 38, DPLFONT_6X8,    1,  2, TXT_RIGHT,  TXT_NORM, RESTXT_DEGC_DESC,      OC_DISPL            },
+    { &MonWaterTempTxtObj,      20, 47, DPLFONT_6X8,    1,  3, TXT_RIGHT,  TXT_NORM, szWaterTemp,           OC_DISPL | OC_DYN   },
+    { &MonWaterTempDescTxtObj,  40, 47, DPLFONT_6X8,    1,  2, TXT_RIGHT,  TXT_NORM, RESTXT_DEGC_DESC,      OC_DISPL            },
+    { &MonFuelTxtObj,           20, 47, DPLFONT_6X8,    1,  6, TXT_RIGHT,  TXT_NORM, szFuelDist,            OC_DISPL | OC_DYN   },
 
-    /* system voltage -------- ---- --- -------------- --- ----- --------- ---------- ----------------- ---------- */
-    { &VoltageTxtObj,           90, 38, DPLFONT_6X8,    1,  4, TXT_RIGHT,  TXT_NORM, szVoltage,         OC_DISPL },
-    { &VoltageDescTxtObj,      115, 38, DPLFONT_6X8,    1,  2, TXT_RIGHT,  TXT_NORM, RESTXT_VOLT_DESC,  OC_DISPL },
+    { &MonVoltageTxtObj,        90, 38, DPLFONT_6X8,    1,  4, TXT_RIGHT,  TXT_NORM, szVoltage,             OC_DISPL | OC_DYN   },
+    { &MonVoltageDescTxtObj,   115, 38, DPLFONT_6X8,    1,  2, TXT_RIGHT,  TXT_NORM, RESTXT_VOLT_DESC,      OC_DISPL            },
+    { &MonOilTempTxtObj,        97, 47, DPLFONT_6X8,    1,  3, TXT_RIGHT,  TXT_NORM, szOilTemp,             OC_DISPL | OC_DYN   },
+    { &MonOilTempDescTxtObj,   115, 47, DPLFONT_6X8,    1,  2, TXT_RIGHT,  TXT_NORM, RESTXT_DEGC_DESC,      OC_DISPL            },
+    { &MonRPMTxtObj,            97, 47, DPLFONT_6X8,    1,  5, TXT_RIGHT,  TXT_NORM, szRPM,                 OC_DISPL | OC_DYN   },
 
-    /* water temp ------------ ---- --- -------------- --- ----- --------- ---------- ----------------- ---------- */
-    /* fuel distance display if no water temp available */
-    { &WaterTempTxtObj,         36, 47, DPLFONT_6X8,    1,  3, TXT_RIGHT,  TXT_NORM, szWaterTemp,       OC_DISPL },
-    { &WaterTempDescTxtObj,     55, 47, DPLFONT_6X8,    1,  2, TXT_RIGHT,  TXT_NORM, RESTXT_DEGC_DESC,  OC_DISPL },
-    { &FuelDist2TxtObj,         30, 47, DPLFONT_6X8,    1,  6, TXT_RIGHT,  TXT_NORM, szFuelDist,        OC_DISPL },
-
-    /* oil temp -------------- ---- --- -------------- --- ----- --------- ---------- ----------------- ---------- */
-    /* RPM display if no oil temp available */
-    { &OilTempTxtObj,           97, 47, DPLFONT_6X8,    1,  3, TXT_RIGHT,  TXT_NORM, szOilTemp,         OC_DISPL },
-    { &OilTempDescTxtObj,      115, 47, DPLFONT_6X8,    1,  2, TXT_RIGHT,  TXT_NORM, RESTXT_DEGC_DESC,  OC_DISPL },
-    { &RPM2TxtObj,              97, 47, DPLFONT_6X8,    1,  5, TXT_RIGHT,  TXT_NORM, szRPM,             OC_DISPL },
-
-    /* Time and Date + vehicle state text (changed when KEY_OK is pressed) ---------- ----------------- ---------- */
-    { &TimeDateTxtObj,           2, 56, DPLFONT_6X8,    1, 21, TXT_CENTER, TXT_NORM, szTimeDate,        OC_DISPL },
-    { &VehicStateTxtObj,         2, 56, DPLFONT_6X8,    1, 21, TXT_CENTER, TXT_NORM, szVehicState,      OC_DISPL },
-    /*------------------------ ---- --- -------------- --- ----- --------- ---------- ----------------- ---------- */
+    /* Time and Date OR Vehiclestate text (changed when KEY_OK is pressed) */
+    /* ----------------------- ---- --- -------------- --- ----- --------- ---------- -----------------     ---------- */
+    { &TimeDateTxtObj,           2, 56, DPLFONT_6X8,    1, 21, TXT_CENTER, TXT_NORM, szTimeDate,            OC_DISPL | OC_DYN   },
+    { &SurvVehStateTxtObj,       2, 56, DPLFONT_6X8,    1, 21, TXT_CENTER, TXT_NORM, szSurvGlobalState,          OC_DISPL | OC_DYN   },
+    /*------------------------ ---- --- -------------- --- ----- --------- ---------- -----------------     ---------           */
 };
+#define TEXTOBJECTLISTSIZE   (sizeof(TextObjInit)/sizeof(TEXTOBJECT_INITTYPE))
+
+
+
+// ---------------------------------------------------------------------
+// SCREEN FOCUS ORDER
+// ---------------------------------------------------------------------
+
+// ---------------------------------------------------------------------
+// Main device State 'MD_MONITOR' Settings - Screen Focus Order
+static const void far * ObjectList_Mon[] =
+{
+    (void far *) &SpeedTxtObj,          // always show current speed
+    (void far *) &SpeedDescATxtObj,
+    (void far *) &SpeedDescBTxtObj,
+    (void far *) &GearSymbolBmpObj,     // always enable gearbox
+    (void far *) &SurvInfoBmpObj,     // always enable display of info/warning/error
+    (void far *) &SurvWarningBmpObj,
+    (void far *) &SurvErrorBmpObj,
+    (void far *) &MonVoltageTxtObj,
+    (void far *) &MonVoltageDescTxtObj,
+    (void far *) &MonVoltageBmpObj,
+    (void far *) &MonAmbientTempTxtObj,
+    (void far *) &MonAmbientTempDescTxtObj,
+    (void far *) &MonAmbientTempBmpObj,
+    (void far *) &MonWaterTempTxtObj,
+    (void far *) &MonWaterTempDescTxtObj,
+    (void far *) &MonWaterTempBmpObj,
+    (void far *) &MonFuelTxtObj,
+    (void far *) &MonFuelBmpObj,
+    (void far *) &MonOilTempBmpObj,
+    (void far *) &MonOilTempTxtObj,
+    (void far *) &MonOilTempDescTxtObj,
+    (void far *) &MonRPMTxtObj,
+    (void far *) &MonRPMBmpObj,
+    (void far *) &TimeDateTxtObj,       // always show date & time
+    (void far *) &SurvVehStateTxtObj      // always enable
+};
+#define OBJLIST_MON_CNT (sizeof(ObjectList_Mon)/sizeof(OBJSTATE)/sizeof(void far *))
+
+
+// ---------------------------------------------------------------------
+// Main device State 'MD_RPM' Settings - Screen Focus Order
+static const void far * ObjectList_Rpm[] =
+{
+    (void far *) &SpeedTxtObj,          // always show current speed
+    (void far *) &SpeedDescATxtObj,
+    (void far *) &SpeedDescBTxtObj,
+    (void far *) &GearSymbolBmpObj,     // always enable gearbox
+    (void far *) &SurvInfoBmpObj,     // always enable display of info/warning/error
+    (void far *) &SurvWarningBmpObj,
+    (void far *) &SurvErrorBmpObj,
+    (void far *) &RPMTxtObj,            // RPM part
+    (void far *) &RPMDescTxtObj,
+    (void far *) &RPMBmpObj,
+    (void far *) &TimeDateTxtObj,       // always show date & time
+    (void far *) &SurvVehStateTxtObj      // always enable
+};
+#define OBJLIST_RPM_CNT (sizeof(ObjectList_Rpm)/sizeof(OBJSTATE)/sizeof(void far *))
+
+
+// ---------------------------------------------------------------------
+// Main device State 'MD_FUEL' Settings - Screen Focus Order
+static const void far * ObjectList_Fuel[] =
+{
+    (void far *) &SpeedTxtObj,          // always show current speed
+    (void far *) &SpeedDescATxtObj,
+    (void far *) &SpeedDescBTxtObj,
+    (void far *) &GearSymbolBmpObj,     // always enable gearbox
+    (void far *) &SurvInfoBmpObj,     // always enable display of info/warning/error
+    (void far *) &SurvWarningBmpObj,
+    (void far *) &SurvErrorBmpObj,
+    (void far *) &FuelDistTxtObj,
+    (void far *) &FuelDistBmpObj,
+    (void far *) &DistDescTxtObj,       // common for Veh/Fuel/Trip1/Trip2
+    (void far *) &TimeDateTxtObj,       // always show date & time
+    (void far *) &SurvVehStateTxtObj      // always enable
+};
+#define OBJLIST_FUEL_CNT (sizeof(ObjectList_Fuel)/sizeof(OBJSTATE)/sizeof(void far *))
+
+
+// ---------------------------------------------------------------------
+// Main device State 'MD_TRIP1' Settings - Screen Focus Order
+static const void far * ObjectList_Trip1[] =
+{
+    (void far *) &SpeedTxtObj,          // always show current speed
+    (void far *) &SpeedDescATxtObj,
+    (void far *) &SpeedDescBTxtObj,
+    (void far *) &GearSymbolBmpObj,     // always enable gearbox
+    (void far *) &SurvInfoBmpObj,     // always enable display of info/warning/error
+    (void far *) &SurvWarningBmpObj,
+    (void far *) &SurvErrorBmpObj,
+    (void far *) &Trip1DescTxtObj,
+    (void far *) &Trip1DistTxtObj,
+    (void far *) &DistDescTxtObj,       // common for Veh/Fuel/Trip1/Trip2
+    (void far *) &TimeDateTxtObj,       // always show date & time
+    (void far *) &SurvVehStateTxtObj      // always enable
+};
+#define OBJLIST_TRIP1_CNT (sizeof(ObjectList_Trip1)/sizeof(OBJSTATE)/sizeof(void far *))
+
+
+// ---------------------------------------------------------------------
+// Main device State 'MD_TRIP2' Settings - Screen Focus Order
+static const void far * ObjectList_Trip2[] =
+{
+    (void far *) &SpeedTxtObj,          // always show current speed
+    (void far *) &SpeedDescATxtObj,
+    (void far *) &SpeedDescBTxtObj,
+    (void far *) &GearSymbolBmpObj,     // always enable gearbox
+    (void far *) &SurvInfoBmpObj,     // always enable display of info/warning/error
+    (void far *) &SurvWarningBmpObj,
+    (void far *) &SurvErrorBmpObj,
+    (void far *) &Trip2DescTxtObj,
+    (void far *) &Trip2DistTxtObj,
+    (void far *) &DistDescTxtObj,       // common for Veh/Fuel/Trip1/Trip2
+    (void far *) &TimeDateTxtObj,       // always show date & time
+    (void far *) &SurvVehStateTxtObj      // always enable
+};
+#define OBJLIST_TRIP2_CNT (sizeof(ObjectList_Trip2)/sizeof(OBJSTATE)/sizeof(void far *))
+
+
+// ---------------------------------------------------------------------
+// Main device State 'MD_VEHDIST' Settings - Screen Focus Order
+static const void far * ObjectList_VehDist[] =
+{
+    (void far *) &SpeedTxtObj,          // always show current speed
+    (void far *) &SpeedDescATxtObj,
+    (void far *) &SpeedDescBTxtObj,
+    (void far *) &GearSymbolBmpObj,     // always enable gearbox
+    (void far *) &SurvInfoBmpObj,     // always enable display of info/warning/error
+    (void far *) &SurvWarningBmpObj,
+    (void far *) &SurvErrorBmpObj,
+    (void far *) &VehDistTxtObj,
+    (void far *) &VehDistBmpObj,
+    (void far *) &DistDescTxtObj,       // common for Veh/Fuel/Trip1/Trip2
+    (void far *) &TimeDateTxtObj,       // always show date & time
+    (void far *) &SurvVehStateTxtObj      // always enable
+};
+#define OBJLIST_VEHDIST_CNT (sizeof(ObjectList_VehDist)/sizeof(OBJSTATE)/sizeof(void far *))
+
+
+
+// ---------------------------------------------------------------------
+// Main device State 'MD_SPEEDMAX' Settings - Screen Focus Order
+static const void far * ObjectList_SpeedMax[] =
+{
+    (void far *) &SpeedTxtObj,          // always show current speed
+    (void far *) &SpeedDescATxtObj,
+    (void far *) &SpeedDescBTxtObj,
+    (void far *) &GearSymbolBmpObj,     // always enable gearbox
+    (void far *) &SurvInfoBmpObj,       // always enable display of info/warning/error
+    (void far *) &SurvWarningBmpObj,
+    (void far *) &SurvErrorBmpObj,
+    (void far *) &SpeedMaxDescTxtObj,
+    (void far *) &SpeedMaxUnitTxtObj,
+    (void far *) &SpeedMaxTxtObj,
+    (void far *) &TimeDateTxtObj,       // always show date & time
+    (void far *) &SurvVehStateTxtObj    // always enable
+};
+#define OBJLIST_SPEEDMAX_CNT (sizeof(ObjectList_SpeedMax)/sizeof(OBJSTATE)/sizeof(void far *))
+
+
+/* ============================================================= */
+/* this devices object focus handling - list of all objects */
+/* NOTE:    this device does not need any focus, this
+            list is for common object handling only! */
+static const void far * ObjectList[] =
+{
+    (void far *) &TimeDateTxtObj,
+
+    (void far *) &SurvInfoBmpObj,
+    (void far *) &SurvWarningBmpObj,
+    (void far *) &SurvErrorBmpObj,
+    (void far *) &SurvVehStateTxtObj,
+
+    (void far *) &SpeedTxtObj,
+    (void far *) &SpeedDescATxtObj,
+    (void far *) &SpeedDescBTxtObj,
+
+    (void far *) &RPMTxtObj,
+    (void far *) &RPMDescTxtObj,
+    (void far *) &RPMBmpObj,
+
+    (void far *) &FuelDistTxtObj,
+    (void far *) &FuelDistBmpObj,
+
+    (void far *) &VehDistTxtObj,
+    (void far *) &VehDistBmpObj,
+
+    (void far *) &Trip1DescTxtObj,
+    (void far *) &Trip1DistTxtObj,
+    (void far *) &Trip2DescTxtObj,
+    (void far *) &Trip2DistTxtObj,
+
+    (void far *) &DistDescTxtObj,       // common for Veh/Fuel/Trip1/Trip2
+
+    (void far *) &SpeedMaxDescTxtObj,
+    (void far *) &SpeedMaxUnitTxtObj,
+    (void far *) &SpeedMaxTxtObj,
+
+};
+#define OBJECTLIST_SIZE   (sizeof(ObjectList)/sizeof(OBJSTATE)/sizeof(void far *))
+
+
+
+
 
 
 /***********************************************************************
@@ -331,32 +639,99 @@ ERRCODE MainDeviceInit(void)
     int i;
 
     /* device main data */
-    MainDevice.eDevID       = DEVID_MAIN;
-    MainDevice.szDevName    = szDevName[DEVID_MAIN];
-    MainDevice.fFocused     = FALSE;
-    MainDevice.fScreenInit  = FALSE;
+    MDObj.eDevID       = DEVID_MAIN;
+    MDObj.szDevName    = szDevName[DEVID_MAIN];
+    MDObj.fFocused     = FALSE;
+    MDObj.fScreenInit  = FALSE;
+
+    /* special MDObj object lists control handling */
+    MainDeviceObjListInit();
 
     /* error check: */
-    if (  (gSystemFlags.flags.MainDevState == eMainFirst)
-        ||(gSystemFlags.flags.MainDevState >= eMainLast ) )
-    {   ODS1( DBG_SYS, DBG_ERROR, "MainDeviceInit(): Invalid MainDevState %u corrected!", gSystemFlags.flags.MainDevState );
-        gSystemFlags.flags.MainDevState = eMainFirst + 1;
+    if (  (gDeviceFlags1.flags.MainDevState == MD_FIRST)
+        ||(gDeviceFlags1.flags.MainDevState >= MD_LAST ) )
+    {   ODS1( DBG_SYS, DBG_ERROR, "MainDeviceInit(): Invalid MainDevState %u corrected!", gDeviceFlags1.flags.MainDevState );
+        gDeviceFlags1.flags.MainDevState = MD_FIRST + 1;
     }
-    MainDevice.wDevState    = gSystemFlags.flags.MainDevState;
+    MDObj.wDevState    = gDeviceFlags1.flags.MainDevState;
 
-    /* initialize bitmap objects */
-    for (i = 0; i < ARRAY_SIZE(BmpObjects); i++)
-    {   ObjBmpInit( &BmpObjects[i] );
-    }
+    /* initialize all objects of any type */
+    DevObjInit( &MDObj, (void far *)TextObjInit,   TEXTOBJECTLISTSIZE,     OBJT_TXT  );
+    DevObjInit( &MDObj, (void far *)BmpObjInit,    BMPOBJECTLISTSIZE,      OBJT_BMP  );
 
-    /* initialize text objects */
-    for (i = 0; i < ARRAY_SIZE(TextObjects); i++)
-    {   ObjTextInit( &TextObjects[i] );
-    }
+    /* initialize this devices objects list */
+    MDObj.Objects.ObjList       = ObjectList;
+    MDObj.Objects.ObjCount      = OBJECTLIST_SIZE;
+    MDObj.Objects.FirstSelObj   = DevObjGetFirstSelectable(&MDObj, ObjectList, OBJECTLIST_SIZE );
+    MDObj.Objects.LastSelObj    = DevObjGetLastSelectable (&MDObj, ObjectList, OBJECTLIST_SIZE );
+
+    /* reset focus handling to start values */
+    /* NOTE: No focus handling in this device! */
+    DevObjFocusReset( &MDObj, ObjectList, OBJECTLIST_SIZE );
 
     /* return */
+    ODS( DBG_SYS, DBG_INFO, "- MainDeviceInit() done!");
     return ERR_OK;
 }
+
+
+
+/***********************************************************************
+ *  FUNCTION:       MainDeviceObjListInit
+ *  DESCRIPTION:    Initialize special object control structure
+ *                  to handle different screens
+ *  PARAMETER:      -
+ *  RETURN:         -
+ *  COMMENT:        -
+ *********************************************************************** */
+void MainDeviceObjListInit(void)
+{
+    // Setup screen object list: Monitor display settings
+    MDCntrl.List[MD_MONITOR].ObjList       = ObjectList_Mon;
+    MDCntrl.List[MD_MONITOR].ObjCount      = OBJLIST_MON_CNT;
+    MDCntrl.List[MD_MONITOR].FirstSelObj   = DevObjGetFirstSelectable(&MDObj, ObjectList_Mon, OBJLIST_MON_CNT);
+    MDCntrl.List[MD_MONITOR].LastSelObj    = DevObjGetLastSelectable (&MDObj, ObjectList_Mon, OBJLIST_MON_CNT);
+
+    // Setup screen object list: RPM display settings
+    MDCntrl.List[MD_RPM].ObjList       = ObjectList_Mon;
+    MDCntrl.List[MD_RPM].ObjCount      = OBJLIST_RPM_CNT;
+    MDCntrl.List[MD_RPM].FirstSelObj   = DevObjGetFirstSelectable(&MDObj, ObjectList_Rpm, OBJLIST_RPM_CNT);
+    MDCntrl.List[MD_RPM].LastSelObj    = DevObjGetLastSelectable (&MDObj, ObjectList_Rpm, OBJLIST_RPM_CNT);
+
+    // Setup screen object list: Fuel display settings
+    MDCntrl.List[MD_FUEL].ObjList       = ObjectList_Mon;
+    MDCntrl.List[MD_FUEL].ObjCount      = OBJLIST_FUEL_CNT;
+    MDCntrl.List[MD_FUEL].FirstSelObj   = DevObjGetFirstSelectable(&MDObj, ObjectList_Fuel, OBJLIST_FUEL_CNT);
+    MDCntrl.List[MD_FUEL].LastSelObj    = DevObjGetLastSelectable (&MDObj, ObjectList_Fuel, OBJLIST_FUEL_CNT);
+
+    // Setup screen object list: Tripcounter1 display settings
+    MDCntrl.List[MD_TRIP1].ObjList       = ObjectList_Mon;
+    MDCntrl.List[MD_TRIP1].ObjCount      = OBJLIST_TRIP1_CNT;
+    MDCntrl.List[MD_TRIP1].FirstSelObj   = DevObjGetFirstSelectable(&MDObj, ObjectList_Trip1, OBJLIST_TRIP1_CNT);
+    MDCntrl.List[MD_TRIP1].LastSelObj    = DevObjGetLastSelectable (&MDObj, ObjectList_Trip1, OBJLIST_TRIP1_CNT);
+
+    // Setup screen object list: Tripcounter2 display settings
+    MDCntrl.List[MD_TRIP2].ObjList       = ObjectList_Mon;
+    MDCntrl.List[MD_TRIP2].ObjCount      = OBJLIST_TRIP2_CNT;
+    MDCntrl.List[MD_TRIP2].FirstSelObj   = DevObjGetFirstSelectable(&MDObj, ObjectList_Trip2, OBJLIST_TRIP2_CNT);
+    MDCntrl.List[MD_TRIP2].LastSelObj    = DevObjGetLastSelectable (&MDObj, ObjectList_Trip2, OBJLIST_TRIP2_CNT);
+
+    // Setup screen object list: Vehicle Distance display settings
+    MDCntrl.List[MD_VEHDIST].ObjList       = ObjectList_Mon;
+    MDCntrl.List[MD_VEHDIST].ObjCount      = OBJLIST_VEHDIST_CNT;
+    MDCntrl.List[MD_VEHDIST].FirstSelObj   = DevObjGetFirstSelectable(&MDObj, ObjectList_Trip2, OBJLIST_VEHDIST_CNT);
+    MDCntrl.List[MD_VEHDIST].LastSelObj    = DevObjGetLastSelectable (&MDObj, ObjectList_Trip2, OBJLIST_VEHDIST_CNT);
+
+    // Setup screen object list: SpeedMax display settings
+    MDCntrl.List[MD_SPEEDMAX].ObjList       = ObjectList_Mon;
+    MDCntrl.List[MD_SPEEDMAX].ObjCount      = OBJLIST_SPEEDMAX_CNT;
+    MDCntrl.List[MD_SPEEDMAX].FirstSelObj   = DevObjGetFirstSelectable(&MDObj, ObjectList_Trip2, OBJLIST_SPEEDMAX_CNT);
+    MDCntrl.List[MD_SPEEDMAX].LastSelObj    = DevObjGetLastSelectable (&MDObj, ObjectList_Trip2, OBJLIST_SPEEDMAX_CNT);
+
+    MDCntrl.eState = MD_MONITOR;    // initial value
+}
+
+
 
 /***********************************************************************
  *  FUNCTION:       MainDeviceShow
@@ -395,13 +770,13 @@ void MainDeviceShow(BOOL fShow)
         AnaInFormatTemperature(AnaInGetOilTemperature(), szOilTemp,   sizeof(szOilTemp));
 
         /* do we have to repaint all? */
-        if (MainDevice.fScreenInit == FALSE)
+        if (MDObj.fScreenInit == FALSE)
         {
             /* yes, repaint complete screen */
             DisplClearScreen(0x0);
 
             /* set new state */
-            MainDevice.fScreenInit  = TRUE;
+            MDObj.fScreenInit  = TRUE;
 
             /* horizontal line between wheel speed & rpm */
             {
@@ -411,62 +786,74 @@ void MainDeviceShow(BOOL fShow)
 
             /* show always vehicle speed in upper display part */
             ObjTextShow( &SpeedTxtObj );
-            ObjTextShow( &SpeedDescTxtObj );
+            ObjTextShow( &SpeedDescATxtObj );
+            ObjTextShow( &SpeedDescBTxtObj );
 
             /* show lowest display line 'VehicleState' or 'TimeDate' */
-            if (ShowVehicleState)
-                 ObjTextShow( &VehicStateTxtObj );
+            if (SurvShowVehState)
+                 ObjTextShow( &SurvVehStateTxtObj );
             else MainDeviceUpdateTimeDate(); // initial display only!
 
 
             /* which data to be shown below speed? */
-            switch (MainDevice.wDevState)
+            switch (MDObj.wDevState)
             {
-                case eMainRPM:
+                case MD_RPM:
                     ObjTextShow( &RPMTxtObj );
                     ObjTextShow( &RPMDescTxtObj );
+                    ObjBmpShow( &RPMBmpObj );
                 break;
-                case eMainFuelKm:
+                case MD_FUEL:
                     ObjTextShow( &FuelDistTxtObj );
                     ObjTextShow( &DistDescTxtObj );
-                    ObjBmpShow( &FuelSymbolBmpObj );
+                    ObjBmpShow( &FuelDistBmpObj );
                 break;
-                case eMainVehKm:
+                case MD_VEHDIST:
                     ObjTextShow( &VehDistTxtObj );
                     ObjTextShow( &DistDescTxtObj );
-                    ObjBmpShow( &VehicSymbolBmpObj );
+                    ObjBmpShow( &VehDistBmpObj );
                 break;
-                case eMainTrip1Km:
+                case MD_TRIP1:
                     ObjTextShow( &Trip1DescTxtObj );
                     ObjTextShow( &Trip1DistTxtObj );
                     ObjTextShow( &DistDescTxtObj );
                 break;
-                case eMainTrip2Km:
+                case MD_TRIP2:
                     ObjTextShow( &Trip2DescTxtObj );
                     ObjTextShow( &Trip2DistTxtObj );
                     ObjTextShow( &DistDescTxtObj );
                 break;
-                case eMainSpeedMax:
+                case MD_SPEEDMAX:
                     ObjTextShow( &SpeedMaxDescTxtObj );
                     ObjTextShow( &SpeedMaxTxtObj );
                     ObjTextShow( &SpeedMaxUnitTxtObj );
                 break;
-                case eMainMonitor:
+                case MD_MONITOR:
                 {
                     /* Markus Monitor-Part-in-Main-Devíce-Mode :-) */
 
-                    // which icon has to be used: Hazard or Info?
-                    ObjBmpShow( SurvGetNOKStates()? &HazardSymbolBmpObj : &InfoSymbolBmpObj );
+                    /* which icon has to be used: Info / Warning / Error ?
+                       (Most important icon is dominant) */
+                    if ( SurvListGetCount( SURVST_ERR ) )
+                        ObjBmpShow( &SurvErrorBmpObj );
+                    else if ( SurvListGetCount( SURVST_WARN ) )
+                        ObjBmpShow( &SurvWarningBmpObj );
+                    else if ( SurvListGetCount( SURVST_INFO ) )
+                         ObjBmpShow( &SurvInfoBmpObj );
+                    //else ObjBmpShow( &EmptySymbolBmpObj );
+
+                    // selected gear */
+                    ObjBmpShow( &GearSymbolBmpObj );
 
                     // show supply voltage
-                    ObjBmpShow( &BatterySymbolBmpObj );
-                    ObjTextShow( &VoltageTxtObj );
-                    ObjTextShow( &VoltageDescTxtObj );
+                    ObjBmpShow( &MonVoltageBmpObj );
+                    ObjTextShow( &MonVoltageTxtObj );
+                    ObjTextShow( &MonVoltageDescTxtObj );
 
                     // show internal/external temperature
-                    ObjBmpShow( &TempSymbolBmpObj );
-                    ObjTextShow( &TempTxtObj );
-                    ObjTextShow( &TempDescTxtObj );
+                    ObjBmpShow( &MonAmbientTempBmpObj );
+                    ObjTextShow( &MonAmbientTempTxtObj );
+                    ObjTextShow( &MonAmbientTempDescTxtObj );
                     }
 
                     // Automatic Display Switch between WaterTemp / FuelDistance
@@ -475,14 +862,14 @@ void MainDeviceShow(BOOL fShow)
                     // Water temp available?
                     if ( AnaInGetWatTemperature() > ANAIN_TEMP_SENSORDETECT )
                     {
-                        ObjBmpShow( &WaterTempSymbolBmpObj );
-                        ObjTextShow( &WaterTempTxtObj );
-                        ObjTextShow( &WaterTempDescTxtObj );
+                        ObjBmpShow( &MonWaterTempBmpObj );
+                        ObjTextShow( &MonWaterTempTxtObj );
+                        ObjTextShow( &MonWaterTempDescTxtObj );
                     }
                     else /* display fuel distance if no water temp sensor connected */
                     {
-                        ObjTextShow( &FuelDist2TxtObj );
-                        ObjBmpShow( &Fuel2SymbolBmpObj );
+                        ObjTextShow( &MonFuelTxtObj );
+                        ObjBmpShow( &MonFuelBmpObj );
                     }
 
                     // Automatic Display Switch between OilTemp / RPM
@@ -491,21 +878,21 @@ void MainDeviceShow(BOOL fShow)
                     // Oil temp available?
                     if ( AnaInGetOilTemperature() > ANAIN_TEMP_SENSORDETECT )
                     {
-                        ObjBmpShow( &OilTempSymbolBmpObj );
-                        ObjTextShow( &OilTempTxtObj );
-                        ObjTextShow( &OilTempDescTxtObj );
+                        ObjBmpShow( &MonOilTempBmpObj );
+                        ObjTextShow( &MonOilTempTxtObj );
+                        ObjTextShow( &MonOilTempDescTxtObj );
                     }
                     else /* display RPM if no oil temp sensor connected */
                     {
-                        ObjBmpShow( &RPMSymbolBmpObj );
-                        ObjTextShow( &RPM2TxtObj );
+                        ObjBmpShow( &MonRPMBmpObj );
+                        ObjTextShow( &MonRPMTxtObj );
                     }
                 break;
                 // case eMainClock:
                 // break;
                 default:
                     ODS1( DBG_SYS, DBG_ERROR,
-                          "MainDeviceShow(): unknown state: %u", MainDevice.wDevState);
+                          "MainDeviceShow(): unknown state: %u", MDObj.wDevState);
             }
         }
         else
@@ -514,31 +901,53 @@ void MainDeviceShow(BOOL fShow)
             ObjTextShow( &SpeedTxtObj );
 
             /* show lowest display line 'VehicleState' or 'TimeDate' */
-            if (ShowVehicleState)
-                 ObjTextShow( &VehicStateTxtObj );
+            if (SurvShowVehState)
+                 ObjTextShow( &SurvVehStateTxtObj );
             // else MainDeviceUpdateTimeDate(); // NO UPDATE HERE, will be done by special update messages only!
 
             /* which data to be shown below speed? */
-            switch (MainDevice.wDevState)
+            switch (MDObj.wDevState)
             {
-                case eMainRPM:      ObjTextShow( &RPMTxtObj );          break;
-                case eMainFuelKm:   ObjTextShow( &FuelDistTxtObj );     break;
-                case eMainTrip1Km:  ObjTextShow( &Trip1DistTxtObj );    break;
-                case eMainTrip2Km:  ObjTextShow( &Trip2DistTxtObj );    break;
-                case eMainVehKm:    ObjTextShow( &VehDistTxtObj );      break;
-                case eMainSpeedMax: ObjTextShow( &SpeedMaxTxtObj );     break;
-                case eMainMonitor:
+                case MD_RPM:      ObjTextShow( &RPMTxtObj );          break;
+                case MD_FUEL:   ObjTextShow( &FuelDistTxtObj );     break;
+                case MD_TRIP1:  ObjTextShow( &Trip1DistTxtObj );    break;
+                case MD_TRIP2:  ObjTextShow( &Trip2DistTxtObj );    break;
+                case MD_VEHDIST:    ObjTextShow( &VehDistTxtObj );      break;
+                case MD_SPEEDMAX: ObjTextShow( &SpeedMaxTxtObj );     break;
+                case MD_MONITOR:
                 {
                     /* Markus Monitor-Part-in-Main-Devíce-Mode :-) */
 
-                    // which icon has to be used: Hazard or Info?
-                    ObjBmpShow( SurvGetNOKStates() ? &HazardSymbolBmpObj : &InfoSymbolBmpObj );
+                    /* which icon has to be used: Info / Warning / Error ?
+                       (Most important icon is dominant) */
+                    if ( SurvListGetCount( SURVST_ERR ) )
+                        ObjBmpShow( &SurvErrorBmpObj );
+                    else if ( SurvListGetCount( SURVST_WARN ) )
+                        ObjBmpShow( &SurvWarningBmpObj );
+                    else if ( SurvListGetCount( SURVST_INFO ) )
+                         ObjBmpShow( &SurvInfoBmpObj );
+                    //else ObjBmpShow( &EmptySymbolBmpObj );
+
+                    // selected gear - Simulation: show all gears every second */
+                    switch ( wSecCounter % 10 )
+                    {   case 0: GearSymbolBmpObj.Data.fpucBitmap = rg7Seg_0_16x16; break;
+                        case 1: GearSymbolBmpObj.Data.fpucBitmap = rg7Seg_1_16x16; break;
+                        case 2: GearSymbolBmpObj.Data.fpucBitmap = rg7Seg_2_16x16; break;
+                        case 3: GearSymbolBmpObj.Data.fpucBitmap = rg7Seg_3_16x16; break;
+                        case 4: GearSymbolBmpObj.Data.fpucBitmap = rg7Seg_4_16x16; break;
+                        case 5: GearSymbolBmpObj.Data.fpucBitmap = rg7Seg_5_16x16; break;
+                        case 6: GearSymbolBmpObj.Data.fpucBitmap = rg7Seg_6_16x16; break;
+                        case 7: GearSymbolBmpObj.Data.fpucBitmap = rg7Seg_7_16x16; break;
+                        case 8: GearSymbolBmpObj.Data.fpucBitmap = rg7Seg_8_16x16; break;
+                        case 9: GearSymbolBmpObj.Data.fpucBitmap = rg7Seg_9_16x16; break;
+                    }
+                    ObjBmpShow( &GearSymbolBmpObj );
 
                     // show external air temp (if n.a.: internal device temp)
-                    ObjTextShow( &TempTxtObj );
+                    ObjTextShow( &MonAmbientTempTxtObj );
 
                     // show battery supply voltage
-                    ObjTextShow( &VoltageTxtObj );
+                    ObjTextShow( &MonVoltageTxtObj );
 
                     // Automatic Display Switch between WaterTemp / FuelDistance
                     // TBD: Will later be done via Settings, but at the moment we
@@ -547,15 +956,15 @@ void MainDeviceShow(BOOL fShow)
                     if ( AnaInGetWatTemperature() > ANAIN_TEMP_SENSORDETECT )
                     {
                         /* might have been changed! */
-                        ObjBmpShow( &WaterTempSymbolBmpObj );
-                        ObjTextShow( &WaterTempTxtObj );
-                        ObjTextShow( &WaterTempDescTxtObj );
+                        ObjBmpShow( &MonWaterTempBmpObj );
+                        ObjTextShow( &MonWaterTempTxtObj );
+                        ObjTextShow( &MonWaterTempDescTxtObj );
                     }
                     else
                     {
                         /* might have been changed! */
-                        ObjTextShow( &FuelDist2TxtObj );
-                        ObjBmpShow( &Fuel2SymbolBmpObj );
+                        ObjTextShow( &MonFuelTxtObj );
+                        ObjBmpShow( &MonFuelBmpObj );
                     }
 
                     // Automatic Display Switch between OilTemp / RPM
@@ -565,15 +974,15 @@ void MainDeviceShow(BOOL fShow)
                     if ( AnaInGetOilTemperature() > ANAIN_TEMP_SENSORDETECT )
                     {
                         /* might have been changed! */
-                        ObjBmpShow( &OilTempSymbolBmpObj );
-                        ObjTextShow( &OilTempTxtObj );
-                        ObjTextShow( &OilTempDescTxtObj );
+                        ObjBmpShow( &MonOilTempBmpObj );
+                        ObjTextShow( &MonOilTempTxtObj );
+                        ObjTextShow( &MonOilTempDescTxtObj );
                     }
                     else
                     {
                         /* might have been changed! */
-                        ObjBmpShow( &RPMSymbolBmpObj );
-                        ObjTextShow( &RPM2TxtObj );
+                        ObjBmpShow( &MonRPMBmpObj );
+                        ObjTextShow( &MonRPMTxtObj );
                     }
 
                 } break;
@@ -582,14 +991,23 @@ void MainDeviceShow(BOOL fShow)
                 // break;
                 default:
                     ODS1( DBG_SYS, DBG_ERROR,
-                          "MainDeviceShow(): unknown state: %u", MainDevice.wDevState);
+                          "MainDeviceShow(): unknown state: %u", MDObj.wDevState);
             }
         }
     }
     else
     {
-        DisplClearScreen(0x0);              /* leave a clear screen for next device */
-        MainDevice.fScreenInit = FALSE;     /* reset devices screen state */
+        // leave a clear screen for next device
+        DisplClearScreen(0x0);
+
+        // reset states of all objects of this device
+        DevObjClearState(  &MDObj,
+                            MDObj.Objects.ObjList,
+                            MDObj.Objects.ObjCount,
+                            OS_DISPL | OS_EDIT );
+
+        // reset devices screen state
+        MDObj.fScreenInit = FALSE;
     }
 }
 
@@ -617,7 +1035,7 @@ ERRCODE MainDeviceMsgEntry(MESSAGE GivenMsg)
             /*  Some device want's to get the focus:
                 If we've currently got the focus, we'll
                 answer to SET his focus! */
-            if ( MainDevice.fFocused == TRUE)
+            if ( MDObj.fFocused == TRUE)
             {
                 ODS2(   DBG_SYS, DBG_INFO,
                         "%s wants to have focus from %s!",
@@ -625,7 +1043,7 @@ ERRCODE MainDeviceMsgEntry(MESSAGE GivenMsg)
                         szDevName[DEVID_MAIN]);
                 MSG_BUILD_SETFOCUS(NewMsg,DEVID_MAIN,MSG_SENDER_ID(GivenMsg));   /* build answer message */
                 RValue = MsgQPostMsg(NewMsg, MSGQ_PRIO_LOW);                     /* send answer message */
-                MainDevice.fFocused = FALSE;                                     /* clear our focus */
+                MDObj.fFocused = FALSE;                                     /* clear our focus */
                 MainDeviceShow(FALSE);                                           /* clear our screen */
                 RValue = ERR_MSG_PROCESSED;
             }
@@ -638,7 +1056,7 @@ ERRCODE MainDeviceMsgEntry(MESSAGE GivenMsg)
                 /*  Someone wants us to take the focus?
                     We assume, that nobody else has the focus
                     and we've got the the screen now for us! */
-                if (  (MainDevice.fFocused       == TRUE             )
+                if (  (MDObj.fFocused       == TRUE             )
                     &&(MSG_RECEIVER_ID(GivenMsg) == DEVID_MAIN) )
                     ODS2(   DBG_SYS, DBG_WARNING,
                             "FOCUS: %s -> %s, but it already has focus!",
@@ -649,15 +1067,15 @@ ERRCODE MainDeviceMsgEntry(MESSAGE GivenMsg)
                             "FOCUS: %s -> %s!",
                             szDevName[MSG_SENDER_ID(GivenMsg)],
                             szDevName[DEVID_MAIN]) */;
-                MainDevice.fFocused = TRUE;                             /* set our focus */
+                MDObj.fFocused = TRUE;                             /* set our focus */
                 MainDeviceShow(TRUE);                                   /* show our screen */
-                gSystemFlags.flags.ActDevNr = DEVID_MAIN;               /* save device# for restore */
-                ShowVehicleState = 0;                                   /* reset lower VehicleStateString state */
+                gDeviceFlags1.flags.ActDevNr = DEVID_MAIN;               /* save device# for restore */
+                SurvShowVehState = 0;                                   /* reset lower VehicleStateString state */
                 RValue = ERR_MSG_PROCESSED;
              }
              else
              {
-                if ( MainDevice.fFocused == TRUE )
+                if ( MDObj.fFocused == TRUE )
                 {
                     /*  Some other device should be given the focus,
                         BUT WE'VE GOT THE FOCUS!
@@ -667,7 +1085,7 @@ ERRCODE MainDeviceMsgEntry(MESSAGE GivenMsg)
                             szDevName[MSG_SENDER_ID(GivenMsg)],
                             szDevName[MSG_RECEIVER_ID(GivenMsg)],
                             szDevName[DEVID_MAIN]);
-                    MainDevice.fFocused = FALSE;                        /* loose our focus */
+                    MDObj.fFocused = FALSE;                        /* loose our focus */
                     ODS1(   DBG_SYS, DBG_WARNING,
                             "%s now loosing focus :-( ",
                             szDevName[DEVID_MAIN]);
@@ -679,7 +1097,7 @@ ERRCODE MainDeviceMsgEntry(MESSAGE GivenMsg)
 
     /* this part is only for FOCUSED time
        AND msg not already processed */
-    if (  (MainDevice.fFocused == TRUE )
+    if (  (MDObj.fFocused == TRUE )
         &&(RValue == ERR_MSG_NOT_PROCESSED ) )
     {
         switch (MsgId)
@@ -709,7 +1127,7 @@ ERRCODE MainDeviceMsgEntry(MESSAGE GivenMsg)
                     &&(MSG_KEY_DURATION(GivenMsg) < KEYSHORT              ) )
                 {
                     /* give focus immediatly to next screen */
-                    MainDevice.fFocused = FALSE;                              /* clear our focus */
+                    MDObj.fFocused = FALSE;                              /* clear our focus */
                     MainDeviceShow(FALSE);                                    /* clear our screen */
                     MSG_BUILD_SETFOCUS(NewMsg, DEVID_MAIN, DEVID_TRIPCOUNT);  /* next: TripCounter */
                     MsgQPostMsg(NewMsg, MSGQ_PRIO_LOW);
@@ -763,13 +1181,17 @@ ERRCODE MainDeviceStateMachine(MESSAGE Msg)
         &&(MsgId  == MSG_KEY_UP                        )        /* [UP] */
         &&(MSG_KEY_TRANSITION(Msg) == KEYTRANS_PRESSED ) )      /* not released */
     {
-        MainDevice.wDevState--;                                 /* previous state */
-        if (MainDevice.wDevState == eMainFirst)                 /* wrap around? */
-            MainDevice.wDevState = (eMainLast-1);
-        MainDevice.fScreenInit   = FALSE;                       /* next time rebuild complete screen */
+        DevObjClearState(   &MDObj,                        /* reset states of all objects of this device */
+                            MDObj.Objects.ObjList,
+                            MDObj.Objects.ObjCount,
+                            OS_DISPL | OS_SELECT | OS_EDIT );
+        MDObj.wDevState--;                                 /* previous state */
+        if (MDObj.wDevState == MD_FIRST)                 /* wrap around? */
+            MDObj.wDevState = (MD_LAST-1);
+        MDObj.fScreenInit   = FALSE;                       /* next time rebuild complete screen */
         MainDeviceShow(TRUE);                                   /* rebuild screen right now */
         RValue = ERR_MSG_PROCESSED;
-        ODS1( DBG_SYS, DBG_INFO, "MainDevState: %u", MainDevice.wDevState);
+        ODS1( DBG_SYS, DBG_INFO, "MainDevState: %u", MDObj.wDevState);
     }
 
     /* scroll down? */
@@ -777,17 +1199,21 @@ ERRCODE MainDeviceStateMachine(MESSAGE Msg)
         &&(MsgId  == MSG_KEY_DOWN                      )        /* [DOWN] */
         &&(MSG_KEY_TRANSITION(Msg) == KEYTRANS_PRESSED ) )      /* not released */
     {
-        MainDevice.wDevState++;                                 /* next state */
-        if (MainDevice.wDevState == eMainLast)                  /* wrap around? */
-            MainDevice.wDevState = (eMainFirst+1);
-        MainDevice.fScreenInit   = FALSE;                       /* next time rebuild complete screen */
+        DevObjClearState(   &MDObj,                        /* reset states of all objects of this device */
+                            MDObj.Objects.ObjList,
+                            MDObj.Objects.ObjCount,
+                            OS_DISPL | OS_SELECT | OS_EDIT );
+        MDObj.wDevState++;                                 /* next state */
+        if (MDObj.wDevState == MD_LAST)                  /* wrap around? */
+            MDObj.wDevState = (MD_FIRST+1);
+        MDObj.fScreenInit   = FALSE;                       /* next time rebuild complete screen */
         MainDeviceShow(TRUE);                                   /* rebuild screen right now */
         RValue = ERR_MSG_PROCESSED;
-        ODS1( DBG_SYS, DBG_INFO, "MainDevState: %u", MainDevice.wDevState);
+        ODS1( DBG_SYS, DBG_INFO, "MainDevState: %u", MDObj.wDevState);
     }
 
     /* save device state */
-    gSystemFlags.flags.MainDevState = MainDevice.wDevState;
+    gDeviceFlags1.flags.MainDevState = MDObj.wDevState;
 
     return RValue;
 }
@@ -809,10 +1235,10 @@ ERRCODE MainDeviceResetMsg(MESSAGE Msg)
     static BOOL fLocked = FALSE;                    /* TRUE = key not yet relases */
 
     // check: main device in state to reset anything?
-    if (   ( MainDevice.wDevState == eMainFuelKm  )
-         ||( MainDevice.wDevState == eMainTrip1Km )
-         ||( MainDevice.wDevState == eMainTrip2Km )
-         ||( MainDevice.wDevState == eMainSpeedMax) )
+    if (   ( MDObj.wDevState == MD_FUEL  )
+         ||( MDObj.wDevState == MD_TRIP1 )
+         ||( MDObj.wDevState == MD_TRIP2 )
+         ||( MDObj.wDevState == MD_SPEEDMAX) )
     {
         /* [OK] pressed+released long'? -> ITS FOR US! -> Re-enable Reset of distances!
           Note: This code shall prevent a 'flickering info led' if the user doesn't
@@ -834,12 +1260,12 @@ ERRCODE MainDeviceResetMsg(MESSAGE Msg)
         {
             DIST_TYPE Dist;
             Dist.dkm = 0;               /* reset distance value */
-            switch (MainDevice.wDevState) /* set into memory */
+            switch (MDObj.wDevState) /* set into memory */
             {
-                case eMainFuelKm:   MeasSetFuelDist( &Dist );  break;
-                case eMainTrip1Km:  MeasSetTripCnt( eTRIPC_C, &Dist ); break;
-                case eMainTrip2Km:  MeasSetTripCnt( eTRIPC_D, &Dist ); break;
-                case eMainSpeedMax: Speed_Max = 0; break;
+                case MD_FUEL:   MeasSetFuelDist( &Dist );  break;
+                case MD_TRIP1:  MeasSetTripCnt( eTRIPC_C, &Dist ); break;
+                case MD_TRIP2:  MeasSetTripCnt( eTRIPC_D, &Dist ); break;
+                case MD_SPEEDMAX: Speed_Max = 0; break;
                 default: break;
             }
             BeepOk();                   /* beep ok */
@@ -894,7 +1320,7 @@ ERRCODE MainDeviceShowVehicStateMsg(MESSAGE Msg)
     /* Received special Message to SHOW Vehicle state? */
     else if ( MsgId == MSG_MAINDEV_VEHIC_STATE_SHOW )
     {
-        ShowVehicleState = 1;                       /* change view right now! */
+        SurvShowVehState = 1;                       /* change view right now! */
         MainDeviceShow(TRUE);                       /* don't wait until REFRESH, show right now! */
         ODS( DBG_SYS, DBG_INFO, "MainDev: SHOW VehicleState!");
         RValue = ERR_MSG_PROCESSED;                 /* processed! */
@@ -903,7 +1329,7 @@ ERRCODE MainDeviceShowVehicStateMsg(MESSAGE Msg)
     /* Received special Message to HIDE Vehicle state? */
     else if ( MsgId == MSG_MAINDEV_VEHIC_STATE_HIDE )
     {
-        ShowVehicleState = 0;                       /* change view right now! */
+        SurvShowVehState = 0;                       /* change view right now! */
         ODS( DBG_SYS, DBG_INFO, "MainDev: HIDE VehicleState!");
         RValue = ERR_MSG_PROCESSED;                 /* processed! */
     }
@@ -927,8 +1353,8 @@ void MainDeviceUpdateTimeDate(void)
     CHAR    szBuffer[15];                           // text buffer
 
     // check conditions to display timedate */
-    if (  ( MainDevice.fScreenInit == TRUE  )       // screen is ready?
-        &&( ShowVehicleState       == FALSE ) )     // no vehicle state string active?
+    if (  ( MDObj.fScreenInit == TRUE  )       // screen is ready?
+        &&( SurvShowVehState       == FALSE ) )     // no vehicle state string active?
     {
         /* generate complete date/time string (21 chars!):
             DE: 'Mo 01.01.01  00:00:00'
