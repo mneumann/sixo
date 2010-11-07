@@ -68,6 +68,11 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.3  2010/11/07 11:58:46  tuberkel
+ * V30 Preparations:
+ * - Module 'Vehicle Simulation' ALWAYS supported
+ * - may be activated by user settings
+ *
  * Revision 2.2  2009/07/15 09:01:48  tuberkel
  * D-Options reviewed
  *
@@ -88,14 +93,8 @@
 #define _SIMULATOR_H
 
 
-/* main switch for this module */
-#ifndef VEHICSIM
-#define VEHICSIM    1   // default: vehicle simulaton supported
-#endif
-
 
 /* defines */
-#define SIM_WHEELSIZE   2000    // wheelsize to enable simulation
 #define SIM_STARTDELAY  2       // start delay in sec
 #define SIM_SEQUENCE    TRUE    // to control simulation: enables handling of sequence
 #define SIM_STATIC      FALSE   // to control simulation: enables handling of static behavoiur
