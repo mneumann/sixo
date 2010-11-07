@@ -73,11 +73,17 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.0  2010/11/07 13:28:26  tuberkel
+ * V30 Preparations:
+ * - Device Handling completely reviewed & simplified
+ * - Support of 'ObjectLists' inside selected Device
+ * - automatic focus of selected object in device
+ *
  * Revision 2.2  2009/07/22 12:36:35  tuberkel
  * Device Object Focus handling simplified:
- * - use DevObjFocusMove() / DevObjFocusReset() inside any device
+ * - use DevObjFocusSet() / DevObjFocusReset() inside any device
  * - DevObjFocusReset() to set focus to default state
- * - use DevObjFocusMove() to move focus based on UP/DOWN key
+ * - use DevObjFocusSet() to move focus based on UP/DOWN key
  *
  * Revision 2.1  2009/07/08 21:49:04  tuberkel
  * Changed contact data: Ralf Krizsan ==> Ralf Schwarzer
@@ -116,28 +122,34 @@ extern  UINT16  wMilliSecCounter;       // valid values: 0h .. ffffh
 extern  UINT16  wSecCounter;            // valid values: 0h .. ffffh
 
 extern DPLFLAGS_TYPE    gDisplayFlags;  //orginal display values
-extern SYSFLAGS_TYPE    gSystemFlags;   //system parameters
+extern DEVFLAGS1_TYPE    gDeviceFlags1;   //system parameters
 extern UINT32           dwSystemTime;   // high resolution long  distance timer, ms,  max. 49 days
 
 
 /* device names in plain text for diagnostic purpose */
-/* (index is same as DEVICE_ID) */
+/* NOTE_ Always assure same order like DEVICE_ID!!! */
 const STRING szDevName[] =
 {   "UnknownDev",
+
+    // these devices are currently supported
     "AllDevices",
     "MainDev",
     "IntroDev",
     "TripCDev",
     "SetDev",
-    "MenuDev",
+    "StatDev",
+    "LapCDev",
+    "MonDev",
+    "HWTestDev",
     "TestDev",
+
+    // these device IDs are prepared for future use
+    "MenuDev",
     "DiagnDev",
     "DbgDev",
     "WarnDev",
-    "MonDev",
-    "StatDev",
-    "LapCDev",
-    "HWTestDev"
+
+    "INVALID"
 };
 
 
@@ -159,21 +171,27 @@ ERRCODE DevCyclicRefresh(void)
 
     /* check: time to check one system parameter? */
     TimerGetSys_msec(wThisCall);
-    if (wThisCall - wLastCall > MAX_REFRESH_MS)
+    if ((wThisCall - wLastCall) > MAX_REFRESH_MS)
     {
+        /* --------------------------------------------- */
+        /* generate a cyclic refersh message */
         wLastCall = wThisCall;                                  /* update time stamp */
         MSG_BUILD_REFRESH(Msg, DEVID_UNKNOWN, DEVID_ALL);       /* from unknown to all */
         MsgQPostMsg(Msg, MSGQ_PRIO_LOW);                        /* post-it..*/
 
-        /* backlight automatic only, if we are NOT in Settings/HWtest Screen
-           they have to handle it on their own (AlwaysOn/EditMode)
-           And: After Start, backlight is ON, we delay automatic switch off
-           for 3 seconds to prevent flickering if it's night */
-        if (  (gSystemFlags.flags.ActDevNr != DEVID_SET   )
-            &&(gSystemFlags.flags.ActDevNr != DEVID_HWTEST)
+        /* --------------------------------------------- */
+        /* support backlight automatic */
+        /* NOTE: Support this only, if
+                    - we are NOT in Settings/HWtest Screen
+                    - if at least 3 seconds have gone
+                 This assures, that backlight is correctly handled while
+                 editing the backlight mode, and at init time the backlight is
+                 ON for at least n seconds. */
+        if (  (gDeviceFlags1.flags.ActDevNr != DEVID_SET   )
+            &&(gDeviceFlags1.flags.ActDevNr != DEVID_HWTEST)
             &&(dwSystemTime                >  3000        ) )
         {
-            /* cyclic check: backlight automatic */
+            /* support backlight automatic */
             LCDDrvSetBacklightLevel(    DisplBacklightCheckOn(gDisplayFlags.flags.BacklOnLevel),
                                         gDisplayFlags.flags.BacklLev );
         }
@@ -183,56 +201,105 @@ ERRCODE DevCyclicRefresh(void)
 
 
 /***********************************************************************
- *  FUNCTION:       DevObjFocusMove
+ *  FUNCTION:       DevObjFocusSet
  *  DESCRIPTION:    Moves focus to next/prev. object
  *  PARAMETER:      fpDevData       device to support focus
  *                  ObjList         list og selectable(!) objects of the device
- *                  FocusListSize   number of objects inside the list
+ *                  ListSize        number of objects inside the list
  *                  Msg             to be processed/move focus
  *  RETURN:         -
  *  COMMENT:        -
  *********************************************************************** */
-ERRCODE DevObjFocusMove(    DEVDATA far *       fpDevData,
-                            void far * far *    ObjList,
-                            UINT8               FocusListSize,
-                            MESSAGE             Msg)
+ERRCODE DevObjFocusSet( DEVDATA far *       fpDevData,
+                        void far * far *    GivenList,
+                        UINT8               ListSize,
+                        MESSAGE             Msg)
 {
+    DUMMYOBJECT far * far * ObjList;  // dummy object list to handle common object properties
     ERRCODE                 RValue = ERR_MSG_NOT_PROCESSED;
     MESSAGE_ID              MsgId;
+    BOOL                    fFound = FALSE;
     UINT8                   i;
-    OBJSTATE far * far *    FocusObjList;
 
     /* extract and check message parameters: UP/DOWN and 1st/longer TIME? */
     MsgId = MSG_ID(Msg);
-    if (  (  (MsgId                   == MSG_KEY_DOWN )
-           ||(MsgId                   == MSG_KEY_UP   ) )
+    if (  (  (MsgId                   == MSG_KEY_DOWN     )
+           ||(MsgId                   == MSG_KEY_UP       ) )
         &&(  (MSG_KEY_TRANSITION(Msg) == KEYTRANS_PRESSED )     // right now pressed?
            ||(MSG_KEY_TRANSITION(Msg) == KEYTRANS_ON      ) ) ) // or key repitition active?
     {
-        /* convert the object list ptr for eassier access */
-        FocusObjList = (OBJSTATE far * far *) ObjList;
+        /* convert the given list into an array of dummy objects to get access to it */
+        ObjList = (DUMMYOBJECT far * far *) GivenList;
 
         /* clear focus of all objects per default */
-        for (i = 0; i < FocusListSize; i++)
-            FocusObjList[i]->bits.fSelected = FALSE;
+        for (i = 0; i < ListSize; i++)
+            ObjList[i]->State.bits.fSelected = FALSE;
 
-        /* move focus down (incl. wrap around) */
+        /* ------------------------------------------------- */
+        /* check: DOWN pressed? -> move focus to NEXT object */
         if ( MsgId == MSG_KEY_DOWN )
-        {   if ( fpDevData->bFocusObj < (FocusListSize-1) )
-                 fpDevData->bFocusObj++;
-            else fpDevData->bFocusObj = 0;
+        {
+            /* try to find next SELECTABLE object */
+            i = fpDevData->bFocusObj;       // start with current focus object index
+            while (fFound == FALSE)
+            {
+                /* 1st: move focus down (incl. wrap around) */
+                if ( i < (ListSize-1) )
+                     i++;
+                else i = 0;
+
+                /* 2nd: object selectable? -> ok! */
+                if (ObjList[i]->State.bits.fSelectable == TRUE)
+                {   fFound = TRUE;          // ok, break here
+                }
+                else
+                {   ODS2( DBG_SYS, DBG_WARNING, "[%s] Unselectable object %u", fpDevData->szDevName, i);
+                }
+
+                /* 3rd: all objects checked? -> error! */
+                if (i == fpDevData->bFocusObj)
+                {   fFound = TRUE;          // error, but break here
+                    ODS1( DBG_SYS, DBG_WARNING, "[%s] NO selectable object found!", fpDevData->szDevName );
+                }
+            }
+            /* ok, save result */
+            fpDevData->bFocusObj = i;
         }
 
-        /* try to move focus up (incl. wrap around) */
+        /* ------------------------------------------------- */
+        /* check: UP pressed? -> move focus to NEXT object */
         if ( MsgId == MSG_KEY_UP )
-        {   if ( fpDevData->bFocusObj > 0 )
-                 fpDevData->bFocusObj--;
-            else fpDevData->bFocusObj = FocusListSize-1;
+        {
+            /* try to find next SELECTABLE object */
+            i = fpDevData->bFocusObj;       // start with current focus object index
+            while (fFound == FALSE)
+            {
+                /* 1st: move focus down (incl. wrap around) */
+                if ( i > 0 )
+                     i--;
+                else i = ListSize-1;
+
+                /* 2nd: object selectable? -> ok! */
+                if (ObjList[i]->State.bits.fSelectable == TRUE)
+                {   fFound = TRUE;          // ok, break here
+                }
+                else
+                {   ODS2( DBG_SYS, DBG_WARNING, "[%s] Unselectable object %u", fpDevData->szDevName, i);
+                }
+
+                /* 3rd: all objects checked? -> error! */
+                if (i == fpDevData->bFocusObj)
+                {   fFound = TRUE;          // error, but break here
+                    ODS1( DBG_SYS, DBG_WARNING, "[%s] NO selectable object found!", fpDevData->szDevName );
+                }
+            }
+            /* ok, save result */
+            fpDevData->bFocusObj = i;
         }
 
         /* activate focus of current object */
-        FocusObjList[fpDevData->bFocusObj]->bits.fSelected = TRUE;
-        ODS1( DBG_SYS, DBG_INFO, "OBJ-FOCUS moved to %u", fpDevData->bFocusObj);
+        ObjList[fpDevData->bFocusObj]->State.bits.fSelected = TRUE;
+        ODS2( DBG_SYS, DBG_INFO, "[%s] Focus moved to %u", fpDevData->szDevName, fpDevData->bFocusObj);
 
         // msg processed anyway
         RValue = ERR_MSG_PROCESSED;
@@ -249,34 +316,303 @@ ERRCODE DevObjFocusMove(    DEVDATA far *       fpDevData,
 /***********************************************************************
  *  FUNCTION:       DevObjFocusReset
  *  DESCRIPTION:    resets focus of all selectable objects and activates
- *                  the focus fr the first object
+ *                  the focus fr the first selectable object (if any)
  *  PARAMETER:      fpDevData       device to support focus
- *                  ObjList         list og selectable(!) objects of the device
- *                  FocusListSize   number of objects inside the list
- *  RETURN:         -
+ *                  GivenList       list of objects of the device
+ *                  ListSize        number of objects inside the list
+ *  RETURN:         ERR_OK          always
  *  COMMENT:        -
  *********************************************************************** */
 ERRCODE DevObjFocusReset(   DEVDATA far *       fpDevData,
-                            void far * far *    ObjList,
+                            void far * far *    GivenList,
                             UINT8               FocusListSize )
 {
-    OBJSTATE far * far *    FocusObjList;
-    UINT8           i;
+    DUMMYOBJECT far * far * ObjList;  // dummy object list to handle common object properties
+    BOOL                    fFound = FALSE;
+    UINT8                   i;
 
-    /* convert the object list ptr for eassier access */
-    FocusObjList = (OBJSTATE far * far *) ObjList;
+    /* convert the given list into an array of dummy objects to get access to it */
+    ObjList = (DUMMYOBJECT far * far *) GivenList;
 
     /* clear focus of all objects per default */
     for (i = 0; i < FocusListSize; i++)
-        FocusObjList[i]->bits.fSelected = FALSE;
+        ObjList[i]->State.bits.fSelected = FALSE;
 
-    /* activate focus of most first object */
-    fpDevData->bFocusObj = 0;
-    FocusObjList[fpDevData->bFocusObj]->bits.fSelected = TRUE;
-    ODS1( DBG_SYS, DBG_INFO, "OBJ-FOCUS reseted to %u", fpDevData->bFocusObj);
+    /* try to find first SELECTABLE object */
+    for (i = 0; i < FocusListSize; i++)
+    {
+        /* check: object IS selectable? -> select it and break here! */
+        if (ObjList[i]->State.bits.fSelectable == TRUE)
+        {   /* ok, save result */
+            fpDevData->bFocusObj = i;
+            ObjList[fpDevData->bFocusObj]->State.bits.fSelected = TRUE;
+            ODS2( DBG_SYS, DBG_INFO, "[%s] Focus reset to %u", fpDevData->szDevName, fpDevData->bFocusObj);
+            break;
+        }
+        else
+        {   //ODS2( DBG_SYS, DBG_WARNING, "[%s] Non selectable object %u", fpDevData->szDevName, i);
+        }
+    }
+    /* check: no object selectable at all? -> warning! */
+    if (i == FocusListSize)
+    {   ODS1( DBG_SYS, DBG_WARNING, "[%s] NO selectable object found!", fpDevData->szDevName );
+    }
     return (ERR_OK);
 }
 
+
+
+/***********************************************************************
+ *  FUNCTION:       DevObjGetFirstSelectable
+ *  DESCRIPTION:    Returns the FIRST selectable object in the list
+ *  PARAMETER:      fpDevData       device to support focus
+ *                  ObjList         list og selectable(!) objects of the device
+ *                  ListSize        number of objects inside the list
+ *  RETURN:         0..n            number of first selectable object in list
+ *                  ListSize        if NO object selectable
+ *  COMMENT:        -
+ *********************************************************************** */
+UINT8 DevObjGetFirstSelectable( DEVDATA far *       fpDevData,
+                                void far * far *    GivenList,
+                                UINT8               ListSize   )
+{
+    DUMMYOBJECT far * far * ObjList;  // dummy object list to handle common object properties
+    BOOL                    fFound = FALSE;
+    UINT8                   i;
+
+    /* convert the given list into an array of dummy objects to get access to it */
+    ObjList = (DUMMYOBJECT far * far *) GivenList;
+
+    /* check 'Selectable' capability of all objects - until first found */
+    for (i = 0; i < ListSize; i++)
+    {
+        if ( ObjList[i]->State.bits.fSelectable == TRUE )
+            break;
+    }
+    ODS3( DBG_SYS, DBG_INFO, "[%s] First selectable is %u/%u", fpDevData->szDevName, i, ListSize );
+    return (i);
+}
+
+
+/***********************************************************************
+ *  FUNCTION:       DevObjGetLastSelectable
+ *  DESCRIPTION:    Returns the LAST selectable object in the list
+ *  PARAMETER:      fpDevData       device to support focus
+ *                  ObjList         list og selectable(!) objects of the device
+ *                  ListSize        number of objects inside the list
+ *  RETURN:         0..n            number of last selectable object in list
+ *                  ListSize        if NO object selectable
+ *  COMMENT:        -
+ *********************************************************************** */
+UINT8 DevObjGetLastSelectable(  DEVDATA far *       fpDevData,
+                                void far * far *    GivenList,
+                                UINT8               ListSize   )
+{
+    DUMMYOBJECT far * far * ObjList;  // dummy object list to handle common object properties
+    BOOL                    fFound = FALSE;
+    UINT8                   i;
+
+    /* convert the given list into an array of dummy objects to get access to it */
+    ObjList = (DUMMYOBJECT far * far *) GivenList;
+
+    /* check 'Selectable' capability of all objects - reverse, until last found */
+    for (i = ListSize; i > 0; i--)
+    {
+        if ( ObjList[i]->State.bits.fSelectable == TRUE )
+            break;
+    }
+    ODS3( DBG_SYS, DBG_INFO, "[%s] Last selectable is %u/%u", fpDevData->szDevName, i, ListSize );
+    return (i);
+}
+
+
+
+/***********************************************************************
+ *  FUNCTION:       DevObjShow
+ *  DESCRIPTION:    Universal function to show all objects of any
+ *                  kind inside a list of objects.
+ *  PARAMETER:      fpDevData       device to support focus
+ *                  GivenList       list of objects of the device
+ *                  ListSize        number of objects inside the list
+ *                  UpdateMode      for edit objects only: kind of show method
+ *  RETURN:         ERR_OK          always
+ *  COMMENT:        -
+ *********************************************************************** */
+ERRCODE DevObjShow( DEVDATA far *       fpDevData,
+                    void far * far *    GivenList,
+                    UINT8               ListSize,
+                    UINT8               UpdateMode )
+{
+    DUMMYOBJECT far * far * ObjList;  // dummy object list to handle common object properties
+    UINT8           i;
+
+    /* convert the given list into an array of dummy objects to get access to it */
+    ObjList = (DUMMYOBJECT far * far *) GivenList;
+
+    /* process all objects of list */
+    for (i = 0; i < ListSize; i++)
+    {
+        /* select correct kind of method */
+        switch (ObjList[i]->eType)
+        {
+            case OBJT_BMP:   ObjBmpShow      ( (BMPOBJECT far *)        (ObjList[i]) ); break;
+            case OBJT_TXT:   ObjTextShow     ( (TEXTOBJECT far *)       (ObjList[i]) ); break;
+            case OBJT_ETXT:  ObjEditTextShow ( (EDITTEXTOBJECT far *)   (ObjList[i]), UpdateMode ); break;
+            case OBJT_ENUM:  ObjEditNumShow  ( (EDITNUMBEROBJECT far *) (ObjList[i]), UpdateMode ); break;
+            case OBJT_EBOOL: ObjEditBoolShow ( (EDITBOOLOBJECT far *)   (ObjList[i]), UpdateMode ); break;
+            case OBJT_SLCT:  ObjSelectShow   ( (SELECTOBJECT far *)     (ObjList[i]), UpdateMode ); break;
+            default: ODS1( DBG_SYS, DBG_WARNING, "DevObjShow(): Unknown ObjType %u!", ObjList[i]->eType); break;
+        }
+    }
+}
+
+
+
+/***********************************************************************
+ *  FUNCTION:       DevObjSetState
+ *  DESCRIPTION:    Universal function to INSERT one of the OBJSTATE
+ *                  bits into all objects insde the list
+ *  PARAMETER:      fpDevData       device to support focus
+ *                  GivenList       list of objects of the device
+ *                  ListSize        number of objects inside the list
+ *                  OBJSTATE        state to be set
+ *  RETURN:         ERR_OK          always
+ *  COMMENT:        -
+ *********************************************************************** */
+ERRCODE DevObjSetState( DEVDATA far *       fpDevData,
+                        void far * far *    GivenList,
+                        UINT8               ListSize,
+                        UINT8               GivenState )
+{
+    DUMMYOBJECT far * far * ObjList;  // dummy object list to handle common object properties
+    UINT8           i;
+
+    /* convert the given list into an array of dummy objects to get access to it */
+    ObjList = (DUMMYOBJECT far * far *) GivenList;
+
+    /* process all objects of list */
+    for (i = 0; i < ListSize; i++)
+        ObjList[i]->State.byte |= GivenState;
+
+    ODS2( DBG_SYS, DBG_INFO, "[%s] All object states 0x%0x SET", fpDevData->szDevName, GivenState);
+}
+
+
+
+/***********************************************************************
+ *  FUNCTION:       DevObjClearState
+ *  DESCRIPTION:    Universal function to CLEAR one of the OBJSTATE
+ *                  bits into all objects insde the list
+ *  PARAMETER:      fpDevData       device to support focus
+ *                  GivenList       list of objects of the device
+ *                  ListSize        number of objects inside the list
+ *                  OBJSTATE        state to be set
+ *  RETURN:         ERR_OK          always
+ *  COMMENT:        -
+ *********************************************************************** */
+ERRCODE DevObjClearState(   DEVDATA far *       fpDevData,
+                            void far * far *    GivenList,
+                            UINT8               ListSize,
+                            UINT8               GivenState )
+{
+    DUMMYOBJECT far * far * ObjList;  // dummy object list to handle common object properties
+    UINT8           i;
+
+    /* convert the given list into an array of dummy objects to get access to it */
+    ObjList = (DUMMYOBJECT far * far *) GivenList;
+
+    /* process all objects of list */
+    for (i = 0; i < ListSize; i++)
+        ObjList[i]->State.byte &= ~GivenState;
+
+    ODS2( DBG_SYS, DBG_INFO, "[%s] All object states 0x%0x CLEARED!", fpDevData->szDevName, GivenState);
+}
+
+
+
+/***********************************************************************
+ *  FUNCTION:       DevObjInit
+ *  DESCRIPTION:    Universal function to initiliaze all objects of any
+ *                  kind inside a list of objects.
+ *  PARAMETER:      fpDevData       device to support focus
+ *                  GivenList       list of objects of the device
+ *                  ListSize        number of objects inside the list
+ *                  eType           object type to initialized
+ *  RETURN:         ERR_OK          always
+ *  COMMENT:        -
+ *********************************************************************** */
+ERRCODE DevObjInit( DEVDATA far *       fpDevData,
+                    void far *          ObjList,
+                    UINT8               ListSize,
+                    UINT8               eType     )
+{
+    UINT8   i;
+
+    /* process all objects of list */
+    for (i = 0; i < ListSize; i++)
+    {
+        /* select correct kind of method */
+        switch ((OBJTYPE) eType)
+        {
+            case OBJT_TXT:   ObjTextInit     ( &((TEXTOBJECT_INITTYPE far *)ObjList)[i]); break;
+            case OBJT_BMP:   ObjBmpInit      ( &((BMPOBJECT_INITTYPE far *) ObjList)[i]); break;
+            case OBJT_ETXT:  ObjEditTextInit ( &((EDITTEXT_INITTYPE far *)  ObjList)[i]); break;
+            case OBJT_ENUM:  ObjEditNumInit  ( &((EDITNUMBER_INITTYPE far *)ObjList)[i]); break;
+            case OBJT_EBOOL: ObjEditBoolInit ( &((EDITBOOL_INITTYPE far *)  ObjList)[i]); break;
+            case OBJT_SLCT:  ObjSelectInit   ( &((SELECT_INITTYPE far *)    ObjList)[i]); break;
+            default: ODS1( DBG_SYS, DBG_WARNING, "DevObjInit(): Unknown ObjType %u!", eType); break;
+        }
+    }
+}
+
+
+
+/***********************************************************************
+ *  FUNCTION:       DevObjMsg
+ *  DESCRIPTION:    Provides all objects given in list with msg.
+ *  PARAMETER:      fpDevData       device to support focus
+ *                  ObjList         list og selectable(!) objects of the device
+ *                  ListSize        number of objects inside the list
+ *                  Msg             to be processed/move focus
+ *  RETURN:         ERR_MSG_NOT_PROCESSED / ERR_MSG_PROCESSED
+ *  COMMENT:        -
+ *********************************************************************** */
+ERRCODE DevObjMsg(  DEVDATA far *       fpDevData,
+                    void far * far *    GivenList,
+                    UINT8               ListSize,
+                    MESSAGE             GivenMsg )
+
+{
+    DUMMYOBJECT far * far * ObjList;    // dummy object list to handle common object properties
+    ERRCODE                 RValue = ERR_MSG_NOT_PROCESSED;
+    UINT8                   i;
+
+    /* convert the given list into an array of dummy objects to get access to it */
+    ObjList = (DUMMYOBJECT far * far *) GivenList;
+
+    /* process all objects of list */
+    for (i = 0; i < ListSize; i++)
+    {
+        /* select correct kind of method */
+        switch (ObjList[i]->eType)
+        {
+            case OBJT_BMP:   break; // does not have a msg entry fct.
+            case OBJT_TXT:   break; // does not have a msg entry fct.
+            case OBJT_ETXT:  RValue = ObjEditTextMsgEntry ( (EDITTEXTOBJECT far *)   (ObjList[i]), GivenMsg ); break;
+            case OBJT_ENUM:  RValue = ObjEditNumMsgEntry  ( (EDITNUMBEROBJECT far *) (ObjList[i]), GivenMsg ); break;
+            case OBJT_EBOOL: RValue = ObjEditBoolMsgEntry ( (EDITBOOLOBJECT far *)   (ObjList[i]), GivenMsg ); break;
+            case OBJT_SLCT:  RValue = ObjSelectMsgEntry   ( (SELECTOBJECT far *)     (ObjList[i]), GivenMsg ); break;
+            default: ODS1( DBG_SYS, DBG_WARNING, "DevObjShow(): Unknown ObjType %u!", ObjList[i]->eType); break;
+        }
+
+        /* break here, if object processed the msg */
+        if (RValue == ERR_MSG_PROCESSED)
+            break;
+    }
+
+    /* return result */
+    return RValue;
+}
 
 
 
