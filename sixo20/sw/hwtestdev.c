@@ -68,6 +68,16 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.0  2010/11/07 13:38:56  tuberkel
+ * V30 Preparations:
+ * - changed to ne simplified device object handling
+ * - Key- and WHEEL Check behaviour improved
+ * - RTC testss
+ * - BugFix StringBuffer Sizes
+ * - Status Display changed:
+ *   - szOk '.' --> '+'
+ *   - szUnknown '_' --> '?'
+ *
  * Revision 2.5  2009/07/19 12:26:01  tuberkel
  * - ObjectInit reviewed
  * - dyn. text handling disabled
@@ -140,7 +150,7 @@ extern UINT16  wMilliSecCounter;    // valid values: 0h .. ffffh
 extern UINT16  wSecCounter;         // valid values: 0h .. ffffh
 
 extern STRING far           szDevName[];                /* device names */
-extern SYSFLAGS_TYPE        gSystemFlags;               /* system parameters */
+extern DEVFLAGS1_TYPE        gDeviceFlags1;               /* system parameters */
 
 
 /* local objects */
@@ -151,24 +161,22 @@ static BOOL         fGPO0 = FALSE;       /* for hw stimulation of pin GPO_0 */
 static BOOL         fGPO1 = FALSE;       /* for hw stimulation of pin GPO_1 */
 
 /* variable strings to contain current values */
-static char szVoltage[5];
-static char szKmh[5];
+static char szVoltage[6];
+static char szKmh[6];
 static char szRPM[6];
-static char szOilTemp[5];
-static char szWatTemp[5];
-static char szExtTemp[5];
-static char szIntTemp[5];
-static char szAltW[5];
-static char szLDR[5];
+static char szOilTemp[6];
+static char szWatTemp[6];
+static char szExtTemp[6];
+static char szIntTemp[6];
+static char szAltW[6];
+static char szLDR[6];
 static char szHWID[2];
-//static char szRebootSec[3];
 
 
 /* constant strings to indicate test status */
-static char         szOk[] =    ".";
-static char         szAtt[]=    "!";
+static char         szOk[] =    "+";
 static char         szErr[]=    "E";
-static char         szUnknown[]="_";
+static char         szUnknown[]="?";
 
 
 /* text objects for values */
@@ -181,7 +189,6 @@ static TEXTOBJECT   ExtTempObj;
 static TEXTOBJECT   IntTempObj;
 static TEXTOBJECT   AltWObj;
 static TEXTOBJECT   LDRObj;
-//static TEXTOBJECT   RebootObj;
 
 
 /* text objects for key status */
@@ -236,14 +243,14 @@ static TEXTOBJECT   StatObj_KEY2;
     |TDEV  23'C _   KEY 012  ___  UDO|
     +....!....!....!....!....!....!..+
 
-    V+:    power supplier in Volts
+    V+:     Power Supply in Volts
     ALTW:   Vcc(out) connected with ALTW (In) in Volts
-    RPM:   engine rounds per minute
-    KM/H:  measured speed in km/h
-    TOIL:  oil temp input in °C
-    TWAT:  water temp input in °C
-    TAIR:  air temp input in °C
-    TDEV:  device internal temp input in °C
+    RPM:    engine rounds per minute
+    KM/H:   measured speed in km/h
+    TOIL:   oil temp input in °C
+    TWAT:   water temp input in °C
+    TAIR:   air temp input in °C
+    TDEV:   device internal temp input in °C
 
     HW:     hardware versionnumber
     EEPROM: EEPROM R/W software selftest
@@ -287,12 +294,14 @@ static TEXTOBJECT   StatObj_KEY2;
 
 
 // HW Test  device resources ----------------------------
-static const TEXTOBJECT_INITTYPE TextObjects[] =
+static const TEXTOBJECT_INITTYPE TextObjInit[] =
 {
     /* basic screen content ------------------- */
 
     /* Object Name        X        Y       Font         H  W    align     format    src                  state     */
     /* ----------------- -------  -------  ------------ -- -- ---------- --------- --------------------  --------- */
+
+    /* complete static background description incl. descriptors ------  */
     { &HWTestScreen,     C2PH(0), C2PV(0), DPLFONT_4X6, 8, 32, TXT_LEFT,  TXT_NORM, RESTXT_HWTDEV_SCREEN_32x8,  OC_DISPL },
 
     /* analog values ------  */
@@ -307,45 +316,101 @@ static const TEXTOBJECT_INITTYPE TextObjects[] =
 
 
     /* test status objects */
-    { &StatObj_VBAT,    C2PH(11), C2PV(0), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown, OC_DISPL | OC_DYN },
-    { &StatObj_ALTW,    C2PH(11), C2PV(1), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown, OC_DISPL | OC_DYN },
-    { &StatObj_RPM,     C2PH(11), C2PV(2), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown, OC_DISPL | OC_DYN },
-    { &StatObj_KMH,     C2PH(11), C2PV(3), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown, OC_DISPL | OC_DYN },
-    { &StatObj_TOIL,    C2PH(11), C2PV(4), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown, OC_DISPL | OC_DYN },
-    { &StatObj_TWAT,    C2PH(11), C2PV(5), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown, OC_DISPL | OC_DYN },
-    { &StatObj_TAIR,    C2PH(11), C2PV(6), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown, OC_DISPL | OC_DYN },
-    { &StatObj_TDEV,    C2PH(11), C2PV(7), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown, OC_DISPL | OC_DYN },
+    { &StatObj_VBAT,    C2PH(11), C2PV(0), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown,  OC_DISPL | OC_DYN },
+    { &StatObj_ALTW,    C2PH(11), C2PV(1), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown,  OC_DISPL | OC_DYN },
+    { &StatObj_RPM,     C2PH(11), C2PV(2), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown,  OC_DISPL | OC_DYN },
+    { &StatObj_KMH,     C2PH(11), C2PV(3), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown,  OC_DISPL | OC_DYN },
+    { &StatObj_TOIL,    C2PH(11), C2PV(4), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown,  OC_DISPL | OC_DYN },
+    { &StatObj_TWAT,    C2PH(11), C2PV(5), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown,  OC_DISPL | OC_DYN },
+    { &StatObj_TAIR,    C2PH(11), C2PV(6), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown,  OC_DISPL | OC_DYN },
+    { &StatObj_TDEV,    C2PH(11), C2PV(7), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown,  OC_DISPL | OC_DYN },
 
-    { &StatObj_EEPR,    C2PH(23), C2PV(0), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown, OC_DISPL | OC_DYN },
-    { &StatObj_NVRAM,   C2PH(23), C2PV(1), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown, OC_DISPL | OC_DYN },
-    { &StatObj_UART0,   C2PH(22), C2PV(2), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown, OC_DISPL | OC_DYN },
-    { &StatObj_UART1,   C2PH(23), C2PV(2), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown, OC_DISPL | OC_DYN },
+    { &StatObj_EEPR,    C2PH(23), C2PV(0), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown,  OC_DISPL | OC_DYN },
+    { &StatObj_NVRAM,   C2PH(23), C2PV(1), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown,  OC_DISPL | OC_DYN },
+    { &StatObj_UART0,   C2PH(22), C2PV(2), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown,  OC_DISPL | OC_DYN },
+    { &StatObj_UART1,   C2PH(23), C2PV(2), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown,  OC_DISPL | OC_DYN },
 
-    { &LDRObj,          C2PH(19), C2PV(3), DPLFONT_4X6, 1,  3, TXT_RIGHT, TXT_NORM, szLDR,     OC_DISPL | OC_DYN },
-    { &StatObj_LDR,     C2PH(23), C2PV(3), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown, OC_DISPL | OC_DYN },
+    { &LDRObj,          C2PH(19), C2PV(3), DPLFONT_4X6, 1,  3, TXT_RIGHT, TXT_NORM, szLDR,      OC_DISPL | OC_DYN },
+    { &StatObj_LDR,     C2PH(23), C2PV(3), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown,  OC_DISPL | OC_DYN },
 
-    { &StatObj_TURNL,   C2PH(22), C2PV(4), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown, OC_DISPL | OC_DYN },
-    { &StatObj_TURNR,   C2PH(23), C2PV(4), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown, OC_DISPL | OC_DYN },
-    { &StatObj_HBEAM,   C2PH(23), C2PV(5), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown, OC_DISPL | OC_DYN },
-    { &StatObj_GPI0,    C2PH(24), C2PV(6), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown, OC_DISPL | OC_DYN },
-    { &StatObj_GPI1,    C2PH(25), C2PV(6), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown, OC_DISPL | OC_DYN },
-    { &StatObj_GPI2,    C2PH(26), C2PV(6), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown, OC_DISPL | OC_DYN },
-    { &StatObj_GPI3,    C2PH(27), C2PV(6), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown, OC_DISPL | OC_DYN },
-    { &StatObj_KEY0,    C2PH(24), C2PV(7), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown, OC_DISPL | OC_DYN },
-    { &StatObj_KEY1,    C2PH(25), C2PV(7), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown, OC_DISPL | OC_DYN },
-    { &StatObj_KEY2,    C2PH(26), C2PV(7), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown, OC_DISPL | OC_DYN },
+    { &StatObj_TURNL,   C2PH(22), C2PV(4), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown,  OC_DISPL | OC_DYN },
+    { &StatObj_TURNR,   C2PH(23), C2PV(4), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown,  OC_DISPL | OC_DYN },
+    { &StatObj_HBEAM,   C2PH(23), C2PV(5), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown,  OC_DISPL | OC_DYN },
+    { &StatObj_GPI0,    C2PH(24), C2PV(6), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown,  OC_DISPL | OC_DYN },
+    { &StatObj_GPI1,    C2PH(25), C2PV(6), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown,  OC_DISPL | OC_DYN },
+    { &StatObj_GPI2,    C2PH(26), C2PV(6), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown,  OC_DISPL | OC_DYN },
+    { &StatObj_GPI3,    C2PH(27), C2PV(6), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown,  OC_DISPL | OC_DYN },
+    { &StatObj_KEY0,    C2PH(24), C2PV(7), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown,  OC_DISPL | OC_DYN },
+    { &StatObj_KEY1,    C2PH(25), C2PV(7), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown,  OC_DISPL | OC_DYN },
+    { &StatObj_KEY2,    C2PH(26), C2PV(7), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown,  OC_DISPL | OC_DYN },
 
-    { &StatObj_BAT,     C2PH(31), C2PV(0), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown, OC_DISPL | OC_DYN },
-    { &StatObj_RTC,     C2PH(31), C2PV(1), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown, OC_DISPL | OC_DYN },
-    { &StatObj_HWVER,   C2PH(31), C2PV(2), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown, OC_DISPL | OC_DYN },
-    { &StatObj_WHEEL,   C2PH(31), C2PV(3), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown, OC_DISPL | OC_DYN },
-    { &StatObj_OIL,     C2PH(31), C2PV(4), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown, OC_DISPL | OC_DYN },
-    { &StatObj_NEUTR,   C2PH(31), C2PV(5), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown, OC_DISPL | OC_DYN },
+    { &StatObj_BAT,     C2PH(31), C2PV(0), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown,  OC_DISPL | OC_DYN },
+    { &StatObj_RTC,     C2PH(31), C2PV(1), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown,  OC_DISPL | OC_DYN },
+    { &StatObj_HWVER,   C2PH(31), C2PV(2), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown,  OC_DISPL | OC_DYN },
+    { &StatObj_WHEEL,   C2PH(31), C2PV(3), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown,  OC_DISPL | OC_DYN },
+    { &StatObj_OIL,     C2PH(31), C2PV(4), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown,  OC_DISPL | OC_DYN },
+    { &StatObj_NEUTR,   C2PH(31), C2PV(5), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, szUnknown,  OC_DISPL | OC_DYN },
 
-    { &KeyUp,           C2PH(29), C2PV(7), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, "U",       OC_DISPL | OC_DYN },
-    { &KeyDown,         C2PH(30), C2PV(7), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, "D",       OC_DISPL | OC_DYN },
-    { &KeyOk,           C2PH(31), C2PV(7), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, "O",       OC_DISPL | OC_DYN },
+    { &KeyUp,           C2PH(29), C2PV(7), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, "U",        OC_DISPL | OC_DYN },
+    { &KeyDown,         C2PH(30), C2PV(7), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, "D",        OC_DISPL | OC_DYN },
+    { &KeyOk,           C2PH(31), C2PV(7), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, "O",        OC_DISPL | OC_DYN },
 };
+#define TEXTOBJECTLISTSIZE   (sizeof(TextObjInit)/sizeof(TEXTOBJECT_INITTYPE))
+
+
+
+/* this devices object focus handling - list of all objects */
+/* NOTE:    this device does not need any focus, this
+            list is for common object handling only! */
+static const void far * ObjectList[] =
+{
+    (void far *) &HWTestScreen,
+    (void far *) &VoltageObj,
+    (void far *) &AltWObj,
+    (void far *) &RPMObj,
+    (void far *) &KmhObj,
+    (void far *) &WatTempObj,
+    (void far *) &ExtTempObj,
+    (void far *) &OilTempObj,
+    (void far *) &IntTempObj,
+    (void far *) &StatObj_VBAT,
+    (void far *) &StatObj_ALTW,
+    (void far *) &StatObj_RPM,
+    (void far *) &StatObj_KMH,
+    (void far *) &StatObj_TOIL,
+    (void far *) &StatObj_TWAT,
+    (void far *) &StatObj_TAIR,
+    (void far *) &StatObj_TDEV,
+    (void far *) &StatObj_EEPR,
+    (void far *) &StatObj_NVRAM,
+    (void far *) &StatObj_UART0,
+    (void far *) &StatObj_UART1,
+    (void far *) &LDRObj,
+    (void far *) &StatObj_LDR,
+    (void far *) &StatObj_TURNL,
+    (void far *) &StatObj_TURNR,
+    (void far *) &StatObj_HBEAM,
+    (void far *) &StatObj_GPI0,
+    (void far *) &StatObj_GPI1,
+    (void far *) &StatObj_GPI2,
+    (void far *) &StatObj_GPI3,
+    (void far *) &StatObj_KEY0,
+    (void far *) &StatObj_KEY1,
+    (void far *) &StatObj_KEY2,
+    (void far *) &StatObj_BAT,
+    (void far *) &StatObj_RTC,
+    (void far *) &StatObj_HWVER,
+    (void far *) &StatObj_WHEEL,
+    (void far *) &StatObj_OIL,
+    (void far *) &StatObj_NEUTR,
+    (void far *) &KeyUp,
+    (void far *) &KeyDown,
+    (void far *) &KeyOk,
+};
+#define OBJECTLIST_SIZE   (sizeof(ObjectList)/sizeof(OBJSTATE)/sizeof(void far *))
+#define OBJECTLIST_FIRSTSEL    0    // first = last = no focus handling required
+#define OBJECTLIST_LASTSEL     0
+
 
 
 
@@ -380,19 +445,27 @@ ERRCODE HWTestDeviceInit(void)
     HWTestDev.fFocused     = FALSE;
     HWTestDev.fScreenInit  = FALSE;
 
-    /* create text objects */
-    for (i = 0; i < ARRAY_SIZE(TextObjects); i++)
-    {
-       /* convert rom constant array into live objects */
-       ObjTextInit( &TextObjects[i] );
-    }
+    /* initialize all objects of any type */
+    DevObjInit( &HWTestDev, (void far *)TextObjInit,   TEXTOBJECTLISTSIZE,     OBJT_TXT   );
+
+    /* initialize this devices objects list */
+    HWTestDev.Objects.ObjList       = ObjectList;
+    HWTestDev.Objects.ObjCount      = OBJECTLIST_SIZE;
+    HWTestDev.Objects.FirstSelObj   = DevObjGetFirstSelectable(&HWTestDev,ObjectList,OBJECTLIST_SIZE);
+    HWTestDev.Objects.LastSelObj    = DevObjGetLastSelectable (&HWTestDev,ObjectList,OBJECTLIST_SIZE);
+
+    /* reset focus handling to start values */
+    DevObjFocusReset( &HWTestDev, ObjectList, OBJECTLIST_SIZE );
 
     /* initialize HW stuff */
     HWTestInit();
 
     /* return */
+    ODS( DBG_SYS, DBG_INFO, "- HWTestDeviceInit() done!");
     return ERR_OK;
 }
+
+
 
 /***********************************************************************
  *  FUNCTION:       HWTestDeviceShow
@@ -406,7 +479,7 @@ ERRCODE HWTestDeviceInit(void)
 void HWTestDeviceShow(BOOL fShow)
 {
     ERRCODE error = ERR_OK;
-    int i;
+    UINT8   ShowMode;
 
     /* its on screen? */
     if (fShow == TRUE)
@@ -417,25 +490,35 @@ void HWTestDeviceShow(BOOL fShow)
         /* do we have to repaint all? */
         if (HWTestDev.fScreenInit == FALSE)
         {
-            /* show all objects */
-            for (i = 0; i < ARRAY_SIZE(TextObjects); i++)
-            {
-               ObjTextShow( TextObjects[i].fpObject );
-            }
+            DisplClearScreen(0x00);
             HWTestDev.fScreenInit = TRUE;
+            ShowMode = SHOW_ALL;                   // repaint all stuff
+        }
+        else
+        {   ShowMode = SHOW_EDIT | SHOW_CURSOR;    // repaint only potential changed stuff
         }
 
-        else
-        {
-            /* only repaint dynamic fields */
-            for (i = 0; i < ARRAY_SIZE(TextObjects); i++)
-            {   ObjTextShow( TextObjects[i].fpObject );
-            }
-        }
+        // FOR DISPLAY OBJECTS TEST ONLY: clear & proof display mode of objects!
+        //DisplClearScreen(0xaa);
+
+        /* process complete (active) object to show all objects */
+        DevObjShow(&HWTestDev,
+                    HWTestDev.Objects.ObjList,
+                    HWTestDev.Objects.ObjCount,
+                    ShowMode );
     }
     else
     {
+        // clear screen
         DisplClearScreen(0x0);
+
+        // reset states of all objects of this device
+        DevObjClearState(  &HWTestDev,
+                            HWTestDev.Objects.ObjList,
+                            HWTestDev.Objects.ObjCount,
+                            OS_DISPL | OS_EDIT );
+
+        // set overall device state to 'not init'
         HWTestDev.fScreenInit  = FALSE;
     }
 }
@@ -498,7 +581,7 @@ ERRCODE HWTestDeviceMsgEntry(MESSAGE GivenMsg)
                             szDevName[DEVID_HWTEST]) */ ;
                 HWTestDev.fFocused = TRUE;                         /* set our focus */
                 HWTestDeviceShow(TRUE);                            /* show our screen */
-                gSystemFlags.flags.ActDevNr = DEVID_HWTEST;        /* save device# for restore */
+                gDeviceFlags1.flags.ActDevNr = DEVID_HWTEST;        /* save device# for restore */
                 RValue = ERR_MSG_PROCESSED;
              }
              else
@@ -534,22 +617,17 @@ ERRCODE HWTestDeviceMsgEntry(MESSAGE GivenMsg)
                 HWTestDeviceShow(TRUE);     // show updated values
                 RValue = ERR_MSG_PROCESSED;
                 break;
-            case MSG_KEYS_PRESSED:
-                /* check if UP&DOWN are pressed short: */
-                if (  (RValue == ERR_MSG_NOT_PROCESSED                    )
-                    &&(MSG_KEY_STATES(GivenMsg) == (KEYFL_UP | KEYFL_DOWN))
-                    &&(MSG_KEY_DURATION(GivenMsg) < KEYSHORT              ) )
-                {
-                    /* this device does NOT give focus to next device!!!  */
-                    RValue = ERR_MSG_PROCESSED;
-                }
-                break;
 
+            case MSG_KEY_OK:
             case MSG_KEY_UP:
             case MSG_KEY_DOWN:
+                HWTestDeviceShow(TRUE);     // show updated values
+                RValue = ERR_MSG_PROCESSED;
+                break;
+
+            case MSG_KEYS_PRESSED:
             case MSG_DPL_FLASH_ON:
             case MSG_DPL_FLASH_OFF:
-            case MSG_KEY_OK:
                 // no keyboard action in this device
                 RValue = ERR_MSG_PROCESSED;
             default: RValue = ERR_MSG_NOT_PROCESSED;
@@ -599,16 +677,14 @@ void HWTestWork ( void )
     // always update measurement values
     HWTestUpdateMeasurement();
 
-    // show errors
-    // Note: only if test adapter present, eq. 'no EndOfLine-test'
+    // check errors stimulated by end-of-line test adapter (if connected)
     if ( gfEOLTest == TRUE )
         HWTestCheckStimulatedErrors();
 
-    // always check HW errors
+    // check errors which can always be detected
     HWTestCheckUnstimulatedErrors();
 
-    // show input status
-    // Noe: only if we are in vehicle to support user
+    // show input status (if no EOL test adapter)
     if ( gfEOLTest == FALSE )
         HWTestCheckStates();
 }
@@ -622,9 +698,11 @@ void HWTestWork ( void )
  *  RETURN:         TRUE    if test adapter present
  *                  FALSE   if not test adapter present
  *  COMMENT:        Used to distinguish, wether HW test is started at
- *                  real vehicle or at end of line.
- *                  We use HBEAM as an example of all controlled digital
- *                  inputs
+ *                  real vehicle or with EOL test adapter (end of line).
+ *
+ *                  We use HBEAM as an example of all testadapter controlled
+ *                  digital inputs: The testadapter returns output of GPO1 as
+ *                  inverted signal at HBEAM input!
  *********************************************************************** */
 BOOL HWTestCheckTesterPresent( void )
 {
@@ -632,11 +710,11 @@ BOOL HWTestCheckTesterPresent( void )
     // test: activate GPO1 and validate HBEAM for a very short time
     GPO1 = 1;                           // activate GPO1
     for (wait=0; wait<1000;wait++);
-    if (DigIn_HBeam == 0)               // HBEAM should be show invers of GPO1
+    if (DigIn_HBeam == 0)               // HBEAM should be invers of GPO1
     {
         GPO1 = 0;                       // de-activate GPO1
         for (wait=0; wait<1000;wait++);
-        if (DigIn_HBeam == 1)           // HBEAM should be show invers of GPO1 again
+        if (DigIn_HBeam == 1)           // HBEAM should be invers of GPO1 again
              return TRUE;
         else return FALSE;
     }
@@ -655,6 +733,9 @@ BOOL HWTestCheckTesterPresent( void )
  *  PARAMETER:      -
  *  RETURN:         -
  *  COMMENT:        Sould only be called if test adapter detected present
+ *                  Test result in display behind item name as an
+ *                      - 'E' if misfunction detected or
+ *                      - '.' if function ok
  *********************************************************************** */
 void HWTestCheckStimulatedErrors( void )
 {
@@ -784,17 +865,19 @@ void HWTestCheckStimulatedErrors( void )
 /***********************************************************************
  *  FUNCTION:       HWTestCheckUnstimulatedErrors
  *  DESCRIPTION:    check any detectable hw error independently of
- *                  hw test adapter
+ *                  hw test adapter.
  *  PARAMETER:      -
  *  RETURN:         -
- *  COMMENT:        Will repeatedly be done once per 5 seconds
- *                  Will reboot system every 10 seconds and restart
- *                  test sequence automatically
+ *  COMMENT:        test result is displayed behind item name as an
+ *                      - 'E' if misfunction detected or
+ *                      - '.' if function ok
  *********************************************************************** */
 void HWTestCheckUnstimulatedErrors( void )
 {
-    static BOOL     fHWCheck5sDone = FALSE;
-    static BOOL     fHWCheck1sDone = FALSE;
+    #define CYCLE_CHECK_RTC     1       // check RTC    every 2 seconds
+    #define CYCLE_CHECK_EEPROM  5       // check EEPROM every 5 seconds
+    static UINT16   wLastRTCCheck = 0;
+    static UINT16   wLastEepromCheck = 0;
     static UINT8    bOldSec;
     UINT8           bNewSec;
     UINT8           bNewMinute;
@@ -807,6 +890,7 @@ void HWTestCheckUnstimulatedErrors( void )
     unsigned int    wSavedEEPROMData;
     unsigned int    wTestEEPROMWord;
 
+    // =============================================================================
     // check key UP/DOWN/Ok status (only 1 time)
     if (DigInDrv_GetKeyStates() & KEYFL_UP)
          StatObj_KEY0.szText  = szOk;
@@ -825,18 +909,15 @@ void HWTestCheckUnstimulatedErrors( void )
     if ( WheelPort == 1 )
         StatObj_WHEEL.szText = szOk;
 
-    // NVRAM + RTC + Battery Check
-    // activate every 2 second only, to prevent
-    // damage of eeprom if permanent in use!
-    if (  ( (wSecCounter%2) == 0    )
-        &&( fHWCheck1sDone  == FALSE ) )
+    // =============================================================================
+    // NVRAM + RTC + Battery Check (every 2nd second)
+    if ( (wSecCounter - wLastRTCCheck) > CYCLE_CHECK_RTC)
     {
-        // prevent next call in this second
-        fHWCheck1sDone = TRUE;
+        // suspend check for CYCLE_CHECK_RTC seconds
+        wLastRTCCheck = wSecCounter;
 
         // check running RTC seconds
-        // Note: Min+Sec will be used NVRAM test
-        //       pattern and battery check
+        // Note: Min+Sec will be used as NVRAM test pattern and battery check
         iicGetClockTime(&BCDTime);
         bNewSec    = BCD2VAL(BCDTime.seconds);
         bNewMinute = BCD2VAL(BCDTime.minutes);
@@ -847,9 +928,9 @@ void HWTestCheckUnstimulatedErrors( void )
         wRTCTimeStamp = bNewMinute*60 + bNewSec;
 
         // check lithium battery for NVRAM + RTC:
-        // To succeed this test, the ECU must be switched off
+        // To succeed this test, the ECU must be disconnected from power supply
         //          - at least 5 seconds!
-        //          - but longer than 30 seconds!
+        //          - but not longer than 30 seconds!
         // Note: To distinguish between 'normal test work' (check every n seconds),
         //       timestamp difference should be >10s BUT <30s.
         // Test principle:
@@ -857,10 +938,10 @@ void HWTestCheckUnstimulatedErrors( void )
         //  - The NVRAM timestamp is permanentely compared with RTC timestamp
         //  - As long as both timestamps do not differ more than 5 seconds, it is assumed,
         //      that the SIXO was not switched off --> no test update!
-        //  - If the the SIXO is switched more than 5 seconds and less than 30 seconds,
-        //      and the lithium battery doesn' work, the NVRAM will loose its memory
+        //  - If the the SIXO is switched off longer than 5 seconds and less than 30 seconds,
+        //      and the lithium battery does'nt work, the NVRAM will loose its memory
         //      content, the timestamps will differ more than 30 seconds.
-        //  - If the the SIXO is switched more than 5 seconds and less than 30 seconds,
+        //  - If the the SIXO is switched off more than 5 seconds and less than 30 seconds,
         //      and the lithium battery works well, the NVRAM won't loose its memory
         //      content, the timestamps will differ less than 30 seconds.
         iicNvramRead( NVRAMSIZE-1, 1, &cTestNVRAMMinutes );   // READ
@@ -890,16 +971,13 @@ void HWTestCheckUnstimulatedErrors( void )
              StatObj_NVRAM.szText = szOk;
         else StatObj_NVRAM.szText = szErr;
     }
-    else fHWCheck1sDone = FALSE;  // try again after next n seconds...
 
-    // EEPROM check
-    // activate every 5 seconds only, to prevent
-    // damage of eeprom if permanent in use!
-    if (  ( (wSecCounter%5) == 0    )
-        &&( fHWCheck5sDone   == FALSE ) )
+    // =============================================================================
+    // EEPROM check (every 5 seconds to prevent eeprom damage)
+    if ( (wSecCounter - wLastEepromCheck) > CYCLE_CHECK_EEPROM )
     {
-        // prevent next call in this second
-        fHWCheck5sDone = TRUE;
+        // suspend check for CYCLE_CHECK_EEPROM seconds
+        wLastEepromCheck = wSecCounter;
 
         // write/read at last EEPROM word position before MagicNumber, without destroying old data
         wTestEEPROMAdr = iicEepromSize() - EEPR_MAGICNUM_SIZE - sizeof( wTestEEPROMWord );
@@ -914,8 +992,6 @@ void HWTestCheckUnstimulatedErrors( void )
         else StatObj_EEPR.szText = szErr;
 
     }
-    else fHWCheck5sDone = FALSE;  // try again after next n seconds...
-
 }
 
 
@@ -927,10 +1003,17 @@ void HWTestCheckUnstimulatedErrors( void )
  *                  port activated, shows INVERS item.
  *  PARAMETER:      -
  *  RETURN:         -
- *  COMMENT:        Sould only be called if test adapter detected
+ *  COMMENT:        Should only be called if test adapter detected.
+ *
+ *                  Checked state is display as Test result in display behind item name as an
+ *                      - '_' if input/signal is LOW and
+ *                      - '' if input/signal is HIGH.
  *********************************************************************** */
 void HWTestCheckStates( void )
 {
+    #define WHEEL_ON_DELAY  50        // just a counter to delay
+    static UINT16 wWheelPortOn = 0;     // to delay the display ON time
+
     // check key UP status
     if (DigInDrv_GetKeyStates() & KEYFL_UP)
     {   StatObj_KEY0.eFormat = TXT_INVERS;
@@ -959,7 +1042,18 @@ void HWTestCheckStates( void )
     }
 
     // check WHEEL contact status
+    // This contact can NOT really be polled, because it is latched only
+    // at edge trigger time (provides a ISR). So, IF we detect the contact
+    // being closed, we keep it on a while to display it. :-)
     if ( WheelPort == 1 )
+    {   wWheelPortOn = WHEEL_ON_DELAY;
+    }
+    else
+    {   if (wWheelPortOn > 0)      // stop at 0!
+            wWheelPortOn--;
+    }
+    // show ON as long as counter > 0
+    if (wWheelPortOn > 0)
          StatObj_WHEEL.eFormat = TXT_INVERS;
     else StatObj_WHEEL.eFormat = TXT_NORM;
 
@@ -1160,7 +1254,7 @@ void HWTestStimuISR(void)
         LCDDrvSetBacklightLevel( TRUE, 63 );
     #endif // VARY_DISPLAY
 
-    // activate LEDs as pairs
+    // activate LEDs as pairs (controlled by GPO1)
     if (fGPO1 == 1)
     {   LEDDrvSetLED(LEDDRV_NEUTR, TRUE);
         LEDDrvSetLED(LEDDRV_TURN,  FALSE);
