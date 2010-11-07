@@ -68,6 +68,12 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.2  2010/11/07 11:57:37  tuberkel
+ * V30 Preparations:
+ * - New: gwWheelImpulse
+ * - Devider/Prescaler for WheelSensor Interrupt
+ * - if used, has to be supported by HW-changes too
+ *
  * Revision 2.1  2009/07/08 21:49:04  tuberkel
  * Changed contact data: Ralf Krizsan ==> Ralf Schwarzer
  *
@@ -103,7 +109,8 @@ extern  UINT16  wMilliSecCounter; // valid values: 0h .. ffffh
 
 
 /* non public module symbols */
-UINT16       wWheelSize  = DEF_WHEELSIZE;                    /* wheel size in mm */
+UINT16       wWheelSize     = DEF_WHEELSIZE;                 /* wheel size in mm */
+UINT16       gwWheelImpulse = DEF_WHEELIMPULSE;              /* wheel impulses per revolution */
 CCF_TYPE     CCF         = DEF_CCF_NOM | DEF_CCF_DENOM;      /* RPM cylinder correcture factor */
 DIST_TYPE    VehicDist   = 0x0;                              /* vehicle distance */
 DIST_TYPE    TripA       = 0x0;                              /* TripCounter A */
@@ -111,8 +118,8 @@ DIST_TYPE    TripB       = 0x0;                              /* TripCounter B */
 DIST_TYPE    TripC       = 0x0;                              /* TripCounter C */
 DIST_TYPE    TripD       = 0x0;                              /* TripCounter D */
 DIST_TYPE    FuelDist    = 0x0;                              /* fuel distance */
-SPEED_TYPE   Speed_AvrM   = 0x0;                             /* average speed in motion only */
-SPEED_TYPE   Speed_AvrP   = 0x0;                             /* average speed incl. pauses */
+SPEED_TYPE   Speed_AvrM  = 0x0;                              /* average speed in motion only */
+SPEED_TYPE   Speed_AvrP  = 0x0;                              /* average speed incl. pauses */
 
 
 

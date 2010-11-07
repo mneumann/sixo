@@ -75,6 +75,12 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 2.2  2010/11/07 11:56:57  tuberkel
+ * V30 Preparations:
+ * - New: gwWheelImpulse
+ * - Devider/Prescaler for WheelSensor Interrupt
+ * - if used, has to be supported by HW-changes too
+ *
  * Revision 2.1  2009/07/08 21:49:04  tuberkel
  * Changed contact data: Ralf Krizsan ==> Ralf Schwarzer
  *
@@ -104,6 +110,7 @@
 /* external symbols */
 extern  UINT16      wMilliSecCounter;   /* valid values: 0h .. ffffh */
 extern  UINT16      wWheelSize;         /* wheel size in mm, to be read from eeprom */
+extern  UINT16      gwWheelImpulse;     /* wheel impulses per revolution */
 
 extern  DIST_TYPE   VehicDist;          /* vehicle distance */
 extern  DIST_TYPE   TripA;              /* TripCounter A */
@@ -113,7 +120,7 @@ extern  DIST_TYPE   TripD;              /* TripCounter D */
 extern  DIST_TYPE   FuelDist;           /* fuel distance */
 
 
-/* module protected internal symbols */
+/* dedicated measurement values for low/high pass filter depending on current speed */
 static UINT32 dwWheelPeriod4;           /* Wheel period in 25 µsec/Digit (1/4 per new value, scaled) */
 static UINT16 wWheelPeriodLast;         /* Wheel period in 200 µsec/Digit, newest value */
 static UINT16 wRPMPeriod8;              /* RPM period in 10 µsec/Digit (1/8 per new value)*/
@@ -376,24 +383,39 @@ void RPMOverflow_ISR(void)
 #pragma INTERRUPT WheelSensor_ISR
 void WheelSensor_ISR(void)
 {
-    static UINT16 wWheelDist = 0; /* to sum wheelsize in mm */
-    UINT32 dwWheelPeriod;         /* to ge current value */
+    static UINT16 wWheelDist    = 0;    /* to sum wheelsize in mm */
+    static UINT8  bImpPrescaler = 0;    /* to sum impulses before detectin a COMPLETE wheel revolution */
+    UINT32 dwWheelPeriod;               /* to ge current value */
 
     TOGGLE_PAD11;                 /* toggle port pin (debug only) */
 
-    /* wheel speed stuff ------------------- */
-    fWheelCnt   = FALSE;                        /* stop counter now! */
-    dwWheelPeriod = WHEEL_MAXVALUE - wWheelCnt; /* save elapsed time */
+    /* --------------------------------------------------------------------------------- */
+    /* wheel revolution prescaler - gwWheelImpulse
+       NOTE: Some wheel sensors provide more than 1 impuls/revolution.
+             This can be supported by software be setting up the 'gwWheelImpulse'
+             up 99 Imp/rev.
+             BUT: This has to be set up in hardware too, because of the
+             WHEEL input low pass filter (see forum for details). */
+    if ( ++bImpPrescaler < gwWheelImpulse )
+    {   return;         // do nothing, just wait for next ISR trigger to continue sum of impulses
+    }
+    bImpPrescaler = 0;  // reset prescaler to restart again...
 
+    /* --------------------------------------------------------------------------------- */
+    /* wheel speed stuff */
+    fWheelCnt     = FALSE;                        /* stop counter now! */
+    dwWheelPeriod = WHEEL_MAXVALUE - wWheelCnt;   /* save elapsed time */
+
+    /* --------------------------------------------------------------------------------- */
     /* Tachovoreilung */
     /* Do not touch these values. These tiny magic bits have been thoroughfully  */
     /* evaluated during a night shift. Some beers may have improved the results. */
     /* (Note that there is also a +1 km/h in maindev.c)                          */
     if( dwWheelPeriod > 200 )
-       dwWheelPeriod -= 6; /* for speeds of about < 190 km/H @ 2100mm or < 160 km/h @ 1800mm */
-    else
-       dwWheelPeriod -= 7;
+         dwWheelPeriod -= 6; /* for speeds of about < 190 km/H @ 2100mm or < 160 km/h @ 1800mm */
+    else dwWheelPeriod -= 7;
 
+    /* --------------------------------------------------------------------------------- */
     wWheelCnt   = WHEEL_MAXVALUE;               /* reload timer */
     fWheelCnt   = TRUE;                         /* restart timer now! */
 
@@ -403,6 +425,7 @@ void WheelSensor_ISR(void)
     /* calculated filtered wheel period (scaled)*/
     dwWheelPeriod4 = ( 3 * dwWheelPeriod4 + (dwWheelPeriod<<3) + 2 ) >> 2;
 
+    /* --------------------------------------------------------------------------------- */
     /* distance calculations stuff --------- */
     wWheelDist += wWheelSize;                   /* add to wheel distance in mm */
     if (wWheelDist > MM_OVFL)                   /* check millimeter overflow */
