@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.0  2010/11/07 12:43:48  tuberkel
+ * V30 Preparations - no changes
+ *
  * Revision 2.1  2009/07/08 21:49:04  tuberkel
  * Changed contact data: Ralf Krizsan ==> Ralf Schwarzer
  *
@@ -114,11 +117,9 @@ ERRCODE BeepDrvInit(void)
 ERRCODE BeepDrvSetBeeper(BOOL fActive)
 {
     fBeep = (fActive == TRUE) ? 1 : 0;
-
     if (fActive == TRUE)
          fBeep   = 1;    /* switch ON output */
     else fBeep   = 0;    /* switch OFF output */
-
     return ERR_OK;
 }
 
