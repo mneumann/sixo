@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.0  2010/11/07 09:07:02  tuberkel
+ * V30 Preparations - no changes
+ *
  * Revision 2.4  2010/11/07 09:05:59  tuberkel
  * V30 Preparations:
  * - diverse new textblocks for changed Settings/Appearance
