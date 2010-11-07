@@ -61,7 +61,23 @@
  *  merchantability, fitness for a particular purpose, and
  *  non-infringement.
  *
+  *  --------------------------------------------------------------------
+ *
+ *  CVS History
+ *
+ *  This information is automatically added while 'commiting' the
+ *  changes to CVC ('Log message'):
+ *
+ * $Log$
+ * Revision 3.0  2010/11/07 12:48:34  tuberkel
+ * V30 Preparations:
+ * - new free defined characters (#127..#160)
+ * - additional Fonst- Size #defines
+ * - CVS History added
+ *
+ *
  ************************************************************************ */
+
 
 
 #include "standard.h"
@@ -289,19 +305,19 @@ const unsigned char rgFont6x8[]={
 
 /* --- free defined characters (#127..#160) ------------------------- */
 
-                                    /* character, which use 2 to 6x8 bmps: */
-0x00,0x3c,0x66,0xc2,0x87,0x02,      /* 127 UPDATE key icon (left half) 'DiasCircelArrowsLeft' */
-0x40,0xe1,0x43,0x66,0x3c,0x00,      /* 128 UPDATE key icon (right half)'DiasCircelArrowsRight' */
-0x00,0x00,0x63,0x46,0x6c,0x38,      /* 129 ESC key icon (left half)   'DiasCrossLeft' */
-0x1c,0x36,0x63,0x41,0x20,0x00,      /* 130 ESC key icon (right half)  'DiasCrossRight' */
-0x00,0x10,0x38,0x70,0xe0,0x70,      /* 131 OK  key icon (left half)   'DiasHookLeft'*/
-0x18,0x0c,0x06,0x03,0x01,0x00,      /* 132 OK  key icon (left half)   'DiasHookRight'*/
-0xff,0x83,0x87,0x8d,0x99,0x91,      /* 133 envelope icon (left half)  'EnvelopeLeft' */
-0x99,0x8d,0x87,0x83,0xff,0x00,      /* 134 envelope icon (right half) 'EnvelopeRight'*/
-0x00,0xc0,0x70,0x38,0x3e,0x1f,      /* 135 UP key icon (left half)    'DiasWideArrowUpLeft'*/
-0x3e,0x38,0x70,0xc0,0x00,0x00,      /* 136 UP key icon (right half)   'DiasWideArrowUpRight' */
-0x00,0x03,0x0e,0x1c,0x7c,0xf8,      /* 137 DOWN key icon (left half)  'DiasWideArrowDownLeft' */
-0x7c,0x1c,0x0e,0x03,0x00,0x00,      /* 138 DOWN key icon (right  half)'DiasWideArrowDownRight' */
+                                    /* character, which use 2x parts with 6x8 bmps: */
+0x00,0x00,0x00,0xFF,0x81,0x81,      /* 127 Unselected (left half) */
+0x81,0x81,0x81,0x81,0xFF,0x00,      /* 128 Unselected (right half) */
+0x00,0x00,0x00,0xFF,0xB1,0xE1,      /* 129 Selected (left half) */
+0xE1,0xB1,0x99,0x8D,0xFF,0x00,      /* 130 Selected (right half) */
+0x00,0x10,0x38,0x70,0xe0,0x70,      /* 131 OK/Selected-Hook icon (left half) */
+0x18,0x0c,0x06,0x03,0x01,0x00,      /* 132 OK/Selected-Hook icon (right half) */
+0x00,0x00,0x08,0x08,0x08,0x08,      /* 133 Not-OK/Unselected (Minus) icon (left half) */
+0x08,0x08,0x08,0x08,0x00,0x00,      /* 134 Not-OK/Unselected (Minus) Minus (right half) */
+0x00,0xc0,0x70,0x38,0x3e,0x1f,      /* 135 UP icon   (left half)    */
+0x3e,0x38,0x70,0xc0,0x00,0x00,      /* 136 UP icon   (right half)   */
+0x00,0x03,0x0e,0x1c,0x7c,0xf8,      /* 137 DOWN icon (left half)  */
+0x7c,0x1c,0x0e,0x03,0x00,0x00,      /* 138 DOWN icon (right half)*/
 
 0x60,0x78,0x7e,0x78,0x60,0x00,      /* 139 scroll UP icon    'NarrowArrowUP' for 'UP'-key symbol */
 0x06,0x1e,0x7e,0x1e,0x06,0x00,      /* 140 scroll DOWN icon  'NarrowArrowDown' for 'DOWN'-key symbol*/
@@ -322,13 +338,12 @@ const unsigned char rgFont6x8[]={
 0x5e,0x61,0x01,0x61,0x5e,0x00,      /* 152 greek 'Omega' as special char for resistance */
 0x30,0x60,0xc0,0x78,0x0e,0x01,      /* 153 'Hook' as one char to indicate 'ok' or 'selected' */
 0x78,0x48,0x04,0x7e,0x04,0x00,      /* 154 'ct' 'Cent' as one char for european currency */
-0x14,0x3e,0x55,0x41,0x22,0x00,      /* 155 '€' 'Eur' as one char for european currency */
-
+0x14,0x3e,0x55,0x41,0x22,0x00,      /* 155 '€' 'Euro' as one char for european currency */
 0x00,0x07,0xdf,0xdf,0x07,0x00,      /* 156 fat '!' to indicate attention */
 0x7f,0x41,0x55,0x5d,0x7f,0x00,      /* 157 fat 'E' to indicate error */
 0x00,0x1c,0x1c,0x1c,0x00,0x00,      /* 158 small rectangle for 'OK'-key symbol */
+0x63,0x77,0x5D,0x49,0x63,0x00,      /* 159 greek SUM - symbol */
 
-0x00,0x00,0x00,0x00,0x00,0x00,      /* 159 - still free to be defined - */
 0x00,0x00,0x00,0x00,0x00,0x00,      /* 160 - still free to be defined - */
 
 /* --- extended ascii characters (#161..#255) ------------------------- */
@@ -879,11 +894,11 @@ UINT8 GetFontHeight(const DPLFONT Font)
     /* select font */
     switch (Font)
     {
-        case DPLFONT_4X6:   bHeight = 8; break;
-        case DPLFONT_6X8:   bHeight = 8; break;
-        case DPLFONT_8X16:  bHeight = 16;  break;
-        case DPLFONT_14X16: bHeight = 16;  break;
-        case DPLFONT_24X32: bHeight = 32;  break;
+        case DPLFONT_4X6:   bHeight = DPLFONT_4X6_HEIGHT;    break;
+        case DPLFONT_6X8:   bHeight = DPLFONT_6X8_HEIGHT;    break;
+        case DPLFONT_8X16:  bHeight = DPLFONT_8X16_HEIGHT;   break;
+        case DPLFONT_14X16: bHeight = DPLFONT_14X16_HEIGHT;  break;
+        case DPLFONT_24X32: bHeight = DPLFONT_24X32_HEIGHT;  break;
         default: bHeight = 0;  break;               /* unknown font */
     } /* of switch */
     return bHeight;
@@ -903,11 +918,11 @@ UINT8 GetFontWidth(const DPLFONT Font)
     /* select font */
     switch (Font)
     {
-        case DPLFONT_4X6:   bWidth = 4; break;
-        case DPLFONT_6X8:   bWidth = 6; break;
-        case DPLFONT_8X16:  bWidth = 8; break;
-        case DPLFONT_14X16: bWidth = 14; break;
-        case DPLFONT_24X32: bWidth = 24; break;
+        case DPLFONT_4X6:   bWidth = DPLFONT_4X6_WIDTH;    break;
+        case DPLFONT_6X8:   bWidth = DPLFONT_6X8_WIDTH;    break;
+        case DPLFONT_8X16:  bWidth = DPLFONT_8X16_WIDTH;   break;
+        case DPLFONT_14X16: bWidth = DPLFONT_14X16_WIDTH;  break;
+        case DPLFONT_24X32: bWidth = DPLFONT_24X32_WIDTH;  break;
         default: bWidth = 0;  break;               /* unknown font */
     } /* of switch */
     return bWidth;

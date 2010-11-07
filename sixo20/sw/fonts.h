@@ -61,7 +61,23 @@
  *  merchantability, fitness for a particular purpose, and
  *  non-infringement.
  *
+  *  --------------------------------------------------------------------
+ *
+ *  CVS History
+ *
+ *  This information is automatically added while 'commiting' the
+ *  changes to CVC ('Log message'):
+ *
+ * $Log$
+ * Revision 3.0  2010/11/07 12:49:48  tuberkel
+ * V30 Preparations:
+ * - new free defined characters (#127..#160)
+ * - additional Fonst- Size #defines
+ * - CVS History added
+ *
+ *
  ************************************************************************ */
+
 
 #ifndef _FONTS_H
 #define _FONTS_H
@@ -93,14 +109,14 @@
 
 /* free defined ascii chars (area #127..#160)
    in DPLFONT_6X8 font only!*/
-#define CHAR_BENT_ARROW_UP      127     /* UPDATE key icon (left side) 'BentArrowUp' */
-#define CHAR_BENT_ARROW_DN      128     /* UPDATE key icon (right side) 'BentArrowDown */
-#define CHAR_CROSS_L            129     /* ESC key icon (left side)  'CrossLeft' */
-#define CHAR_CROSS_R            130     /* ESC key icon (right side) 'CrossRight' */
+#define CHAR_RES_127            127
+#define CHAR_RES_128            128
+#define CHAR_RES_129            129
+#define CHAR_RES_130            130
 #define CHAR_HOOK_L             131     /* OK  key icon (left side)  'HookLeft'*/
 #define CHAR_HOOK_R             132     /* OK  key icon (left side)  'HookRight'*/
-#define CHAR_ENVELOPE_L         133     /* envelope icon (left side) 'EnvelopeLeft' */
-#define CHAR_ENVELOPE_R         134     /* envelope icon (right side)'EnvelopeRight'*/
+#define CHAR_RES_133            133
+#define CHAR_RES_134            134
 #define CHAR_WIDE_ARROW_UP_L    135     /* UP key icon (left side)   'WideArrowUpLeft'*/
 #define CHAR_WIDE_ARROW_UP_R    136     /* UP key icon (right side)  'WideArrowUpRight' */
 #define CHAR_WIDE_ARROW_DN_L    137     /* DOWN key icon (left side) 'WideArrowDownLeft' */
@@ -128,7 +144,7 @@
 #define CHAR_ATTENTION          156     /* fat '!' to indicate attention */
 #define CHAR_ERROR              157     /* fat 'E' to indicate error */
 #define CHAR_RECTANGLE          158     /* small rectangle for 'OK'-key symbol */
-
+#define CAHR_SUMSYMBOL          159     /* greek 'Sum' symbol */
 
 /* character bitmap header */
 typedef struct
@@ -137,6 +153,20 @@ typedef struct
     unsigned char ucWidth;
     unsigned char ucHeight;
 } CHARINFO;
+
+
+/* some font specific helper macros */
+#define DPLFONT_4X6_WIDTH       4
+#define DPLFONT_4X6_HEIGHT      8   // !!! 8 instead of 6 to increase reability
+#define DPLFONT_6X8_WIDTH       6
+#define DPLFONT_6X8_HEIGHT      8
+#define DPLFONT_8X16_WIDTH      8
+#define DPLFONT_8X16_HEIGHT    16
+#define DPLFONT_14X16_WIDTH    14
+#define DPLFONT_14X16_HEIGHT   16
+#define DPLFONT_24X32_WIDTH    24
+#define DPLFONT_24X32_HEIGHT   32
+
 
 
 /* exported functions */
