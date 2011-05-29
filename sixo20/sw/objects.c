@@ -69,6 +69,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.1  2011/05/29 13:52:36  tuberkel
+ * BugFix ObjSelectShow
+ * - now shows underline only if editable
+ *
  * Revision 3.0  2010/11/07 13:25:12  tuberkel
  * V30 Preparations:
  * - Object Handling reviewed
@@ -2023,10 +2027,11 @@ ERRCODE ObjSelectShow( SELECTOBJECT far * fpObject, UINT8 bUpdateMode )
         if (fpObject->State.bits.fEditActive == FALSE)
         {
             /* handling output mode */
-            bMode = DPLNORM;                                    /* default mode */
-            if ( fpObject->State.bits.fSelected == TRUE )
+            if     ( fpObject->State.bits.fSelected == TRUE )
                     bMode = DPLINVERS;                          /* show focused */
-            else    bMode = DPLUNDERL;                          /* show unfocused */
+            else if( fpObject->State.bits.fEditable == TRUE )
+                    bMode = DPLUNDERL;                          /* show underline */
+            else    bMode = DPLNORM;                            /* show default mode unfocused */
 
             /* convert ORIGINAL enum value into a selection text (and clip if too long)*/
             strcpy(szOutText, fpObject->pszSlctTxtList[*fpObject->fpValue]);
