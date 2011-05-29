@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.1  2011/05/29 20:57:48  tuberkel
+ * RESTXT_SWVER_xxx extented
+ *
  * Revision 3.0  2010/11/07 09:36:43  tuberkel
  * V30 Preparations:
  * - diverse new Textblocks for changed Settings/Appearance
@@ -247,9 +250,9 @@
 
 /* intro special sw version strings
    1 character, might be concated  */
-#define RESTXT_SWVER_DEBUG     "D"  // 'D' for DebugOuts on Uart0
-#define RESTXT_SWVER_MINIEMU   "E"  // 'E' for Emulator KD30
-#define RESTXT_SWVER_COMPASS   "C"  // 'C' for Compass
+#define RESTXT_SWVER_DEBUG     " DBG"  // 'D' for DebugOuts on Uart0
+#define RESTXT_SWVER_MINIEMU   " EMU "  // 'E' for Emulator KD30
+#define RESTXT_SWVER_COMPASS   " CMP"  // 'C' for Compass
 
 
 
