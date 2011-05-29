@@ -68,6 +68,11 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.2  2011/05/29 21:00:22  tuberkel
+ * - Compass Settings removable
+ * - ScreenDump only if DEBUG active
+ * - all Objects not ready set to 'not selectable'
+ *
  * Revision 3.1  2011/05/29 12:43:19  tuberkel
  * BugFix gwWheelImpulse
  * - Typ korrgiert
@@ -179,14 +184,16 @@
 // Sub-Screen indicator (current diplay state)
 typedef enum
 {                   // currently shows screen with
-    SD_VEHIC,       //   vehicle parameters
-    SD_DEVICE,      //   device parameters
-    SD_OUT,         //   output parameters
-    SD_COMP,        //   input/output parameters
+    SD_VEHIC,       //   vehicle setup
+    SD_DEVICE,      //   device setup
+    SD_OUT,         //   LED/LCD setup
+    #if(COMPASS==1)
+    SD_COMP,        //   compass setup
+    #endif
 
-  //SD_PORTS,       //   input/output parameters
-  //SD_WARN,        //   warning parameters
-  //SD_DEVLIST,     //   device list choice
+  //SD_PORTS,       //   general input/output setup
+  //SD_WARN,        //   warning setup
+  //SD_DEVLIST,     //   device list setup
 
     SD_LAST         // INVALID LAST STATE!
 } SETDEV_STATE;
@@ -532,7 +539,11 @@ static const EDITBOOL_INITTYPE EditBoolObj[] =
     {&EditBoolDLSaveObj,   C16,  R3, DPLFONT_6X8,    6,  &gfDaylightSave,     &fEditBuffer, RESTXT_SET_RTC_DLS,     OC_DISPL | OC_SELECT | OC_EDIT },
     {&EditBoolBeepCtrlObj, C16,  R4, DPLFONT_6X8,    6,  &gfBeepCtrl,         &fEditBuffer, RESTXT_SET_BEEP_ON,     OC_DISPL | OC_SELECT | OC_EDIT },
     {&EditBoolVehSimObj,   C16,  R5, DPLFONT_6X8,    6,  &gfVehicSimulation,  &fEditBuffer, RESTXT_SET_VEHICSIM,    OC_DISPL | OC_SELECT | OC_EDIT },
+    #if(DEBUG==1)    // DebugMode ==> ScreenDumps activable!
     {&EditBoolScrDmpObj,   C16,  R6, DPLFONT_6X8,    6,  &gfHardcopy,         &fEditBuffer, RESTXT_SET_HARDCOPY,    OC_DISPL | OC_SELECT | OC_EDIT },
+    #else
+    {&EditBoolScrDmpObj,   C16,  R6, DPLFONT_6X8,    6,  &gfHardcopy,         &fEditBuffer, RESTXT_SET_HARDCOPY,    OC_DISPL                       },
+    #endif
     {&EditBoolEeprRstObj,  C16,  R7, DPLFONT_6X8,    6,  &gfEepromReset,      &fEditBuffer, RESTXT_SET_RESETEEPROM, OC_DISPL | OC_SELECT | OC_EDIT },
     /*-------------------- ---- ---- ------------ -----  -------------------- ------------- ----------------------- --------------------------------- */
     {&EditBoolCompAvailObj,C01,  R2, DPLFONT_6X8,   21,  &gfCompAvail,        &fEditBuffer, RESTXT_SET_COMPASS,     OC_DISPL | OC_SELECT | OC_EDIT },
@@ -553,8 +564,8 @@ static const SELECT_INITTYPE SelectObj[] =
     { &SelectBikeObj,       C01,   R2,  DPLFONT_6X8,   12, (UINT8 far *)&LocalBikeType,  RESTXT_SET_BIKE_CNT,   &bEditBuffer,   RESTXT_SET_BIKE_DESC,        pszSelectBike,    RESTXT_SET_BIKE_WIDTH,   OC_DISPL | OC_SELECT | OC_EDIT   },
     /* ------------------ ------ ------ ------------ ----- ----------------------------- ------------------     --------------- ---------------------------- ----------------  ------------------------ --------------------------------- */
     { &SelectTripObj,       C01,   R4,  DPLFONT_6X8,   12, (UINT8 far *)&fTripCntLongUp, RESTXT_SET_TRIP_CNT,   &bEditBuffer,   RESTXT_SET_TRIP_DESC,        pszSelectTrip,    RESTXT_SET_TRIP_WIDTH,   OC_DISPL | OC_SELECT | OC_EDIT   },
-    { &SelectLangObj,       C01,   R5,  DPLFONT_6X8,   12, (UINT8 far *)&gLanguage,      RESTXT_SET_LANG_CNT,   &bEditBuffer,   RESTXT_SET_LANG_DESC,        pszSelectLang,    RESTXT_SET_LANG_WIDTH,   OC_DISPL | OC_SELECT | OC_EDIT   },
-    { &SelectMetricObj,     C01,   R6,  DPLFONT_6X8,   12, (UINT8 far *)&fMetric,        RESTXT_SET_METRIC_CNT, &bEditBuffer,   RESTXT_SET_METRIC_DESC,      pszSelectMetric,  RESTXT_SET_METRIC_WIDTH, OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &SelectLangObj,       C01,   R5,  DPLFONT_6X8,   12, (UINT8 far *)&gLanguage,      RESTXT_SET_LANG_CNT,   &bEditBuffer,   RESTXT_SET_LANG_DESC,        pszSelectLang,    RESTXT_SET_LANG_WIDTH,   OC_DISPL                         },
+    { &SelectMetricObj,     C01,   R6,  DPLFONT_6X8,   12, (UINT8 far *)&fMetric,        RESTXT_SET_METRIC_CNT, &bEditBuffer,   RESTXT_SET_METRIC_DESC,      pszSelectMetric,  RESTXT_SET_METRIC_WIDTH, OC_DISPL                         },
     /* ------------------ ------ ------ ------------ ----- ----------------------------- ------------------     --------------- ---------------------------- ----------------  ------------------------ --------------------------------- */
     { &SelectLedWMObj,      C05,   R6,  DPLFONT_6X8,   17, (UINT8 far *)&fLedWarnMode,   RESTXT_SET_LEDWM_CNT,  &bEditBuffer,   RESTXT_SET_LEDWM_DESC,       pszSelectLedWM,   RESTXT_SET_LEDWM_WIDTH,  OC_DISPL | OC_SELECT | OC_EDIT   },
     /* ------------------ ------ ------ ------------ ----- ----------------------------- ------------------     --------------- ---------------------------- ----------------  ------------------------ --------------------------------- */
@@ -585,8 +596,8 @@ static const EDITNUMBER_INITTYPE EditNumObj[] =
     { &EditEngRunAllObj,    C16,   R4,  DPLFONT_6X8,     6, &EngRunTime_All.wHour,  &wEditBuffer,   eUINT,  0L, 65535L,  0L, eDez,   eColumn, 0, "",                         RESTXT_SET_ERT_UNIT,        5,  OC_DISPL | OC_SELECT | OC_EDIT   },
     { &EditServKmObj,       C01,   R5,  DPLFONT_6X8,    12, &dwServKm,              &dwEditBuffer,  eULONG, 0L,999999L,  0L, eDez,   eColumn, 0, RESTXT_SET_SERVKM_DESC,     RESTXT_SET_VEHICKM_UNIT,    6,  OC_DISPL | OC_SELECT | OC_EDIT   },
     { &EditEngRunSrvObj,    C16,   R5,  DPLFONT_6X8,     6, &EngRunTime_Srv.wHour,  &wEditBuffer,   eUINT,  0L, 65535L,  0L, eDez,   eColumn, 0, "",                         RESTXT_SET_ERT_UNIT,        5,  OC_DISPL | OC_SELECT | OC_EDIT   },
-    { &EditTankCapObj,      C01,   R6,  DPLFONT_6X8,    12, &gwFuelCap,             &dwEditBuffer,  eUINT,  0L,   999L,  0L, eDez,   eColumn, 1, RESTXT_SET_TANKCAP_DESC,    RESTXT_SET_TANKCAP_UNIT,    4,  OC_DISPL | OC_SELECT | OC_EDIT   },
-    { &EditFuelConsObj,     C15,   R6,  DPLFONT_6X8,     7, &gbFuelCons,            &bEditBuffer,   eUCHAR, 0L,   255L,  0L, eDez,   eColumn, 1, RESTXT_SET_FUELCONS_DESC,   RESTXT_SET_FUELCONS_UNIT,   4,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &EditTankCapObj,      C01,   R6,  DPLFONT_6X8,    12, &gwFuelCap,             &dwEditBuffer,  eUINT,  0L,   999L,  0L, eDez,   eColumn, 1, RESTXT_SET_TANKCAP_DESC,    RESTXT_SET_TANKCAP_UNIT,    4,  OC_DISPL                         },
+    { &EditFuelConsObj,     C15,   R6,  DPLFONT_6X8,     7, &gbFuelCons,            &bEditBuffer,   eUCHAR, 0L,   255L,  0L, eDez,   eColumn, 1, RESTXT_SET_FUELCONS_DESC,   RESTXT_SET_FUELCONS_UNIT,   4,  OC_DISPL                         },
     { &EditLogoDelayObj,    C18,   R7,  DPLFONT_6X8,     4, &gbLogoDelay,           &bEditBuffer,   eUCHAR, 0L,    99L,  0L, eDez,   eColumn, 1, "",                         RESTXT_SET_LOGODELAY_UNIT,  3,  OC_DISPL | OC_SELECT | OC_EDIT   },
 
     /* DEVICE SETTINGS */
@@ -599,7 +610,7 @@ static const EDITNUMBER_INITTYPE EditNumObj[] =
     { &EditDayObj,          C01,   R3,  DPLFONT_6X8,     8, &bDate,                 &bEditBuffer,   eUCHAR, 1L,    31L,  0L, eDez,   eColumn, 0, RESTXT_SET_RTC_DATE,        "",                         2,  OC_DISPL | OC_SELECT | OC_EDIT   },
     { &EditMonthObj,        C09,   R3,  DPLFONT_6X8,     3, &bMonth,                &bEditBuffer,   eUCHAR, 1L,    12L,  0L, eDez,   eColumn, 0, RESTXT_DAYSEPERATOR,        "",                         2,  OC_DISPL | OC_SELECT | OC_EDIT   },
     { &EditYearObj,         C12,   R3,  DPLFONT_6X8,     3, &bYear,                 &bEditBuffer,   eUCHAR, 0L,    99L,  0L, eDez,   eColumn, 0, RESTXT_DAYSEPERATOR,        "",                         2,  OC_DISPL | OC_SELECT | OC_EDIT   },
-    { &EditDbgOutObj,       C01,   R7,  DPLFONT_6X8,    12, &gDebugFilter,          &bEditBuffer,   eUCHAR, 0L,   255L,  0L, eHex,   eColumn, 0, RESTXT_DBGOUTDESCR,         "",                         2,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &EditDbgOutObj,       C01,   R7,  DPLFONT_6X8,    12, &gDebugFilter,          &bEditBuffer,   eUCHAR, 0L,   255L,  0L, eHex,   eColumn, 0, RESTXT_DBGOUTDESCR,         "",                         2,  OC_DISPL                         },
 
     /* LED/LCD SETTINGS */
     /* fpObject           OrgX    OrgY  Font         Width  pNumber                 pWorkNumber     Type   Min  Max    Step DplType  Mode     C  zDescr                      zUnit                       L   State                              */
@@ -1526,7 +1537,7 @@ void SetDeviceCheckState(MESSAGE GivenMsg)
  *********************************************************************** */
 void SetDeviceObjListInit(void)
 {
-    // Setup 1st screen object list: Vehicle settings
+    // Setup 1 st screen object list: Vehicle settings
     SDCntrl.List[SD_VEHIC].ObjList       = ObjectList_Veh;
     SDCntrl.List[SD_VEHIC].ObjCount      = OBJLIST_VEH_CNT;
     SDCntrl.List[SD_VEHIC].FirstSelObj   = DevObjGetFirstSelectable(&SDObj, ObjectList_Veh, OBJLIST_VEH_CNT);
@@ -1545,11 +1556,14 @@ void SetDeviceObjListInit(void)
     SDCntrl.List[SD_OUT].LastSelObj      = DevObjGetLastSelectable (&SDObj, ObjectList_Out, OBJLIST_OUT_CNT);
 
     // Setup 4th screen object list: Compass settings
+    #if(COMPASS==1)
     SDCntrl.List[SD_COMP].ObjList        = ObjectList_Compass;
     SDCntrl.List[SD_COMP].ObjCount       = OBJLIST_CMP_CNT;
     SDCntrl.List[SD_COMP].FirstSelObj    = DevObjGetFirstSelectable(&SDObj, ObjectList_Compass, OBJLIST_CMP_CNT);
     SDCntrl.List[SD_COMP].LastSelObj     = DevObjGetLastSelectable (&SDObj, ObjectList_Compass, OBJLIST_CMP_CNT);
+    #endif //(COMPASS==1)
 
+    // Default state: Show verhicle settings
     SDCntrl.eState = SD_VEHIC;
 }
 
