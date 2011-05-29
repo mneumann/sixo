@@ -78,6 +78,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.2  2011/05/29 21:00:57  tuberkel
+ * szSWVersion String extended
+ *
  * Revision 3.1  2011/05/29 12:45:04  tuberkel
  * BugFix gwWheelImpulse
  * - Typ korrgiert
@@ -877,7 +880,6 @@ void ParSetupSWVersionStr( void )
     strcat ( szSWVersion, RESTXT_LANG );
 
     /* add formated debug infos for special versions */
-    strcat ( szSWVersion, " ");
     #if(DEBUG==1)
         strcat ( szSWVersion, RESTXT_SWVER_DEBUG);
     #endif
