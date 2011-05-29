@@ -75,6 +75,11 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.1  2011/05/29 12:43:19  tuberkel
+ * BugFix gwWheelImpulse
+ * - Typ korrgiert
+ * - jetzt auch im Eeprom gesichert
+ *
  * Revision 3.0  2010/11/07 14:00:50  tuberkel
  * V30 Preparations - no changes
  *
@@ -113,7 +118,7 @@
 /* external symbols */
 extern  UINT16      wMilliSecCounter;   /* valid values: 0h .. ffffh */
 extern  UINT16      wWheelSize;         /* wheel size in mm, to be read from eeprom */
-extern  UINT16      gwWheelImpulse;     /* wheel impulses per revolution */
+extern  UINT8       gbWheelImpulse;     /* wheel impulses per revolution */
 
 extern  DIST_TYPE   VehicDist;          /* vehicle distance */
 extern  DIST_TYPE   TripA;              /* TripCounter A */
@@ -393,13 +398,13 @@ void WheelSensor_ISR(void)
     TOGGLE_PAD11;                 /* toggle port pin (debug only) */
 
     /* --------------------------------------------------------------------------------- */
-    /* wheel revolution prescaler - gwWheelImpulse
-       NOTE: Some wheel sensors provide more than 1 impuls/revolution.
+    /* wheel revolution prescaler - gbWheelImpulse
+       NOTE: Some wheel sensors provide more than 1 impulses/revolution.
              This can be supported by software be setting up the 'gwWheelImpulse'
              up 99 Imp/rev.
              BUT: This has to be set up in hardware too, because of the
              WHEEL input low pass filter (see forum for details). */
-    if ( ++bImpPrescaler < gwWheelImpulse )
+    if ( ++bImpPrescaler < gbWheelImpulse )
     {   return;         // do nothing, just wait for next ISR trigger to continue sum of impulses
     }
     bImpPrescaler = 0;  // reset prescaler to restart again...

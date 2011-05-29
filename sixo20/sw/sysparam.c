@@ -78,6 +78,11 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.1  2011/05/29 12:45:04  tuberkel
+ * BugFix gwWheelImpulse
+ * - Typ korrgiert
+ * - jetzt auch im Eeprom gesichert
+ *
  * Revision 3.0  2010/11/07 09:30:38  tuberkel
  * V30 Preparations:
  * - BugFix for invalid km-Values from NVRAM
@@ -231,9 +236,9 @@ static  UINT16 wWheelSize_cmp;                  // compare value
 const   UINT16 wWheelSize_def = DEF_WHEELSIZE;  // default value
 
 // wheel impulses/revolution
-extern  UINT16 gwWheelImpulse;                  // wheel impulses/revolution
-static  UINT16 wWheelImpulse_cmp;
-const   UINT16 wWheelImpulse_def = 1;
+extern  UINT8 gbWheelImpulse;                  // wheel impulses/revolution
+static  UINT8 bWheelImpulse_cmp;
+const   UINT8 bWheelImpulse_def = 1;
 
 // RPM cylinder correcture factor
 extern  CCF_TYPE CCF;
@@ -425,8 +430,9 @@ const SYSPARINFO_TYPE  rgSysParControl[] =
     {   PID_SERV_KM,        EEPROM,     37,   sizeof(DIST_TYPE),      &gNextServKm,       &gNextServKm_cmp,       &gNextServKm_def    },  // 4 bytes, km, at which next service is required
     {   PID_FUEL_CAP,       EEPROM,     41,   sizeof(UINT16),         &gwFuelCap,         &wFuelCap_cmp,          &wFuelCap_def       },  // 2 bytes, fuel reservoir in 1/10 liters
     {   PID_FUEL_CONS,      EEPROM,     43,   sizeof(UINT8),          &gbFuelCons,        &bFuelCons_cmp,         &bFuelCons_def      },  // 1 byte,  fuel consumption in 1/10 l/100km
-    {   PID_BOOT_DELAY,     EEPROM,     44,   sizeof(UINT8),          &gbLogoDelay,       &bLogoDelay_cmp,        &bLogoDelay_def     },  // 1 byte, delay in 1/10 s at power up
-    {   PID_DEVFLAGS3,      EEPROM,     45,   sizeof(DEVFLAGS3_TYPE), &gDeviceFlags3,     &DeviceFlags3_cmp,      &DeviceFlags3_def   },  // 1 byte, bitfield for system status
+    {   PID_BOOT_DELAY,     EEPROM,     44,   sizeof(UINT8),          &gbLogoDelay,       &bLogoDelay_cmp,        &bLogoDelay_def     },  // 1 byte,  delay in 1/10 s at power up
+    {   PID_WHEEL_IMP,      EEPROM,     45,   sizeof(UINT8),          &gbWheelImpulse,    &bWheelImpulse_cmp,     &bWheelImpulse_def },  // 1 byte,  number of impulses/wheel rotation
+    {   PID_DEVFLAGS3,      EEPROM,     46,   sizeof(DEVFLAGS3_TYPE), &gDeviceFlags3,     &DeviceFlags3_cmp,      &DeviceFlags3_def   },  // 1 byte,  bitfield for system status
 
     {   PID_LAPCSTAT,       EEPROM,    136,   sizeof(LCSTATE_TYPE),   &LapCounterState,   &LapCounterState_cmp,   &LapCounterState_def},  // 1 bytes, lap counter status
     {   PID_LAPC_0 ,        EEPROM,    137,   sizeof(TIME_TYPE_LL),   &LapCntTime[0 ],    &LapCntTime_cmp[0 ],    &LapCntTime_def     },  // 2 bytes, lap counter time struct
@@ -951,7 +957,7 @@ void ParDebugOutParameter( const PARAM_ID_TYPE PID )
         case PID_FUEL_CAP:      ODS2(DBG_SYS,DBG_INFO, "- EE Fuel Cap:   %4u,%1u liter", gwFuelCap /10, gwFuelCap -(gwFuelCap /10)*10); break;
         case PID_FUEL_CONS:     ODS2(DBG_SYS,DBG_INFO, "- EE Fuel Cons:  %4u,%1u l/100", gbFuelCons/10, gbFuelCons-(gbFuelCons/10)*10); break;
         case PID_BOOT_DELAY:    ODS2(DBG_SYS,DBG_INFO, "- EE BootDelay:  %4u,%1u s", gbLogoDelay/10, gbLogoDelay-(gbLogoDelay/10)*10); break;
-        case PID_WHEEL_IMP:     ODS1(DBG_SYS,DBG_INFO, "- EE Wheel Imp:  %6u I/Rev", gwWheelImpulse); break;
+        case PID_WHEEL_IMP:     ODS1(DBG_SYS,DBG_INFO, "- EE Wheel Imp:  %6u I/Rev", gbWheelImpulse); break;
         case PID_DEVFLAGS3:     ODS2(DBG_SYS,DBG_INFO, "- EE DevFlags3:  MTRC:%u LWM:%s", gDeviceFlags3.flags.Metric,
                                                                                 (gDeviceFlags3.flags.LedWarnMode==SURV_LWM_STD)?"STD":"SIXO" );
 

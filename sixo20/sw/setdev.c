@@ -68,6 +68,11 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.1  2011/05/29 12:43:19  tuberkel
+ * BugFix gwWheelImpulse
+ * - Typ korrgiert
+ * - jetzt auch im Eeprom gesichert
+ *
  * Revision 3.0  2010/11/07 09:04:45  tuberkel
  * V30 Preparations:
  * - Device/Object Handling completely revised & simplified
@@ -219,7 +224,7 @@ static UINT32   dwEditBuffer;               // 32 bit edit buffer
 // wheel size / impulse objects
 extern UINT16           wWheelSize;                     // original wheel size from eeprom in mm
 static EDITNUMBEROBJECT EditWheelSizeObj;               // complete wheel size object
-extern UINT16           gwWheelImpulse;                  // original wheel impulse from eeprom
+extern UINT8            gbWheelImpulse;                 // original wheel impulse from eeprom
 static EDITNUMBEROBJECT EditWheelImpulseObj;            // complete wheel impulse object
 
 
@@ -575,7 +580,7 @@ static const EDITNUMBER_INITTYPE EditNumObj[] =
     { &EditCCFNomObj,       C15,   R2,  DPLFONT_6X8,     6, &CCFNom,                &bEditBuffer,   eUCHAR, 1L,     9L,  0L, eDez,   eColumn, 0, RESTXT_SET_CCFNOM_DESC,     RESTXT_SET_CCFNOM_UNIT,     1,  OC_DISPL | OC_SELECT | OC_EDIT   },
     { &EditCCFDenomObj,     C21,   R2,  DPLFONT_6X8,     1, &CCFDenom,              &bEditBuffer,   eUCHAR, 1L,     9L,  0L, eDez,   eColumn, 0, "",                         "",                         1,  OC_DISPL | OC_SELECT | OC_EDIT   },
     { &EditWheelSizeObj,    C01,   R3,  DPLFONT_6X8,    12, &wWheelSize,            &wEditBuffer,   eUINT,  0L,  9999L,  0L, eDez,   eColumn, 0, RESTXT_SET_WHEELSIZE_DESC,  RESTXT_SET_WHEELSIZE_UNIT,  4,  OC_DISPL | OC_SELECT | OC_EDIT   },
-    { &EditWheelImpulseObj, C16,   R3,  DPLFONT_6X8,     6, &gwWheelImpulse,        &wEditBuffer,   eUINT,  0L,    99L,  0L, eDez,   eColumn, 0, RESTXT_SET_WHEELIMP_DESC,   "",                         2,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &EditWheelImpulseObj, C16,   R3,  DPLFONT_6X8,     6, &gbWheelImpulse,        &wEditBuffer,   eUCHAR, 1L,    99L,  0L, eDez,   eColumn, 0, RESTXT_SET_WHEELIMP_DESC,   "",                         2,  OC_DISPL | OC_SELECT | OC_EDIT   },
     { &EditVehicDistObj,    C01,   R4,  DPLFONT_6X8,    12, &dwVehicDist,           &dwEditBuffer,  eULONG, 0L,999999L,  0L, eDez,   eColumn, 0, RESTXT_SET_VEHICKM_DESC,    RESTXT_SET_VEHICKM_UNIT,    6,  OC_DISPL | OC_SELECT | OC_EDIT   },
     { &EditEngRunAllObj,    C16,   R4,  DPLFONT_6X8,     6, &EngRunTime_All.wHour,  &wEditBuffer,   eUINT,  0L, 65535L,  0L, eDez,   eColumn, 0, "",                         RESTXT_SET_ERT_UNIT,        5,  OC_DISPL | OC_SELECT | OC_EDIT   },
     { &EditServKmObj,       C01,   R5,  DPLFONT_6X8,    12, &dwServKm,              &dwEditBuffer,  eULONG, 0L,999999L,  0L, eDez,   eColumn, 0, RESTXT_SET_SERVKM_DESC,     RESTXT_SET_VEHICKM_UNIT,    6,  OC_DISPL | OC_SELECT | OC_EDIT   },

@@ -68,6 +68,11 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.1  2011/05/29 12:43:19  tuberkel
+ * BugFix gwWheelImpulse
+ * - Typ korrgiert
+ * - jetzt auch im Eeprom gesichert
+ *
  * Revision 3.0  2010/11/07 14:00:50  tuberkel
  * V30 Preparations - no changes
  *
@@ -113,7 +118,7 @@ extern  UINT16  wMilliSecCounter; // valid values: 0h .. ffffh
 
 /* non public module symbols */
 UINT16       wWheelSize     = DEF_WHEELSIZE;                 /* wheel size in mm */
-UINT16       gwWheelImpulse = DEF_WHEELIMPULSE;              /* wheel impulses per revolution */
+UINT16       gbWheelImpulse = DEF_WHEELIMPULSE;              /* wheel impulses per revolution */
 CCF_TYPE     CCF         = DEF_CCF_NOM | DEF_CCF_DENOM;      /* RPM cylinder correcture factor */
 DIST_TYPE    VehicDist   = 0x0;                              /* vehicle distance */
 DIST_TYPE    TripA       = 0x0;                              /* TripCounter A */
