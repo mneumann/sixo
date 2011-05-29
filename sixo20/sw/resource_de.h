@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.1  2011/05/29 20:58:28  tuberkel
+ * Settings Header corrected
+ *
  * Revision 3.0  2010/11/07 09:07:02  tuberkel
  * V30 Preparations - no changes
  *
@@ -175,7 +178,11 @@
 // headline strings                  ....!....!....!....!.
 #define RESTXT_SET_HL_VEHICLE       ">> FAHRZEUG         \x8c"          // Arrow down
 #define RESTXT_SET_HL_DEVICE        ">> GER\xc4T           \x8c\x8b"    // Arrow down/up
+#if(COMPASS==1)
 #define RESTXT_SET_HL_DISPLAY       ">> LCD/LED         \x8c\x8b"       // Arrow down/up
+#else
+#define RESTXT_SET_HL_DISPLAY       ">> LCD/LED          \x8b"          // Arrow up only
+#endif
 #define RESTXT_SET_HL_COMPASS       ">> KOMPASS          \x8b"          // Arrow up
 #define RESTXT_SET_HL_IOPORTS       ">> ANSCHL\xdcSSE        "          // Arrow up
 #define RESTXT_SET_HL_WARNINGS      ">> WARNUNGEN         "
@@ -219,7 +226,7 @@
 #define RESTXT_DBGOUTDESCR          "DbgOut:"
 #define RESTXT_SET_SW_VERS          "SW:"
 #define RESTXT_SET_BEEP_ON          "Sum:"
-#define RESTXT_SET_RESETEEPROM      "Rst:"
+#define RESTXT_SET_RESETEEPROM      "Def:"
 
 
 // ---------------------------------------------------
