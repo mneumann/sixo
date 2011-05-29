@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.1  2011/05/29 12:44:19  tuberkel
+ * Beeper: Removed unnecssary Warning if switched off
+ *
  * Revision 3.0  2010/11/07 12:43:05  tuberkel
  * V30 Preparations:
  * - Beeper can be disabled by user setting
@@ -189,7 +192,7 @@ ERRCODE BeepSetNewState(MESSAGE GivenMsg)
     if ( gDeviceFlags2.flags.BeeperAvail == FALSE )
     {
         // do nothing, just ignore message
-        ODS(DBG_SYS,DBG_WARNING,"Unable to use MSG_BEEP_ON/OFF,  beeper disabled!");
+        //ODS(DBG_SYS,DBG_WARNING,"Unable to use MSG_BEEP_ON/OFF,  beeper disabled!");
         RValue = ERR_OK;
         return (RValue);
     }
