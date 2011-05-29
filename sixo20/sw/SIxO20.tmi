@@ -1,0 +1,115 @@
+[PROJECT]
+ProjectName=SIxO20
+WorkingDirectory=S:\CVS\sixo\sixo20\sw
+OutputDirectory=.\outdir
+ProjectFile=S:\CVS\sixo\sixo20\sw\SIxO20.tmk
+ProjectInfoFile=S:\CVS\sixo\sixo20\sw\SIxO20.tmi
+TargetName=M16C Family
+Type=1
+GoalFile=S:\CVS\sixo\sixo20\sw\outdir\SIxO20.x30
+[NC]
+Name=NC30WA
+Version=V.5.00 Release 2
+
+[MEMBER]
+Count=8
+Name1=A+C-FLAG: MINIEMU
+Section1== 0 / 1 (def:0)   ==> SEE NOTES!!!
+Mail1=if 1, activates KD30 V3.0 Monitor usage on Uart1
+TEL1=if DEBUG = 1, printf() is moved from Uart1 to Uart0
+ETC1=Set both - A-FLAGS & C-FLAGS !!!
+Name2=A+C-FLAG: DEBUG
+Section2== 0 / 1 (def:0)   ==> SEE NOTES!!!
+Mail2=if 1, activates DebugOut with printf() on Uart1 or Uart0 (see MINIEMU)
+TEL2=activates several modules debug code too
+ETC2=Set both - A-FLAGS & C-FLAGS !!!
+Name3=C-FLAG: TOGGLE_PADS
+Section3== 0 / 1 (def:0)
+Mail3=if 1, enables usage of macros like TOGGLE_PAD27
+TEL3=this is f.e. for debug purpose with Oszilograph
+ETC3=
+Name4=C-FLAG: DBGMSGQ
+Section4== 0 / 1 (def:0)
+Mail4=if 1, enables additional message queue debug outputs
+TEL4=only to be used with DEBUG defined
+ETC4=
+Name5=C-FLAG: LANG
+Section5== 0..n (def:0)
+Mail5=selects language of firmware (german as default)
+TEL5=0=DE, 1=EN-UK, 2=NL
+ETC5=
+Name6=A+C-FLAG: COMPASS
+Section6== 0 / 1 (def:0)   ==> SEE NOTES!!!
+Mail6=if 1, enables use of COMPASS attached to Uart0
+TEL6=only two of COMPASS, DEBUG, MINIEMU can be defined
+ETC6=Set both - A-FLAGS & C-FLAGS !!!
+Name7=C-FLAG: TESTSCREEN
+Section7== 0..n (def:0)
+Mail7=if 1, enables a special GUI test screen
+TEL7=for development purpose only
+ETC7=
+Name8=C-FLAG: GEARBOX
+Section8== 0 / 1 (def:0)
+Mail8=if 1, enables adaptive GEARBOX display 
+TEL8=experimental
+ETC8=
+Name9=C-FLAG: TESTSCREEN
+Section9== 0..n (def:0)
+Mail9=if 1, enables a special GUI test screen
+TEL9=for development purpose only
+ETC9=
+Name10=A+C-FLAG: COMPASS
+Section10=0 / 1 NOTE: Set both A-FLAGS & C-FLAGS !!!
+Mail10=if defined, enables use of compass attached to UART0
+TEL10=only two of COMPASS, DEBUG, MINIEMU can be defined
+ETC10=
+Name11=C-FLAG: BIKE_HUSQV
+Section11=- / def
+Mail11=sw version string changed only
+TEL11=
+ETC11=
+Name12=C-FLAG: BIKE_HUSQVRS
+Section12=- / def
+Mail12=sw version string changed only
+TEL12=
+ETC12=
+Name13=C-FLAG: HARDCOPY
+Section13=- / def
+Mail13=if defined, setting input HIGHBEAM to ON starts a ScreenDumps as BMP via Uart1
+TEL13=only to be used with DEBUG defined
+ETC13=to be used for documentation only
+Name14=C-FLAG: SENSOR_TWAT
+Section14=- / def
+Mail14=if defined, enables use of water temperature sensor
+TEL14=only VDO standard sensor is available
+ETC14=
+Name15=C-FLAG: SENSOR_TOIL
+Section15=- / def
+Mail15=if defined, enables use of oil temperature sensor
+TEL15=only VDO standard sensor is available
+ETC15=
+Name16=A+C-FLAG: COMPASS
+Section16=0 / 1 NOTE: Set both A-FLAGS & C-FLAGS !!!
+Mail16=if defined, enables use of compass attached to UART0
+TEL16=only two of COMPASS, DEBUG, MINIEMU can be defined
+ETC16=
+
+[DOCUMENTFILE]
+Count=0
+
+[ITEM]
+ActiveFactory=default
+FactoryName1=default
+ActiveTagName1=all
+Count=1
+
+[TOOL]
+ToolCount=0
+ToolName1=lmc30
+
+[PD]
+Name=KD30
+Version=V.3.02 Release 1a
+Path=D:\Tools\Renesas\NC30\KD30\KD30.EXE
+Type=1
+
