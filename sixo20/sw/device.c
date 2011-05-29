@@ -73,6 +73,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.1  2011/05/29 20:55:25  tuberkel
+ * just comment
+ *
  * Revision 3.0  2010/11/07 13:28:26  tuberkel
  * V30 Preparations:
  * - Device Handling completely reviewed & simplified
@@ -502,7 +505,7 @@ ERRCODE DevObjSetState( DEVDATA far *       fpDevData,
 /***********************************************************************
  *  FUNCTION:       DevObjClearState
  *  DESCRIPTION:    Universal function to CLEAR one of the OBJSTATE
- *                  bits into all objects insde the list
+ *                  bits into all objects off the list
  *  PARAMETER:      fpDevData       device to support focus
  *                  GivenList       list of objects of the device
  *                  ListSize        number of objects inside the list
