@@ -1,0 +1,216 @@
+/***********************************************************************
+ *
+ *  CVS-Filename:   $$
+ *  Version:        $$
+ *  Last Changed:   $$
+ *  Changed by:     $$
+ *
+ *  --------------------------------------------------------------------
+ *
+ *  Created:        2009-09-10 by Ralf Schwarzer
+ *  Project:        SIxO
+ *  Module:         Devices
+ *  Purpose:        Devices Layout Description
+ *  Comments:       Used for layout & documentation only
+ *
+ *  --------------------------------------------------------------------
+ *
+ *  Compiler:       -
+ *  Options:        -
+ *
+ *  --------------------------------------------------------------------
+ *
+ *  Licence details
+ *
+ *  This software is copyright © 2001-2004 by N&K Development, Germany
+ *
+ *  You can redistribute it and/or modify it under the terms of the
+ *  GNU General Public License version 2 as published by the
+ *  Free Software Foundation.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place - Suite 330, Boston,
+ *  MA  02111-1307, USA.
+ *
+ *  To purchase support or enhancements for this software, contact:
+ *
+ *      N&K Development                     N&K Development
+ *      Arnold Neugebauer                   Ralf Schwarzer
+ *      Stˆckener Str. 115                  Hudeplan 37 A
+ *      30419 Hannover                      30453 Hannover
+ *      arnold.neugebauer@web.de            ralf.schwarzer@htp-tel.de
+ *
+ *      or try http:// www.sixo.de
+ *
+ *  --------------------------------------------------------------------
+ *
+ *  Disclaimer of warrenty
+ *
+ *  The software is provided as is without warranties of
+ *  any kind, either express or implied. To the fullest
+ *  extent allowed by applicable law, N&K Development
+ *  disclaims all warranties, express or implied,
+ *  including, but not limited to, implied warranties of
+ *  merchantability, fitness for a particular purpose, and
+ *  non-infringement.
+ *
+ *  --------------------------------------------------------------------
+ *
+ *  CVS History
+ *
+ *  This information is automatically added while 'commiting' the
+ *  changes to CVC ('Log message'):
+ *
+ * $Log$
+ * Revision 1.1  2011/07/24 12:26:58  tuberkel
+ * First CheckIn
+ *
+ *
+ ************************************************************************ */
+
+
+
+// =============================================================
+// MAIN DEVICE:
+//                                |
+// Screen Appearance:  +----.----.----.----.-+
+// (21 Chars width)    | G       ###     km  |
+//                     |         # #     --- |
+//     >= V3.0.0       | S       ###      h  |
+//                     |_____________________|
+//                     |AT   28 ∞C|B   14,4 V|
+//                     |OT  135 ∞C|F  1234 km|
+//                     |WT   28 ∞C|U    12500|
+//                     |So  24.12.|  13:24:25|
+//                     +----.----.----.----.-+
+//                                |
+
+
+// =============================================================
+// SETDEVICE:
+
+// Screen Appearance:  +----.----.----.----.-+
+// (21 Chars width)    |Radumfang:    2200 mm|
+//                     |Zyl.-Fakt.:    1/1   |
+//     <= V2.3.5       |Lichtsteuerung:  0   |
+//                     |Helligkeit:     63   |
+//                     |Kontrast:       36   |
+//                     |Gesamt:    112.500 km|
+//                     |24.12.04 13:24:25 ±20|
+//                     +----.----.----.----.-+
+
+// Screen Appearance:  +----.----.----.----.-+
+// (21 Chars width)    |Rad:2200 mm   ZKF:1/1|
+//                     |Display A:0 H:63 K:36|
+//     >= V2.4.0       |Schaltbl.:10200 U/Min|
+//                     |Serv.:999h Ges.:9999h|
+//                     |                     | sp‰ter: |Typ:__R1100GS Spr.:DE|
+//                     |Gesamt:    112.500 km|
+//                     |24.12.04 13:24:25 ±20|
+//                     +----.----.----.----.-+
+
+// Screen Appearance:  +----.----.----.----.-+
+// (21 Chars width)    |Rad:2200 mm   ZKF:1/1|
+//                     |Display A:0 H:63 K:36|
+//     >= V2.4.2       |Schaltbl.:10200 U/Min|  Motobau:
+//                     |Mrd-Typ:0   TripCnt:0|
+//                     |Serv. bei  999.999 km|  |Serv.:999h Ges.:9999h|
+//                     |Gesamt:    112.500 km|
+//                     |24.12.04 13:24:25 ±20|
+//                     +----.----.----.----.-+
+
+// Screen Appearance:  +----.----.----.----.-+
+// (21 Chars width)    |Rad:2200 mm   ZKF:1/1|
+//                     |Display A:0 H:63 K:36|
+//     >= V2.4.7       |Schaltbl.:10200 U/Min|  Motobau:
+//                     |Mrd:0 Cmp:0 TripCnt:0|  Cmp = Compass-Calibration
+//                     |Serv. bei  999.999 km|  |Serv.:999h Ges.:9999h|
+//                     |Gesamt:    112.500 km|
+//                     |24.12.04 13:24:25 ±20|
+//                     +----.----.----.----.-+
+
+// >= V2.5.0
+// +----.----.----.----.-+  +----.----.----.----.-+  +----.----.----.----.-+  +----.----.----.----.-+
+// |>> FAHRZEUG         v|  |>> GERƒT           v^|  |>> ANZEIGE/LEDs    v^|  |>> KOMPASS          ^|
+// |Typ:R100GS    ZKF:1/1|  |Zeit: 13:24:25 K:±200|  |LCD-Licht an:  autom.|  |Modul verf¸gbar:  [x]|
+// |Rad:2200 mm  Imp/U:01|  |Datum:24.12.04 SZ:[x]|  |LCD-Helligkeit:    64|  |Anzeige:     nur Kurs|
+// |Srv 999999 km   100 h|  |TripC kurz:^  Sim:[x]|  |LCD-Kontrast:      36|  |Kalibrierung:        |
+// |Fzg 112500 km  1024 h|  |Logo:BMW      10 Sek.|  |Schaltbl.:10200 U/Min|  |  Kompass aktiv      |
+// |                     |  |                     |  |                     |  |Letzter Fehler:      |
+// |                     |  |                     |  |                     |  |  ---                |
+// +----.----.----.----.-+  +----.----.----.----.-+  +----.----.----.----.-+  +----.----.----.----.-+
+
+
+
+
+// >= V2.5.x
+// +----.----.----.----.-+  +----.----.----.----.-+  +----.----.----.----.-+
+// |>> FAHRZEUG         v|  |>> GERƒT           v^|  |>> LCD/LED         v^|
+// |Typ:  R100GS  ZKF:1/1|  |Zeit: 13:24:25 K:±200|  |LCD:Lichtschwelle:  7|
+// |Rad:  2200mm   I/U:01|  |Datum:24.12.04 Smz:[]|  |    Helligkeit:    64|
+// |Fzg:112500km   _1024h|  |TripC-kurz:^   Sum:[]|  |    Kontrast:      36|
+// |Srv:120000km   _1000h|  |Sprache:  DE   Sim:[]|  |LED:Helligkeit:     4|
+// |Benzin:24,5l  10,2l/h|  |Metrik:Miles   Bmp:[]|  |    WarnModus:   SIxO|
+// |Logo:____BMW     5.5s|  |DbgOut: 0xff   Fct:[]|  |    Schaltbl.:  10200|
+// +----.----.----.----.-+  +----.----.----.----.-+  +----.----.----.----.-+
+
+// +----.----.----.----.-+  +----.----.----.----.-+  +----.----.----.----.-+
+// |>> KOMPASS         v^|  |>> INSTRUMENTE     <^|  |>> GANGANZEIGE     v^|
+// |Modul verf¸gbar:   []|  |Haupt   [] Intro   []|  |Aktiviert:         []|
+// |Anzeige:     nur Kurs|  |TrpCnt  [] LapCnt  []|  |Empfindlichkeit: ±025|
+// |Kalibrierung:        |  |TourGd  [] Benzin  []|  | G1: 1024   G5: 5800 |
+// |  Kompass aktiv      |  |Monitor [] Etappen []|  | G2: 1560   G6:12000 |
+// |Letzter Fehler:      |  |[  TOIL  ] [  FUEL  ]|  | G3: 2400   G7:25600 |
+// |  ---                |  |[  TAIR  ] [  RPM   ]|  | G4: 3878   G8:34800 |
+// +----.----.----.----.-+  +----.----.----.----.-+  +----.----.----.----.-+
+
+// +----.----.----.----.-+  +----.----.----.----.-+  +----.----.----.----.-+
+// |>> EINGƒNGE DIGIT. v^|  |>> EINGƒNGE ANALOG v^|  |>> INFO/WARN/ST÷R  v^|
+// |Eing.:GPI0   Verw.[x]|  |Eing.:TOIL  Verw.:[x]|  |Element:INFO1     [x]|
+// |Verw. als:    ÷LDRUCK|  |Charakt.:   Logarith.|  |A: OIL   = ON        |
+// |Aktiv bei:       HIGH|  |SP1: 020  MW: 100    |  |B: RPM   > 1000      |
+// |Symbol:       WARNUNG|  |SP2: 100  MW: 185    |  |Symbol:       WARNUNG|
+// |LED:[1]  Ausg.:[GPO0]|  |Offset: 010          |  |LED:[1]  Ausg.:[GPO0]|
+// |___Wasser zu heiﬂ!___|  |Anz.: TOIL / ∞C      |  |___Wasser zu heiﬂ!___|
+// +----.----.----.----.-+  +----.----.----.----.-+  +----.----.----.----.-+
+
+
+
+// =============================================================
+// STATISTICSDEVICE (not yet realized)
+
+// Verbrauchsstatistik - 4x6 Font (32x10 Zeichen) - 8 Zeilen - 8 Byte/Eintrag = 64 Byte EEPROM
+// +----.----!----.----!----.----!--+
+// |VERBRAUCH:     | km   | L. |lhkm|
+// | 1|13.12. 13:12| 312,2|24,2|7,51|
+// | 2|14.12. 09:45|   7,8| 1,0|6,91|
+// | 3|15.12. 16:10|  18,6|18,2|7,82|
+// | 4|13.12. 16:20| 480,6|21,5|8,23|
+// | 5|--.--. --:--|      |    |    |
+// | 6|--.--. --:--|      |    |    |
+// | 7|--.--. --:--|      |    |    |
+// | 8|--.--. --:--|      |    |    |
+// | 2456,5 km  523 L.  8,45 l/hkm  |
+// +----.----!----.----!----.----!--+
+
+// Tageetappen - 4x6 Font (32x10 Zeichen) - 9 Zeilen - 5 Byte/Eintrag - = 45 Byte EEPROM
+// +----.----!----.----!----.----!--+
+// |ETAPPEN:     km   |   h   | km/h|
+// | 1|13.12.| 1312,2 |  12,5 | 75,5|
+// | 2|14.12.|    7,0 |   0,1 | 85,0|
+// | 3|15.12.|   18,0 |   0,1 |     |
+// | 4|13.12.| 1480,5 |  14,7 |     |
+// | 5|--.--.|        |       |     |
+// | 6|--.--.|        |       |     |
+// | 7|--.--.|        |       |     |
+// | 8|--.--.|        |       |     |
+// |GESAMT:  |10573,5 | 825,5 | 69,2|
+// +----.----!----.----!----.----!--+
+
+
