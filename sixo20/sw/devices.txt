@@ -1,9 +1,9 @@
 /***********************************************************************
  *
- *  CVS-Filename:   $$
- *  Version:        $$
- *  Last Changed:   $$
- *  Changed by:     $$
+ *  CVS-Filename:   $RCSfile$
+ *  Version:        $Revision$
+ *  Last Changed:   $Date$
+ *  Changed by:     $Author$
  *
  *  --------------------------------------------------------------------
  *
@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 1.2  2011/07/24 12:29:14  tuberkel
+ * FileHeader corrected
+ *
  * Revision 1.1  2011/07/24 12:26:58  tuberkel
  * First CheckIn
  *
