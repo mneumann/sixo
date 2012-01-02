@@ -69,7 +69,21 @@
  *  merchantability, fitness for a particular purpose, and
  *  non-infringement.
  *
- ************************************************************************ */
+ *  --------------------------------------------------------------------
+ *
+ *  CVS History
+ *
+ *  This information is automatically added while 'commiting' the
+ *  changes to CVC ('Log message'):
+ *
+ * $Log$
+ * Revision 3.1  2012/01/02 20:52:27  tuberkel
+ * Just comments
+ *
+ *
+ *
+ *  --------------------------------------------------------------------
+ */
 
 
 #include <stdlib.h>
@@ -593,29 +607,34 @@ ERRCODE DisplDrawHorLine( const DISPLXY far *pCoord, unsigned short wLength,
                           unsigned char bPattern,
                           unsigned char ucMode )
 {
-   DISPLXY Coord;
-   BITMAP  BMPLine;
-   unsigned short wColumn;
-   ERRCODE RValue;
+   DISPLXY          Coord;
+   BITMAP           BMPLine;
+   unsigned short   wColumn;
+   ERRCODE          RValue;
 
-   //check parameters first
+   // check parameters first
    Coord = DisplGetDimension( DPLFONT_NOFONT );
    if(  (pCoord->wYPos >= Coord.wYPos)
       ||(pCoord->wXPos >= Coord.wXPos)
       ||(wLength  == 0 )
-      ||(wLength  > Coord.wXPos) ){ 
-      return ERR_PARAM_ERR;
+      ||(wLength  > Coord.wXPos) )
+   {    return ERR_PARAM_ERR;
    }
 
-   //prepare bitmap
-   BMPLine.wWidth  = wLength; //single column pattern
-   BMPLine.wHeight = 8;       //8 bit vertical pattern
+   // try allocato memory for a temp bitmap
+   BMPLine.wWidth  = wLength;   // single column pattern
+   BMPLine.wHeight = 8;         // 8 bit vertical pattern
    BMPLine.fpucBitmap = (unsigned char far*)malloc( wLength );
-   if( BMPLine.fpucBitmap == NULL ) return ERR_NO_MEM;
-   for( wColumn = 0; wColumn < wLength; wColumn++ ){
-      BMPLine.fpucBitmap[wColumn] = bPattern;
+   if( BMPLine.fpucBitmap == NULL )
+   {    return ERR_NO_MEM;
    }
 
+   // insert the pixel to display
+   for( wColumn = 0; wColumn < wLength; wColumn++ )
+   {    BMPLine.fpucBitmap[wColumn] = bPattern;
+   }
+
+   // now transfer into display & free memory
    RValue = DisplPrintABitmap( &BMPLine, pCoord, ucMode );
    free( BMPLine.fpucBitmap );
    return RValue;
