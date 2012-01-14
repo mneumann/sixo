@@ -66,38 +66,54 @@
 #define _LED_H
 
 
+/* LED enumeration */
+typedef enum
+{
+    LED_MIN,     // INVALID index, just for loops..
+    LED_NEUTR,   // D4,  yellow     green
+    LED_TURN,    // D3,  green      green
+    LED_INFO,    // D9,  yellow     white
+    LED_BEAM,    // D5,  blue       blue
+    LED_WARN,    // D11, orange     orange
+    LED_ERR,     // D10, red        red
+    LED_MAX      // INVALID index, just for loops..
+} LED_ENUM;
+
+
+
 /* LED activation */
 #define LED_ON  TRUE
 #define LED_OFF FALSE
 
+/* helper for LEDSetNewState() */
+#define LED_PERM_ON     1,0,0       // OnTime:1 ms, OffTime:0 ms, Duration:0 => permanent off
+#define LED_PERM_OFF    0,1,0       // OnTime:1 ms, OffTime:0 ms, Duration:0 => permanent off
 
-/* led timing */
+/* LED PWM timing */
 typedef struct
 {
-    UINT8   wOnTicks;    /* led ON duration in 1/10 sec */
-    UINT8   wOffTicks;   /* led OFF duration in 1/10 sec */
+    UINT16  wOnTicks;           /* Beep ON duration in ticks (reload value) */
+    UINT16  wOffTicks;          /* Beep OFF duration in ticks (reload value) */
+    UINT16  wDurationTicks;     /* Beep duration in ticks */
+    UINT16  wOnCurrTicks;       /* Beep On PWM timer - counting done */
+    UINT16  wOffCurrTicks;      /* Beep Off PWM timer - counting done */
 } LEDTIMINGTYPE;
-
-
-/* macros for easier led messages and timings in ms / sec / ticks */
-#define LED_MSG_MS(msg, led, status, ontime, offtime) MSG_BUILD_UINT8(msg, MSG_LED_SET, (led | (status<<4)), MS2TICKS(ontime), MS2TICKS(offtime))
-#define LED_MSG_SEC(msg, led, status, ontime, offtime) MSG_BUILD_UINT8(msg, MSG_LED_SET, (led | (status<<4)), SEC2TICKS(ontime), SEC2TICKS(offtime))
-#define LED_MSG_TICKS(msg, led, status, ontime, offtime) MSG_BUILD_UINT8(msg, MSG_LED_SET, (led | (status<<4)), ontime, offtime)
 
 
 /* prototypes */
 ERRCODE LEDInit(void);
-ERRCODE LEDMsgEntry(MESSAGE msg);
-ERRCODE LEDSetNewState(MESSAGE msg);
+ERRCODE LEDService(void);
+ERRCODE LEDSetNewState(LED_ENUM eLed, UINT16 wOn_ms, UINT16 wOff_ms, UINT16 wDuration_ms );
+BOOL    LEDGetState(LED_ENUM eLed);
+
 void LEDOk(void);
 void LEDEsc(void);
 
 
 
+/* test functions */
 #if(TESTLED==1)
-    /* test functions */
-    void TestLEDSendMessage(void);
-    void TestCheckKeyStateMsgs(MESSAGE msg);
+
 #endif // TESTLED
 
 

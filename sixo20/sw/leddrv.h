@@ -68,6 +68,14 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.2  2012/01/14 10:26:44  tuberkel
+ * LED PWM handling changed:
+ * - no longer Msgs/TimerMsgs used (inaccurate optic)
+ * - instead use TimerISR to control PWM
+ * - Granulartiy is SystemTicks (20 ms)
+ * - works well
+ * - prevent direct LEDDrv access (if possible)
+ *
  * Revision 3.1  2010/11/07 09:46:02  tuberkel
  * Revision History added
  *
@@ -96,6 +104,8 @@
 
 /* mask for LED access on p9 (p9 mixed with display pins) */
 #define LEDS_ALL        0xe7    // all led pins excepting p9_3 + p9_4
+
+
 
 /* led driver LED enumeration */
 typedef enum

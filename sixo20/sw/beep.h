@@ -60,14 +60,32 @@
  *  merchantability, fitness for a particular purpose, and
  *  non-infringement.
  *
+  *  --------------------------------------------------------------------
+ *
+ *  CVS History
+ *
+ *  This information is automatically added while 'commiting' the
+ *  changes to CVC ('Log message'):
+ *
+ * $Log$
+ * Revision 3.2  2012/01/14 10:26:44  tuberkel
+ * LED PWM handling changed:
+ * - no longer Msgs/TimerMsgs used (inaccurate optic)
+ * - instead use TimerISR to control PWM
+ * - Granulartiy is SystemTicks (20 ms)
+ * - works well
+ * - prevent direct LEDDrv access (if possible)
+ *
+ *
  ************************************************************************ */
+
 
 #ifndef _BEEP_H
 #define _BEEP_H
 
 
 
-/* Beep timing */
+/* Beep PWM timing */
 typedef struct
 {
     UINT16  wOnTicks;           /* Beep ON duration in ticks (reload value) */

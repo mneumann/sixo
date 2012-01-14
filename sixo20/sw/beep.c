@@ -68,6 +68,14 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.3  2012/01/14 10:26:44  tuberkel
+ * LED PWM handling changed:
+ * - no longer Msgs/TimerMsgs used (inaccurate optic)
+ * - instead use TimerISR to control PWM
+ * - Granulartiy is SystemTicks (20 ms)
+ * - works well
+ * - prevent direct LEDDrv access (if possible)
+ *
  * Revision 3.2  2012/01/14 08:26:00  tuberkel
  * Beeper PWM handling changed:
  * - no longer Msgs/TimerMsgs used (inaccurate acoustic)
@@ -98,6 +106,7 @@
  ************************************************************************ */
 
 
+#include <string.h>
 
 #include "standard.h"
 #include "stdmsgs.h"
@@ -128,9 +137,8 @@ ERRCODE BeepInit(void)
 {
     ERRCODE RValue;
 
-    /* reset timings */
-    BeepTiming.wOnTicks  = 0;
-    BeepTiming.wOffTicks = 0;
+    /* reset PWM timings */
+    memset( &BeepTiming, 0x00, sizeof(BEEPTIMINGTYPE));
 
     /* reset hw */
     RValue = BeepDrvInit();

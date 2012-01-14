@@ -70,6 +70,14 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.1  2012/01/14 10:26:44  tuberkel
+ * LED PWM handling changed:
+ * - no longer Msgs/TimerMsgs used (inaccurate optic)
+ * - instead use TimerISR to control PWM
+ * - Granulartiy is SystemTicks (20 ms)
+ * - works well
+ * - prevent direct LEDDrv access (if possible)
+ *
  * Revision 3.0  2010/11/07 09:24:42  tuberkel
  * V30 Preparations:
  * - Surveillance completely reviewed
@@ -140,7 +148,6 @@
 #include "device.h"
 #include "measure.h"
 #include "resource.h"
-#include "leddrv.h"
 #include "led.h"
 #include "surveill.h"
 #include "timedate.h"
@@ -463,9 +470,8 @@ void SurvCheckRPMFlash ( void )
         &&( RPMFlash_On == FALSE ) )    // not already activated?
     {
         // ENABLE INFO LAMP
-        RPMFlash_On = TRUE;                             // lock!
-        LED_MSG_TICKS(msg, LEDDRV_INFO, LED_ON, 1, 0);  // create message
-        MsgQPostMsg(msg, MSGQ_PRIO_LOW);                // send message
+        RPMFlash_On = TRUE;                         // lock!
+        LEDSetNewState( LED_INFO, LED_PERM_ON );    // permanent on
 
         // special MOTOBAU behaviour
         #if(BIKE_MOTOBAU==1)
@@ -483,9 +489,8 @@ void SurvCheckRPMFlash ( void )
            &&( RPMFlash_On == TRUE ) ) )  // still active?
     {
         // DISABLE INFO LAMP
-        RPMFlash_On = FALSE;                            // unlock!
-        LED_MSG_TICKS(msg, LEDDRV_INFO, LED_OFF, 0, 0); // create message
-        MsgQPostMsg(msg, MSGQ_PRIO_LOW);                // send message
+        RPMFlash_On = FALSE;                        // unlock!
+        LEDSetNewState( LED_INFO, LED_PERM_OFF );   // permannet off
 
         // special MOTOBAU behaviour
         #if(BIKE_MOTOBAU==1)
@@ -579,7 +584,7 @@ ERRCODE SurvProcessAll(void)
         SurvCheckAllDeviceWarnings();   // check all device internal warnings
         SurvCheckRPMFlash();            // Updates RPM Flash information
 
-        SurvSetLEDState();              // update Info/Warn/Err LED status
+        //SurvSetLEDState();              // update Info/Warn/Err LED status
     }
 
     return ERR_OK;
@@ -716,8 +721,8 @@ void SurvCheckAllAnalogWarnings(void)
         if ( gDeviceFlags3.flags.LedWarnMode == SURV_LWM_STD )
         {
             if ( vstatelvl != eSURVST_OK )
-                 LEDDrvSetLED(LEDDRV_WARN, 1);
-            else LEDDrvSetLED(LEDDRV_WARN, 0);
+                 LEDSetNewState(LED_WARN, LED_PERM_ON );
+            else LEDSetNewState(LED_WARN, LED_PERM_OFF);
         }
     }
     else
@@ -831,8 +836,8 @@ void SurvCheckAllDigitalWarnings(void)
             // check: if not using Sixo-Warnmode, setup LED directly here
             if ( gDeviceFlags3.flags.LedWarnMode == SURV_LWM_STD )
             {   if ( DF_ABS_Warn_F650 == 0 )              // low active
-                     LEDDrvSetLED(LEDDRV_WARN, 1);
-                else LEDDrvSetLED(LEDDRV_WARN, 0);
+                     LEDSetNewState(LED_WARN, LED_PERM_ON );
+                else LEDSetNewState(LED_WARN, LED_PERM_OFF);
             }
 
             /* ERROR LED ------------------------------------------- */
@@ -843,8 +848,8 @@ void SurvCheckAllDigitalWarnings(void)
             // check: if not using Sixo-Warnmode, setup LED directly here
             if ( gDeviceFlags3.flags.LedWarnMode == SURV_LWM_STD )
             {   if ( DF_ABS_Warn_F650 == 0 )              // low active
-                     LEDDrvSetLED(LEDDRV_ERR, 1);
-                else LEDDrvSetLED(LEDDRV_ERR, 0);
+                     LEDSetNewState(LED_ERR, LED_PERM_ON );
+                else LEDSetNewState(LED_ERR, LED_PERM_OFF);
             }
 
         } break;
@@ -868,8 +873,8 @@ void SurvCheckAllDigitalWarnings(void)
             // check: if not using Sixo-Warnmode, setup LED directly here
             if ( gDeviceFlags3.flags.LedWarnMode == SURV_LWM_STD )
             {   if ( DF_Fuel_4l_AT == 0 )      // low active
-                     LEDDrvSetLED(LEDDRV_WARN, 1);
-                else LEDDrvSetLED(LEDDRV_WARN, 0);
+                     LEDSetNewState(LED_WARN, LED_PERM_ON );
+                else LEDSetNewState(LED_WARN, LED_PERM_OFF );
             }
 
             /* ERROR LED ------------------------------------------- */
@@ -883,8 +888,8 @@ void SurvCheckAllDigitalWarnings(void)
             // check: if not using Sixo-Warnmode, setup LED directly here
             if ( gDeviceFlags3.flags.LedWarnMode == SURV_LWM_STD )
             {   if ( DF_OILSW == 0 )      // low active
-                     LEDDrvSetLED(LEDDRV_ERR, 1);
-                else LEDDrvSetLED(LEDDRV_ERR, 0);
+                     LEDSetNewState(LED_ERR, LED_PERM_ON );
+                else LEDSetNewState(LED_ERR, LED_PERM_OFF );
             }
 
             /* fuel 4 l error */
@@ -909,8 +914,8 @@ void SurvCheckAllDigitalWarnings(void)
             // check: if not using Sixo-Warnmode, setup LED directly here
             if ( gDeviceFlags3.flags.LedWarnMode == SURV_LWM_STD )
             {   if ( DF_Temp_Warn_BAGHIRA == 1)          // high active
-                     LEDDrvSetLED(LEDDRV_ERR, 1);
-                else LEDDrvSetLED(LEDDRV_ERR, 0);
+                     LEDSetNewState(LED_ERR, LED_PERM_ON );
+                else LEDSetNewState(LED_ERR, LED_PERM_OFF );
             }
 
 
@@ -938,8 +943,8 @@ void SurvCheckAllDigitalWarnings(void)
             // check: if not using Sixo-Warnmode, setup LED directly here
             if ( gDeviceFlags3.flags.LedWarnMode == SURV_LWM_STD )
             {   if ( DF_OILSW == 0 )      // low active
-                     LEDDrvSetLED(LEDDRV_ERR, 1);
-                else LEDDrvSetLED(LEDDRV_ERR, 0);
+                     LEDSetNewState(LED_ERR, LED_PERM_ON );
+                else LEDSetNewState(LED_ERR, LED_PERM_OFF );
             }
 
         } break;
@@ -980,7 +985,7 @@ void SurvResetAllParameters(void)
  *                      Most top: all eSURVST_ERROR
  *                      then:     all eSURVST_WARNING
  *                      then:     all eSURVST_INFO
- *                  Parameters with state eSURVST_OK do not exits,
+ *                  Parameters with state eSURVST_OK do not exist,
  *                  they will be removed.
  *                  Each parameter can occur only ONCE inside the list.
  *                  If a new state != eSURVST_OK is given, the parameter
@@ -1330,38 +1335,32 @@ void SurvSetLEDState( void )
     {
         /* INFO-LED --------------------------------------  */
         if (  ( SurvListGetCount(SURVST_INFO) >  0     )
-            &&( LEDDrvGetLED(LEDDRV_INFO)     == FALSE ) )
-        {   LED_MSG_MS(msg,  LEDDRV_INFO, LED_ON, 1, 0);
-            MsgQPostMsg(msg, MSGQ_PRIO_LOW);
+            &&( LEDGetState(LED_INFO) == FALSE ) )
+        {   LEDSetNewState( LED_INFO, LED_PERM_ON );
         }
         if (  ( SurvListGetCount(SURVST_INFO) == 0     )
-            &&( LEDDrvGetLED(LEDDRV_INFO)     == TRUE ) )
-        {   LED_MSG_MS(msg,  LEDDRV_INFO, LED_OFF, 1, 0);
-            MsgQPostMsg(msg, MSGQ_PRIO_LOW);
+            &&( LEDGetState(LED_INFO)     == TRUE ) )
+        {   LEDSetNewState( LED_INFO, LED_PERM_OFF );
         }
 
         /* WARN-LED --------------------------------------  */
         if (  ( SurvListGetCount(SURVST_WARN) >  0     )
-            &&( LEDDrvGetLED(LEDDRV_WARN)     == FALSE ) )
-        {   LED_MSG_MS(msg,  LEDDRV_WARN, LED_ON, 1, 0);
-            MsgQPostMsg(msg, MSGQ_PRIO_LOW);
+            &&( LEDGetState(LED_WARN)     == FALSE ) )
+        {   LEDSetNewState( LED_WARN, LED_PERM_ON );
         }
         if (  ( SurvListGetCount(SURVST_WARN) == 0     )
-            &&( LEDDrvGetLED(LEDDRV_WARN)     == TRUE ) )
-        {   LED_MSG_MS(msg,  LEDDRV_WARN, LED_OFF, 1, 0);
-            MsgQPostMsg(msg, MSGQ_PRIO_LOW);
+            &&( LEDGetState(LED_WARN)     == TRUE ) )
+        {   LEDSetNewState( LED_WARN, LED_PERM_OFF );
         }
 
         /* ERROR-LED --------------------------------------  */
         if (  ( SurvListGetCount(SURVST_ERR) >  0     )
-            &&( LEDDrvGetLED(LEDDRV_ERR)     == FALSE ) )
-        {   LED_MSG_MS(msg,  LEDDRV_ERR, LED_ON, 1, 0);
-            MsgQPostMsg(msg, MSGQ_PRIO_LOW);
+            &&( LEDGetState(LED_ERR)     == FALSE ) )
+        {   LEDSetNewState( LED_ERR, LED_PERM_ON );
         }
         if (  ( SurvListGetCount(SURVST_ERR) == 0     )
-            &&( LEDDrvGetLED(LEDDRV_ERR)     == TRUE ) )
-        {   LED_MSG_MS(msg,  LEDDRV_ERR, LED_OFF, 1, 0);
-            MsgQPostMsg(msg, MSGQ_PRIO_LOW);
+            &&( LEDGetState(LED_ERR)     == TRUE ) )
+        {   LEDSetNewState( LED_ERR, LED_PERM_OFF );
         }
     }
 

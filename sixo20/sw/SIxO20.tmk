@@ -5,7 +5,7 @@
 # All Rights Reserved.
 #
 #	Notice	:	Don't edit.
-#	Date	:	2011 05(May) 29(Sunday) PM.03.43
+#	Date	:	2012 01(January) 14(Saturday) AM.10.51
 #	Project	:	SIxO20
 ####################################################################
 
@@ -23,14 +23,14 @@ OUTDIR	=	.\outdir
 MKDIR	=	@-mkdir
 ABSFILE	=	$(PROJECT).x30
 ODINCMD	=	$(OUTDIR)
-LN	=	LN30
 TARGET	=	$(ABSFILE)
+LN	=	LN30
 ECHO	=	@-echo
 MKFILE	=	$(PROJECT).tmk
-PROJECT	=	SIxO20
 TYPE	=	@-type
-CFLAGS	=	-c -I. -silent -dir $(OUTDIR) -Wall -DDEBUG=1 -DMINIEMU=1 -DTESTSCREEN=0 -DBIKE_MOTOBAU=0 -DGEARBOX=1 -finfo
-AFLAGS	=	-. -DCOMPASS=0:DEBUG=1:MINIEMU=1 -finfo -O$(OUTDIR)
+PROJECT	=	SIxO20
+CFLAGS	=	-c -I. -silent -dir $(OUTDIR) -Wall -DDEBUG=1 -DMINIEMU=1 -DGEARBOX=1 -DDBGMSGQ=0 -finfo
+AFLAGS	=	-. -DDEBUG=1:MINIEMU=1 -finfo -O$(OUTDIR)
 LFLAGS	=	-MS -L nc30lib -. -G -O $(OUTDIR)\$(TARGET)
 LIBFLAGS	=	-C
 UTLFLAGS	=	

@@ -68,6 +68,14 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.2  2012/01/14 10:26:44  tuberkel
+ * LED PWM handling changed:
+ * - no longer Msgs/TimerMsgs used (inaccurate optic)
+ * - instead use TimerISR to control PWM
+ * - Granulartiy is SystemTicks (20 ms)
+ * - works well
+ * - prevent direct LEDDrv access (if possible)
+ *
  * Revision 3.1  2012/01/14 08:28:42  tuberkel
  * Message-IDs shortened / reviewed
  *
@@ -406,9 +414,6 @@ ERRCODE MsgQPumpMsg(MESSAGE_ID bID)
           if (err == ERR_MSG_NOT_PROCESSED)
             err = TestScreenMsgEntry(msg);      /* device 'test screen' */
           #endif //(TESTSCREEN==1)
-
-          if (err == ERR_MSG_NOT_PROCESSED)
-            err = LEDMsgEntry(msg);             /* LED service */
 
           if (err == ERR_MSG_NOT_PROCESSED)
             err = HWTestDeviceMsgEntry(msg);    /* HW test device */

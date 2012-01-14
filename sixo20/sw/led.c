@@ -62,6 +62,7 @@
  *
  ************************************************************************ */
 
+#include <string.h>
 
 #include "standard.h"
 #include "stdmsgs.h"
@@ -73,7 +74,7 @@
 #include "digindrv.h"
 
 /* global symbols */
-LEDTIMINGTYPE rgLedTiming[LEDDRV_MAX];     // LED control array
+LEDTIMINGTYPE LedTiming[LED_MAX];     // LED control array
 
 
 /***********************************************************************
@@ -88,12 +89,8 @@ ERRCODE LEDInit(void)
     ERRCODE RValue;
     UINT8   i;
 
-    /* reset timings */
-    for (i=0; i<LEDDRV_MAX; i++)
-    {
-        rgLedTiming[i].wOnTicks  = 0;
-        rgLedTiming[i].wOffTicks = 0;
-    }
+    /* reset PWM timings */
+    memset( &LedTiming, 0x00, sizeof(LEDTIMINGTYPE));
 
     /* reset low level HW */
     RValue = LEDDrvInit(FALSE);  // TRUE: leds 'flash' one time
@@ -101,143 +98,158 @@ ERRCODE LEDInit(void)
     return RValue;
 }
 
+
+
 /***********************************************************************
- *  FUNCTION:       LEDMsgEntry
- *  DESCRIPTION:    Receive Message Handler of LED service
- *                  called by MsgQPump
- *  PARAMETER:      msg
- *  RETURN:         ERR_MSG_NOT_PROCESSED / ERR_MSG_NOT_PROCESSED
- *  COMMENT:        -
+ *  FUNCTION:       LEDService
+ *  DESCRIPTION:    Provides PWM control with execution time,
+ *                  gets called from inside TimerISR
+ *  PARAMETER:      -
+ *  RETURN:         -
+ *  COMMENT:        If duration has been set to 0 at LEDSetNewState(),
+ *                  no further change will done, until next LEDSetNewState()
+ *                  call!
+ *                  Assumes to get called at every system tick (20 ms).
+ *                  Assure the LED to be off, after duration time (if any).
  *********************************************************************** */
-ERRCODE LEDMsgEntry(MESSAGE msg)
+ERRCODE LEDService(void)
 {
-    ERRCODE     RValue = ERR_MSG_NOT_PROCESSED;
-    MESSAGE_ID  MsgId;
+    ERRCODE     RValue = ERR_OK;
+    LED_ENUM    eLed;
 
-    /* analyze message: it's for us? */
-    MsgId = MSG_ID(msg);        /* get message id */
-    switch (MsgId)
+    /* loop over available Leds
+       Note: some of the Leds are currently directly controled via GPIs 8e.g. TURN_L/R) */
+    for ( eLed = LED_NEUTR; eLed < LED_ERR; eLed++ )
     {
-        case MSG_LED_SET:
+        /* -------------------------------------------- */
+        /* control only, if Duration > 0 */
+        if ( LedTiming[eLed].wDurationTicks > 0 )
         {
-            //ODS(DBG_SYS,DBG_INFO,"MSG_LED_SET received!");
-            LEDSetNewState(msg);
-            RValue = ERR_MSG_PROCESSED;
-        } break;
-        case MSG_LED_ON:
-        {
-            //ODS(DBG_SYS,DBG_INFO,"MSG_LED_ON received!");
-            LEDSetNewState(msg);
-            RValue = ERR_MSG_PROCESSED;
-        } break;
-        case MSG_LED_OFF:
-        {
-            //ODS(DBG_SYS,DBG_INFO,"MSG_LED_OFF received!");
-            LEDSetNewState(msg);
-            RValue = ERR_MSG_PROCESSED;
-        } break;
-        default: RValue = ERR_MSG_NOT_PROCESSED;
-    }
+            /* count down our duration timer */
+            LedTiming[eLed].wDurationTicks--;
 
-#if(DEBUG==1)
-    /* DebugPurpose: */
-    // TestCheckKeyStateMsgs(msg);
-#endif
-    return RValue;
+            /* right now expired? */
+            if ( LedTiming[eLed].wDurationTicks == 0 )
+            {   LEDDrvSetLED(eLed, LED_OFF);         /* assure Led being off now for ever! */
+            }
+            else
+            {
+                /* Led currently on? */
+                if (TRUE == LEDDrvGetLED(eLed))
+                {
+                    /* OffTime available -> time to switch off again? */
+                    if (LedTiming[eLed].wOffTicks > 0)
+                    {
+                        /* count down ON timer (if possible) */
+                        if (LedTiming[eLed].wOnCurrTicks > 0 )
+                        {   LedTiming[eLed].wOnCurrTicks--;      /* keep it on! */
+                        }
+                        else
+                        {   LEDDrvSetLED(eLed, LED_OFF);                         /* ok - done - switch it off! */
+                            LedTiming[eLed].wOffCurrTicks = LedTiming[eLed].wOffTicks;    /* reload off timer */
+                        }
+                    }
+                    else
+                    {   // nothing to do - never switch off inside duration */
+                    }
+                }
+                /* Led currently off? */
+                else
+                {
+                    /* if OnTime Avaliable -> time to switch on again?*/
+                    if (LedTiming[eLed].wOnTicks > 0)
+                    {
+                        /* count down OFF timer (if possible) */
+                        if (LedTiming[eLed].wOffCurrTicks > 0 )
+                        {   LedTiming[eLed].wOffCurrTicks--;      /* keep it off! */
+                        }
+                        else
+                        {   LEDDrvSetLED(eLed, LED_ON);                          /* ok - done - switch it on again! */
+                            LedTiming[eLed].wOnCurrTicks = LedTiming[eLed].wOnTicks;      /* reload off timer */
+                        }
+                    }
+                    else
+                    {   // nothing to do - never switch on inside duration */
+                    }
+                }
+            }
+        }
+        else
+        {   // nothing to do (anymore)
+        }
+        /* -------------------------------------------- */
+    }
+    return (RValue);
 }
 
 
 
 /***********************************************************************
  *  FUNCTION:       LEDSetNewState
- *  DESCRIPTION:    handles new led status of any led
- *  PARAMETER:      MESSAGE     msg with all parameters
+ *  DESCRIPTION:    setup of LED PWM signal (granularity in ticks = 20 ms)
+ *  PARAMETER:      eLED            index of LE to be controlled
+ *                  wOn_ms          cyclic LED ON time in millisec
+ *                  wOff_ms         cyclic LED OFF time in millisec
+ *                  wDuration_ms    overall duration of PWM in millisec
  *  RETURN:         error code
- *  COMMENT:        wOffTicks = 0    eq. 'permanent ON'
- *                  wOnTicks = 0     eq. 'permanent OFF'
+ *  COMMENT:        wOff_ms = 0         eq. 'permanent ON'
+ *                  wOn_ms = 0          eq. 'permanent OFF'
+ *                  wDuration_ms = 0    eg. 'permanent ON/OFF'
+ *
+ *  Note:           If 'wDuration_ms' has been set to 0 at LEDSetNewState(),
+ *                  no further change will done, until next LEDSetNewState()
+ *                  call!
  *********************************************************************** */
-ERRCODE LEDSetNewState(MESSAGE GivenMsg)
+ERRCODE LEDSetNewState(LED_ENUM eLed, UINT16 wOn_ms, UINT16 wOff_ms, UINT16 wDuration_ms )
 {
-    MESSAGE     NewMsg;
-    ERRCODE     RValue = ERR_OK;
-    MESSAGE_ID  MsgId;
+    ERRCODE RValue = ERR_OK;
 
-    /* get parameters out of message */
-    LEDDRV_LEDS eLed   = MSG_CHAR1(GivenMsg)&0x0f;          /* lower nibble eq. led index */
-    BOOL        fMode = (MSG_CHAR1(GivenMsg)&0xf0) >> 4;    /* higher nibble eq. led mode */;
-
-    /* check parameters */
-    if (eLed >= LEDDRV_MAX)
-    {
-        ODS1(DBG_SYS,DBG_ERROR,"MSG_LED_X with invalid parameter (led:%d)", eLed);
-        return ERR_PARAM_ERR;
+    /* check: valid LED index? */
+    if ( ( eLed <= LED_MIN ) || ( eLed >= LED_MAX ) )
+    {   ODS1(DBG_SYS,DBG_WARNING,"LEDSetNewState() Invalid index %u", eLed );
+        RValue = ERR_OUT_OF_RANGE;
+        return (RValue);
     }
-    /* analyze message: ON/OFF */
-    MsgId = MSG_ID(GivenMsg);        /* get message id */
 
-    switch (MsgId)
-    {
-        case MSG_LED_SET:
-        {
-            /* save led timings */
-            rgLedTiming[eLed].wOnTicks  = MSG_CHAR2(GivenMsg);
-            rgLedTiming[eLed].wOffTicks = MSG_CHAR3(GivenMsg);
+    /* ok, save new PWM timings (assure at least one tick, intervall is < 1 tick!) */
+    LedTiming[eLed].wOnTicks         = MS2TICKS(wOn_ms       + (MS_PER_TICK-1) );
+    LedTiming[eLed].wOffTicks        = MS2TICKS(wOff_ms      + (MS_PER_TICK-1));
+    LedTiming[eLed].wDurationTicks   = MS2TICKS(wDuration_ms + (MS_PER_TICK-1));
 
-            /* directly switch led to advised mode (ON/OFF/GREEN/RED) */
-            LEDDrvSetLED(eLed, fMode);
+    /* initialize downcounting PWM timers */
+    LedTiming[eLed].wOnCurrTicks     = LedTiming[eLed].wOnTicks;
+    LedTiming[eLed].wOffCurrTicks    = LedTiming[eLed].wOffTicks;
 
-            /* check led state for further messages */
-            if (  (fMode == LED_ON)
-                &&(rgLedTiming[eLed].wOffTicks  >  0) )
-            {
-                /* build msg to later switch OFF the red/green led */
-                MSG_BUILD_UINT8(NewMsg, MSG_LED_OFF, (eLed | (fMode<<4)), 0, 0);
-                /* switch OFF after OnTime */
-                RValue = SetTimerMsg(NewMsg, rgLedTiming[eLed].wOnTicks);
-            }
-        } break;
-        case MSG_LED_ON:
-        {
-            /* led has not been disabled (wOnTicks==0) inbetween? */
-            if (rgLedTiming[eLed].wOnTicks > 0)
-            {
-                /* switch on NOW! */
-                LEDDrvSetLED(eLed, fMode);
+    /* show internal control structure */
+    ODS4(DBG_SYS,DBG_INFO,"LED[%u]: ON:%u OFF:%U DUR:%u (ticks)",
+                eLed, LedTiming[eLed].wOnTicks, LedTiming[eLed].wOffTicks, LedTiming[eLed].wDurationTicks);
 
-                /* permanent on? (wOffTicks==0) */
-                if (rgLedTiming[eLed].wOffTicks > 0)
-                {
-                    /* build msg to later switch OFF the red/green led */
-                    MSG_BUILD_UINT8(NewMsg, MSG_LED_OFF, (eLed | (fMode<<4)), 0, 0);
-                    /* switch OFF after OnTime */
-                    RValue = SetTimerMsg(NewMsg, rgLedTiming[eLed].wOnTicks);
-                }
-            }
-        } break;
-        case (MSG_LED_OFF):
-        {
-            /* led has not been permanent enabled (wOffTicks==0) inbetween? */
-            if (rgLedTiming[eLed].wOffTicks > 0)
-            {
-                /* switch off NOW! */
-                LEDDrvSetLED(eLed, LED_OFF);
+    /* directly switch LED to advised mode (ON/OFF, always starts with ON) */
+    if ( LedTiming[eLed].wOnTicks > 0)
+         LEDDrvSetLED(eLed, LED_ON);    // switch ON  immedeately
+    else LEDDrvSetLED(eLed, LED_OFF);   // switch OFF immedeately
 
-                /* permanent off? (wOnTicks==0) */
-                if (rgLedTiming[eLed].wOnTicks > 0)
-                {
-                    /* build msg to later switch ON the red/green led */
-                    MSG_BUILD_UINT8(NewMsg, MSG_LED_ON, (eLed | (fMode<<4)), 0, 0);
-                    /* switch ON after OffTime */
-                    RValue = SetTimerMsg(NewMsg, rgLedTiming[eLed].wOffTicks);
-                }
-            }
-        } break;
-        default: break;
-    }
-    if (RValue != ERR_OK)
-        ODS(DBG_SYS,DBG_ERROR,"Unable to send new MSG_LED_ON/OFF!");
+    /* further LED PWM control is done in LedService(), which is called with 50 Hz
+       inside the Timer ISR */
     return RValue;
 }
+
+
+
+/***********************************************************************
+ *  FUNCTION:       LEDGetState()
+ *  DESCRIPTION:    Returns current state of single LED
+ *  PARAMETER:      eLED            LED indicator
+ *  RETURN:         fActivate       TRUE  = LED on
+ *                                  FALSE = LED off
+ *  COMMENT:        -
+ *********************************************************************** */
+BOOL LEDGetState( LED_ENUM eLED )
+{
+    return ( LEDDrvGetLED( eLED ) );
+}
+
+
 
 
 /***********************************************************************
@@ -250,13 +262,15 @@ ERRCODE LEDSetNewState(MESSAGE GivenMsg)
  *********************************************************************** */
 void LEDOk(void)
 {
-    MESSAGE msg;
-
-    LED_MSG_MS(msg, LEDDRV_INFO, LED_ON, 1, 0);  /* set led ON now! */
-    MsgQPostMsg(msg, MSGQ_PRIO_LOW);
-    LED_MSG_MS(msg, LEDDRV_INFO, LED_OFF, 0, 1); /* switch off led .. */
-    SetTimerMsg(msg, MS2TICKS(600));            /* ... after 600 ms */
+    /* prevent usage, if INFO led already on! */
+    if ( FALSE == LEDGetState( LED_INFO ) )
+    {
+        /* set Info-LED ON now! (and later off) */
+        LEDSetNewState( LED_INFO, 1, 0, 600 );
+    }
 }
+
+
 
 /***********************************************************************
  *  FUNCTION:       LEDEsc
@@ -268,12 +282,12 @@ void LEDOk(void)
  *********************************************************************** */
 void LEDEsc(void)
 {
-    MESSAGE msg;
-
-    LED_MSG_MS(msg, LEDDRV_INFO, LED_ON, 100, 100); /* led blinks now! */
-    MsgQPostMsg(msg, MSGQ_PRIO_LOW);
-    LED_MSG_MS(msg, LEDDRV_INFO, LED_OFF, 0, 1);    /* switch off led ..*/
-    SetTimerMsg(msg, MS2TICKS(1000));              /* ... after 1000 ms */
+    /* prevent usage, if INFO led already on! */
+    if ( FALSE == LEDGetState( LED_INFO ) )
+    {
+        /* pulse LED now! */
+        LEDSetNewState( LED_INFO, 100, 100, 1000 );
+    }
 }
 
 
@@ -281,40 +295,21 @@ void LEDEsc(void)
 
 #if(TESTLED==1)
 /***********************************************************************
- *  FUNCTION:       TestLEDSendMessage
- *  DESCRIPTION:    just tests timer and timer messages
+ *  FUNCTION:       TestLEDSendPwm
+ *  DESCRIPTION:    just tests led pwm
  *  PARAMETER:      -
  *  RETURN:         -
  *  COMMENT:        -
  *********************************************************************** */
-void TestLEDSendMessage(void)
+void TestLEDSendPwm(void)
 {
-    MESSAGE msg;
-
     /* set InfoLed to blink with 1 Hz for 20 sec.*/
-    LED_MSG_MS(msg, LED_INF, LED_ON, 100, 900 );
-    MsgQPostMsg(msg, MSGQ_PRIO_LOW);
-
-    LED_MSG_TICKS(msg, LED_INF, LED_OFF, 0, 0);
-    SetTimerMsg(msg, SEC2TICKS(20));
 
     /* set Warning led to blink with 0,1 Hz */
-    LED_MSG_SEC(msg, LED_TURN, LED_ON, 1, 4);
-    MsgQPostMsg(msg, MSGQ_PRIO_LOW);
-    LED_MSG_TICKS(msg, LED_TURN, LED_OFF, 0, 0);
-    SetTimerMsg(msg, SEC2TICKS(20));
 
     /* set Error led to permanent ON */
-    LED_MSG_TICKS(msg, LED_ERR, LED_ON, 1, 0);
-    MsgQPostMsg(msg, MSGQ_PRIO_LOW);
-    LED_MSG_TICKS(msg, LED_ERR, LED_OFF, 0, 0);
-    SetTimerMsg(msg, SEC2TICKS(20));
 
     /* set Beamer led to permanent fastest blink mode after 10 sec.*/
-    LED_MSG_TICKS(msg, LED_BEAM, LED_ON, 1, 1);
-    SetTimerMsg(msg, SEC2TICKS(10));
-    LED_MSG_TICKS(msg, LED_BEAM, LED_OFF, 0, 0);
-    SetTimerMsg(msg, SEC2TICKS(20));
 }
 
 
@@ -323,6 +318,7 @@ void TestLEDSendMessage(void)
 /***********************************************************************
  *  FUNCTION:       TestCheckKeyStateMsgs
  *  DESCRIPTION:    Just to let a led flicker if a key is pressed
+ *                  (Key-Message is analyzed)
  *  PARAMETER:      -
  *  RETURN:         -
  *  COMMENT:        -
@@ -342,11 +338,9 @@ void TestCheckKeyStateMsgs(MESSAGE msg)
                 case KEYTRANS_PRESSED:
                 case KEYTRANS_ON:
                     LED_MSG_TICKS(NewMsg, LED_NEUTR, LED_ON, 1, 0);
-                    MsgQPostMsg(NewMsg, MSGQ_PRIO_LOW);
                     break;
                 case KEYTRANS_RELEASED:
                     LED_MSG_TICKS(NewMsg, LED_NEUTR, LED_OFF, 0, 0);
-                    MsgQPostMsg(NewMsg, MSGQ_PRIO_LOW);
                     break;
                 default: break;
             }
@@ -357,11 +351,9 @@ void TestCheckKeyStateMsgs(MESSAGE msg)
                 case KEYTRANS_PRESSED:
                 case KEYTRANS_ON:
                     LED_MSG_TICKS(NewMsg, LED_WARN, LED_ON, 1, 0);
-                    MsgQPostMsg(NewMsg, MSGQ_PRIO_LOW);
                     break;
                 case KEYTRANS_RELEASED:
                     LED_MSG_TICKS(NewMsg, LED_WARN, LED_OFF, 0, 0);
-                    MsgQPostMsg(NewMsg, MSGQ_PRIO_LOW);
                     break;
                 default: break;
             }
@@ -372,11 +364,9 @@ void TestCheckKeyStateMsgs(MESSAGE msg)
                 case KEYTRANS_PRESSED:
                 case KEYTRANS_ON:
                     LED_MSG_TICKS(NewMsg, LED_INF, LED_ON, 1, 0);
-                    MsgQPostMsg(NewMsg, MSGQ_PRIO_LOW);
                     break;
                 case KEYTRANS_RELEASED:
                     LED_MSG_TICKS(NewMsg, LED_INF, LED_OFF, 0, 0);
-                    MsgQPostMsg(NewMsg, MSGQ_PRIO_LOW);
                     break;
                 default: break;
             }
