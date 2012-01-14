@@ -73,6 +73,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.2  2012/01/14 08:28:42  tuberkel
+ * Message-IDs shortened / reviewed
+ *
  * Revision 3.1  2011/05/29 20:55:25  tuberkel
  * just comment
  *
@@ -160,7 +163,7 @@ const STRING szDevName[] =
  *  FUNCTION:       DevCyclicRefresh
  *  DESCRIPTION:    helps any device refreshing the display content
  *                  every MAX_REFRESH_MS ms by sending the
- *                  MSG_SCREEN_REFRESH message.
+ *                  MSG_SCREEN_RFRSH message.
  *  PARAMETER:      -
  *  RETURN:         ERR_OK
  *  COMMENT:        Registered as timer function, will be called from

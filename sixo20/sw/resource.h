@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.2  2012/01/14 08:28:42  tuberkel
+ * Message-IDs shortened / reviewed
+ *
  * Revision 3.1  2011/05/29 20:57:48  tuberkel
  * RESTXT_SWVER_xxx extented
  *
@@ -169,6 +172,7 @@
 #define STAT_TXT_LEN        22      /* len of strings in statistic screen, incl. null terminator */
 #define VEHSTATE_TXT_LEN    22      /* len of vehicle status string, incl. null terminator */
 
+#define RESTXT_EMPTY_TXT          ""            /* max width of below strings in chars */
 
 /* device bike version strings */
 /* NOTE: This list muts be identical to 'BIKE_TYPE' !!! */
@@ -251,7 +255,7 @@
 /* intro special sw version strings
    1 character, might be concated  */
 #define RESTXT_SWVER_DEBUG     " DBG"  // 'D' for DebugOuts on Uart0
-#define RESTXT_SWVER_MINIEMU   " EMU "  // 'E' for Emulator KD30
+#define RESTXT_SWVER_MINIEMU   " EMU " // 'E' for Emulator KD30
 #define RESTXT_SWVER_COMPASS   " CMP"  // 'C' for Compass
 
 

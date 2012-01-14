@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.1  2012/01/14 08:28:42  tuberkel
+ * Message-IDs shortened / reviewed
+ *
  * Revision 3.0  2010/11/07 13:38:56  tuberkel
  * V30 Preparations:
  * - changed to ne simplified device object handling
@@ -613,7 +616,7 @@ ERRCODE HWTestDeviceMsgEntry(MESSAGE GivenMsg)
     {
         switch (MsgId)
         {
-            case MSG_SCREEN_REFRESH:
+            case MSG_SCREEN_RFRSH:
                 HWTestDeviceShow(TRUE);     // show updated values
                 RValue = ERR_MSG_PROCESSED;
                 break;

@@ -72,6 +72,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.1  2012/01/14 08:28:42  tuberkel
+ * Message-IDs shortened / reviewed
+ *
  * Revision 3.0  2010/11/07 09:53:13  tuberkel
  * V30 Preparations:
  * - New: DayLightSaving 'CEST' supported
@@ -285,7 +288,7 @@ void TimeDateUpdateTime (void)
         bLastSecond = RTCTime.bSec;
 
         // trigger screen refresh for time objects for any device...
-        MSG_BUILD_UINT8(Msg, MSG_TIMEDATE_SECOND_GONE, 0xff, 0xff, 0xff);
+        MSG_BUILD_UINT8(Msg, MSG_SECOND_GONE, 0xff, 0xff, 0xff);
         MsgQPostMsg( Msg, MSGQ_PRIO_LOW);
     }
 

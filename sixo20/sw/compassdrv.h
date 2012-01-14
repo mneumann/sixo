@@ -101,7 +101,7 @@ typedef struct
 //- Issue a CompassCmdIncCalState (note 4).
 //
 //All changes of version info, heading, calibration state and error is notified
-//to the upper layers with a MSG_COMPASS_REFRESH message.
+//to the upper layers with a MSG_COMPASS_RFRSH message.
 //
 //See also the COMPASS_INVALIDATE_ON_ERROR switch above.
 //

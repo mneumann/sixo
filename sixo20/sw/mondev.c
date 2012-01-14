@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.1  2012/01/14 08:28:42  tuberkel
+ * Message-IDs shortened / reviewed
+ *
  * Revision 3.0  2010/11/07 09:12:09  tuberkel
  * V30 Preparations:
  * - Device/Object Handling completely revised & simplified
@@ -494,7 +497,7 @@ ERRCODE MonitorDeviceMsgEntry(MESSAGE GivenMsg)
     {
         switch (MsgId)
         {
-            case MSG_SCREEN_REFRESH:
+            case MSG_SCREEN_RFRSH:
                 MonitorDeviceShow(TRUE);
                 RValue = ERR_MSG_PROCESSED;
                 break;

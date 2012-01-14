@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.1  2012/01/14 08:28:42  tuberkel
+ * Message-IDs shortened / reviewed
+ *
  * Revision 3.0  2010/11/07 12:37:58  tuberkel
  * V30 Preparations - no changes
  *
@@ -467,9 +470,9 @@ ERRCODE TripCntMsgEntry(MESSAGE GivenMsg)
         switch (MsgId)
         {
             /* standard refresha message */
-            case MSG_SCREEN_REFRESH:
+            case MSG_SCREEN_RFRSH:
                 // Please note, that Compass Data and Time is refreshed on dedicated
-                // message MSG_COMPASS_REFRESH and MSG_TIMEDATE_SECOND_GONE only (see below)
+                // message MSG_COMPASS_RFRSH and MSG_SECOND_GONE only (see below)
                 TripCntDevShow(TRUE);
                 RValue = ERR_MSG_PROCESSED;
                 break;
@@ -504,14 +507,14 @@ ERRCODE TripCntMsgEntry(MESSAGE GivenMsg)
                 break;
 
             /* trigger time / date screen update only */
-            case MSG_TIMEDATE_SECOND_GONE:
+            case MSG_SECOND_GONE:
                 TripCntUpdateTimeDate();
                 RValue = ERR_MSG_PROCESSED;
                 break;
 
 #if (COMPASS==1)
             /* got a fresh compass heading information */
-            case MSG_COMPASS_REFRESH:
+            case MSG_COMPASS_RFRSH:
                 // show compass VALUE only if enabled
                 if (gDeviceFlags2.flags.ShowCompassValue == 1)
                     TripCntUpdateCompassHeading();

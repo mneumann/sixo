@@ -76,6 +76,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.1  2012/01/14 08:28:42  tuberkel
+ * Message-IDs shortened / reviewed
+ *
  * Revision 3.0  2010/11/07 13:55:50  tuberkel
  * V30 Preparations - no changes
  *
@@ -467,8 +470,8 @@ ERRCODE LapCntDeviceMsgEntry(MESSAGE GivenMsg)
                 LapCntDeviceShow(TRUE);     // update screen anyway
                 break;
 
-            //case MSG_SCREEN_REFRESH:        /* standard refresh cycle */
-            case MSG_TIMEDATE_SECOND_GONE:  /* additional blink lap trigger */
+            //case MSG_SCREEN_RFRSH:        /* standard refresh cycle */
+            case MSG_SECOND_GONE:  /* additional blink lap trigger */
                 LapCntDeviceShow(TRUE);
                 RValue = ERR_MSG_PROCESSED;
                 break;

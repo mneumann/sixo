@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.1  2012/01/14 08:28:42  tuberkel
+ * Message-IDs shortened / reviewed
+ *
  * Revision 3.0  2010/11/07 13:28:26  tuberkel
  * V30 Preparations:
  * - Device Handling completely reviewed & simplified
@@ -224,7 +227,7 @@ typedef struct
 /* message function macros */
 #define MSG_BUILD_SETFOCUS(msg,SendID,ReceivID)     msg.BBBI.id=MSG_SET_FOCUS;      msg.BBBI.byte1=SendID; msg.BBBI.byte2=ReceivID; msg.BBBI.byte3=0xff
 #define MSG_BUILD_GETFOCUS(msg,SendID,ReceivID)     msg.BBBI.id=MSG_GET_FOCUS;      msg.BBBI.byte1=SendID; msg.BBBI.byte2=ReceivID; msg.BBBI.byte3=0xff
-#define MSG_BUILD_REFRESH(msg,SendID,ReceivID)      msg.BBBI.id=MSG_SCREEN_REFRESH; msg.BBBI.byte1=SendID; msg.BBBI.byte2=ReceivID; msg.BBBI.byte3=0xff
+#define MSG_BUILD_REFRESH(msg,SendID,ReceivID)      msg.BBBI.id=MSG_SCREEN_RFRSH; msg.BBBI.byte1=SendID; msg.BBBI.byte2=ReceivID; msg.BBBI.byte3=0xff
 #define MSG_SENDER_ID(msg)                          MSG_BYTE1(msg)
 #define MSG_RECEIVER_ID(msg)                        MSG_BYTE2(msg)
 

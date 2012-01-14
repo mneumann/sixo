@@ -145,7 +145,7 @@ UINT16 gusSequenceStart = 0;
 tCompassVersionInfo gtCompassVersionInfo;
 tCompassHeadingInfo gtCompassHeadingInfo;
 
-MESSAGE gtCompassMessage = {0, 0, 0, MSG_COMPASS_REFRESH};
+MESSAGE gtCompassMessage = {0, 0, 0, MSG_COMPASS_RFRSH};
 
 
 void CompassResetDriverState( void );
@@ -409,7 +409,7 @@ ERRCODE CompassInit( void )
  *  PARAMETER:      none
  *  RETURN:         pointer to the version information
  *  COMMENT:        Always check if valid (->bValid).
- *                  An MSG_COMPASS_REFRESH is sent if the version info
+ *                  An MSG_COMPASS_RFRSH is sent if the version info
  *                  changes.
  *********************************************************************** */
 tCompassVersionInfo *CompassGetVersionInfo( void )
@@ -425,7 +425,7 @@ tCompassVersionInfo *CompassGetVersionInfo( void )
  *  PARAMETER:      none
  *  RETURN:         pointer to the heading information
  *  COMMENT:        Always check if valid (->bValid).
- *                  An MSG_COMPASS_REFRESH is sent if the heading or
+ *                  An MSG_COMPASS_RFRSH is sent if the heading or
  *                  calibration state changes.
  *********************************************************************** */
 tCompassHeadingInfo *CompassGetHeadingInfo( void )
@@ -441,7 +441,7 @@ tCompassHeadingInfo *CompassGetHeadingInfo( void )
  *  RETURN:         error count
  *  COMMENT:        The error count is simply increased on every error.
  *                  Intended to be implemented as turning wheel "-\|/".
- *                  An MSG_COMPASS_REFRESH is sent if the error count
+ *                  An MSG_COMPASS_RFRSH is sent if the error count
  *                  changes.
  *********************************************************************** */
 UINT8 CompassGetError( void )

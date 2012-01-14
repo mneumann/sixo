@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.1  2012/01/14 08:28:42  tuberkel
+ * Message-IDs shortened / reviewed
+ *
  * Revision 3.0  2010/11/07 14:00:50  tuberkel
  * V30 Preparations - no changes
  *
@@ -76,7 +79,7 @@
  *
  * Revision 2.1  2009/06/21 21:21:32  tuberkel
  * Changes done by AN:
- * New MSG_COMPASS_REFRESH Message
+ * New MSG_COMPASS_RFRSH Message
  *
  * Revision 2.0  2006/06/26 23:25:51  tuberkel
  * no message
@@ -120,17 +123,17 @@ typedef enum
     /* devices ----------------------------------------------------- */
     MSG_GET_FOCUS,                      /* device request to get focus from currently focused device */
     MSG_SET_FOCUS,                      /* give focus to another device */
-    MSG_SCREEN_REFRESH,                 /* system advice to update screen data of focused device */
+    MSG_SCREEN_RFRSH,                 /* system advice to update screen data of focused device */
 
     /* APPEND MORE STUFF HERE */
-    MSG_MAINDEV_VEHIC_STATE_SHOW,       /* Main-Device: Show Vehicle (Error) State for defined time */
-    MSG_MAINDEV_VEHIC_STATE_HIDE,       /* Main-Device: Hide Vehicle (Error) State */
+    MSG_VEHSTATE_SHOW,       /* Main-Device: Show Vehicle (Error) State for defined time */
+    MSG_VEHSTATE_HIDE,       /* Main-Device: Hide Vehicle (Error) State */
 
     /* special time/date messages ---------------------------------- */
-    MSG_TIMEDATE_SECOND_GONE,           /* to snychronize sconds on display */
+    MSG_SECOND_GONE,           /* to snychronize sconds on display */
 
     /* compass messages -------------------------------------------- */
-    MSG_COMPASS_REFRESH,                /* data from compass has been updated */
+    MSG_COMPASS_RFRSH,                /* data from compass has been updated */
     
     /* last message check ------------------------------------------- */
     MSG_LAST_MESSAGE                    /* last - unused! - message */

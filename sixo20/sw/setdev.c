@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.3  2012/01/14 08:28:42  tuberkel
+ * Message-IDs shortened / reviewed
+ *
  * Revision 3.2  2011/05/29 21:00:22  tuberkel
  * - Compass Settings removable
  * - ScreenDump only if DEBUG active
@@ -979,7 +982,7 @@ ERRCODE SetDeviceMsgEntry(MESSAGE GivenMsg)
                     RValue = ERR_MSG_PROCESSED;
                 }
                 break;
-            case MSG_SCREEN_REFRESH:
+            case MSG_SCREEN_RFRSH:
                 /* backlight automatic,
                    only if Backlight-Switch and -Level object not in edit mode */
                 if (  (EditBacklObj.State.bits.fEditActive    == FALSE)

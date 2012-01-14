@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.2  2012/01/14 08:28:42  tuberkel
+ * Message-IDs shortened / reviewed
+ *
  * Revision 3.1  2011/05/29 20:58:28  tuberkel
  * Settings Header corrected
  *
@@ -297,7 +300,7 @@
 #define RESENUM_HHMM	GERM_HHMM
 #define RESENUM_HHMMSS	GERM_HHMMSS
 
-#define RESENUM_DDMMYY	GERM_DDMMYY
+#define RESENUM_DDMMYY	    GERM_DDMMYY
 #define RESENUM_DDMMYYYY	GERM_DDMMYYYY
 #define RESENUM_WWDDMMYY	GERM_WWDDMMYY
 

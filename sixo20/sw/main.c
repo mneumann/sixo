@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.1  2012/01/14 08:28:42  tuberkel
+ * Message-IDs shortened / reviewed
+ *
  * Revision 3.0  2010/11/07 09:41:32  tuberkel
  * V30 Preparations:
  * - Intro-Screen & LED check duration adjustable by User
@@ -277,9 +280,11 @@ int main()
         TimerRegisterEntryFunction( DigInDrv_CheckKeyAction );      /* check keys */
         TimerRegisterEntryFunction( DigInDrv_CheckAllPorts );       /* update of standard LEDs for Turn/HighBeam/Neutral */
         TimerRegisterEntryFunction( ParCyclicSaveValues );          /* check/save eeprom values */
-        TimerRegisterEntryFunction( DevCyclicRefresh );             /* generation of MSG_SCREEN_REFRESH */
+        TimerRegisterEntryFunction( DevCyclicRefresh );             /* generation of MSG_SCREEN_RFRSH */
         TimerRegisterEntryFunction( TimeDateUpdate );               /* RTC check */
         TimerRegisterEntryFunction( AnaInDrvTriggerADConverter );   /* generation of AD samples in single sweep mode */
+        //TimerRegisterEntryFunction( LEDService );                   /* support LED PWM control */
+        TimerRegisterEntryFunction( BeepService );                  /* support Beeper control */
         TimerRegisterEntryFunction( SurvProcessAll );               /* process complete surveillance for infos/warnings/errors */
         #if(BIKE_MOTOBAU==1)                                        /* special MOTOBAU behaviour */
         TimerRegisterEntryFunction( LapCntUpdateTime );             /* enable background lapcounter feature */
