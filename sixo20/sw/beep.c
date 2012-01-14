@@ -68,6 +68,13 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.2  2012/01/14 08:26:00  tuberkel
+ * Beeper PWM handling changed:
+ * - no longer Msgs/TimerMsgs used (inaccurate acoustic)
+ * - instead use TimerISR to control PWM
+ * - Granulartiy is SystemTicks (20 ms)
+ * - works well
+ *
  * Revision 3.1  2011/05/29 12:44:19  tuberkel
  * Beeper: Removed unnecssary Warning if switched off
  *
@@ -132,144 +139,128 @@ ERRCODE BeepInit(void)
 
 
 /***********************************************************************
- *  FUNCTION:       BeepMsgEntry
- *  DESCRIPTION:    Receive Message Handler of Beep service
- *                  called by MsgQPump
- *  PARAMETER:      msg
- *  RETURN:         ERR_MSG_PROCESSED / ERR_MSG_NOT_PROCESSED
- *  COMMENT:        -
+ *  FUNCTION:       BeepService
+ *  DESCRIPTION:    Provides PWM control with execution time,
+ *                  gets called from inside TimerISR
+ *  PARAMETER:      -
+ *  RETURN:         -
+ *  COMMENT:        If duration has been set to 0 at BeepSetNewState(),
+ *                  no further change will done, until next BeepSetNewState()
+ *                  call!
+ *                  Assumes to get called at every system tick (20 ms).
+ *                  Assure the Beeper to be off, after duration time (if any).
  *********************************************************************** */
-ERRCODE BeepMsgEntry(MESSAGE msg)
+ERRCODE BeepService(void)
 {
-    ERRCODE     RValue = ERR_MSG_NOT_PROCESSED;
-    MESSAGE_ID  MsgId;
+    ERRCODE RValue = ERR_OK;
 
-    /* analyze message: it's for us? */
-    MsgId = MSG_ID(msg);        /* get message id */
-    switch (MsgId)
+    /* control only, if Duration > 0 */
+    if ( BeepTiming.wDurationTicks > 0 )
     {
-        case MSG_BEEP_SET:
+        /* count down our duration timer */
+        BeepTiming.wDurationTicks--;
+
+        /* right now expired? */
+        if ( BeepTiming.wDurationTicks == 0 )
+        {   BeepDrvSetBeeper(BEEP_OFF);         /* assure beeper being off now for ever! */
+        }
+        else
         {
-            //ODS(DBG_SYS,DBG_INFO,"MSG_BEEP_SET received!");
-            BeepSetNewState(msg);
-            RValue = ERR_MSG_PROCESSED;
-        } break;
-        case MSG_BEEP_ON:
-        {
-            //ODS(DBG_SYS,DBG_INFO,"MSG_BEEP_ON received!");
-            BeepSetNewState(msg);
-            RValue = ERR_MSG_PROCESSED;
-        } break;
-        case MSG_BEEP_OFF:
-        {
-            //ODS(DBG_SYS,DBG_INFO,"MSG_BEEP_OFF received!");
-            BeepSetNewState(msg);
-            RValue = ERR_MSG_PROCESSED;
-        } break;
-        default: RValue = ERR_MSG_NOT_PROCESSED;
+            /* beeper currently on? */
+            if (TRUE == BeepDrvGetBeeper())
+            {
+                /* OffTime available -> time to switch off again? */
+                if (BeepTiming.wOffTicks > 0)
+                {
+                    /* count down ON timer (if possible) */
+                    if (BeepTiming.wOnCurrTicks > 0 )
+                    {   BeepTiming.wOnCurrTicks--;      /* keep it on! */
+                    }
+                    else
+                    {   BeepDrvSetBeeper(BEEP_OFF);                         /* ok - done - switch it off! */
+                        BeepTiming.wOffCurrTicks = BeepTiming.wOffTicks;    /* reload off timer */
+                    }
+                }
+                else
+                {   // nothing to do - never switch off inside duration */
+                }
+            }
+            /* beeper currently off? */
+            else
+            {
+                /* if OnTime Avaliable -> time to switch on again?*/
+                if (BeepTiming.wOnTicks > 0)
+                {
+                    /* count down OFF timer (if possible) */
+                    if (BeepTiming.wOffCurrTicks > 0 )
+                    {   BeepTiming.wOffCurrTicks--;      /* keep it off! */
+                    }
+                    else
+                    {   BeepDrvSetBeeper(BEEP_ON);                          /* ok - done - switch it on again! */
+                        BeepTiming.wOnCurrTicks = BeepTiming.wOnTicks;      /* reload off timer */
+                    }
+                }
+                else
+                {   // nothing to do - never switch on inside duration */
+                }
+            }
+        }
     }
-    return RValue;
+    else
+    {   // nothing to do (anymore)
+    }
+    return (RValue);
 }
 
 
 
 /***********************************************************************
  *  FUNCTION:       BeepSetNewState
- *  DESCRIPTION:    handles new Beeper status
- *  PARAMETER:      MESSAGE     msg with all parameters
+ *  DESCRIPTION:    setup of beeper PWM signal (granularity in ticks = 20 ms)
+ *  PARAMETER:      wOn_ms          cyclic LED ON time in millisec
+ *                  wOff_ms         cyclic LED OFF time in millisec
+ *                  wDuration_ms    overall duration of PWM in millisec
  *  RETURN:         error code
- *  COMMENT:        wOffTicks = 0    eq. 'permanent ON'
- *                  wOnTicks = 0     eq. 'permanent OFF'
+ *  COMMENT:        wOff_ms = 0         eq. 'permanent ON'
+ *                  wOn_ms = 0          eq. 'permanent OFF'
+ *                  wDuration_ms = 0    eg. 'permanent ON/OFF'
+ *
+ *  Note:           If 'wDuration_ms' has been set to 0 at BeepSetNewState(),
+ *                  no further change will done, until next BeepSetNewState()
+ *                  call!
  *********************************************************************** */
-ERRCODE BeepSetNewState(MESSAGE GivenMsg)
+ERRCODE BeepSetNewState(UINT16 wOn_ms, UINT16 wOff_ms, UINT16 wDuration_ms )
 {
-    MESSAGE         NewMsg;
-    ERRCODE         RValue = ERR_OK;
-    MESSAGE_ID      MsgId;
-    BOOL            fMode;
+    ERRCODE RValue = ERR_OK;
 
     // check: beeper disabled by user/eeprom settings?
     if ( gDeviceFlags2.flags.BeeperAvail == FALSE )
-    {
-        // do nothing, just ignore message
+    {   // do nothing, just ignore message
         //ODS(DBG_SYS,DBG_WARNING,"Unable to use MSG_BEEP_ON/OFF,  beeper disabled!");
         RValue = ERR_OK;
         return (RValue);
     }
 
-    /* analyse message: ON/OFF */
-    MsgId = MSG_ID(GivenMsg);       /* get message id */
+    /* ok, save new beep PWM timings (asure at least one tick, intervall is < 1 tick!) */
+    BeepTiming.wOnTicks         = MS2TICKS(wOn_ms       + (MS_PER_TICK-1) );
+    BeepTiming.wOffTicks        = MS2TICKS(wOff_ms      + (MS_PER_TICK-1));
+    BeepTiming.wDurationTicks   = MS2TICKS(wDuration_ms + (MS_PER_TICK-1));
 
-    switch (MsgId)
-    {
-        case MSG_BEEP_SET:
-        {
-            /* save new beep timings */
-            BeepTiming.wOnTicks  = MSG_CHAR2(GivenMsg);
-            BeepTiming.wOffTicks = MSG_CHAR3(GivenMsg);
-            fMode = MSG_CHAR1(GivenMsg);                    /* get on/off mode */
+    /* initialize downcounting PWM timers */
+    BeepTiming.wOnCurrTicks     = BeepTiming.wOnTicks;
+    BeepTiming.wOffCurrTicks    = BeepTiming.wOffTicks;
 
-            /* directly switch beep to advised mode (ON/OFF) */
-            BeepDrvSetBeeper(fMode);
+    /* show internal control structure */
+    ODS3(DBG_SYS,DBG_INFO,"Beeper setup: ON:%u OFF:%U DUR:%u",
+                BeepTiming.wOnTicks, BeepTiming.wOffTicks, BeepTiming.wDurationTicks);
 
-            /* check beeper state for further messages */
-            if (  (fMode == BEEP_ON)                        /* beeper now ON */
-                &&(BeepTiming.wOffTicks > 0) )              /* AND later OFF? */
-            {
-                /* build msg to later switch OFF the beeper */
-                MSG_BUILD_UINT8(NewMsg, MSG_BEEP_OFF, 0, 0, 0);
-                /* switch OFF after OnTime */
-                RValue = SetTimerMsg(NewMsg, BeepTiming.wOnTicks);
-            }
-            if (  (fMode == BEEP_OFF)                       /* beeper now OFF */
-                &&(BeepTiming.wOnTicks > 0) )               /* AND later ON? */
-            {
-                /* build msg to later switch ON the beeper */
-                MSG_BUILD_UINT8(NewMsg, MSG_BEEP_ON, 0, 0, 0);
-                /* switch ON after OffTime */
-                RValue = SetTimerMsg(NewMsg, BeepTiming.wOffTicks);
-            }
-        } break;
-        case MSG_BEEP_ON:
-        {
-            /* beeper has not been disabled (wOnTicks==0) inbetween? */
-            if (BeepTiming.wOnTicks > 0)
-            {
-                /* switch on NOW! */
-                BeepDrvSetBeeper(BEEP_ON);
+    /* directly switch beeper to advised mode (ON/OFF, always starts with ON) */
+    if ( BeepTiming.wOnTicks > 0)
+         BeepDrvSetBeeper(BEEP_ON);     // switch ON immedeately
+    else BeepDrvSetBeeper(BEEP_OFF);    // switch OFF immedeately
 
-                /* permanent on? (wOffTicks==0) */
-                if (BeepTiming.wOffTicks > 0)
-                {
-                    /* build msg to later switch OFF the beeper */
-                    MSG_BUILD_UINT8(NewMsg, MSG_BEEP_OFF, 0, 0, 0);
-                    /* switch OFF after OnTime */
-                    RValue = SetTimerMsg(NewMsg, BeepTiming.wOnTicks);
-                }
-            }
-        } break;
-        case (MSG_BEEP_OFF):
-        {
-            /* beeper has not been permanent enabled (wOffTicks==0) inbetween? */
-            if (BeepTiming.wOffTicks > 0)
-            {
-                /* switch off NOW! */
-                BeepDrvSetBeeper(BEEP_OFF);
-
-                /* permanent off? (wOnTicks==0) */
-                if (BeepTiming.wOnTicks > 0)
-                {
-                    /* build msg to later switch ON the beeper */
-                    MSG_BUILD_UINT8(NewMsg, MSG_BEEP_ON, 0, 0, 0);
-                    /* switch ON after OffTime */
-                    RValue = SetTimerMsg(NewMsg, BeepTiming.wOffTicks);
-                }
-            }
-        } break;
-        default: break;
-    }
-    if (RValue != ERR_OK)
-        ODS(DBG_SYS,DBG_ERROR,"Unable to send new MSG_BEEP_ON/OFF!");
+    /* further beeper PWM control is done in BeepService(), which is called with 50 Hz
+       inside the Timer ISR */
     return RValue;
 }
 
@@ -284,16 +275,11 @@ ERRCODE BeepSetNewState(MESSAGE GivenMsg)
  *********************************************************************** */
 void BeepOk(void)
 {
-    MESSAGE msg;
-
     /* set Beeper ON now! */
-    BEEP_MSG_MS(msg, BEEP_ON, 1, 0 );
-    MsgQPostMsg(msg, MSGQ_PRIO_LOW);
-
-    /* limit Beeper output to 600 ms */
-    BEEP_MSG_MS(msg, BEEP_OFF, 0, 1);
-    SetTimerMsg(msg, MS2TICKS(600));
+    BeepSetNewState(1, 0, 600 );
 }
+
+
 
 /***********************************************************************
  *  FUNCTION:       BeepEsc
@@ -305,16 +291,11 @@ void BeepOk(void)
  *********************************************************************** */
 void BeepEsc(void)
 {
-    MESSAGE msg;
-
     /* pulse Beeper now! */
-    BEEP_MSG_MS(msg, BEEP_ON, 50, 50 );
-    MsgQPostMsg(msg, MSGQ_PRIO_LOW);
-
-    /* limit Beeper output to 1000 ms */
-    BEEP_MSG_MS(msg, BEEP_OFF, 0, 1);
-    SetTimerMsg(msg, MS2TICKS(1000));
+    BeepSetNewState( 50, 50, 1000 );
 }
+
+
 
 /***********************************************************************
  *  FUNCTION:       BeepClick
@@ -325,15 +306,8 @@ void BeepEsc(void)
  *********************************************************************** */
 void BeepClick(void)
 {
-    MESSAGE msg;
-
     /* make the shortest possible pulse */
-    BEEP_MSG_TICKS(msg, BEEP_ON, 1, 10 );
-    MsgQPostMsg(msg, MSGQ_PRIO_LOW);
-
-    /* limit Beeper output to 2 ticks */
-    BEEP_MSG_MS(msg, BEEP_OFF, 0, 1);
-    SetTimerMsg(msg, 2);
+    BeepSetNewState( 1, 0, 20 );
 }
 
 
@@ -352,28 +326,17 @@ void TestBeepSendMessage(void)
     MESSAGE msg;
 
      /* make the shortest possible pulse */
-    BEEP_MSG_TICKS(msg, BEEP_ON, 1, 10 );
-    MsgQPostMsg(msg, MSGQ_PRIO_LOW);
+    BeepSetNewState(  1, 0, 20 );
+    Delay_ms(2000);
 
-    /* limit Beeper output to 2 ticks */
-    BEEP_MSG_MS(msg, BEEP_OFF, 0, 1);
-    SetTimerMsg(msg, 2);
+   /* set Beeper to pulse with on/off with 1 Hz for 5 sec.*/
+    BeepSetNewState(500, 500, 5000 );
+    Delay_ms(2000);
 
-   /* set Beeper to pulse with on/off with 1 Hz */
-    BEEP_MSG_MS(msg, BEEP_ON, 500, 500 );
-    SetTimerMsg(msg, SEC2TICKS(2));
+    /* set Beeper to pulse with on/off with 5 Hz for 5 sec.*/
+    BeepSetNewState( 100, 100, 5000 );
+    Delay_ms(2000);
 
-    /* set Beeper to permanent ON beep after 5 sec.*/
-    BEEP_MSG_TICKS(msg, BEEP_ON, 1, 0);
-    SetTimerMsg(msg, SEC2TICKS(5));
-
-    /* set Beeper to pulse with on/off with 5 Hz after 10 sec.*/
-    BEEP_MSG_MS(msg, BEEP_ON, 100, 100 );
-    SetTimerMsg(msg, SEC2TICKS(10));
-
-    /* set Beeper to permanent OFF beep after 15 sec.*/
-    BEEP_MSG_TICKS(msg, BEEP_OFF, 0, 1);
-    SetTimerMsg(msg, SEC2TICKS(15));
 }
 #endif // TESTBEEP
 

@@ -68,6 +68,13 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.1  2012/01/14 08:26:00  tuberkel
+ * Beeper PWM handling changed:
+ * - no longer Msgs/TimerMsgs used (inaccurate acoustic)
+ * - instead use TimerISR to control PWM
+ * - Granulartiy is SystemTicks (20 ms)
+ * - works well
+ *
  * Revision 3.0  2010/11/07 12:43:48  tuberkel
  * V30 Preparations - no changes
  *
@@ -123,6 +130,19 @@ ERRCODE BeepDrvSetBeeper(BOOL fActive)
     return ERR_OK;
 }
 
+
+
+/***********************************************************************
+ *  FUNCTION:       BeepDrvGetBeeper()
+ *  DESCRIPTION:    returns current beeper pin state
+ *  PARAMETER:      -
+ *  RETURN:         BOOL    fActive     TRUE = on
+ *  COMMENT:        -
+ *********************************************************************** */
+BOOL BeepDrvGetBeeper(void)
+{
+    return ( fBeep );
+}
 
 
  

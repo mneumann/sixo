@@ -70,8 +70,11 @@
 /* Beep timing */
 typedef struct
 {
-    UINT8   wOnTicks;    /* Beep ON duration in 1/10 sec */
-    UINT8   wOffTicks;   /* Beep OFF duration in 1/10 sec */
+    UINT16  wOnTicks;           /* Beep ON duration in ticks (reload value) */
+    UINT16  wOffTicks;          /* Beep OFF duration in ticks (reload value) */
+    UINT16  wDurationTicks;     /* Beep duration in ticks */
+    UINT16  wOnCurrTicks;       /* Beep On PWM timer - counting done */
+    UINT16  wOffCurrTicks;      /* Beep Off PWM timer - counting done */
 } BEEPTIMINGTYPE;
 
 
@@ -80,16 +83,10 @@ typedef struct
 #define BEEP_ON  TRUE         /* beeper is on */
 
 
-/* macros for easier Beep messages and timings in ms / sec / ticks */
-#define BEEP_MSG_MS(msg, status, ontime, offtime)    MSG_BUILD_UINT8(msg, MSG_BEEP_SET, status, MS2TICKS(ontime), MS2TICKS(offtime))
-#define BEEP_MSG_SEC(msg, status, ontime, offtime)   MSG_BUILD_UINT8(msg, MSG_BEEP_SET, status, SEC2TICKS(ontime), SEC2TICKS(offtime))
-#define BEEP_MSG_TICKS(msg, status, ontime, offtime) MSG_BUILD_UINT8(msg, MSG_BEEP_SET, status, ontime, offtime)
-
-
 /* prototypes */
 ERRCODE BeepInit(void);
-ERRCODE BeepMsgEntry(MESSAGE msg);
-ERRCODE BeepSetNewState(MESSAGE msg);
+ERRCODE BeepService(void);
+ERRCODE BeepSetNewState(UINT16 wOn_ms, UINT16 wOff_ms, UINT16 wDuration_ms );
 
 void BeepOk(void);
 void BeepEsc(void);

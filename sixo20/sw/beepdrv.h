@@ -14,7 +14,7 @@
  *  Comments:       -
  *
  *  --------------------------------------------------------------------
- * 
+ *
  *  Compiler:       Renesas NC30WA V.5.00 Release 2
  *  Options:        -
  *
@@ -23,33 +23,33 @@
  *  Licence details
  *
  *  This software is copyright © 2001-2004 by N&K Development, Germany
- *  
- *  You can redistribute it and/or modify it under the terms of the 
- *  GNU General Public License version 2 as published by the 
- *  Free Software Foundation. 
- *  
- *  This program is distributed in the hope that it will be useful, 
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of 
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+ *
+ *  You can redistribute it and/or modify it under the terms of the
+ *  GNU General Public License version 2 as published by the
+ *  Free Software Foundation.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  *  GNU General Public License for more details.
- *  
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, 
+ *  Foundation, Inc., 59 Temple Place - Suite 330, Boston,
  *  MA  02111-1307, USA.
  *
  *  To purchase support or enhancements for this software, contact:
- *  
- *      N&K Development                     N&K Development         
- *      Arnold Neugebauer                   Ralf Schwarzer            
- *      Stöckener Str. 115                  Hudeplan 37 A            
- *      30419 Hannover                      30453 Hannover     
+ *
+ *      N&K Development                     N&K Development
+ *      Arnold Neugebauer                   Ralf Schwarzer
+ *      Stöckener Str. 115                  Hudeplan 37 A
+ *      30419 Hannover                      30453 Hannover
  *      arnold.neugebauer@web.de            ralf.schwarzer@htp-tel.de
- *      
+ *
  *      or try http://www.sixo.de
  *
  *  --------------------------------------------------------------------
- * 
+ *
  *  Disclaimer of warrenty
  *
  *  The software is provided as is without warranties of
@@ -75,6 +75,7 @@
 /* function protoypes */
 ERRCODE BeepDrvInit(void);
 ERRCODE BeepDrvSetBeeper(BOOL fActive);
+BOOL    BeepDrvGetBeeper(void);
 
 #endif /* _BEEPDRV_H */
 
