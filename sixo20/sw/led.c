@@ -196,9 +196,12 @@ ERRCODE LEDService(void)
  *                  wOn_ms = 0          eq. 'permanent OFF'
  *                  wDuration_ms = 0    eg. 'permanent ON/OFF'
  *
- *  Note:           If 'wDuration_ms' has been set to 0 at LEDSetNewState(),
+ *                  If 'wDuration_ms' has been set to 0 at LEDSetNewState(),
  *                  no further change will done, until next LEDSetNewState()
  *                  call!
+ *
+ *                  Might be called repetive with same parameters (e.g. OIL-SWITCH).
+ *                  so we early check any changes to prevent irrelvant setup/debugouts.
  *********************************************************************** */
 ERRCODE LEDSetNewState(LED_ENUM eLed, UINT16 wOn_ms, UINT16 wOff_ms, UINT16 wDuration_ms )
 {
@@ -211,18 +214,38 @@ ERRCODE LEDSetNewState(LED_ENUM eLed, UINT16 wOn_ms, UINT16 wOff_ms, UINT16 wDur
         return (RValue);
     }
 
+    /* check: parameters inside valid area (ms ==> SystemTicks, 20 ms Granularity) */
+    if ( ( wOn_ms > 0 ) && ( wOn_ms < MS_PER_TICK ) )
+         wOn_ms += MS_PER_TICK;
+    if ( ( wOff_ms > 0 ) && ( wOn_ms < MS_PER_TICK ) )
+         wOff_ms += MS_PER_TICK;
+    if ( ( wDuration_ms > 0 ) && ( wOn_ms < MS_PER_TICK ) )
+         wDuration_ms += MS_PER_TICK;
+
+    /* check: any changes? */
+    if (  ( LedTiming[eLed].wOnTicks        == MS2TICKS(wOn_ms)       )
+        &&( LedTiming[eLed].wOffTicks       == MS2TICKS(wOff_ms)      )
+        &&( LedTiming[eLed].wDurationTicks  == MS2TICKS(wDuration_ms) ) )
+    {   //ODS1(DBG_SYS,DBG_INFO,"LEDSetNewState() - no changes for LED[%s]", LEDgetName(eLed) );
+        RValue = ERR_OK;
+        return (RValue);
+    }
+
     /* ok, save new PWM timings (assure at least one tick, intervall is < 1 tick!) */
-    LedTiming[eLed].wOnTicks         = MS2TICKS(wOn_ms       + (MS_PER_TICK-1) );
-    LedTiming[eLed].wOffTicks        = MS2TICKS(wOff_ms      + (MS_PER_TICK-1));
-    LedTiming[eLed].wDurationTicks   = MS2TICKS(wDuration_ms + (MS_PER_TICK-1));
+    LedTiming[eLed].wOnTicks         = MS2TICKS(wOn_ms      );
+    LedTiming[eLed].wOffTicks        = MS2TICKS(wOff_ms     );
+    LedTiming[eLed].wDurationTicks   = MS2TICKS(wDuration_ms);
 
     /* initialize downcounting PWM timers */
     LedTiming[eLed].wOnCurrTicks     = LedTiming[eLed].wOnTicks;
     LedTiming[eLed].wOffCurrTicks    = LedTiming[eLed].wOffTicks;
 
     /* show internal control structure */
-    ODS4(DBG_SYS,DBG_INFO,"LED[%u]: ON:%u OFF:%U DUR:%u (ticks)",
-                eLed, LedTiming[eLed].wOnTicks, LedTiming[eLed].wOffTicks, LedTiming[eLed].wDurationTicks);
+    ODS4(DBG_SYS,DBG_INFO,"LED[%s]: ON:%u OFF:%u DUR:%u (ticks)",
+                            LEDGetName(eLed),
+                            LedTiming[eLed].wOnTicks,
+                            LedTiming[eLed].wOffTicks,
+                            LedTiming[eLed].wDurationTicks);
 
     /* directly switch LED to advised mode (ON/OFF, always starts with ON) */
     if ( LedTiming[eLed].wOnTicks > 0)
@@ -291,6 +314,29 @@ void LEDEsc(void)
 }
 
 
+/***********************************************************************
+ *  FUNCTION:       LEDGetName
+ *  DESCRIPTION:    just a debug helper to return LED name
+ *  PARAMETER:
+ *  RETURN:         -
+ *  COMMENT:        -
+ *********************************************************************** */
+STRING LEDGetName( LED_ENUM eLED )
+{
+    STRING RValue = "";
+
+    switch (eLED)
+    {
+        case LED_NEUTR  : RValue = "NTR"; break;
+        case LED_TURN   : RValue = "TRN"; break;
+        case LED_INFO   : RValue = "INF"; break;
+        case LED_BEAM   : RValue = "HBM"; break;
+        case LED_WARN   : RValue = "WRN"; break;
+        case LED_ERR    : RValue = "ERR"; break;
+        default         : RValue = "?"; break;
+    }
+    return (RValue);
+}
 
 
 #if(TESTLED==1)

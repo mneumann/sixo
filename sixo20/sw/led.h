@@ -106,9 +106,10 @@ ERRCODE LEDService(void);
 ERRCODE LEDSetNewState(LED_ENUM eLed, UINT16 wOn_ms, UINT16 wOff_ms, UINT16 wDuration_ms );
 BOOL    LEDGetState(LED_ENUM eLed);
 
-void LEDOk(void);
-void LEDEsc(void);
+void    LEDOk(void);
+void    LEDEsc(void);
 
+STRING   LEDGetName( LED_ENUM eLED );
 
 
 /* test functions */
