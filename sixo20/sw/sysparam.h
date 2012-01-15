@@ -69,6 +69,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.2  2012/01/15 09:55:42  tuberkel
+ * Version incr. to V3.0.1 - Release Candidate
+ *
  * Revision 3.1  2010/11/07 14:06:16  tuberkel
  * V30 Preparations:
  * - SW Version # ==> V3.0.0
@@ -139,7 +142,7 @@
 /* software version number e.q. '2.1.1' */
 #define DEF_SWID_APL   3  // APL = (0..15) main aplication number (changed with new main application features)
 #define DEF_SWID_SWV   0  // SWV = (0..15) sw version number (changed with additional features)
-#define DEF_SWID_BLD   0  // BLD = (0..15) build number (changed with bugfixes)
+#define DEF_SWID_BLD   1  // BLD = (0..15) build number (changed with bugfixes)
 
 
 /* hardware specific version number */
