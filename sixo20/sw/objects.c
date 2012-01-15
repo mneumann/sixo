@@ -69,6 +69,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.2  2012/01/15 09:56:54  tuberkel
+ * ObjEditBool: new behaviour
+ * - UP/DOWN always toggls boolean state
+ *
  * Revision 3.1  2011/05/29 13:52:36  tuberkel
  * BugFix ObjSelectShow
  * - now shows underline only if editable
@@ -1902,36 +1906,20 @@ ERRCODE ObjEditBoolMsgEntry( EDITBOOLOBJECT far * fpObject, MESSAGE GivenMsg )
                 // no reaction, no key repetition, just ignore...
             }
             /* ------------------------------------------------------------------------ */
-            else if (  (MsgId == MSG_KEY_DOWN )                             /* [DOWN]  */
-                     &&(MSG_KEY_TRANSITION(GivenMsg) == KEYTRANS_PRESSED) ) /* pressed the first time?*/
-            {
-                /* set FALSE boolean state! */
-                *fpObject->fpWorkValue = FALSE;
-                ODS(DBG_USER, DBG_INFO, "EditBool set to 0!");
-
-                /* re-initiate cursor flashing */
-                MSG_FLASH_OFF(NewMsg);                          /* remove all pending cursor OFF messages */
-                TimerRemoveMsg(NewMsg);
-                MSG_FLASH_ON(NewMsg);                           /* remove all pending cursor ON messages */
-                TimerRemoveMsg(NewMsg);
-                fpObject->State.bits.fCursorOn = TRUE;          /* cursor is visible */
-                ObjEditBoolShow( fpObject, SHOW_ALL);           /* show new state immediatly */
-                MSG_FLASH_OFF(NewMsg);                          /* next: cursor OFF */
-                SetTimerMsg(NewMsg, FLASH_ON_TIME);             /* delay: cursor ON time */
-            }
-            /* ------------------------------------------------------------------------ */
             else if (  (MsgId == MSG_KEY_UP )                           /* [UP]  */
                      &&(MSG_KEY_TRANSITION(GivenMsg) == KEYTRANS_ON ) ) /* longer pressed?*/
             {
                 // no reaction, no key repetition, just ignore...
             }
+
             /* ------------------------------------------------------------------------ */
-            else if (  (MsgId == MSG_KEY_UP )                             /* [UP]  */
+            else if (  (  (MsgId == MSG_KEY_DOWN )                          /*    [DOWN]  */
+                        ||(MsgId == MSG_KEY_UP   ) )                        /* or [UP]    */
                      &&(MSG_KEY_TRANSITION(GivenMsg) == KEYTRANS_PRESSED) ) /* pressed the first time?*/
             {
-                /* set TRUE boolean state! */
-                *fpObject->fpWorkValue = TRUE;
-                ODS(DBG_USER, DBG_INFO, "EditBool set to 1!");
+                /* simply INVERT boolean state! */
+                *fpObject->fpWorkValue = (*fpObject->fpWorkValue==FALSE) ? TRUE : FALSE;
+                ODS1(DBG_USER, DBG_INFO, "EditBool set to %u!", *fpObject->fpWorkValue );
 
                 /* re-initiate cursor flashing */
                 MSG_FLASH_OFF(NewMsg);                          /* remove all pending cursor OFF messages */
