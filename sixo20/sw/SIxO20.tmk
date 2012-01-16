@@ -5,7 +5,7 @@
 # All Rights Reserved.
 #
 #	Notice	:	Don't edit.
-#	Date	:	2012 01(January) 14(Saturday) AM.10.51
+#	Date	:	2012 01(January) 16(Monday) PM.08.44
 #	Project	:	SIxO20
 ####################################################################
 
@@ -29,8 +29,8 @@ ECHO	=	@-echo
 MKFILE	=	$(PROJECT).tmk
 TYPE	=	@-type
 PROJECT	=	SIxO20
-CFLAGS	=	-c -I. -silent -dir $(OUTDIR) -Wall -DDEBUG=1 -DMINIEMU=1 -DGEARBOX=1 -DDBGMSGQ=0 -finfo
-AFLAGS	=	-. -DDEBUG=1:MINIEMU=1 -finfo -O$(OUTDIR)
+CFLAGS	=	-c -I. -silent -dir $(OUTDIR) -Wall -DDEBUG=0 -DMINIEMU=0 -DGEARBOX=0 -DDBGMSGQ=0 -finfo
+AFLAGS	=	-. -DDEBUG=0:MINIEMU=0 -finfo -O$(OUTDIR)
 LFLAGS	=	-MS -L nc30lib -. -G -O $(OUTDIR)\$(TARGET)
 LIBFLAGS	=	-C
 UTLFLAGS	=	
