@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.4  2012/01/16 20:00:09  tuberkel
+ * V301-RC: LED-Dimmer & ScreenDump Option disabled
+ *
  * Revision 3.3  2012/01/14 08:28:42  tuberkel
  * Message-IDs shortened / reviewed
  *
@@ -536,17 +539,21 @@ static const TEXTOBJECT_INITTYPE TextObj[] =
 /* ----------------------------------------------------------- */
 /* EDIT BOOL OBJECTS INIT TABLE */
 /* ----------------------------------------------------------- */
+
+// DebugMode ==> ScreenDumps activable! (see table below)
+#if(DEBUG==1)
+    #define OC_SCREENDUMP_OPT  OC_DISPL | OC_SELECT | OC_EDIT
+#else
+    #define OC_SCREENDUMP_OPT  OC_DISPL
+#endif
+
 static const EDITBOOL_INITTYPE EditBoolObj[] =
 {   /*pObject                X    Y  Font         Width  Data                 EditBuffer    Descriptor              State      */
     /*-------------------- ---- ---- ------------ -----  -------------------- ------------- ----------------------- --------------------------------- */
     {&EditBoolDLSaveObj,   C16,  R3, DPLFONT_6X8,    6,  &gfDaylightSave,     &fEditBuffer, RESTXT_SET_RTC_DLS,     OC_DISPL | OC_SELECT | OC_EDIT },
     {&EditBoolBeepCtrlObj, C16,  R4, DPLFONT_6X8,    6,  &gfBeepCtrl,         &fEditBuffer, RESTXT_SET_BEEP_ON,     OC_DISPL | OC_SELECT | OC_EDIT },
     {&EditBoolVehSimObj,   C16,  R5, DPLFONT_6X8,    6,  &gfVehicSimulation,  &fEditBuffer, RESTXT_SET_VEHICSIM,    OC_DISPL | OC_SELECT | OC_EDIT },
-    #if(DEBUG==1)    // DebugMode ==> ScreenDumps activable!
-    {&EditBoolScrDmpObj,   C16,  R6, DPLFONT_6X8,    6,  &gfHardcopy,         &fEditBuffer, RESTXT_SET_HARDCOPY,    OC_DISPL | OC_SELECT | OC_EDIT },
-    #else
-    {&EditBoolScrDmpObj,   C16,  R6, DPLFONT_6X8,    6,  &gfHardcopy,         &fEditBuffer, RESTXT_SET_HARDCOPY,    OC_DISPL                       },
-    #endif
+    {&EditBoolScrDmpObj,   C16,  R6, DPLFONT_6X8,    6,  &gfHardcopy,         &fEditBuffer, RESTXT_SET_HARDCOPY,    OC_SCREENDUMP_OPT              },
     {&EditBoolEeprRstObj,  C16,  R7, DPLFONT_6X8,    6,  &gfEepromReset,      &fEditBuffer, RESTXT_SET_RESETEEPROM, OC_DISPL | OC_SELECT | OC_EDIT },
     /*-------------------- ---- ---- ------------ -----  -------------------- ------------- ----------------------- --------------------------------- */
     {&EditBoolCompAvailObj,C01,  R2, DPLFONT_6X8,   21,  &gfCompAvail,        &fEditBuffer, RESTXT_SET_COMPASS,     OC_DISPL | OC_SELECT | OC_EDIT },
@@ -621,7 +628,7 @@ static const EDITNUMBER_INITTYPE EditNumObj[] =
     { &EditBacklObj,        C05,   R2,  DPLFONT_6X8,    17, &bBacklOnLevel,         &bEditBuffer,   eUCHAR, 0L,     7L,  0L, eDez,   eColumn, 0, RESTXT_SET_LCD_BL_DESC,     "",                         1,  OC_DISPL | OC_SELECT | OC_EDIT   },
     { &EditBacklLevObj,     C05,   R3,  DPLFONT_6X8,    17, &bBacklLev,             &bEditBuffer,   eUCHAR, 0L,    63L,  1L, eDez,   eStep,   0, RESTXT_SET_LCD_BR_DESC,     "",                         2,  OC_DISPL | OC_SELECT | OC_EDIT   },
     { &EditContrLevObj,     C05,   R4,  DPLFONT_6X8,    17, &bContrLev,             &bEditBuffer,   eUCHAR, 0L,    63L,  1L, eDez,   eStep,   0, RESTXT_SET_LCD_CNT_DESC,    "",                         2,  OC_DISPL | OC_SELECT | OC_EDIT   },
-    { &EditLedDimmObj,      C05,   R5,  DPLFONT_6X8,    17, &bLEDDimmLev,           &bEditBuffer,   eUCHAR, 0L,     7L,  1L, eDez,   eStep,   0, RESTXT_SET_LED_DIM_DESC,    "",                         1,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &EditLedDimmObj,      C05,   R5,  DPLFONT_6X8,    17, &bLEDDimmLev,           &bEditBuffer,   eUCHAR, 0L,     7L,  1L, eDez,   eStep,   0, RESTXT_SET_LED_DIM_DESC,    "",                         1,  OC_DISPL | OC_SELECT             },
     { &EditRPMFlashObj,     C05,   R7,  DPLFONT_6X8,    17, &RPM_Flash,             &wEditBuffer,   eUINT,  0L, 30000L,  0L, eDez,   eColumn, 0, RESTXT_SET_RPMFL_DESC,      "",                         5,  OC_DISPL | OC_SELECT | OC_EDIT   },
 
     /* ------------------ ------ ------ ------------ ----- -----------------------  --------------- ------ ---- ------- --- ------- -------- - ------------------------ ----------------------- -- -------------------------------------------- */
