@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.3  2012/01/16 05:10:35  tuberkel
+ * New: Vertical divider line for Maindevice:Measurement columns
+ *
  * Revision 3.2  2012/01/14 08:28:42  tuberkel
  * Message-IDs shortened / reviewed
  *
@@ -213,6 +216,7 @@ extern unsigned char far rgBatterySymbol8x8[];      /* battery symbol */
 extern unsigned char far rgClockSymbol8x8[];        /* clock symbol */
 extern unsigned char far rgRPMSymbol8x8[];          /* RPM symbol samll */
 extern unsigned char far rgFuelSymbol8x8[];         /* fuel symbol small */
+extern unsigned char far rgVertLine_2x20[];         /* vertical line to devide measurements */
 
 /* bitmaps for gear display  */
 extern unsigned char far rg7Seg_0_16x16[];          /* 7 segment bitmaps for gear display */
@@ -308,6 +312,9 @@ static BMPOBJECT    GearSymbolBmpObj;           /* selected gear indicator */
 /* lower area mode 7: Monitor/measurement objects */
 /* =================================================== */
 
+/* measure data vertical devider */
+static BMPOBJECT    MonVertLineBmpObj;
+
 /* measure data 1: temperature from external air / internal NTC sensor */
 static BMPOBJECT    MonAmbientTempBmpObj;
 static TEXTOBJECT   MonAmbientTempTxtObj;
@@ -387,7 +394,8 @@ static const BMPOBJECT_INITTYPE BmpObjInit[] =
     { &MonFuelBmpObj,               2, 46,  8,  8, rgFuelSymbol8x8,      DPLNORM, FALSE },
     { &MonVoltageBmpObj,           71, 37,  8,  8, rgBatterySymbol8x8,   DPLNORM, FALSE },
     { &MonOilTempBmpObj,           71, 46,  8,  8, rgOilSymbol8x8,       DPLNORM, FALSE },
-    { &MonRPMBmpObj,               71, 46,  8,  8, rgRPMSymbol8x8,       DPLNORM, FALSE }
+    { &MonRPMBmpObj,               71, 46,  8,  8, rgRPMSymbol8x8,       DPLNORM, FALSE },
+    { &MonVertLineBmpObj,          64, 36,  2, 24, rgVertLine_2x20,      DPLNORM, FALSE }
     /* --------------------------- -- --- --- --- --------------------- -------- ----- */
 };
 #define BMPOBJECTLISTSIZE   (sizeof(BmpObjInit)/sizeof(BMPOBJECT_INITTYPE))
@@ -485,7 +493,8 @@ static const void far * ObjectList_Mon[] =
     (void far *) &MonOilTempDescTxtObj,
     (void far *) &MonRPMTxtObj,
     (void far *) &MonRPMDescTxtObj,
-    (void far *) &MonRPMBmpObj
+    (void far *) &MonRPMBmpObj,
+    (void far *) &MonVertLineBmpObj
 };
 #define OBJLIST_MON_CNT (sizeof(ObjectList_Mon)/sizeof(OBJSTATE)/sizeof(void far *))
 
@@ -670,6 +679,7 @@ static const void far * ObjectList[] =
     (void far *) &MonRPMTxtObj,
     (void far *) &MonRPMDescTxtObj,
     (void far *) &MonRPMBmpObj,
+    (void far *) &MonVertLineBmpObj,
 
     // common object for Veh/Fuel/Trip1/Trip2
     (void far *) &DistDescTxtObj,
@@ -893,6 +903,10 @@ void MainDeviceShow(BOOL fShow)
                 case MD_MONITOR:
                 {
                     /* ---------------------------------------------------- */
+                    // vertical divider line */
+                    ObjBmpShow( &MonVertLineBmpObj );
+
+                    /* ---------------------------------------------------- */
                     /* Markus Monitor-Part-in-Main-Devíce-Mode :-) */
                     /* which icon has to be used: Info / Warning / Error ?
                        (Most important icon is dominant),
@@ -946,12 +960,12 @@ void MainDeviceShow(BOOL fShow)
                     //      use this so called 'Arnoldschen Elfenbeinturm' here! ;-)
                     // Oil temp available?
                     if ( AnaInGetOilTemperature() > ANAIN_TEMP_SENSORDETECT )
-                    {   ObjBmpShow( &MonOilTempBmpObj );
+                    {   ObjBmpShow ( &MonOilTempBmpObj );
                         ObjTextShow( &MonOilTempTxtObj );
                         ObjTextShow( &MonOilTempDescTxtObj );
                     }
                     else /* display RPM if no oil temp sensor connected */
-                    {   ObjBmpShow( &MonRPMBmpObj );
+                    {   ObjBmpShow ( &MonRPMBmpObj );
                         ObjTextShow( &MonRPMTxtObj );
                         ObjTextShow( &MonRPMDescTxtObj );
                     }

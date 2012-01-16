@@ -69,6 +69,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.1  2012/01/16 05:10:35  tuberkel
+ * New: Vertical divider line for Maindevice:Measurement columns
+ *
  * Revision 3.0  2010/11/07 12:48:34  tuberkel
  * V30 Preparations:
  * - new free defined characters (#127..#160)
@@ -344,7 +347,7 @@ const unsigned char rgFont6x8[]={
 0x00,0x1c,0x1c,0x1c,0x00,0x00,      /* 158 small rectangle for 'OK'-key symbol */
 0x63,0x77,0x5D,0x49,0x63,0x00,      /* 159 greek SUM - symbol */
 
-0x00,0x00,0x00,0x00,0x00,0x00,      /* 160 - still free to be defined - */
+0x00,0x00,0xff,0xff,0x00,0x00,      /* 160 a simple double pixel vertical line (used as separator) */
 
 /* --- extended ascii characters (#161..#255) ------------------------- */
 0x00,0x00,0x7d,0x00,0x00,0x00,      /* 161  ¡   */ /* ascii# 161 */

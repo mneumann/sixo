@@ -76,6 +76,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.2  2012/01/16 05:10:35  tuberkel
+ * New: Vertical divider line for Maindevice:Measurement columns
+ *
  * Revision 3.1  2011/05/29 20:54:47  tuberkel
  * New: Bitmap rgEmptySymbol16x16
  * - to clear Error/Warning/Info icon
@@ -1661,6 +1664,13 @@ const unsigned char rgFuelSymbol8x8[] = {
   0x00, 0xff, 0xf9, 0xf9, 0xf9, 0xff, 0x9c, 0x78,
   };
 
+
+// ---------------------------------------------------
+// MAINDEVICE VERTICAL LINE (devides left/right measurement values)
+//const unsigned char rgVertLine_2x20[] = {
+unsigned char rgVertLine_2x20[] = {
+  0xff, 0xff, 0xff, 0xff, 0x03, 0x03
+  };
 
 // ---------------------------------------------------
 // GEARDISPLAY 7 Segment Ciphers 16x16 Pixel
