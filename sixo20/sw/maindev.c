@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.4  2012/01/21 00:14:29  tuberkel
+ * - Gearbox & System-Icon moved from Monitor-Part to All-Part
+ *
  * Revision 3.3  2012/01/16 05:10:35  tuberkel
  * New: Vertical divider line for Maindevice:Measurement columns
  *
@@ -866,8 +869,29 @@ void MainDeviceShow(BOOL fShow)
                  ObjTextShow( &SurvVehStateTxtObj );
             else MainDeviceUpdateTimeDate(); // initial display only!
 
+            /* ---------------------------------------------------- */
+            /* Info/Warning/Error Icon
+               (Most important icon is dominant),
+               just switch the Bitmap raw data to the adequate ressource */
+            // default: empty symbol
+            VehStateBmpObj.Data.fpucBitmap = rgEmptySymbol16x16;
+            if ( SurvListGetCount( SURVST_ERR ) )
+                VehStateBmpObj.Data.fpucBitmap = rgErrorSymbol16x16;
+            else if ( SurvListGetCount( SURVST_WARN ) )
+                VehStateBmpObj.Data.fpucBitmap = rgWarningSymbol16x16;
+            else if ( SurvListGetCount( SURVST_INFO ) )
+                VehStateBmpObj.Data.fpucBitmap = rgInfoSymbol16x16;
+            // show selected symbol
+            ObjBmpShow( &VehStateBmpObj );
 
-            /* which data to be shown below speed? */
+            /* ---------------------------------------------------- */
+            // selected gear */
+            #if(GEARBOX==1)
+            ObjBmpShow( &GearSymbolBmpObj );
+            #endif
+
+            /* ---------------------------------------------------- */
+            /* select display mode: which data to be shown below speed? */
             switch (MDObj.wDevState)
             {
                 case MD_RPM:
@@ -905,26 +929,6 @@ void MainDeviceShow(BOOL fShow)
                     /* ---------------------------------------------------- */
                     // vertical divider line */
                     ObjBmpShow( &MonVertLineBmpObj );
-
-                    /* ---------------------------------------------------- */
-                    /* Markus Monitor-Part-in-Main-Devíce-Mode :-) */
-                    /* which icon has to be used: Info / Warning / Error ?
-                       (Most important icon is dominant),
-                       just switch the Bitmap raw data to the adequate ressource */
-                    VehStateBmpObj.Data.fpucBitmap = rgEmptySymbol16x16;    // default
-                    if ( SurvListGetCount( SURVST_ERR ) )
-                        VehStateBmpObj.Data.fpucBitmap = rgErrorSymbol16x16;
-                    else if ( SurvListGetCount( SURVST_WARN ) )
-                        VehStateBmpObj.Data.fpucBitmap = rgWarningSymbol16x16;
-                    else if ( SurvListGetCount( SURVST_INFO ) )
-                        VehStateBmpObj.Data.fpucBitmap = rgInfoSymbol16x16;
-                    ObjBmpShow( &VehStateBmpObj );
-
-                    /* ---------------------------------------------------- */
-                    // selected gear */
-                    #if(GEARBOX==1)
-                    ObjBmpShow( &GearSymbolBmpObj );
-                    #endif
 
                     /* ---------------------------------------------------- */
                     // show internal/external temperature
@@ -991,48 +995,49 @@ void MainDeviceShow(BOOL fShow)
                  ObjTextShow( &SurvVehStateTxtObj );
             // else MainDeviceUpdateTimeDate(); // NO UPDATE HERE, will be done by special update messages only!
 
+            /* which icon has to be used: Info / Warning / Error ?
+               (Most important icon is dominant),
+               just switch the Bitmap raw data to the adequate ressource */
+            VehStateBmpObj.Data.fpucBitmap = rgEmptySymbol16x16;    // default
+            if ( SurvListGetCount( SURVST_ERR ) )
+                VehStateBmpObj.Data.fpucBitmap = rgErrorSymbol16x16;
+            else if ( SurvListGetCount( SURVST_WARN ) )
+                VehStateBmpObj.Data.fpucBitmap = rgWarningSymbol16x16;
+            else if ( SurvListGetCount( SURVST_INFO ) )
+                VehStateBmpObj.Data.fpucBitmap = rgInfoSymbol16x16;
+            ObjBmpShow( &VehStateBmpObj );
+
+            // SIMULATION ONLY: selected gear - show all gears every second */
+            #if(GEARBOX==1)
+            switch ( wSecCounter % 10 )
+            {   case 0: GearSymbolBmpObj.Data.fpucBitmap = rg7Seg_0_16x16; break;
+                case 1: GearSymbolBmpObj.Data.fpucBitmap = rg7Seg_1_16x16; break;
+                case 2: GearSymbolBmpObj.Data.fpucBitmap = rg7Seg_2_16x16; break;
+                case 3: GearSymbolBmpObj.Data.fpucBitmap = rg7Seg_3_16x16; break;
+                case 4: GearSymbolBmpObj.Data.fpucBitmap = rg7Seg_4_16x16; break;
+                case 5: GearSymbolBmpObj.Data.fpucBitmap = rg7Seg_5_16x16; break;
+                case 6: GearSymbolBmpObj.Data.fpucBitmap = rg7Seg_6_16x16; break;
+                case 7: GearSymbolBmpObj.Data.fpucBitmap = rg7Seg_7_16x16; break;
+                case 8: GearSymbolBmpObj.Data.fpucBitmap = rg7Seg_8_16x16; break;
+                case 9: GearSymbolBmpObj.Data.fpucBitmap = rg7Seg_9_16x16; break;
+            }
+            ObjBmpShow( &GearSymbolBmpObj );
+            #endif
+
             /* which data to be shown below speed? */
             switch (MDObj.wDevState)
             {
+                // show bigger parts
                 case MD_RPM:        ObjTextShow( &RPMTxtObj );          break;
                 case MD_FUEL:       ObjTextShow( &FuelDistTxtObj );     break;
                 case MD_TRIP1:      ObjTextShow( &Trip1DistTxtObj );    break;
                 case MD_TRIP2:      ObjTextShow( &Trip2DistTxtObj );    break;
                 case MD_VEHDIST:    ObjTextShow( &VehDistTxtObj );      break;
                 case MD_SPEEDMAX:   ObjTextShow( &SpeedMaxTxtObj );     break;
+
+                // special case: so small monitor information
                 case MD_MONITOR:
                 {
-                    /* Markus Monitor-Part-in-Main-Devíce-Mode :-) */
-
-                    /* which icon has to be used: Info / Warning / Error ?
-                       (Most important icon is dominant),
-                       just switch the Bitmap raw data to the adequate ressource */
-                    VehStateBmpObj.Data.fpucBitmap = rgEmptySymbol16x16;    // default
-                    if ( SurvListGetCount( SURVST_ERR ) )
-                        VehStateBmpObj.Data.fpucBitmap = rgErrorSymbol16x16;
-                    else if ( SurvListGetCount( SURVST_WARN ) )
-                        VehStateBmpObj.Data.fpucBitmap = rgWarningSymbol16x16;
-                    else if ( SurvListGetCount( SURVST_INFO ) )
-                        VehStateBmpObj.Data.fpucBitmap = rgInfoSymbol16x16;
-                    ObjBmpShow( &VehStateBmpObj );
-
-                    // selected gear - Simulation: show all gears every second */
-                    #if(GEARBOX==1)
-                    switch ( wSecCounter % 10 )
-                    {   case 0: GearSymbolBmpObj.Data.fpucBitmap = rg7Seg_0_16x16; break;
-                        case 1: GearSymbolBmpObj.Data.fpucBitmap = rg7Seg_1_16x16; break;
-                        case 2: GearSymbolBmpObj.Data.fpucBitmap = rg7Seg_2_16x16; break;
-                        case 3: GearSymbolBmpObj.Data.fpucBitmap = rg7Seg_3_16x16; break;
-                        case 4: GearSymbolBmpObj.Data.fpucBitmap = rg7Seg_4_16x16; break;
-                        case 5: GearSymbolBmpObj.Data.fpucBitmap = rg7Seg_5_16x16; break;
-                        case 6: GearSymbolBmpObj.Data.fpucBitmap = rg7Seg_6_16x16; break;
-                        case 7: GearSymbolBmpObj.Data.fpucBitmap = rg7Seg_7_16x16; break;
-                        case 8: GearSymbolBmpObj.Data.fpucBitmap = rg7Seg_8_16x16; break;
-                        case 9: GearSymbolBmpObj.Data.fpucBitmap = rg7Seg_9_16x16; break;
-                    }
-                    ObjBmpShow( &GearSymbolBmpObj );
-                    #endif
-
                     // show external air temp (if n.a.: internal device temp)
                     ObjTextShow( &MonAmbientTempTxtObj );
 
