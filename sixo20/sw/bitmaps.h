@@ -77,6 +77,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.1  2012/01/21 19:52:49  tuberkel
+ * Additional Logos for 'TeneristI and 'Coolride'
+ *
  * Revision 3.0  2010/11/07 12:50:38  tuberkel
  * V30 Preparations:
  * - new Bike Logo enumtype
@@ -114,11 +117,13 @@ typedef enum
     eLogo_HPN,
     eLogo_Motobau,
     eLogo_vforce,
+    eLogo_teneristi,
+    eLogo_coolride
 } LOGO_TYPE;
 
 
 
-#define BIKELOGO_ARRAYSIZE  12
+#define BIKELOGO_ARRAYSIZE  14
 #define BIKELOGO_FIRST      0
 #define BIKELOGOG_LAST      (BIKELOGO_ARRAYSIZE-1)
 

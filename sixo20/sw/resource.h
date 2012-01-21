@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.4  2012/01/21 19:52:49  tuberkel
+ * Additional Logos for 'TeneristI and 'Coolride'
+ *
  * Revision 3.3  2012/01/21 00:35:39  tuberkel
  * BugFix: BIKE_TYPE order now equals displayed list
  *
@@ -192,7 +195,7 @@
 /* device bike version strings */
 /* NOTE: This list must be identical to 'LOGO_TYPE' !!! */
 #define RESTXT_SET_LOGO_WIDTH       7           /* max width of below strings in chars */
-#define RESTXT_SET_LOGO_CNT         12          /* number of logos */
+#define RESTXT_SET_LOGO_CNT         14          /* number of logos */
                                  /* +----.--+ */
 #define RESTXT_SET_LOGO_NKDEV       "    N&K"
 #define RESTXT_SET_LOGO_BMW         "    BMW"
@@ -206,6 +209,8 @@
 #define RESTXT_SET_LOGO_HPN         "    HPN"
 #define RESTXT_SET_LOGO_MOTOBAU     "Motobau"
 #define RESTXT_SET_LOGO_VFORCE      " VForce"
+#define RESTXT_SET_LOGO_TENERISTI   "Teneris"
+#define RESTXT_SET_LOGO_COOLRIDE    "Coolrid"
 
 
 /* tripcounter display mode flag */

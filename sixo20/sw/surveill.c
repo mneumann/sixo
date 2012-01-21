@@ -70,6 +70,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.2  2012/01/21 19:52:49  tuberkel
+ * Additional Logos for 'TeneristI and 'Coolride'
+ *
  * Revision 3.1  2012/01/14 10:26:44  tuberkel
  * LED PWM handling changed:
  * - no longer Msgs/TimerMsgs used (inaccurate optic)
@@ -658,6 +661,7 @@ void SurvCheckAllAnalogWarnings(void)
            ||(  (iTempWat > ANAIN_TEMP_SENSORDETECT )
               &&(iTempWat < WAT_TEMP_LOW            ) ) ) )
            vstatelvl = eSURVST_INFO;
+    /* now add this resh state to our surveillance list */
     SurvListSetParamState(vstateprm, vstatelvl);
 
     /* Check eSURVP_GLACED -------------------------------------
@@ -668,6 +672,7 @@ void SurvCheckAllAnalogWarnings(void)
     if (  ( iTempAir > AIR_TEMP_GLACED_LOW  )
         &&( iTempAir < AIR_TEMP_GLACED_HIGH ) )
            vstatelvl = eSURVST_INFO;
+    /* now add this resh state to our surveillance list */
     SurvListSetParamState(vstateprm, vstatelvl);
 
     /* Check eSURVP_OILTEMP -------------------------------------
@@ -680,6 +685,7 @@ void SurvCheckAllAnalogWarnings(void)
         vstatelvl = eSURVST_WARNING;
     if (iTempOil  > OIL_TEMP_ERR)
         vstatelvl = eSURVST_ERROR;
+    /* now add this resh state to our surveillance list */
     SurvListSetParamState(vstateprm, vstatelvl);
 
     /* Check eSURVP_WATTEMP -------------------------------------
@@ -692,6 +698,7 @@ void SurvCheckAllAnalogWarnings(void)
         vstatelvl = eSURVST_WARNING;
     if (iTempWat  > WAT_TEMP_ERR)
         vstatelvl = eSURVST_ERROR;
+    /* now add this resh state to our surveillance list */
     SurvListSetParamState(vstateprm, vstatelvl);
 
     /* Check eSURVP_ALTERNATOR -------------------------------
@@ -705,7 +712,7 @@ void SurvCheckAllAnalogWarnings(void)
 
         /* Note: The warning will be cleared only, if the ALTW voltage will be
                  permanantly > threshold (or RPM == 0)! */
-        if ( vstatelvl == eSURVST_OK )      // no warning until now?
+        if ( vstatelvl == eSURVST_OK )                  // no warning until now?
         {   if (  ( wRPM        > ALTERN_LOW_RPM)       // check: RPM over check limit?
                 &&(wAlternator  < ALTERN_LOW    ) )     //        AND voltage below threshold?
             {   vstatelvl = eSURVST_WARNING;            // SET WARNING!
@@ -730,6 +737,8 @@ void SurvCheckAllAnalogWarnings(void)
         vstateprm = eSURVP_ALTERNATOR;
         vstatelvl = eSURVST_OK;
     }
+
+    /* now add this resh state to our surveillance list */
     SurvListSetParamState(vstateprm, vstatelvl);
 
     /* Check eSURVP_VOLTAGE_LOW -------------------------------
@@ -740,6 +749,7 @@ void SurvCheckAllAnalogWarnings(void)
     if (  (wRPM > VOLTAGE_LOW_RPM)
         &&(wBattSupply < VOLTAGE_LOW   ) )
         vstatelvl = eSURVST_WARNING;
+    /* now add this resh state to our surveillance list */
     SurvListSetParamState(vstateprm, vstatelvl);
 
     /* Check eSURVP_VOLTAGE_HIGH -------------------------------
@@ -749,6 +759,7 @@ void SurvCheckAllAnalogWarnings(void)
     vstatelvl = eSURVST_OK;
     if (wBattSupply > VOLTAGE_HIGH )
         vstatelvl = eSURVST_ERROR;
+    /* now add this resh state to our surveillance list */
     SurvListSetParamState(vstateprm, vstatelvl);
 
 }
@@ -767,7 +778,7 @@ void SurvCheckAllDeviceWarnings(void)
     /* ============================================================== */
     /* COMMON WARNINGS */
 
-    /* User warning: do not drive with vehicle simulation on! */
+    /* User Info: do not drive with vehicle simulation on! */
     if (gDeviceFlags2.flags.VehicSimul == TRUE)
          SurvListSetParamState(eSURVP_SIMULATION, eSURVST_INFO);
     else SurvListSetParamState(eSURVP_SIMULATION, eSURVST_OK);
@@ -821,55 +832,52 @@ void SurvCheckAllDigitalWarnings(void)
         /* SPECIAL HANDLING FOR BMW F650 ============================= */
         case eBIKE_F650:
         {
-            /* WARNING LED ------------------------------------------- */
-
-            /* fuel 4 l error */
-            if ( DF_Fuel_4l_F650 == FALSE )          // low active
+            /* --------------------------------------------- */
+            /* F650 - Fuel 4 l Switch (low active) - Warning */
+            if ( DF_Fuel_4l_F650 == FALSE )
                  SurvListSetParamState(eSURVP_FUEL4L, eSURVST_WARNING);
             else SurvListSetParamState(eSURVP_FUEL4L, eSURVST_OK);
 
-            /* ABS inactive warning */
-            if ( DF_ABS_Warn_F650 == 0 )              // low active
-                 SurvListSetParamState(eSURVP_ABS, eSURVST_WARNING);
+            /* --------------------------------------------- */
+            /* F650 - ABS inactive signal (low active) - Error */
+            if ( DF_ABS_Warn_F650 == 0 )
+                 SurvListSetParamState(eSURVP_ABS, eSURVST_ERROR);
             else SurvListSetParamState(eSURVP_ABS, eSURVST_OK);
-
-            // check: if not using Sixo-Warnmode, setup LED directly here
+            // check: if not using Sixo-Warnmode, setup Error-LED directly here
             if ( gDeviceFlags3.flags.LedWarnMode == SURV_LWM_STD )
-            {   if ( DF_ABS_Warn_F650 == 0 )              // low active
+            {   if ( DF_ABS_Warn_F650 == 0 )
                      LEDSetNewState(LED_WARN, LED_PERM_ON );
                 else LEDSetNewState(LED_WARN, LED_PERM_OFF);
             }
 
-            /* ERROR LED ------------------------------------------- */
-            if ( DF_Temp_Warn_F650 == 1)             // high active
+            /* --------------------------------------------- */
+            /* F650 - Watertemp High Switch (high active) - Error */
+            if ( DF_Temp_Warn_F650 == 1)
                  SurvListSetParamState(eSURVP_WATTEMPSW, eSURVST_ERROR);
             else SurvListSetParamState(eSURVP_WATTEMPSW, eSURVST_OK);
-
             // check: if not using Sixo-Warnmode, setup LED directly here
             if ( gDeviceFlags3.flags.LedWarnMode == SURV_LWM_STD )
-            {   if ( DF_ABS_Warn_F650 == 0 )              // low active
+            {   if ( DF_ABS_Warn_F650 == 0 )
                      LEDSetNewState(LED_ERR, LED_PERM_ON );
                 else LEDSetNewState(LED_ERR, LED_PERM_OFF);
             }
-
         } break;
 
         /* SPECIAL HANDLING FOR HONDA AFRICATWIN ============================= */
         case eBIKE_AFRICATWIN:
         {
-            /* WARNING LED ------------------------------------------- */
-
-            /* fuel 8 l warning */
+            /* --------------------------------------------- */
+            /* AfricaTwin - Fuel 8 l - Warning */
             if ( DF_Fuel_8l_AT == 0)                 // low active
                  SurvListSetParamState(eSURVP_FUEL8L, eSURVST_WARNING);
             else SurvListSetParamState(eSURVP_FUEL8L, eSURVST_OK);
 
-            /* oil switch defect? */
+            /* --------------------------------------------- */
+            /* AfricaTwin - Oil switch defect? - Warning */
             if (  ( DF_OILSW == 1 )         // no oil signal
                 &&( wRPM     == 0 ) )       // but engine stands still?
                  SurvListSetParamState(eSURVP_OILSWDEF, eSURVST_WARNING);
             else SurvListSetParamState(eSURVP_OILSWDEF, eSURVST_OK);
-
             // check: if not using Sixo-Warnmode, setup LED directly here
             if ( gDeviceFlags3.flags.LedWarnMode == SURV_LWM_STD )
             {   if ( DF_Fuel_4l_AT == 0 )      // low active
@@ -877,14 +885,12 @@ void SurvCheckAllDigitalWarnings(void)
                 else LEDSetNewState(LED_WARN, LED_PERM_OFF );
             }
 
-            /* ERROR LED ------------------------------------------- */
-
-            /* oil pressure ok? */
+            /* --------------------------------------------- */
+            /* AfricaTwin - Oil pressure ok? - Error (low active) */
             if (  ( DF_OILSW == 0             )      // low active
                 &&( wRPM     >  OIL_PRESS_RPM ) )    // and engine running?
                  SurvListSetParamState(eSURVP_OILPRESS, eSURVST_ERROR);
             else SurvListSetParamState(eSURVP_OILPRESS, eSURVST_OK);
-
             // check: if not using Sixo-Warnmode, setup LED directly here
             if ( gDeviceFlags3.flags.LedWarnMode == SURV_LWM_STD )
             {   if ( DF_OILSW == 0 )      // low active
@@ -892,8 +898,9 @@ void SurvCheckAllDigitalWarnings(void)
                 else LEDSetNewState(LED_ERR, LED_PERM_OFF );
             }
 
-            /* fuel 4 l error */
-            if ( DF_Fuel_4l_AT == 0 )               // low active
+            /* --------------------------------------------- */
+            /* AfricaTwin - Fuel 4 l - Error (low active)*/
+            if ( DF_Fuel_4l_AT == 0 )
                  SurvListSetParamState(eSURVP_FUEL4L, eSURVST_ERROR);
             else SurvListSetParamState(eSURVP_FUEL4L, eSURVST_OK);
 
@@ -903,14 +910,11 @@ void SurvCheckAllDigitalWarnings(void)
         /* SPECIAL HANDLING FOR MuZ BAGHIRA ============================= */
         case eBIKE_BAGHIRA:
         {
-            /* ERROR LED ------------------------------------------- */
-
-            /* Baghira's does not have oil pressure warning light,
-             * but a temperature warning light */
+            /* --------------------------------------------- */
+            /* Baghira - Water-Temperatur - Error (high active) */
             if ( DF_Temp_Warn_BAGHIRA == 1)          // high active
                  SurvListSetParamState(eSURVP_WATTEMPSW, eSURVST_ERROR);
             else SurvListSetParamState(eSURVP_WATTEMPSW, eSURVST_OK);
-
             // check: if not using Sixo-Warnmode, setup LED directly here
             if ( gDeviceFlags3.flags.LedWarnMode == SURV_LWM_STD )
             {   if ( DF_Temp_Warn_BAGHIRA == 1)          // high active
@@ -918,28 +922,24 @@ void SurvCheckAllDigitalWarnings(void)
                 else LEDSetNewState(LED_ERR, LED_PERM_OFF );
             }
 
-
         } break;
 
         /* DEFAULT HANDLING FOR ALL OTHER BIKES ============================= */
         default:
         {
-            /* WARNING LED ------------------------------------------- */
-
-            /* oil switch defect? */
+            /* --------------------------------------------- */
+            /* Standard - oil switch defect? - Warning */
             if (  ( DF_OILSW == 1 )      // no oil signal
                 &&( wRPM     == 0 ) )    // but engine stands still?
                  SurvListSetParamState(eSURVP_OILSWDEF, eSURVST_WARNING);
             else SurvListSetParamState(eSURVP_OILSWDEF, eSURVST_OK);
 
-            /* ERROR LED ------------------------------------------- */
-
-            /* oil pressure ok? */
+            /* --------------------------------------------- */
+            /* Standard - Oil pressure ok? */
             if (  ( DF_OILSW == 0             )      // low active
                 &&( wRPM     >  OIL_PRESS_RPM ) )    // and engine running?
                  SurvListSetParamState(eSURVP_OILPRESS, eSURVST_ERROR);
             else SurvListSetParamState(eSURVP_OILPRESS, eSURVST_OK);
-
             // check: if not using Sixo-Warnmode, setup LED directly here
             if ( gDeviceFlags3.flags.LedWarnMode == SURV_LWM_STD )
             {   if ( DF_OILSW == 0 )      // low active

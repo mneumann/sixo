@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.6  2012/01/21 19:52:49  tuberkel
+ * Additional Logos for 'TeneristI and 'Coolride'
+ *
  * Revision 3.5  2012/01/21 00:35:39  tuberkel
  * BugFix: BIKE_TYPE order now equals displayed list
  *
@@ -326,6 +329,7 @@ static const STRING     pszSelectBike[RESTXT_SET_BIKE_CNT] =
 
 // ----------------------------------------------------------------
 // BikeLogo
+/* NOTE: All entries derived from 'LOGO_TYPE' */
 static SELECTOBJECT     SelectLogoObj;                  // complete logo type object
 extern UINT8            gLogoSelection;                 // Eeprom value
 static const STRING     pszSelectLogo[RESTXT_SET_LOGO_CNT] =
@@ -340,7 +344,9 @@ static const STRING     pszSelectLogo[RESTXT_SET_LOGO_CNT] =
                             RESTXT_SET_LOGO_HUSQVRS   ,
                             RESTXT_SET_LOGO_HPN       ,
                             RESTXT_SET_LOGO_MOTOBAU   ,
-                            RESTXT_SET_LOGO_VFORCE
+                            RESTXT_SET_LOGO_VFORCE    ,
+                            RESTXT_SET_LOGO_TENERISTI ,
+                            RESTXT_SET_LOGO_COOLRIDE
                         };
 static EDITNUMBEROBJECT EditLogoDelayObj;               // complete logo delay object
        UINT8            gbLogoDelay;                    // Eeprom value;

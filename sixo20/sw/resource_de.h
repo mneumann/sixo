@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.3  2012/01/21 19:52:49  tuberkel
+ * Additional Logos for 'TeneristI and 'Coolride'
+ *
  * Revision 3.2  2012/01/14 08:28:42  tuberkel
  * Message-IDs shortened / reviewed
  *
@@ -151,26 +154,27 @@
                                 //+....!....!....!..+..+..+
 #define RESTXT_STATE_ALLRIGHT     "   \xbb Alles ok \xab  "      // 00 - special case: 21 char len
 
-#define RESTXT_STATE_WATERTEMP    " K\xfchlw. zu heiﬂ! "    // 01
-#define RESTXT_STATE_OILTEMP      "   \xd6l zu heiﬂ!   "    // 02
-#define RESTXT_STATE_ENGINE_COLD  "   Motor kalt!   "       // 03
-#define RESTXT_STATE_VOLTAGE_LOW  "Spg. zu niedrig! "       // 04
-#define RESTXT_STATE_VOLTAGE_HIGH "  Spg. zu hoch!  "       // 05
-#define RESTXT_STATE_ALTERNATOR   "Ladespg. niedrig!"       // 06
-#define RESTXT_STATE_OILPRESS     "    \xd6ldruck!     "    // 07
-#define RESTXT_STATE_OILSWDEF     "\xd6ldrucksch. def.?"    // 08
-#define RESTXT_STATE_FUEL8L       "   <8 l. Sprit!  "       // 09
-#define RESTXT_STATE_FUEL4L       "   <4 l. Sprit!  "       // 10
-#define RESTXT_STATE_ABS          "   ABS inaktiv!  "       // 11
-#define RESTXT_STATE_WATTEMPSW    " K\xfchlw. zu heiﬂ! "    // 12
-#define RESTXT_STATE_GLACED       "    Glatteis?    "       // 13
-#define RESTXT_STATE_SERVICEKM    "   km-Service!   "       // 14
-#define RESTXT_STATE_SERVICEHOUR  "    h-Service!   "       // 15
-#define RESTXT_STATE_SIMULATION   "Simulation aktiv!"       // 16
-#define RESTXT_STATE_HARDCOPY     " Hardcopy aktiv! "       // 17
-#define RESTXT_STATE_DLS_SUMMER   "Sommerzeit aktiv!"       // 18
-#define RESTXT_STATE_DLS_WINTER   "Winterzeit aktiv!"       // 19
-#define RESTXT_STATE_RTC_BATT     "RTC-Batt. defekt?"       // 20
+#define RESTXT_STATE_VOLTAGE_HIGH "  Spg. zu hoch!  "       //
+#define RESTXT_STATE_OILPRESS     "    \xd6ldruck!     "    //
+#define RESTXT_STATE_ABS          "   ABS inaktiv!  "       //
+#define RESTXT_STATE_OILTEMP      "   \xd6l zu heiﬂ!   "    //
+#define RESTXT_STATE_WATTEMPSW    " K\xfchlw. zu heiﬂ! "    // Switch
+#define RESTXT_STATE_WATERTEMP    " K\xfchlw. zu heiﬂ! "    // Sensor
+#define RESTXT_STATE_FUEL8L       "  < 8 l. Sprit!  "       //
+#define RESTXT_STATE_FUEL4L       "  < 4 l. Sprit!  "       //
+#define RESTXT_STATE_ENGINE_COLD  "   Motor kalt!   "       //
+#define RESTXT_STATE_VOLTAGE_LOW  "Spg. zu niedrig! "       //
+#define RESTXT_STATE_ALTERNATOR   "Ladespg. niedrig!"       //
+#define RESTXT_STATE_OILSWDEF     "\xd6ldrucksch. def.?"    //
+#define RESTXT_STATE_GLACED       "    Glatteis?    "       //
+#define RESTXT_STATE_SERVICEKM    "   km-Service!   "       //
+#define RESTXT_STATE_SERVICEHOUR  "    h-Service!   "       //
+#define RESTXT_STATE_DLS_SUMMER   "Sommerzeit aktiv!"       //
+#define RESTXT_STATE_DLS_WINTER   "Winterzeit aktiv!"       //
+#define RESTXT_STATE_RTC_BATT     "RTC-Batt. defekt?"       //
+#define RESTXT_STATE_SIMULATION   "Simulation aktiv!"       //
+#define RESTXT_STATE_HARDCOPY     " Hardcopy aktiv! "       //
+
 
 
 /* =============================================== */
