@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.5  2012/01/21 00:35:39  tuberkel
+ * BugFix: BIKE_TYPE order now equals displayed list
+ *
  * Revision 3.4  2012/01/16 20:00:09  tuberkel
  * V301-RC: LED-Dimmer & ScreenDump Option disabled
  *
@@ -314,11 +317,11 @@ static SELECTOBJECT     SelectBikeObj;                  // complete bike type ob
 extern BIKE_TYPE        gBikeType;                      // EEprom value
 static BIKE_TYPE        LocalBikeType;                  // local edit buffer
 static const STRING     pszSelectBike[RESTXT_SET_BIKE_CNT] =
-                        {   RESTXT_SET_BIKE_DEFAULT,
-                            RESTXT_SET_BIKE_R100GS ,
-                            RESTXT_SET_BIKE_F650   ,
-                            RESTXT_SET_BIKE_BAGHIRA,
-                            RESTXT_SET_BIKE_AT     ,
+                        {   RESTXT_SET_BIKE_STANDARD    ,
+                            RESTXT_SET_BIKE_R100GS      ,
+                            RESTXT_SET_BIKE_AFRICATWIN  ,
+                            RESTXT_SET_BIKE_BAGHIRA     ,
+                            RESTXT_SET_BIKE_F650        ,
                         };
 
 // ----------------------------------------------------------------

@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.3  2012/01/21 00:35:39  tuberkel
+ * BugFix: BIKE_TYPE order now equals displayed list
+ *
  * Revision 3.2  2012/01/14 08:28:42  tuberkel
  * Message-IDs shortened / reviewed
  *
@@ -175,19 +178,19 @@
 #define RESTXT_EMPTY_TXT          ""            /* max width of below strings in chars */
 
 /* device bike version strings */
-/* NOTE: This list muts be identical to 'BIKE_TYPE' !!! */
+/* NOTE: This list must be identical to 'BIKE_TYPE' !!! */
 #define RESTXT_SET_BIKE_WIDTH      8            /* max width of below strings in chars */
 #define RESTXT_SET_BIKE_CNT        5            /* number of bikes types */
-                               /* +----.---+ */
-#define RESTXT_SET_BIKE_DEFAULT   "Standard"
-#define RESTXT_SET_BIKE_R100GS    "  R100GS"
-#define RESTXT_SET_BIKE_F650      "    F650"
-#define RESTXT_SET_BIKE_BAGHIRA   " Baghira"
-#define RESTXT_SET_BIKE_AT        "      AT"
+                                 /* +----.---+ */
+#define RESTXT_SET_BIKE_STANDARD    "Standard"
+#define RESTXT_SET_BIKE_R100GS      "  R100GS"
+#define RESTXT_SET_BIKE_AFRICATWIN  "      AT"
+#define RESTXT_SET_BIKE_BAGHIRA     " Baghira"
+#define RESTXT_SET_BIKE_F650        "    F650"
 
 
 /* device bike version strings */
-/* NOTE: This list muts be identical to 'LOGO_TYPE' !!! */
+/* NOTE: This list must be identical to 'LOGO_TYPE' !!! */
 #define RESTXT_SET_LOGO_WIDTH       7           /* max width of below strings in chars */
 #define RESTXT_SET_LOGO_CNT         12          /* number of logos */
                                  /* +----.--+ */
