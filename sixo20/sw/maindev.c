@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.5  2012/01/23 04:03:17  tuberkel
+ * BugFix Symbol "SystemError"
+ *
  * Revision 3.4  2012/01/21 00:14:29  tuberkel
  * - Gearbox & System-Icon moved from Monitor-Part to All-Part
  *
@@ -875,11 +878,11 @@ void MainDeviceShow(BOOL fShow)
                just switch the Bitmap raw data to the adequate ressource */
             // default: empty symbol
             VehStateBmpObj.Data.fpucBitmap = rgEmptySymbol16x16;
-            if ( SurvListGetCount( SURVST_ERR ) )
+            if      ( SurvListGetCount( eSURVST_ERROR   ) )
                 VehStateBmpObj.Data.fpucBitmap = rgErrorSymbol16x16;
-            else if ( SurvListGetCount( SURVST_WARN ) )
+            else if ( SurvListGetCount( eSURVST_WARNING ) )
                 VehStateBmpObj.Data.fpucBitmap = rgWarningSymbol16x16;
-            else if ( SurvListGetCount( SURVST_INFO ) )
+            else if ( SurvListGetCount( eSURVST_INFO    ) )
                 VehStateBmpObj.Data.fpucBitmap = rgInfoSymbol16x16;
             // show selected symbol
             ObjBmpShow( &VehStateBmpObj );
@@ -998,12 +1001,12 @@ void MainDeviceShow(BOOL fShow)
             /* which icon has to be used: Info / Warning / Error ?
                (Most important icon is dominant),
                just switch the Bitmap raw data to the adequate ressource */
-            VehStateBmpObj.Data.fpucBitmap = rgEmptySymbol16x16;    // default
-            if ( SurvListGetCount( SURVST_ERR ) )
+            VehStateBmpObj.Data.fpucBitmap = rgEmptySymbol16x16;    // default: no/empty icon
+            if      ( SurvListGetCount( eSURVST_ERROR ) )
                 VehStateBmpObj.Data.fpucBitmap = rgErrorSymbol16x16;
-            else if ( SurvListGetCount( SURVST_WARN ) )
+            else if ( SurvListGetCount( eSURVST_WARNING) )
                 VehStateBmpObj.Data.fpucBitmap = rgWarningSymbol16x16;
-            else if ( SurvListGetCount( SURVST_INFO ) )
+            else if ( SurvListGetCount( eSURVST_INFO  ) )
                 VehStateBmpObj.Data.fpucBitmap = rgInfoSymbol16x16;
             ObjBmpShow( &VehStateBmpObj );
 

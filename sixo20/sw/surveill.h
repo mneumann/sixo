@@ -70,6 +70,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.1  2012/01/23 04:04:16  tuberkel
+ * BugFix Symbol "SystemError"
+ *
  * Revision 3.0  2010/11/07 09:31:37  tuberkel
  * V30 Preparations - no changes
  *
@@ -166,21 +169,17 @@ typedef enum
 } SURV_PARAM_ID_TYPE;
 
 
-/* surveillance parameter states */
+/* surveillance parameter states
+   Note: this enumtype is bitcoded, to use acombination of states too! */
 typedef enum
 {
-   eSURVST_OK = 0,          // MUST BE THE FIRST - default state, indicates 'not info/warning/error'
-   eSURVST_INFO,            // indicates 'just info, no problem!'
-   eSURVST_WARNING,         // indicates 'might be a problem!'
-   eSURVST_ERROR,           // indicates 'we have a serious problem!'
-   eSURVST_INVALID = 255    // --- invalid level ---
+   eSURVST_OK       = 0,    // MUST BE THE FIRST - default state, indicates 'not info/warning/error'
+   eSURVST_INFO     = 1,    // indicates 'just info, no problem!'
+   eSURVST_WARNING  = 2,    // indicates 'might be a problem!'
+   eSURVST_ERROR    = 4,    // indicates 'we have a serious problem!'
+   eSURVST_ALL      = 255   // indicates 'any information/problem!'
 } SURV_PARAM_STATE_TYPE;
 
-/* same surveillance parameter states bitcoded - for masked search */
-#define SURVST_INFO    1    // indicates 'just info, no problem!'
-#define SURVST_WARN    2    // indicates 'might be a problem!'
-#define SURVST_ERR     4    // indicates 'we have a serious problem!'
-#define SURVST_ALL     7    // indicates 'any info/problem!'
 
 /* surveillance LED warning mode */
 #define SURV_LWM_SIXO    FALSE       // use SIxO propritary warning mode

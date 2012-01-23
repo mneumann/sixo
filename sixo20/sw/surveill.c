@@ -70,6 +70,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.3  2012/01/23 04:04:16  tuberkel
+ * BugFix Symbol "SystemError"
+ *
  * Revision 3.2  2012/01/21 19:52:49  tuberkel
  * Additional Logos for 'TeneristI and 'Coolride'
  *
@@ -611,7 +614,7 @@ void SurvScrollVehicleState(BOOL fScrollDir)
             UINT8   ucCount;        // overall error count
 
     /* check: currently no parameter active? */
-    ucCount = SurvListGetCount(SURVST_ALL);
+    ucCount = SurvListGetCount(eSURVST_ALL);
 
     /* clip current index to max. */
     if ( ucCount == 0 )
@@ -1275,7 +1278,7 @@ void SurvListShow( void )
     UINT8               count;
 
     ODS(DBG_MEAS, DBG_INFO, "Surv-ParamList Content:" );
-    count = SurvListGetCount(SURVST_ALL);
+    count = SurvListGetCount(eSURVST_ALL);
     for ( i=0; i<SURV_PARAM_MAX; i++ )
     {
         ODS4(DBG_MEAS, DBG_INFO, "%u/%u: '%18s' : '%s'",
@@ -1300,7 +1303,7 @@ void SurvSetGlobalState( UINT8 ucIdx )
     UINT8   ucCount;        // overall error count
 
     /* check: how many error parameters active? */
-    ucCount = SurvListGetCount(SURVST_ALL);
+    ucCount = SurvListGetCount(eSURVST_ALL);
 
     /* clip idx to limit (=0 OR < max) */
     if (ucCount == 0)
@@ -1334,31 +1337,31 @@ void SurvSetLEDState( void )
     if ( gDeviceFlags3.flags.LedWarnMode == SURV_LWM_SIXO )
     {
         /* INFO-LED --------------------------------------  */
-        if (  ( SurvListGetCount(SURVST_INFO) >  0     )
+        if (  ( SurvListGetCount(eSURVST_INFO) >  0     )
             &&( LEDGetState(LED_INFO) == FALSE ) )
         {   LEDSetNewState( LED_INFO, LED_PERM_ON );
         }
-        if (  ( SurvListGetCount(SURVST_INFO) == 0     )
+        if (  ( SurvListGetCount(eSURVST_INFO) == 0     )
             &&( LEDGetState(LED_INFO)     == TRUE ) )
         {   LEDSetNewState( LED_INFO, LED_PERM_OFF );
         }
 
         /* WARN-LED --------------------------------------  */
-        if (  ( SurvListGetCount(SURVST_WARN) >  0     )
+        if (  ( SurvListGetCount(eSURVST_WARNING) >  0     )
             &&( LEDGetState(LED_WARN)     == FALSE ) )
         {   LEDSetNewState( LED_WARN, LED_PERM_ON );
         }
-        if (  ( SurvListGetCount(SURVST_WARN) == 0     )
+        if (  ( SurvListGetCount(eSURVST_WARNING) == 0     )
             &&( LEDGetState(LED_WARN)     == TRUE ) )
         {   LEDSetNewState( LED_WARN, LED_PERM_OFF );
         }
 
         /* ERROR-LED --------------------------------------  */
-        if (  ( SurvListGetCount(SURVST_ERR) >  0     )
+        if (  ( SurvListGetCount(eSURVST_ERROR) >  0     )
             &&( LEDGetState(LED_ERR)     == FALSE ) )
         {   LEDSetNewState( LED_ERR, LED_PERM_ON );
         }
-        if (  ( SurvListGetCount(SURVST_ERR) == 0     )
+        if (  ( SurvListGetCount(eSURVST_ERROR) == 0     )
             &&( LEDGetState(LED_ERR)     == TRUE ) )
         {   LEDSetNewState( LED_ERR, LED_PERM_OFF );
         }
@@ -1368,6 +1371,6 @@ void SurvSetLEDState( void )
     #if(BIKE_MOTOBAU==1)
     // kai wants to enable an additional external lamp/indicator
     //  - enable output GPO_1 too for Warning/Error only
-    GPO1 = SurvListGetCount(SURVST_WARN | SURVST_ERR );
+    GPO1 = SurvListGetCount(eSURVST_WARNING | eSURVST_ERR );
     #endif // BIKE_MOTOBAU
 }
