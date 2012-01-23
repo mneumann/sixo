@@ -5,7 +5,7 @@
 # All Rights Reserved.
 #
 #	Notice	:	Don't edit.
-#	Date	:	2012 01(January) 16(Monday) PM.08.44
+#	Date	:	2012 01(January) 21(Saturday) AM.01.12
 #	Project	:	SIxO20
 ####################################################################
 
@@ -29,8 +29,8 @@ ECHO	=	@-echo
 MKFILE	=	$(PROJECT).tmk
 TYPE	=	@-type
 PROJECT	=	SIxO20
-CFLAGS	=	-c -I. -silent -dir $(OUTDIR) -Wall -DDEBUG=0 -DMINIEMU=0 -DGEARBOX=0 -DDBGMSGQ=0 -finfo
-AFLAGS	=	-. -DDEBUG=0:MINIEMU=0 -finfo -O$(OUTDIR)
+CFLAGS	=	-c -I. -silent -dir $(OUTDIR) -Wall -DDEBUG=1 -DMINIEMU=1 -DGEARBOX=0 -finfo
+AFLAGS	=	-. -DDEBUG=1:MINIEMU=1 -finfo -O$(OUTDIR)
 LFLAGS	=	-MS -L nc30lib -. -G -O $(OUTDIR)\$(TARGET)
 LIBFLAGS	=	-C
 UTLFLAGS	=	
@@ -218,7 +218,8 @@ $(OUTDIR)\beep.r30: \
 		.\beep.h \
 		.\debug.h \
 		.\digindrv.h \
-		.\sysparam.h 
+		.\sysparam.h \
+		$(MTOOLINC)\string.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) beep.c
 $(OUTDIR)\beepdrv.r30: \
 		.\beepdrv.c \
@@ -449,7 +450,8 @@ $(OUTDIR)\led.r30: \
 		.\led.h \
 		.\timer.h \
 		.\debug.h \
-		.\digindrv.h 
+		.\digindrv.h \
+		$(MTOOLINC)\string.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) led.c
 $(OUTDIR)\leddrv.r30: \
 		.\leddrv.c \
@@ -557,7 +559,6 @@ $(OUTDIR)\mondev.r30: \
 		.\anaindrv.h \
 		.\anain.h \
 		.\led.h \
-		.\leddrv.h \
 		.\surveill.h \
 		.\measure.h \
 		.\beep.h \
@@ -645,7 +646,6 @@ $(OUTDIR)\surveill.r30: \
 		.\device.h \
 		.\measure.h \
 		.\resource.h \
-		.\leddrv.h \
 		.\led.h \
 		.\timedate.h \
 		.\digoutdr.h \
