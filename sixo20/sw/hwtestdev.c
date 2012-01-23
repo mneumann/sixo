@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.2  2012/01/23 05:43:03  tuberkel
+ * GPO1 & 2 activated, if no Tester present
+ *
  * Revision 3.1  2012/01/14 08:28:42  tuberkel
  * Message-IDs shortened / reviewed
  *
@@ -1273,5 +1276,18 @@ void HWTestStimuISR(void)
         LEDDrvSetLED(LEDDRV_BEAM,  TRUE);
         LEDDrvSetLED(LEDDRV_WARN,  FALSE);
         LEDDrvSetLED(LEDDRV_ERR,   TRUE);
+    }
+
+    // addionally toggle GPO0 & GPO1 - if NO tester present!
+    if ( gfEOLTest == FALSE )
+    {
+        if (fGPO1 == 1)
+        {   GPO0 = 1;
+            GPO1 = 0;
+        }
+        else
+        {   GPO0 = 0;
+            GPO1 = 1;
+        }
     }
 }
