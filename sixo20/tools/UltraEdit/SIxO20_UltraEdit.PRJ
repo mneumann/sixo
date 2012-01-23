@@ -7,13 +7,13 @@ Use Relative Directory=1
 Relative to Project File=1
 Project Wordfile=
 [Open Files]
-Open File0=S:\CVS\sixo\sixo20\doc\Versions.txt
+Open File0=
 Open File Pos0=315
 Open File Line0=0
 Active File Index=12
 Open File Window Pos0=0,1,-1,-1,-4,-30,176,232,860,775
 Open File1=S:\CVS\sixo\sixo20\sw\devices.txt
-Active File Display Mode=3
+Active File Display Mode=-1
 Open File Pos1=0
 Open File Line1=3990
 Open File Window Pos1=0,1,-1,-1,-4,-30,198,261,886,808
@@ -112,7 +112,7 @@ Open File Window Pos24=2,3,-1,-1,-4,-30,66,87,755,443
 Open File25=
 
 [File View]
-Current Select=Projektdateien\Devices\hwtestdev.c
+Current Select=Projektdateien
 
 [Files - Test]
 

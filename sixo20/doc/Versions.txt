@@ -6,75 +6,110 @@ Note that "sixo" is freezed (except bug fixes and minor updates).
 
 Version Date        Feature
 ======= ==========  ======================================
+v3.0.2  2012-01-23
+> NEW:
+    + New Logos for 'Teneristi and 'Coolride'
+    + Selftest: GPO1 & 2 activated, if no Tester present
+> BUGFIXES:
+    + Symbol "SystemError" now shown
+    + Systemstate Symbols now always shown in Maindevice
+    + BIKE_TYPE order now equals displayed list
 
-v2.4.6  2009-04-14  > BugFix:
-                        + fixed MagicNumberHandling due to incorrect fixed EEPROM size,
-                          size now dynamically determined
-                    > Release Version for new SIxO production charge April 2009
-                        by Andreas Maar, Ser.#100-125
+======= ==========  ======================================
+v3.0.1  2012-01-18
 
-v2.4.5  2007-03-30  > NEW: Language specific Version DE - EN - NL available
-                        + to be flashed as separate firmware files
-                      CHANGED:
-                        + autom. Temp-Sensor detection improved (less disturbance)
-                          (uses -10°C instead of -20°C to detect a sensor)
+> NEW: SEVERAL EXTENSIONS
+	+ New Input Values: Booelan & SelectField
+	+ Different handling of BikeType & Sixo-Logo
+	+ Control Beeper/Hardcopy/Simulation/StartScreen/FactoryDefaults
+	+ SettingsDevice splitted into 3 Screens
+	+ WheelImpulses adaptable to sensor
+	+ Service Warnung for km + h
+	+ RTC-DaylightSaving available
+	+ SystemState Text numbered x/y
+	+ MainDevice Screen km/h: rearanged (space for Gearbox & SystemState)
+	+ MainDevice Screen Measurement: rearranged (for later programable outfit)
+	+ Selftest behaviour accelerated
+	+ Compass prepared (but currently inactive)
+	+ MainDevice Gearbox prepared (but currently inactive)
 
-v2.4.4  2007-03-26  > NEW: motorcycle type BMW F650 supported
-                        + supports F650 inputs for ABS, Fuel sensor, Watertemp.
-                        + fuel switch filtered  (>2 sec) to prevent flickering
-                      NEW: Digital Input Filter Function
-                        + prevents flickering lamps/sensors
-                        + to be used for any digital input
-                        + bike specific behavior possible
-                        + currently enabled for fuel sensor only (AfricaTwin, F650)
-                      NEW: Honda AfricaTwin RD07 version
-                        - same as Honda AfricaTwin version, but
-                          without fuel sensor warnings
-                      CHANGED: list of Bike Types 'Mrd-Typ' in SettingsDevice
-                            0  default bike version
-                            1  BMW R100 GS version
-                            2  BMW R1100 GS version
-                            3  Honda AfricaTwin version
-                            4  Honda AfricaTwin RD07 version
-                            5  MuZ Baghia version
-                            6  Husqvarna version
-                            7  Husqvarna RS version
-                            8  KTM version
-                            9  BMW F650 version
-                      Bugfix:
-                        + autom. Temp-Sensor detection improved (less disturbance)
-                          (uses -20°C instead of -40°C to detect a sensor)
-                        + R100GS: ALTW warning cleared too, if RPM == 0
-                        + LCD-Backlight improved: quick-ON-slow-off characteristic
-                        + MainDevice Reset-Beeper only if necessary
+======= ==========  ======================================
+v2.4.6  2009-04-14
+> BUGFIX:
+    + fixed MagicNumberHandling due to incorrect fixed EEPROM size,
+      size now dynamically determined
+    + Release Version for new SIxO production charge April 2009
+      by Andreas Maar, Ser.#100-125
 
-v2.4.2  2006-03-21  > NEW: motorcycle type selectable after flashing
-                        - no dedicated SW version any more
-                        - bike logo automatically changes too
-                        - bike specific behavior changes too
-                          (only BMW R100GS, MuZ Baghira, AfricaTwin)
-                    > NEW: RPM-Flash
-                        - RPM adjustable (0=off, bis 30.000 R/min)
-                        - activates INFO-LED
-                        - INFO-LED might be replaced by ultrabright white LED
-                    > NEW: Service Intervall Warning
-                        - km free adjustable
-                        - warning text & LED if service distance reached
-                    > NEW: max values saved in monitor device
-                        - max battery voltage
-                        - max oil temperature
-                        - max water temperature
-                        - resetable via [OK]-long
-                    > NEW: max speed saved
-                        - displayed in Main-Device
-                        - resetable via [OK]-long
-                    > NEW: TripCounter: upper/lower changable
-                    > NEW: seperated distance counters in Main-Device / TripCounter
-                    > NEW: vForce-Logo
-                    > BugFixes:
-                        - clock seconds display without flickering
-                        - Display-Backlight switched on without flickering
-                        - Main-Device: scrolled values re-ordered
+======= ==========  ======================================
+v2.4.5  2007-03-30
+> NEW:
+    + Language specific Version DE - EN - NL available
+    + to be flashed as separate firmware files
+> CHANGED:
+    + autom. Temp-Sensor detection improved (less disturbance)
+      (uses -10°C instead of -20°C to detect a sensor)
+
+======= ==========  ======================================
+v2.4.4  2007-03-26
+> NEW: motorcycle type BMW F650 supported
+    + supports F650 inputs for ABS, Fuel sensor, Watertemp.
+    + fuel switch filtered  (>2 sec) to prevent flickering
+> NEW: Digital Input Filter Function
+    + prevents flickering lamps/sensors
+    + to be used for any digital input
+    + bike specific behavior possible
+    + currently enabled for fuel sensor only (AfricaTwin, F650)
+> NEW: Honda AfricaTwin RD07 version
+    - same as Honda AfricaTwin version, but
+      without fuel sensor warnings
+> CHANGED: list of Bike Types 'Mrd-Typ' in SettingsDevice
+    0  default bike version
+    1  BMW R100 GS version
+    2  BMW R1100 GS version
+    3  Honda AfricaTwin version
+    4  Honda AfricaTwin RD07 version
+    5  MuZ Baghia version
+    6  Husqvarna version
+    7  Husqvarna RS version
+    8  KTM version
+    9  BMW F650 version
+> Bugfix:
+    + autom. Temp-Sensor detection improved (less disturbance)
+      (uses -20°C instead of -40°C to detect a sensor)
+    + R100GS: ALTW warning cleared too, if RPM == 0
+    + LCD-Backlight improved: quick-ON-slow-off characteristic
+    + MainDevice Reset-Beeper only if necessary
+
+======= ==========  ======================================
+v2.4.2  2006-03-21
+> NEW: motorcycle type selectable after flashing
+    - no dedicated SW version any more
+    - bike logo automatically changes too
+    - bike specific behavior changes too
+      (only BMW R100GS, MuZ Baghira, AfricaTwin)
+> NEW: RPM-Flash
+    - RPM adjustable (0=off, bis 30.000 R/min)
+    - activates INFO-LED
+    - INFO-LED might be replaced by ultrabright white LED
+> NEW: Service Intervall Warning
+    - km free adjustable
+    - warning text & LED if service distance reached
+> NEW: max values saved in monitor device
+    - max battery voltage
+    - max oil temperature
+    - max water temperature
+    - resetable via [OK]-long
+> NEW: max speed saved
+    - displayed in Main-Device
+    - resetable via [OK]-long
+> NEW: TripCounter: upper/lower changable
+> NEW: seperated distance counters in Main-Device / TripCounter
+> NEW: vForce-Logo
+> BugFixes:
+    - clock seconds display without flickering
+    - Display-Backlight switched on without flickering
+    - Main-Device: scrolled values re-ordered
 
 
 v2.3.5  2005-07-02
