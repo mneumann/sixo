@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.2  2012/02/01 22:33:49  tuberkel
+ * PWM-Measurement of GPI0..3 running & ok!
+ *
  * Revision 3.1  2012/02/01 21:24:00  tuberkel
  * INT2..5 enabled & ok for GPI0..3
  *
@@ -132,6 +135,8 @@ KEYTIME   MultiKeyControl;           /* protocol for multiple pressed keys */
 DIGFILTTYPE DigInFilter[eDF_LAST];
 
 
+/* GPI0..3 / INT2..5 interrupt time measurements (PulseWidth & Frequency) */
+DIGINTMEAS DigIntMeas[eGPI3_LAST];
 
 
 
@@ -671,14 +676,26 @@ UINT8   DigInDrv_FilterConvertTime(UINT16 wFilterTime)
  *                 Application software is responsible to further
  *                 process this data.
  *                 Note: SHOULD RETURN AS FAST AS POSSIBLE!
+ *                 Note: Does NOT re-enable higher interrupts,
+ *                 because we here read the high prior system timer!
  *********************************************************************** */
 #pragma INTERRUPT GPI0_Int2_ISR        // declare as M16C isr
 void GPI0_Int2_ISR(void)
 {
-    // !!! Re-Enable higher interrupts than this interrupt!
-    // (for use of MilliSecCounter)
-    INT_GLOB_ENABLE;
+    /* select kind of edge (Low<->High) & update our measurement */
+    if ( DigIn_GPI_0 == 1 )
+    {   /* H -> L edge: calculate HIGH pulse width & save new time stamp */
+        DigIntMeas[eGPI0_Int2].wHighWidth   = wMilliSecCounter - DigIntMeas[eGPI0_Int2].wLastLHTrans;
+        DigIntMeas[eGPI0_Int2].wLastHLTrans = wMilliSecCounter;
+    }
+    else
+    {   /* L -> H edge: calculate HIGH pulse width & save new time stamp */
+        DigIntMeas[eGPI0_Int2].wLowWidth    = wMilliSecCounter - DigIntMeas[eGPI0_Int2].wLastHLTrans;
+        DigIntMeas[eGPI0_Int2].wLastLHTrans = wMilliSecCounter;
 
+        /* addtionally count this transition */
+        DigIntMeas[eGPI0_Int2].dwLHCounter++;
+    }
 }
 
 
@@ -694,14 +711,26 @@ void GPI0_Int2_ISR(void)
  *                 Application software is responsible to further
  *                 process this data.
  *                 Note: SHOULD RETURN AS FAST AS POSSIBLE!
+ *                 Note: Does NOT re-enable higher interrupts,
+ *                 because we here read the high prior system timer!
  *********************************************************************** */
 #pragma INTERRUPT GPI1_Int3_ISR        // declare as M16C isr
 void GPI1_Int3_ISR(void)
 {
-    // !!! Re-Enable higher interrupts than this interrupt!
-    // (for use of MilliSecCounter)
-    INT_GLOB_ENABLE;
+    /* select kind of edge (Low<->High) & update our measurement */
+    if ( DigIn_GPI_1 == 1 )
+    {   /* H -> L edge: calculate HIGH pulse width & save new time stamp */
+        DigIntMeas[eGPI1_Int3].wHighWidth   = wMilliSecCounter - DigIntMeas[eGPI1_Int3].wLastLHTrans;
+        DigIntMeas[eGPI1_Int3].wLastHLTrans = wMilliSecCounter;
+    }
+    else
+    {   /* L -> H edge: calculate HIGH pulse width & save new time stamp */
+        DigIntMeas[eGPI1_Int3].wLowWidth    = wMilliSecCounter - DigIntMeas[eGPI1_Int3].wLastHLTrans;
+        DigIntMeas[eGPI1_Int3].wLastLHTrans = wMilliSecCounter;
 
+        /* addtionally count this transition */
+        DigIntMeas[eGPI1_Int3].dwLHCounter++;
+    }
 }
 
 
@@ -717,14 +746,26 @@ void GPI1_Int3_ISR(void)
  *                 Application software is responsible to further
  *                 process this data.
  *                 Note: SHOULD RETURN AS FAST AS POSSIBLE!
+ *                 Note: Does NOT re-enable higher interrupts,
+ *                 because we here read the high prior system timer!
  *********************************************************************** */
 #pragma INTERRUPT GPI2_Int4_ISR        // declare as M16C isr
 void GPI2_Int4_ISR(void)
 {
-    // !!! Re-Enable higher interrupts than this interrupt!
-    // (for use of MilliSecCounter)
-    INT_GLOB_ENABLE;
+    /* select kind of edge (Low<->High) & update our measurement */
+    if ( DigIn_GPI_2 == 1 )
+    {   /* H -> L edge: calculate HIGH pulse width & save new time stamp */
+        DigIntMeas[eGPI2_Int4].wHighWidth   = wMilliSecCounter - DigIntMeas[eGPI2_Int4].wLastLHTrans;
+        DigIntMeas[eGPI2_Int4].wLastHLTrans = wMilliSecCounter;
+    }
+    else
+    {   /* L -> H edge: calculate HIGH pulse width & save new time stamp */
+        DigIntMeas[eGPI2_Int4].wLowWidth    = wMilliSecCounter - DigIntMeas[eGPI2_Int4].wLastHLTrans;
+        DigIntMeas[eGPI2_Int4].wLastLHTrans = wMilliSecCounter;
 
+        /* addtionally count this transition */
+        DigIntMeas[eGPI2_Int4].dwLHCounter++;
+    }
 }
 
 
@@ -741,14 +782,26 @@ void GPI2_Int4_ISR(void)
  *                 Application software is responsible to further
  *                 process this data.
  *                 Note: SHOULD RETURN AS FAST AS POSSIBLE!
+ *                 Note: Does NOT re-enable higher interrupts,
+ *                 because we here read the high prior system timer!
  *********************************************************************** */
 #pragma INTERRUPT GPI3_Int5_ISR        // declare as M16C isr
 void GPI3_Int5_ISR(void)
 {
-    // !!! Re-Enable higher interrupts than this interrupt!
-    // (for use of MilliSecCounter)
-    INT_GLOB_ENABLE;
+    /* select kind of edge (Low<->High) & update our measurement */
+    if ( DigIn_GPI_3 == 1 )
+    {   /* H -> L edge: calculate HIGH pulse width & save new time stamp */
+        DigIntMeas[eGPI3_Int5].wHighWidth   = wMilliSecCounter - DigIntMeas[eGPI3_Int5].wLastLHTrans;
+        DigIntMeas[eGPI3_Int5].wLastHLTrans = wMilliSecCounter;
+    }
+    else
+    {   /* L -> H edge: calculate HIGH pulse width & save new time stamp */
+        DigIntMeas[eGPI3_Int5].wLowWidth    = wMilliSecCounter - DigIntMeas[eGPI3_Int5].wLastHLTrans;
+        DigIntMeas[eGPI3_Int5].wLastLHTrans = wMilliSecCounter;
 
+        /* addtionally count this transition */
+        DigIntMeas[eGPI3_Int5].dwLHCounter++;
+    }
 }
 
 

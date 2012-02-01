@@ -125,6 +125,25 @@
 #define DigIn_GPID_3  pd0_7
 
 
+/* GPI0..3 / INT2..5 interrupt time measurements (PulseWidth & Frequency) */
+typedef struct
+{
+    UINT32  dwLHCounter;          // counts Low->High edges only!
+    UINT16  wLastHLTrans;       // system time stamp of last High->Low edge (in ms)
+    UINT16  wLastLHTrans;       // system time stamp of last Low->High edge (in ms)
+    UINT16  wHighWidth;         // High-PulseWidth (in ms)
+    UINT16  wLowWidth;          // Low-PulseWidth (in ms)
+} DIGINTMEAS;
+
+typedef enum                    // enumerate GPI0..3 Interrup Measurement
+{   eGPI0_Int2,
+    eGPI1_Int3,
+    eGPI2_Int4,
+    eGPI3_Int5,
+    eGPI3_LAST,                 // invalid
+} DIGINTMEAS_INT;
+
+
 /* digital filter structure */
 typedef struct
 {
