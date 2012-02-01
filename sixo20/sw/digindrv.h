@@ -114,10 +114,11 @@
 #define DigIn_HBeam   p2_7
 
 /* common general purpose digital inputs (unfiltered values) */
-#define DigIn_GPI_0   p1_4
-#define DigIn_GPI_1   p1_5
-#define DigIn_GPI_2   p1_6
-#define DigIn_GPI_3   p1_7
+/* NOTE: Port direction register pd_0 is INPUT by default */
+#define DigIn_GPI_0   p0_4      // also connected to p1_4 and p8_4 eq. INT2
+#define DigIn_GPI_1   p0_5      // also connected to p1_5          eq. INT3
+#define DigIn_GPI_2   p0_6      // also connected to p1_6          eq. INT4
+#define DigIn_GPI_3   p0_7      // also connected to p1_7          eq. INT5
 
 
 /* digital filter structure */
