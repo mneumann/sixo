@@ -75,6 +75,9 @@
 ;  changes to CVC ('Log message'):
 ;
 ; $Log$
+; Revision 3.1  2012/02/01 21:24:00  tuberkel
+; INT2..5 enabled & ok for GPI0..3
+;
 ; Revision 3.0  2010/11/07 09:35:17  tuberkel
 ; V30 Preparations:
 ; - STACKSIZE   0x400 --> 0x600      ; stack size
@@ -105,7 +108,7 @@
 
 ;---------------------------------------------------------------
 ;
-;        Global Symbol Defines
+;        Global Symbol Defines - just to prepare line 344..
 ;
 ;---------------------------------------------------------------
 
@@ -119,7 +122,13 @@
     .glb        _WheelSensor_ISR    ; as int0 isr vector
     .glb        _RPMSensor_ISR      ; as int1 isr vector
     .glb        _HWTestStimuISR     ; as timer tb5 isr vector
+
     .glb        _CompassRxIsr       ; as uart0 receive isr vector
+
+    .glb        _GPI0_Int2_ISR      ; as p8_4 as INT2 source (connected to GPI0)
+    .glb        _GPI1_Int3_ISR      ; as p1_5 as INT3 source (connected to GPI1)
+    .glb        _GPI2_Int4_ISR      ; as p1_6 as INT4 source (connected to GPI2)
+    .glb        _GPI3_Int5_ISR      ; as p1_7 as INT5 source (connected to GPI3)
 
     .glb        _dummy_int          ; global for unexpected call checking
 
@@ -346,12 +355,12 @@ switch_table_top:
         .org            ROM_VAR_VT
         .lword        _dummy_int         ; BRK (vector 0)
         .org          (ROM_VAR_VT+16)
-        .lword        _dummy_int         ; int3 (for user)(vector 4)
+        .lword        _GPI1_Int3_ISR     ; int3 used by GPI1
         .lword        _HWTestStimuISR    ; timerB5 used to stimulate WHEEL+RPM
         .lword        _dummy_int         ; timerB4 (for user)(vector 6)
         .lword        _dummy_int         ; timerB3 (for user)(vector 7)
-        .lword        _dummy_int         ; si/o4 /int5(for user)(vector 8)
-        .lword        _dummy_int         ; si/o3 /int4(for user)(vector 9)
+        .lword        _GPI3_Int5_ISR     ; si/o4 /int5 used by GPI3
+        .lword        _GPI2_Int4_ISR     ; si/o3 /int4 used by GPI2
         .lword        _dummy_int         ; Bus collision detection(for user)(v10)
         .lword        _dummy_int         ; DMA0(for user)(vector 11)
         .lword        _dummy_int         ; DMA1(for user)(vector 12)
@@ -382,7 +391,7 @@ switch_table_top:
         .lword        _PreScaleWheel_ISR ; timer B2(for user)(vector 28)
         .lword        _WheelSensor_ISR   ; int0 (for user)(vector 29)
         .lword        _RPMSensor_ISR     ; int1 (for user)(vector 30)
-        .lword        _dummy_int         ; int2 (for user)(vector 31)
+        .lword        _GPI0_Int2_ISR     ; int2 used by GPI0
         .lword        _dummy_int         ; vector 32 (for user or MR30)
         .lword        _dummy_int         ; vector 33 (for user or MR30)
         .lword        _dummy_int         ; vector 34 (for user or MR30)
