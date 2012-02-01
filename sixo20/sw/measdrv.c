@@ -75,6 +75,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.2  2012/02/01 21:23:13  tuberkel
+ * comments
+ *
  * Revision 3.1  2011/05/29 12:43:19  tuberkel
  * BugFix gwWheelImpulse
  * - Typ korrgiert
@@ -365,7 +368,8 @@ void RPMOverflow_ISR(void)
  *                          value! (the timer downcounts from MAX to 0!)
  *                  Note3:  Period is filtered by:
  *
- *                      Period4 = Period(old) * 3/4 + Period(new) * 1/4
+ *                           Period4 = Period(old) * 3/4 + Period(new) * 1/4
+ *
  *                  Note4:  To account for calculation errors we scale up
  *                          by 8 the values used in the filter calculation.
  *                          For a deeper understanding read the comments in

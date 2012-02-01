@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.1  2012/02/01 21:21:15  tuberkel
+ * comments
+ *
  * Revision 3.0  2010/11/07 14:00:50  tuberkel
  * V30 Preparations - no changes
  *
@@ -354,7 +357,7 @@ ERRCODE TimerRemoveMsgId(MESSAGE_ID msg_id)
  *                             - Support internal system time (TICKS)
  * PARAMETER:      -
  * RETURN:         -
- * COMMENT:        -
+ * COMMENT:        Also added in 'sect30.inc'
  *********************************************************************** */
 #pragma INTERRUPT TimerInterrupt        // declare as M16C isr
 void TimerInterrupt(void)
@@ -452,6 +455,7 @@ void TimerInterrupt(void)
  *                        - UINT16 MilliSecCounter;
  *                        - UINT16 SecCounter;
  *                        uses m16c fast isr mode (switches register bank)
+ *                        Also added in 'sect30.inc'
  *********************************************************************** */
 #pragma INTERRUPT/B msIntFunction           // '/B' declare as 'fast' M16C isr
 void msIntFunction(void)
