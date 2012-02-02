@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.3  2012/02/02 21:55:30  tuberkel
+ * New: GPOs - PWM controlled like LEDs
+ *
  * Revision 3.2  2012/01/14 10:26:44  tuberkel
  * LED PWM handling changed:
  * - no longer Msgs/TimerMsgs used (inaccurate optic)
@@ -144,7 +147,7 @@
 #include "led.h"
 #include "leddrv.h"
 #include "digindrv.h"
-#include "digoutdr.h"
+#include "gpo.h"
 #include "display.h"
 #include "displdrv.h"
 #include "device.h"
@@ -235,7 +238,7 @@ int main()
     Error = TimeDateInit();         /* initialize system time & date stuff */
     Error = DigInDrv_Init();        /* prepare keyboard ports and other input ports */
     Error = DisplInit(FALSE);       /* prepare lcd output & clear screen */
-    Error = DigOutInit();           /* prepare general purpose output ports */
+    Error = GPOInit();              /* prepare general purpose output ports */
     Error = LEDInit();              /* prepare led output ports & service */
     Error = BeepInit();             /* prepare beeper output ports & service */
     Error = MsgQInit();             /* reset message queue */
@@ -292,6 +295,7 @@ int main()
         TimerRegisterEntryFunction( TimeDateUpdate );               /* RTC check */
         TimerRegisterEntryFunction( AnaInDrvTriggerADConverter );   /* generation of AD samples in single sweep mode */
         TimerRegisterEntryFunction( LEDService );                   /* support LED PWM control */
+        TimerRegisterEntryFunction( GPOService );                   /* support GPO PWM control */
         TimerRegisterEntryFunction( BeepService );                  /* support Beeper control */
         TimerRegisterEntryFunction( SurvProcessAll );               /* process complete surveillance for infos/warnings/errors */
         #if(BIKE_MOTOBAU==1)                                        /* special MOTOBAU behaviour */

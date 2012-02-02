@@ -5,7 +5,7 @@
 # All Rights Reserved.
 #
 #	Notice	:	Don't edit.
-#	Date	:	2012 01(January) 29(Sunday) AM.10.49
+#	Date	:	2012 02(February) 02(Thursday) PM.10.39
 #	Project	:	SIxO20
 ####################################################################
 
@@ -23,18 +23,18 @@ OUTDIR	=	.\outdir
 MKDIR	=	@-mkdir
 ABSFILE	=	$(PROJECT).x30
 ODINCMD	=	$(OUTDIR)
-TARGET	=	$(ABSFILE)
 LN	=	LN30
+TARGET	=	$(ABSFILE)
 ECHO	=	@-echo
 MKFILE	=	$(PROJECT).tmk
-TYPE	=	@-type
 PROJECT	=	SIxO20
-CFLAGS	=	-c -I. -silent -dir $(OUTDIR) -Wall -DDEBUG=1 -DMINIEMU=1 -DGEARBOX=1 -finfo
-AFLAGS	=	-. -DDEBUG=1:MINIEMU=1 -finfo -O$(OUTDIR)
+TYPE	=	@-type
 LFLAGS	=	-MS -L nc30lib -. -G -O $(OUTDIR)\$(TARGET)
-LIBFLAGS	=	-C
 UTLFLAGS	=	
+CFLAGS	=	-c -I. -silent -dir $(OUTDIR) -Wall -DDEBUG=1 -DMINIEMU=1 -DGEARBOX=1 -finfo
 LMCFLAGS	=	-. -ID
+LIBFLAGS	=	-C
+AFLAGS	=	-. -DDEBUG=1:MINIEMU=1 -finfo -O$(OUTDIR)
 .SUFFIXES: .a30 .r30 .c .x30 .lib
 .PHONY: all
 all: \
@@ -87,6 +87,7 @@ clean:
 	$(DELETE) $(OUTDIR)\lapcdev.r30
 	$(DELETE) $(OUTDIR)\$(PROJECT).*
 	$(DELETE) $(OUTDIR)\compassdrv.r30
+	$(DELETE) $(OUTDIR)\gpo.r30
 .outdir\SIxO20.mot: \
 		.\$(MKFILE) \
 		$(OUTDIR)\$(TARGET) 
@@ -138,6 +139,7 @@ $(ODINCMD)\$(LNLIST): \
 	$(ECHO)\$(OUTDIR)\hwtestdev.r30 >>	$(ODINCMD)\$(LNLIST)
 	$(ECHO)\$(OUTDIR)\lapcdev.r30 >>	$(ODINCMD)\$(LNLIST)
 	$(ECHO)\$(OUTDIR)\compassdrv.r30 >>	$(ODINCMD)\$(LNLIST)
+	$(ECHO)\$(OUTDIR)\gpo.r30 >>	$(ODINCMD)\$(LNLIST)
 $(OUTDIR)\$(TARGET): \
 		$(ODINCMD)\$(LNLIST) \
 		$(OUTDIR)\ncrt0.r30 \
@@ -181,7 +183,8 @@ $(OUTDIR)\$(TARGET): \
 		$(OUTDIR)\surveill.r30 \
 		$(OUTDIR)\hwtestdev.r30 \
 		$(OUTDIR)\lapcdev.r30 \
-		$(OUTDIR)\compassdrv.r30 
+		$(OUTDIR)\compassdrv.r30 \
+		$(OUTDIR)\gpo.r30 
 	$(LN) @$(ODINCMD)\$(LNLIST)
 $(OUTDIR)\anain.r30: \
 		.\anain.c \
@@ -357,6 +360,17 @@ $(OUTDIR)\fonts.r30: \
 		.\display.h \
 		.\displdrv.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) fonts.c
+$(OUTDIR)\gpo.r30: \
+		.\gpo.c \
+		$(MTOOLINC)\string.h \
+		.\standard.h \
+		.\stdmsgs.h \
+		.\msgqueue.h \
+		.\timer.h \
+		.\debug.h \
+		.\digoutdr.h \
+		.\gpo.h 
+	$(CC) $(MRCFLAGS) $(CFLAGS) gpo.c
 $(OUTDIR)\hwtestdev.r30: \
 		.\hwtestdev.c \
 		.\standard.h \
@@ -477,7 +491,6 @@ $(OUTDIR)\main.r30: \
 		.\display.h \
 		.\device.h \
 		.\eeprdrv.h \
-		.\digoutdr.h \
 		.\measdrv.h \
 		.\vehicsim.h \
 		.\measure.h \
@@ -490,7 +503,8 @@ $(OUTDIR)\main.r30: \
 		.\surveill.h \
 		.\displdrv.h \
 		$(MTOOLINC)\stdio.h \
-		.\compassdrv.h 
+		.\compassdrv.h \
+		.\gpo.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) main.c
 $(OUTDIR)\maindev.r30: \
 		.\maindev.c \

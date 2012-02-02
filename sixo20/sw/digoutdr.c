@@ -11,7 +11,7 @@
  *  Project:        SIxO
  *  Module:         Digital Output Driver
  *  Purpose:        Low level support of all digital outputs
- *                  (but not LEDs and Buzzer!)
+ *                  (but not GPOs and Buzzer!)
  *  Comments:       -
  *
  *  --------------------------------------------------------------------
@@ -69,6 +69,8 @@
  #include "digoutdr.h"
 
 
+
+
 /***********************************************************************
  *  FUNCTION:       DigOut_Init
  *  DESCRIPTION:    Initializes all General Digital Output Pins
@@ -98,5 +100,62 @@ ERRCODE DigOutInit(void)
     ODS(DBG_DRV,DBG_INFO,"DigOutInit() done!");
     return ERR_OK;
 }
+
+
+
+
+ /***********************************************************************
+ *  FUNCTION:       DigOutSetGPO()
+ *  DESCRIPTION:    control over one single GPO
+ *  PARAMETER:      eGPO            GPO indicator
+ *                  fActivate       TRUE = GPO on
+ *  RETURN:         ERR_OK          ok
+ *                  ERR_PARAM_ERR   parameter error
+ *  COMMENT:        GPO State could have been set _directly_ with
+ *                  given parameter. But we here distinguish
+ *                  the true/false states to support separate debugging
+ *                  breakpoints for both states.
+ *********************************************************************** */
+ERRCODE DigOutSetGPO(DIGOUT_GPOS eGPO, BOOL fActivate)
+{
+    switch (eGPO)
+    {
+        case DIGOUT_GPO0:
+            if (fActivate)
+                 GPO0  = 1;
+            else GPO0  = 0;
+            break;
+        case DIGOUT_GPO1:
+            if (fActivate)
+                 GPO1 = 1;
+            else GPO1 = 0;
+            break;
+        default:
+            return ERR_PARAM_ERR;
+     }
+    return ERR_OK;
+}
+
+
+/***********************************************************************
+ *  FUNCTION:       DigOutGetGPO()
+ *  DESCRIPTION:    Returns current state of single GPO
+ *  PARAMETER:      eGPO            GPO indicator
+ *  RETURN:         fActivate       TRUE  = GPO on
+ *                                  FALSE = GPO off
+ *  COMMENT:        -
+ *********************************************************************** */
+BOOL DigOutGetGPO( DIGOUT_GPOS eGPO )
+{
+    BOOL fActivated;
+    switch (eGPO)
+    {
+        case DIGOUT_GPO0:   fActivated = GPO0; break;
+        case DIGOUT_GPO1:   fActivated = GPO1; break;
+        default: return fActivated = FALSE;
+     }
+    return fActivated;
+}
+
 
  

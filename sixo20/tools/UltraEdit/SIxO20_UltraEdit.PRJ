@@ -7,65 +7,65 @@ Use Relative Directory=1
 Relative to Project File=1
 Project Wordfile=
 [Open Files]
-Open File0=s:\CVS\sixo\sixo20\sw\displdrv.c
-Open File Pos0=0
-Open File Line0=0
+Open File0=s:\CVS\sixo\sixo20\sw\digindrv.c
+Open File Pos0=31703
+Open File Line0=30517
 Active File Index=4
-Open File Window Pos0=0,1,-1,-1,-4,-30,0,0,692,552
-Open File1=s:\CVS\sixo\sixo20\sw\digoutdr.c
+Open File Window Pos0=0,1,-1,-1,-4,-30,88,116,772,659
+Open File1=s:\CVS\sixo\sixo20\sw\digindrv.h
 Active File Display Mode=3
-Open File Pos1=2602
-Open File Line1=2396
-Open File Window Pos1=0,1,-1,-1,-4,-30,22,29,718,585
-Open File2=s:\CVS\sixo\sixo20\sw\sfr62p.h
-Open File Pos2=13608
-Open File Line2=13070
-Open File Window Pos2=0,1,-1,-1,-4,-30,44,58,872,291
-Open File3=s:\CVS\sixo\sixo20\sw\digindrv.h
-Open File Pos3=3851
-Open File Line3=3409
-Open File Window Pos3=0,1,-1,-1,-4,-30,66,87,894,320
-Open File4=s:\CVS\sixo\sixo20\sw\maindev.c
-Open File Pos4=68146
-Open File Line4=66626
-Open File Window Pos4=2,3,-1,-1,-4,-30,22,29,768,401
-Open File5=
-Open File Pos5=22487
-Open File Line5=22406
-Open File Window Pos5=0,1,-1,-1,-4,-30,44,58,806,457
-Open File6=s:\CVS\sixo\sixo20\sw\setdev.c
-Open File Pos6=12986
-Open File Line6=12141
-Open File Window Pos6=0,1,-1,-1,-4,-30,66,87,828,486
-Open File7=S:\CVS\SIXO\SIXO20\SW\resource.h
-Open File Pos7=6537
-Open File Line7=5740
-Open File Window Pos7=0,1,-1,-1,-4,-30,88,116,850,515
-Open File8=S:\CVS\SIXO\SIXO20\SW\bitmaps.h
-Open File Pos8=3924
-Open File Line8=3543
-Open File Window Pos8=0,1,-1,-1,-4,-30,110,145,872,504
-Open File9=s:\CVS\sixo\sixo20\sw\bitmaps.c
-Open File Pos9=85542
-Open File Line9=85216
-Open File Window Pos9=0,1,-1,-1,-4,-30,132,174,894,533
-Open File10=S:\CVS\SIXO\SIXO20\SW\surveill.h
-Open File Pos10=6695
-Open File Line10=5981
-Open File Window Pos10=0,1,-1,-1,-4,-30,0,0,762,359
-Open File11=S:\CVS\sixo\sixo20\sw\resource_de.h
-Open File Pos11=6294
-Open File Line11=6798
-Open File Window Pos11=0,1,-1,-1,-4,-30,22,29,784,388
-Open File12=s:\CVS\sixo\sixo20\sw\hwtestdev.c
-Open File Pos12=49661
-Open File Line12=48993
-Open File Window Pos12=2,3,-1,-1,-4,-30,44,58,732,605
+Open File Pos1=4838
+Open File Line1=3738
+Open File Window Pos1=0,1,-1,-1,-4,-30,110,145,798,692
+Open File2=s:\CVS\sixo\sixo20\sw\timer.c
+Open File Pos2=4207
+Open File Line2=3311
+Open File Window Pos2=0,1,-1,-1,-4,-30,132,174,820,721
+Open File3=s:\CVS\sixo\sixo20\sw\leddrv.c
+Open File Pos3=7597
+Open File Line3=6546
+Open File Window Pos3=0,1,-1,-1,-4,-30,66,87,754,634
+Open File4=S:\CVS\sixo\sixo20\sw\gpo.c
+Open File Pos4=4077
+Open File Line4=3267
+Open File Window Pos4=2,3,-1,-1,-4,-30,88,116,842,535
+Open File5=s:\CVS\sixo\sixo20\sw\digoutdr.c
+Open File Pos5=4536
+Open File Line5=4252
+Open File Window Pos5=0,1,-1,-1,-4,-30,110,145,864,564
+Open File6=S:\CVS\SIXO\SIXO20\SW\main.c
+Open File Pos6=14263
+Open File Line6=13605
+Open File Window Pos6=0,1,-1,-1,-4,-30,132,174,886,593
+Open File7=s:\CVS\sixo\sixo20\sw\digoutdr.h
+Open File Pos7=2964
+Open File Line7=2514
+Open File Window Pos7=0,1,-1,-1,-4,-30,0,0,754,419
+Open File8=S:\CVS\sixo\sixo20\sw\gpo.h
+Open File Pos8=2664
+Open File Line8=2515
+Open File Window Pos8=0,1,-1,-1,-4,-30,22,29,776,448
+Open File9=s:\CVS\sixo\sixo20\sw\led.c
+Open File Pos9=2724
+Open File Line9=2506
+Open File Window Pos9=0,1,-1,-1,-4,-30,44,58,798,477
+Open File10=s:\CVS\sixo\sixo20\sw\led.h
+Open File Pos10=2827
+Open File Line10=2395
+Open File Window Pos10=0,1,-1,-1,-4,-30,66,87,820,506
+Open File11=s:\CVS\sixo\sixo20\sw\leddrv.h
+Open File Pos11=3775
+Open File Line11=3140
+Open File Window Pos11=0,1,-1,-1,-4,-30,88,116,842,535
+Open File12=S:\CVS\SIXO\SIXO20\SW\surveill.c
+Open File Pos12=18754
+Open File Line12=18116
+Open File Window Pos12=0,1,-1,-1,-4,-30,0,0,776,347
 Open File13=
-Open File Pos13=15479
-Open File Line13=13600
-Open File Window Pos13=0,1,-1,-1,-4,-30,132,174,888,524
-Open File14=s:\CVS\sixo\sixo20\sw\timer.c
+Open File Pos13=8777
+Open File Line13=6811
+Open File Window Pos13=0,1,-1,-1,-4,-30,154,203,886,688
+Open File14=
 Open File Pos14=0
 Open File Line14=0
 Open File Window Pos14=0,1,-1,-1,-4,-30,0,0,756,350
@@ -112,7 +112,7 @@ Open File Window Pos24=2,3,-1,-1,-4,-30,66,87,755,443
 Open File25=
 
 [File View]
-Current Select=Projektdateien\
+Current Select=Projektdateien\LLDrv\leddrv.h
 
 [Files - Test]
 
@@ -128,21 +128,6 @@ Current Select=Projektdateien\
 
 
 
-[Files - HLDrv]
-0=..\..\sw\anain.c
-1=..\..\sw\anain.h
-2=..\..\sw\beep.c
-3=..\..\sw\beep.h
-4=..\..\sw\clkdrv.c
-5=..\..\sw\clkdrv.h
-6=..\..\sw\display.c
-7=..\..\sw\display.h
-8=..\..\sw\eeprdrv.c
-9=..\..\sw\eeprdrv.h
-10=..\..\sw\led.c
-11=..\..\sw\led.h
-12=..\..\sw\nvramdrv.c
-13=..\..\sw\nvramdrv.h
 
 
 
@@ -324,6 +309,9 @@ Replace Type9=0
 [Files - Doku]
 0=S:\CVS\sixo\sixo20\sw\devices.txt
 1=S:\CVS\sixo\sixo20\doc\Versions.txt
+[Files - Tools]
+0=S:\CVS\sixo\sixo20\tools\KD30\KD30_SIxO_GUI_Input.btn
+1=S:\CVS\sixo\sixo20\tools\KD30\KD30_SIxO_GUI_Output.gof
 [Group]
 0=Devices
 1=Doku
@@ -336,6 +324,20 @@ Replace Type9=0
 8=Templates
 9=Tools
 11=
-[Files - Tools]
-0=S:\CVS\sixo\sixo20\tools\KD30\KD30_SIxO_GUI_Input.btn
-1=S:\CVS\sixo\sixo20\tools\KD30\KD30_SIxO_GUI_Output.gof
+[Files - HLDrv]
+0=..\..\sw\anain.c
+1=..\..\sw\anain.h
+2=..\..\sw\beep.c
+3=..\..\sw\beep.h
+4=..\..\sw\clkdrv.c
+5=..\..\sw\clkdrv.h
+6=..\..\sw\display.c
+7=..\..\sw\display.h
+8=..\..\sw\eeprdrv.c
+9=..\..\sw\eeprdrv.h
+10=S:\CVS\sixo\sixo20\sw\gpo.c
+11=S:\CVS\sixo\sixo20\sw\gpo.h
+12=..\..\sw\led.c
+13=..\..\sw\led.h
+14=..\..\sw\nvramdrv.c
+15=..\..\sw\nvramdrv.h

@@ -70,6 +70,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.1  2012/02/02 21:55:30  tuberkel
+ * New: GPOs - PWM controlled like LEDs
+ *
  * Revision 3.0  2010/11/07 09:19:56  tuberkel
  * V30 Preparations:
  * - enhanced Debug behaviour
@@ -213,6 +216,8 @@ BOOL LEDDrvGetLED( LEDDRV_LEDS eLED )
      }
     return fActivated;
 }
+
+
 
 /***********************************************************************
  *  FUNCTION:       LEDDrvSetBright

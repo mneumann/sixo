@@ -7,10 +7,10 @@
  *
  *  --------------------------------------------------------------------
  *
- *  Created:        2002-03-01 by Arnold Neugebauer
+ *  Created:        2012-02-01 by Ralf Schwarzer
  *  Project:        SIxO
- *  Module:         Digital Output Driver
- *  Purpose:        Digital Output Driver api export header
+ *  Module:         GPO
+ *  Purpose:        GPO services (timing, auto update)
  *  Comments:       -
  *
  *  --------------------------------------------------------------------
@@ -62,44 +62,50 @@
  *
  ************************************************************************ */
 
-ERRCODE DigOutInit(void);
+#ifndef _GPO_H
+#define _GPO_H
 
 
-#if(TOGGLE_PADS==1)
-/* makros for port3_2/3/4 for ossi checks */
-/* port pin will change state for everey call */
-    #define TOGGLE_PAD9         (p3_2 = p3_2 ? 0 : 1)
-    #define TOGGLE_PAD10        (p3_3 = p3_3 ? 0 : 1)
-    #define TOGGLE_PAD11        (p3_4 = p3_4 ? 0 : 1)
-#else
-    #define TOGGLE_PAD9
-    #define TOGGLE_PAD10
-    #define TOGGLE_PAD11
-#endif
-
-
-// define GeneralPurposeOutput and Pads
-#define GPO0    p3_0
-#define GPO1    p3_1
-
-
-/* GPO driver enumeration */
+/* GPO enumeration */
 typedef enum
 {
-    DIGOUT_MIN,     // INVALID index, just for loops..
-    DIGOUT_GPO0,    //
-    DIGOUT_GPO1,    //
-    DIGOUT_MAX      // INVALID index, just for loops..
-} DIGOUT_GPOS;
+    GPO_MIN,     // INVALID index, just for loops..
+    GPO_0,       // GPO0
+    GPO_1,       // GPO1
+    GPO_MAX      // INVALID index, just for loops..
+} GPO_ENUM;
 
 
-// solder pads (might be used for debug/extension purpuse)
-#define PAD9    p3_2
-#define PAD10   p3_3
-#define PAD11   p3_4
+
+/* GPO activation */
+#define GPO_ON  TRUE
+#define GPO_OFF FALSE
+
+/* helper for GPOSetNewState() */
+#define GPO_PERM_ON     1,0,0       // OnTime:1 ms, OffTime:0 ms, Duration:0 => permanent off
+#define GPO_PERM_OFF    0,1,0       // OnTime:1 ms, OffTime:0 ms, Duration:0 => permanent off
+
+/* GPO PWM timing */
+typedef struct
+{
+    UINT16  wOnTicks;           /* Beep ON duration in ticks (reload value) */
+    UINT16  wOffTicks;          /* Beep OFF duration in ticks (reload value) */
+    UINT16  wDurationTicks;     /* Beep duration in ticks */
+    UINT16  wOnCurrTicks;       /* Beep On PWM timer - counting done */
+    UINT16  wOffCurrTicks;      /* Beep Off PWM timer - counting done */
+} GPOTIMINGTYPE;
 
 
-// prototypes
-ERRCODE DigOutSetGPO(DIGOUT_GPOS eGPO, BOOL fActivate);
-BOOL    DigOutGetGPO( DIGOUT_GPOS eGPO );
+/* prototypes */
+ERRCODE GPOInit(void);
+ERRCODE GPOService(void);
+ERRCODE GPOSetNewState(GPO_ENUM eGpo, UINT16 wOn_ms, UINT16 wOff_ms, UINT16 wDuration_ms );
+BOOL    GPOGetState(GPO_ENUM eGpo);
+STRING  GPOGetName( GPO_ENUM eGPO);
+
+
+
+#endif /* _GPO_H */
+
+
 
