@@ -70,6 +70,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.4  2012/02/04 21:49:42  tuberkel
+ * All BeeperDriver functions mapped ==> DigOutDrv()
+ *
  * Revision 3.3  2012/01/23 04:04:16  tuberkel
  * BugFix Symbol "SystemError"
  *
@@ -482,7 +485,7 @@ void SurvCheckRPMFlash ( void )
         // special MOTOBAU behaviour
         #if(BIKE_MOTOBAU==1)
         // kai want's to enable an additional external lamp/indicator
-        GPO0 = 1;                       // enable output GPO_0 too
+        PIN_GPO0 = 1;                       // enable output GPO_0 too
         #endif // BIKE_MOTOBAU
     }
 
@@ -501,7 +504,7 @@ void SurvCheckRPMFlash ( void )
         // special MOTOBAU behaviour
         #if(BIKE_MOTOBAU==1)
         // kai want's to enable an additional external lamp/indicator
-        GPO0 = 0;                       // disable output GPO_0 too
+        PIN_GPO0 = 0;                       // disable output GPO_0 too
         #endif // BIKE_MOTOBAU
     }
 }
@@ -1371,6 +1374,6 @@ void SurvSetLEDState( void )
     #if(BIKE_MOTOBAU==1)
     // kai wants to enable an additional external lamp/indicator
     //  - enable output GPO_1 too for Warning/Error only
-    GPO1 = SurvListGetCount(eSURVST_WARNING | eSURVST_ERR );
+    PIN_GPO1 = SurvListGetCount(eSURVST_WARNING | eSURVST_ERR );
     #endif // BIKE_MOTOBAU
 }

@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.5  2012/02/04 21:49:42  tuberkel
+ * All BeeperDriver functions mapped ==> DigOutDrv()
+ *
  * Revision 3.4  2012/02/04 20:38:05  tuberkel
  * Moved all BeeperDriver / LEDDriver stuff ==> 'digoutdrv'
  *
@@ -171,12 +174,12 @@ ERRCODE BeepService(void)
 
         /* right now expired? */
         if ( BeepTiming.wDurationTicks == 0 )
-        {   BeepDrvSetBeeper(BEEP_OFF);         /* assure beeper being off now for ever! */
+        {   DigOutDrv_SetPin( eDIGOUT_BEEP, DIGOUT_OFF );   /* assure beeper being off now for ever! */
         }
         else
         {
             /* beeper currently on? */
-            if (TRUE == BeepDrvGetBeeper())
+            if (TRUE == DigOutDrv_GetPin(eDIGOUT_BEEP) )
             {
                 /* OffTime available -> time to switch off again? */
                 if (BeepTiming.wOffTicks > 0)
@@ -186,7 +189,7 @@ ERRCODE BeepService(void)
                     {   BeepTiming.wOnCurrTicks--;      /* keep it on! */
                     }
                     else
-                    {   BeepDrvSetBeeper(BEEP_OFF);                         /* ok - done - switch it off! */
+                    {   DigOutDrv_SetPin( eDIGOUT_BEEP, DIGOUT_OFF );                         /* ok - done - switch it off! */
                         BeepTiming.wOffCurrTicks = BeepTiming.wOffTicks;    /* reload off timer */
                     }
                 }
@@ -205,7 +208,7 @@ ERRCODE BeepService(void)
                     {   BeepTiming.wOffCurrTicks--;      /* keep it off! */
                     }
                     else
-                    {   BeepDrvSetBeeper(BEEP_ON);                          /* ok - done - switch it on again! */
+                    {   DigOutDrv_SetPin( eDIGOUT_BEEP, DIGOUT_ON );                          /* ok - done - switch it on again! */
                         BeepTiming.wOnCurrTicks = BeepTiming.wOnTicks;      /* reload off timer */
                     }
                 }
@@ -265,8 +268,8 @@ ERRCODE BeepSetNewState(UINT16 wOn_ms, UINT16 wOff_ms, UINT16 wDuration_ms )
 
     /* directly switch beeper to advised mode (ON/OFF, always starts with ON) */
     if ( BeepTiming.wOnTicks > 0)
-         BeepDrvSetBeeper(BEEP_ON);     // switch ON immedeately
-    else BeepDrvSetBeeper(BEEP_OFF);    // switch OFF immedeately
+         DigOutDrv_SetPin( eDIGOUT_BEEP, DIGOUT_ON );     // switch ON immedeately
+    else DigOutDrv_SetPin( eDIGOUT_BEEP, DIGOUT_OFF );    // switch OFF immedeately
 
     /* further beeper PWM control is done in BeepService(), which is called with 50 Hz
        inside the Timer ISR */

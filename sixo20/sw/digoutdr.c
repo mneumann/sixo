@@ -69,6 +69,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.4  2012/02/04 21:49:42  tuberkel
+ * All BeeperDriver functions mapped ==> DigOutDrv()
+ *
  * Revision 3.3  2012/02/04 20:38:05  tuberkel
  * Moved all BeeperDriver / LEDDriver stuff ==> 'digoutdrv'
  *
@@ -89,21 +92,31 @@
 
 /***********************************************************************
  *  FUNCTION:       DigOut_Init
- *  DESCRIPTION:    Initializes all General Digital Output Pins
- *                  and some solder pads
+ *  DESCRIPTION:    Initializes all SIxO Output Pins and some solder pads
  *  PARAMETER:      -
  *  RETURN:         ERR_OK
- *  COMMENT:        Prevents floating input pins p3_0 / p3_1 of
+ *  COMMENT:        To prevents floating input pins p3_0 / p3_1 of
  *                  destroying transistors, should be called as early as
  *                  possible
  *********************************************************************** */
 ERRCODE DigOutInit(void)
 {
-    /* Beeper port pin */
-    fBeep   = 0;    /* switch off output */
-    fBeep_D = 1;    /* enabled output */
+    /* --------------------------------------------------------- */
+    /* set general purpose outputs GPO0/1 to prevent damage */
+    PIN_GPO0    = 0;
+    PIN_GPO1    = 0;
+    PIN_GPO0_D  = 1;
+    PIN_GPO1_D  = 1;
 
-  /* switch off all leds */
+    /* --------------------------------------------------------- */
+    /* Beeper port pin (switch off & set to OUT) */
+    PIN_BEEP    = 0;
+    PIN_BEEP_D  = 1;
+
+    /* --------------------------------------------------------- */
+    /* LED ports */
+
+    /* switch off all leds */
     p9 &= ~LEDS_ALL;    // LED pins only !
 
     /* switch all led port direction register to 'output' */
@@ -115,12 +128,12 @@ ERRCODE DigOutInit(void)
     pd8_0 = 1;          // port direction to OUTPUT
     p8_0  = 1;          // enable LED common current control transistor
 
-    /* set general purpose outputs GPO0/1 to prevent damage */
-    p3_0 = 0;
-    p3_1 = 0;
-    pd3_0 = 1;
-    pd3_1 = 1;
-    // use macros GPO0/1 for further use
+
+    /* --------------------------------------------------------- */
+    /* LED ports */
+
+
+    // use macros PIN_GPO0/1 for further use
     ODS(DBG_DRV,DBG_INFO,"DigOutInit() done!");
 
 
@@ -145,37 +158,6 @@ ERRCODE DigOutInit(void)
 }
 
 
-
-
-/***********************************************************************
- *  FUNCTION:       BeepDrvSetBeeper()
- *  DESCRIPTION:    switches beeper on/off
- *  PARAMETER:      BOOL    fActive     TRUE = on
- *  RETURN:         error code
- *  COMMENT:        -
- *********************************************************************** */
-ERRCODE BeepDrvSetBeeper(BOOL fActive)
-{
-    fBeep = (fActive == TRUE) ? 1 : 0;
-    if (fActive == TRUE)
-         fBeep   = 1;    /* switch ON output */
-    else fBeep   = 0;    /* switch OFF output */
-    return ERR_OK;
-}
-
-
-
-/***********************************************************************
- *  FUNCTION:       BeepDrvGetBeeper()
- *  DESCRIPTION:    returns current beeper pin state
- *  PARAMETER:      -
- *  RETURN:         BOOL    fActive     TRUE = on
- *  COMMENT:        -
- *********************************************************************** */
-BOOL BeepDrvGetBeeper(void)
-{
-    return ( fBeep );
-}
 
 
 
@@ -281,9 +263,9 @@ ERRCODE LEDDrvSetBright(unsigned char bBrightness)
 
 
  /***********************************************************************
- *  FUNCTION:       DigOutSetGPO()
+ *  FUNCTION:       DigOutDrv_SetPin()
  *  DESCRIPTION:    control over one single GPO
- *  PARAMETER:      eGPO            GPO indicator
+ *  PARAMETER:      ePin            GPO indicator
  *                  fActivate       TRUE = GPO on
  *  RETURN:         ERR_OK          ok
  *                  ERR_PARAM_ERR   parameter error
@@ -292,19 +274,24 @@ ERRCODE LEDDrvSetBright(unsigned char bBrightness)
  *                  the true/false states to support separate debugging
  *                  breakpoints for both states.
  *********************************************************************** */
-ERRCODE DigOutSetGPO(DIGOUT_GPOS eGPO, BOOL fActivate)
+ERRCODE DigOutDrv_SetPin( DIGOUT_PINS ePin, BOOL fActivate)
 {
-    switch (eGPO)
+    switch (ePin)
     {
         case eDIGOUT_GPO0:
             if (fActivate)
-                 GPO0  = 1;
-            else GPO0  = 0;
+                 PIN_GPO0   = 1;
+            else PIN_GPO0   = 0;
             break;
         case eDIGOUT_GPO1:
             if (fActivate)
-                 GPO1 = 1;
-            else GPO1 = 0;
+                 PIN_GPO1   = 1;
+            else PIN_GPO1   = 0;
+            break;
+        case eDIGOUT_BEEP:
+            if (fActivate)
+                 PIN_BEEP   = 1;
+            else PIN_BEEP   = 0;
             break;
         default:
             return ERR_PARAM_ERR;
@@ -314,21 +301,22 @@ ERRCODE DigOutSetGPO(DIGOUT_GPOS eGPO, BOOL fActivate)
 
 
 /***********************************************************************
- *  FUNCTION:       DigOutGetGPO()
- *  DESCRIPTION:    Returns current state of single GPO
- *  PARAMETER:      eGPO            GPO indicator
- *  RETURN:         fActivate       TRUE  = GPO on
+ *  FUNCTION:       DigOutDrv_GetPin()
+ *  DESCRIPTION:    Returns current state of single port pin
+ *  PARAMETER:      ePin            digital port pin indicator
+ *  RETURN:         fActivated      TRUE  = GPO on
  *                                  FALSE = GPO off
  *  COMMENT:        -
  *********************************************************************** */
-BOOL DigOutGetGPO( DIGOUT_GPOS eGPO )
+BOOL DigOutDrv_GetPin( DIGOUT_PINS ePin )
 {
     BOOL fActivated;
-    switch (eGPO)
+    switch (ePin)
     {
-        case eDIGOUT_GPO0:   fActivated = GPO0; break;
-        case eDIGOUT_GPO1:   fActivated = GPO1; break;
-        default: return fActivated = FALSE;
+        case eDIGOUT_GPO0:  fActivated = PIN_GPO0;  break;
+        case eDIGOUT_GPO1:  fActivated = PIN_GPO1;  break;
+        case eDIGOUT_BEEP:  fActivated = PIN_BEEP;  break;
+        default:            fActivated = FALSE;     break;
      }
     return fActivated;
 }

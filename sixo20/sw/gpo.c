@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 1.3  2012/02/04 21:49:42  tuberkel
+ * All BeeperDriver functions mapped ==> DigOutDrv()
+ *
  * Revision 1.2  2012/02/04 08:33:37  tuberkel
  * BugFix DigOut PWM
  *
@@ -141,12 +144,12 @@ ERRCODE GPOService(void)
 
             /* right now expired? */
             if ( GpoTiming[eGpo].dwDurTicks == 0 )
-            {   DigOutSetGPO(eGpo, GPO_OFF);         /* assure GPO being off now for ever! */
+            {   DigOutDrv_SetPin(eGpo, GPO_OFF);         /* assure GPO being off now for ever! */
             }
             else
             {
                 /* GPO currently on? */
-                if (TRUE == DigOutGetGPO(eGpo))
+                if (TRUE == DigOutDrv_GetPin(eGpo))
                 {
                     /* OffTime available -> time to switch off again? */
                     if (GpoTiming[eGpo].wOffTicks > 0)
@@ -156,7 +159,7 @@ ERRCODE GPOService(void)
                         {   GpoTiming[eGpo].wOnCurrTicks--;      /* keep it on! */
                         }
                         else
-                        {   DigOutSetGPO(eGpo, GPO_OFF);         /* ok - done - switch it off! */
+                        {   DigOutDrv_SetPin(eGpo, GPO_OFF);         /* ok - done - switch it off! */
                             GpoTiming[eGpo].wOffCurrTicks = GpoTiming[eGpo].wOffTicks;    /* reload off timer */
                         }
                     }
@@ -175,7 +178,7 @@ ERRCODE GPOService(void)
                         {   GpoTiming[eGpo].wOffCurrTicks--;      /* keep it off! */
                         }
                         else
-                        {   DigOutSetGPO(eGpo, GPO_ON);                                 /* ok - done - switch it on again! */
+                        {   DigOutDrv_SetPin(eGpo, GPO_ON);                                 /* ok - done - switch it on again! */
                             GpoTiming[eGpo].wOnCurrTicks = GpoTiming[eGpo].wOnTicks;    /* reload off timer */
                         }
                     }
@@ -258,8 +261,8 @@ ERRCODE GPOSetNewState(GPO_ENUM eGpo, UINT16 wOn_ms, UINT16 wOff_ms, UINT16 wDur
 
     /* directly switch GPO to advised mode (ON/OFF, always starts with ON) */
     if ( GpoTiming[eGpo].wOnTicks > 0)
-         DigOutSetGPO(eGpo, GPO_ON);    // switch ON  immedeately
-    else DigOutSetGPO(eGpo, GPO_OFF);   // switch OFF immedeately
+         DigOutDrv_SetPin(eGpo, GPO_ON);    // switch ON  immedeately
+    else DigOutDrv_SetPin(eGpo, GPO_OFF);   // switch OFF immedeately
 
     /* further GPO PWM control is done in GpoService(), which is called with 50 Hz
        inside the Timer ISR */
@@ -278,7 +281,7 @@ ERRCODE GPOSetNewState(GPO_ENUM eGpo, UINT16 wOn_ms, UINT16 wOff_ms, UINT16 wDur
  *********************************************************************** */
 BOOL GPOGetState( GPO_ENUM eGPO )
 {
-    return ( DigOutGetGPO( eGPO ) );
+    return ( DigOutDrv_GetPin( eGPO ) );
 }
 
 
@@ -296,8 +299,8 @@ STRING GPOGetName( GPO_ENUM eGPO )
 
     switch (eGPO)
     {
-        case eGPO_0: RValue = "GPO0"; break;
-        case eGPO_1: RValue = "GPO1"; break;
+        case eGPO_0: RValue = "PIN_GPO0"; break;
+        case eGPO_1: RValue = "PIN_GPO1"; break;
         default         : RValue = "?"; break;
     }
     return (RValue);

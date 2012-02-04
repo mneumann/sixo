@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.4  2012/02/04 21:49:42  tuberkel
+ * All BeeperDriver functions mapped ==> DigOutDrv()
+ *
  * Revision 3.3  2012/02/04 20:38:05  tuberkel
  * Moved all BeeperDriver / LEDDriver stuff ==> 'digoutdrv'
  *
@@ -122,12 +125,6 @@ BOOL    LEDDrvGetLED    ( LEDDRV_LEDS eLED );
 
 
 
-/* redefine of port register of sfr62p.h for readability */
-#define fBeep_D         pd8_7   /* beeper out pin direction register */
-#define fBeep           p8_7    /* beeper out pin */
-
-
-
 
 #if(TOGGLE_PADS==1)
 /* makros for port3_2/3/4 for ossi checks */
@@ -142,17 +139,37 @@ BOOL    LEDDrvGetLED    ( LEDDRV_LEDS eLED );
 #endif
 
 
-// define GeneralPurposeOutput and Pads
-#define GPO0    p3_0
-#define GPO1    p3_1
+/* ----------------------------------------------------- */
+/* redefine of port register of sfr62p.h for readability */
+#define PIN_BEEP    p8_7    // beeper out port pin
+#define PIN_BEEP_D  pd8_7   // beeper out port pin direction register
 
 
-/* GPO driver enumeration */
+/* ----------------------------------------------------- */
+/* define GeneralPurposeOutput and Pads (& Direction Register) */
+#define PIN_GPO0    p3_0    // General Purpose Out 0 port pin
+#define PIN_GPO0_D  pd3_0   // General Purpose Out 0 port direction register
+#define PIN_GPO1    p3_1    // General Purpose Out 1 port pin
+#define PIN_GPO1_D  pd3_1   // General Purpose Out 0 port direction register
+
+
+
+/* ----------------------------------------------------- */
+/* Parameter to directly set pin on/off */
+#define DIGOUT_OFF  FALSE   // digital out off
+#define DIGOUT_ON   TRUE    // digital out on
+
+
+/* ----------------------------------------------------- */
+/* Enumeration of all Digital Out Driver Pins  */
 typedef enum
 {
-    eDIGOUT_GPO0,    //
-    eDIGOUT_GPO1,    //
-} DIGOUT_GPOS;
+    eDIGOUT_GPO0,   // General Purpose Out 0
+    eDIGOUT_GPO1,   // General Purpose Out 1
+    eDIGOUT_BEEP    // Beeper
+} DIGOUT_PINS;
+
+
 
 
 // solder pads (might be used for debug/extension purpuse)
@@ -162,6 +179,6 @@ typedef enum
 
 
 // prototypes
-ERRCODE DigOutSetGPO(DIGOUT_GPOS eGPO, BOOL fActivate);
-BOOL    DigOutGetGPO( DIGOUT_GPOS eGPO );
+ERRCODE DigOutDrv_SetPin(DIGOUT_PINS eGPO, BOOL fActivate);
+BOOL    DigOutDrv_GetPin(DIGOUT_PINS eGPO );
 

@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 1.3  2012/02/04 21:49:42  tuberkel
+ * All BeeperDriver functions mapped ==> DigOutDrv()
+ *
  * Revision 1.2  2012/02/04 08:39:39  tuberkel
  * BugFix DigOut PWM
  *
@@ -85,8 +88,8 @@
 /* GPO enumeration */
 typedef enum
 {
-    eGPO_0,       // GPO0
-    eGPO_1,       // GPO1
+    eGPO_0,       // PIN_GPO0
+    eGPO_1,       // PIN_GPO1
 } GPO_ENUM;
 
 

@@ -68,11 +68,14 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.8  2012/02/04 21:49:42  tuberkel
+ * All BeeperDriver functions mapped ==> DigOutDrv()
+ *
  * Revision 3.7  2012/02/04 20:38:05  tuberkel
  * Moved all BeeperDriver / LEDDriver stuff ==> 'digoutdrv'
  *
  * Revision 3.6  2012/02/04 08:36:32  tuberkel
- * - MainDeviceMsg_ShowVehicState() ==> TEST-ACTIVATE GPO0 for 250 ms for Coolride
+ * - MainDeviceMsg_ShowVehicState() ==> TEST-ACTIVATE PIN_GPO0 for 250 ms for Coolride
  * - Some internal functions renamed
  *
  * Revision 3.5  2012/01/23 04:03:17  tuberkel
@@ -1418,7 +1421,7 @@ ERRCODE MainDeviceMsg_ShowVehicState(MESSAGE Msg)
         MSG_BUILD_UINT8(NewMsg, MSG_VEHSTATE_SHOW, 0, 0, 0);
         MsgQPostMsg(NewMsg, MSGQ_PRIO_LOW);
 
-        // TEST: activate GPO0 as Coolride Input!
+        // TEST: activate PIN_GPO0 as Coolride Input!
         GPOSetNewState( eGPO_0,  250, 0, 400 );  // ==> Coolride input
         GPOSetNewState( eGPO_1,  250, 0, 400 );  // ==> juts to view at simulator
 

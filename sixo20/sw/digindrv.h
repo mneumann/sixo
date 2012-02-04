@@ -298,13 +298,6 @@ typedef struct
 
 /* function prototypes */
 
-
-/* function protoypes */
-ERRCODE BeepDrvInit(void);
-ERRCODE BeepDrvSetBeeper(BOOL fActive);
-BOOL    BeepDrvGetBeeper(void);
-
-
 ERRCODE DigInDrv_Init(void);
 
 UINT8   DigInDrv_GetKeyStates(void);

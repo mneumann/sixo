@@ -68,11 +68,14 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.4  2012/02/04 21:49:42  tuberkel
+ * All BeeperDriver functions mapped ==> DigOutDrv()
+ *
  * Revision 3.3  2012/02/04 20:38:05  tuberkel
  * Moved all BeeperDriver / LEDDriver stuff ==> 'digoutdrv'
  *
  * Revision 3.2  2012/01/23 05:43:03  tuberkel
- * GPO1 & 2 activated, if no Tester present
+ * PIN_GPO1 & 2 activated, if no Tester present
  *
  * Revision 3.1  2012/01/14 08:28:42  tuberkel
  * Message-IDs shortened / reviewed
@@ -708,24 +711,24 @@ void HWTestWork ( void )
  *                  real vehicle or with EOL test adapter (end of line).
  *
  *                  We use HBEAM as an example of all testadapter controlled
- *                  digital inputs: The testadapter returns output of GPO1 as
+ *                  digital inputs: The testadapter returns output of PIN_GPO1 as
  *                  inverted signal at HBEAM input!
  *********************************************************************** */
 BOOL HWTestCheckTesterPresent( void )
 {
     int wait;
-    // test: activate GPO1 and validate HBEAM for a very short time
-    GPO1 = 1;                           // activate GPO1
+    // test: activate PIN_GPO1 and validate HBEAM for a very short time
+    PIN_GPO1 = 1;                           // activate PIN_GPO1
     for (wait=0; wait<1000;wait++);
-    if (DigIn_HBeam == 0)               // HBEAM should be invers of GPO1
+    if (DigIn_HBeam == 0)               // HBEAM should be invers of PIN_GPO1
     {
-        GPO1 = 0;                       // de-activate GPO1
+        PIN_GPO1 = 0;                       // de-activate PIN_GPO1
         for (wait=0; wait<1000;wait++);
-        if (DigIn_HBeam == 1)           // HBEAM should be invers of GPO1 again
+        if (DigIn_HBeam == 1)           // HBEAM should be invers of PIN_GPO1 again
              return TRUE;
         else return FALSE;
     }
-    GPO1 = 0;                           // DON'T FORGET to de-activate GPO1!
+    PIN_GPO1 = 0;                           // DON'T FORGET to de-activate PIN_GPO1!
     return FALSE;
 }
 
@@ -815,39 +818,39 @@ void HWTestCheckStimulatedErrors( void )
 #endif
 
     // check TURNL/R digital input and error status
-    if (DigIn_TurnL != GPO1)
+    if (DigIn_TurnL != PIN_GPO1)
          StatObj_TURNL.szText = szOk;
     else StatObj_TURNL.szText = szErr;
-    if (DigIn_TurnR != GPO1)
+    if (DigIn_TurnR != PIN_GPO1)
          StatObj_TURNR.szText = szOk;
     else StatObj_TURNR.szText = szErr;
 
     // check NEUTR digital input and error status
-    if (DigIn_Neutral != GPO1)
+    if (DigIn_Neutral != PIN_GPO1)
          StatObj_NEUTR.szText = szOk;
     else StatObj_NEUTR.szText = szErr;
 
     // check HBEAM digital input and error status
-    if (DigIn_HBeam != GPO1)
+    if (DigIn_HBeam != PIN_GPO1)
          StatObj_HBEAM.szText = szOk;
     else StatObj_HBEAM.szText = szErr;
 
     // check OIL digital input and error status
-    if (DigIn_OilSw != GPO1)
+    if (DigIn_OilSw != PIN_GPO1)
          StatObj_OIL.szText = szOk;
     else StatObj_OIL.szText = szErr;
 
     // check GPI0/1/2/3 digital input and error status
-    if (DigIn_GPI_0 != GPO1)
+    if (DigIn_GPI_0 != PIN_GPO1)
          StatObj_GPI0.szText = szOk;
     else StatObj_GPI0.szText = szErr;
-    if (DigIn_GPI_1 != GPO1)
+    if (DigIn_GPI_1 != PIN_GPO1)
          StatObj_GPI1.szText = szOk;
     else StatObj_GPI1.szText = szErr;
-    if (DigIn_GPI_2 != GPO1)
+    if (DigIn_GPI_2 != PIN_GPO1)
          StatObj_GPI2.szText = szOk;
     else StatObj_GPI2.szText = szErr;
-    if (DigIn_GPI_3 != GPO1)
+    if (DigIn_GPI_3 != PIN_GPO1)
          StatObj_GPI3.szText = szOk;
     else StatObj_GPI3.szText = szErr;
 
@@ -1183,11 +1186,11 @@ void HWTestStimuISR(void)
     // HW stimulation only if HW testadapter found
     if ( gfEOLTest == TRUE )
     {
-        // toggle GPO0 as WHEEL & RPM stimulation with 10 Hz
-        GPO0 = (fGPO0 == TRUE) ? 1 : 0;
+        // toggle PIN_GPO0 as WHEEL & RPM stimulation with 10 Hz
+        PIN_GPO0 = (fGPO0 == TRUE) ? 1 : 0;
 
-        // slowly toggle GPO1 for all GPIs and digital inputs every second
-        GPO1 = (fGPO1 == TRUE) ? 1 : 0;
+        // slowly toggle PIN_GPO1 for all GPIs and digital inputs every second
+        PIN_GPO1 = (fGPO1 == TRUE) ? 1 : 0;
 
         //  toggle uart tx pins to stimualte rx (uart0/1 invers)
         Uart0_TX = (fGPO1 == TRUE) ? 1 : 0;
@@ -1198,9 +1201,10 @@ void HWTestStimuISR(void)
     // single triggered tests every second
     {   static BOOL fGPO1_OldState = FALSE;
         if (fGPO1_OldState != fGPO1)
-        {   // activate beeper
-            BeepDrvSetBeeper(TRUE);
-            BeepDrvSetBeeper(FALSE);
+        {
+            // short time toggle beeper
+            DigOutDrv_SetPin( eDIGOUT_BEEP, DIGOUT_ON  );
+            DigOutDrv_SetPin( eDIGOUT_BEEP, DIGOUT_OFF );
 
             // save state
             fGPO1_OldState = fGPO1;
@@ -1232,8 +1236,8 @@ void HWTestStimuISR(void)
     if (  (DigInDrv_GetKeyStates() & (KEYFL_DOWN | KEYFL_UP | KEYFL_OK))
         ||(  ( WheelPort == TRUE    )
            &&( gfEOLTest == FALSE ) ) )
-         BeepDrvSetBeeper(TRUE);
-    else BeepDrvSetBeeper(FALSE);
+         DigOutDrv_SetPin( eDIGOUT_BEEP, DIGOUT_ON );
+    else DigOutDrv_SetPin( eDIGOUT_BEEP, DIGOUT_OFF );
 
     // optional disply tests (simultanous Contrast/Backlight)
     // VARY_DISPLAY: this code permanentely dims backlight from off to maximum
@@ -1261,7 +1265,7 @@ void HWTestStimuISR(void)
         LCDDrvSetBacklightLevel( TRUE, 63 );
     #endif // VARY_DISPLAY
 
-    // activate LEDs as pairs (controlled by GPO1)
+    // activate LEDs as pairs (controlled by PIN_GPO1)
     if (fGPO1 == 1)
     {   LEDDrvSetLED(LEDDRV_NEUTR, TRUE);
         LEDDrvSetLED(LEDDRV_TURN,  FALSE);
@@ -1279,16 +1283,16 @@ void HWTestStimuISR(void)
         LEDDrvSetLED(LEDDRV_ERR,   TRUE);
     }
 
-    // addionally toggle GPO0 & GPO1 - if NO tester present!
+    // addionally toggle PIN_GPO0 & PIN_GPO1 - if NO tester present!
     if ( gfEOLTest == FALSE )
     {
         if (fGPO1 == 1)
-        {   GPO0 = 1;
-            GPO1 = 0;
+        {   PIN_GPO0 = 1;
+            PIN_GPO1 = 0;
         }
         else
-        {   GPO0 = 0;
-            GPO1 = 1;
+        {   PIN_GPO0 = 0;
+            PIN_GPO1 = 1;
         }
     }
 }
