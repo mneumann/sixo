@@ -61,7 +61,20 @@
  *  merchantability, fitness for a particular purpose, and
  *  non-infringement.
  *
+ *  --------------------------------------------------------------------
+ *
+ *  CVS History
+ *
+ *  This information is automatically added while 'commit' the
+ *  changes to CVC ('Log message'):
+ *
+ * $Log$
+ * Revision 3.2  2012/02/04 08:33:13  tuberkel
+ * BugFix DigOut PWM
+ *
+ *
  ************************************************************************ */
+
 
  #include "standard.h"
  #include "sfr62p.h"
@@ -120,12 +133,12 @@ ERRCODE DigOutSetGPO(DIGOUT_GPOS eGPO, BOOL fActivate)
 {
     switch (eGPO)
     {
-        case DIGOUT_GPO0:
+        case eDIGOUT_GPO0:
             if (fActivate)
                  GPO0  = 1;
             else GPO0  = 0;
             break;
-        case DIGOUT_GPO1:
+        case eDIGOUT_GPO1:
             if (fActivate)
                  GPO1 = 1;
             else GPO1 = 0;
@@ -150,8 +163,8 @@ BOOL DigOutGetGPO( DIGOUT_GPOS eGPO )
     BOOL fActivated;
     switch (eGPO)
     {
-        case DIGOUT_GPO0:   fActivated = GPO0; break;
-        case DIGOUT_GPO1:   fActivated = GPO1; break;
+        case eDIGOUT_GPO0:   fActivated = GPO0; break;
+        case eDIGOUT_GPO1:   fActivated = GPO1; break;
         default: return fActivated = FALSE;
      }
     return fActivated;

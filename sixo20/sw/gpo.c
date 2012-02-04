@@ -60,6 +60,18 @@
  *  merchantability, fitness for a particular purpose, and
  *  non-infringement.
  *
+ *  --------------------------------------------------------------------
+ *
+ *  CVS History
+ *
+ *  This information is automatically added while 'commit' the
+ *  changes to CVC ('Log message'):
+ *
+ * $Log$
+ * Revision 1.2  2012/02/04 08:33:37  tuberkel
+ * BugFix DigOut PWM
+ *
+ *
  ************************************************************************ */
 
 #include <string.h>
@@ -74,7 +86,7 @@
 
 
 /* global symbols */
-GPOTIMINGTYPE GpoTiming[GPO_MAX];     // GPO control array
+GPOTIMINGTYPE GpoTiming[GPO_COUNT];     // GPO control array
 
 
 /***********************************************************************
@@ -95,9 +107,6 @@ ERRCODE GPOInit(void)
     /* reset low level HW */
     RValue = DigOutInit();
 
-    /* TEST GPO PWM */
-    GPOSetNewState(GPO_0, 100, 100, 0 );
-    GPOSetNewState(GPO_0, 500, 500, 0 );
     return RValue;
 }
 
@@ -121,17 +130,17 @@ ERRCODE GPOService(void)
     GPO_ENUM    eGpo;
 
     /* loop over available Gpos */
-    for ( eGpo = GPO_0; eGpo < GPO_1; eGpo++ )
+    for ( eGpo = 0; eGpo < GPO_COUNT; eGpo++ )
     {
         /* -------------------------------------------- */
         /* control only, if Duration > 0 */
-        if ( GpoTiming[eGpo].wDurationTicks > 0 )
+        if ( GpoTiming[eGpo].dwDurTicks > 0 )
         {
             /* count down our duration timer */
-            GpoTiming[eGpo].wDurationTicks--;
+            GpoTiming[eGpo].dwDurTicks--;
 
             /* right now expired? */
-            if ( GpoTiming[eGpo].wDurationTicks == 0 )
+            if ( GpoTiming[eGpo].dwDurTicks == 0 )
             {   DigOutSetGPO(eGpo, GPO_OFF);         /* assure GPO being off now for ever! */
             }
             else
@@ -190,9 +199,9 @@ ERRCODE GPOService(void)
  *  FUNCTION:       GPOSetNewState
  *  DESCRIPTION:    setup of GPO PWM signal (granularity in ticks = 20 ms)
  *  PARAMETER:      eGPO            index of GPO to be controlled
- *                  wOn_ms          cyclic GPO ON time in millisec
- *                  wOff_ms         cyclic GPO OFF time in millisec
- *                  wDuration_ms    overall duration of PWM in millisec
+ *                  wOn_ms          cyclic GPO ON time in millisec (max.3 sec.)
+ *                  wOff_ms         cyclic GPO OFF time in millisec (max.3 sec.)
+ *                  wDuration_ms    overall duration of PWM in millisec (max.60 sec.)
  *  RETURN:         error code
  *  COMMENT:        wOff_ms = 0         eq. 'permanent ON'
  *                  wOn_ms = 0          eq. 'permanent OFF'
@@ -208,7 +217,7 @@ ERRCODE GPOSetNewState(GPO_ENUM eGpo, UINT16 wOn_ms, UINT16 wOff_ms, UINT16 wDur
     ERRCODE RValue = ERR_OK;
 
     /* check: valid GPO index? */
-    if ( ( eGpo <= GPO_MIN ) || ( eGpo >= GPO_MAX ) )
+    if ( eGpo >= GPO_COUNT )
     {   ODS1(DBG_SYS,DBG_WARNING,"GPOSetNewState() Invalid index %u", eGpo );
         RValue = ERR_OUT_OF_RANGE;
         return (RValue);
@@ -223,18 +232,18 @@ ERRCODE GPOSetNewState(GPO_ENUM eGpo, UINT16 wOn_ms, UINT16 wOff_ms, UINT16 wDur
          wDuration_ms += MS_PER_TICK;
 
     /* check: any changes? */
-    if (  ( GpoTiming[eGpo].wOnTicks        == MS2TICKS(wOn_ms)       )
-        &&( GpoTiming[eGpo].wOffTicks       == MS2TICKS(wOff_ms)      )
-        &&( GpoTiming[eGpo].wDurationTicks  == MS2TICKS(wDuration_ms) ) )
+    if (  ( GpoTiming[eGpo].wOnTicks    == MS2TICKS(wOn_ms)       )
+        &&( GpoTiming[eGpo].wOffTicks   == MS2TICKS(wOff_ms)      )
+        &&( GpoTiming[eGpo].dwDurTicks  == MS2TICKSL(wDuration_ms)) )
     {   //ODS1(DBG_SYS,DBG_INFO,"GPOSetNewState() - no changes for GPO[%s]", GPOgetName(eGpo) );
         RValue = ERR_OK;
         return (RValue);
     }
 
     /* ok, save new PWM timings (assure at least one tick, intervall is < 1 tick!) */
-    GpoTiming[eGpo].wOnTicks         = MS2TICKS(wOn_ms      );
-    GpoTiming[eGpo].wOffTicks        = MS2TICKS(wOff_ms     );
-    GpoTiming[eGpo].wDurationTicks   = MS2TICKS(wDuration_ms);
+    GpoTiming[eGpo].wOnTicks    = MS2TICKS(wOn_ms      );
+    GpoTiming[eGpo].wOffTicks   = MS2TICKS(wOff_ms     );
+    GpoTiming[eGpo].dwDurTicks  = MS2TICKSL(wDuration_ms);
 
     /* initialize downcounting PWM timers */
     GpoTiming[eGpo].wOnCurrTicks     = GpoTiming[eGpo].wOnTicks;
@@ -245,7 +254,7 @@ ERRCODE GPOSetNewState(GPO_ENUM eGpo, UINT16 wOn_ms, UINT16 wOff_ms, UINT16 wDur
                             GPOGetName(eGpo),
                             GpoTiming[eGpo].wOnTicks,
                             GpoTiming[eGpo].wOffTicks,
-                            GpoTiming[eGpo].wDurationTicks);
+                            GpoTiming[eGpo].dwDurTicks);
 
     /* directly switch GPO to advised mode (ON/OFF, always starts with ON) */
     if ( GpoTiming[eGpo].wOnTicks > 0)
@@ -287,8 +296,8 @@ STRING GPOGetName( GPO_ENUM eGPO )
 
     switch (eGPO)
     {
-        case GPO_0: RValue = "GPO0"; break;
-        case GPO_1: RValue = "GPO1"; break;
+        case eGPO_0: RValue = "GPO0"; break;
+        case eGPO_1: RValue = "GPO1"; break;
         default         : RValue = "?"; break;
     }
     return (RValue);
