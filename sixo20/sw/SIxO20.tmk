@@ -5,7 +5,7 @@
 # All Rights Reserved.
 #
 #	Notice	:	Don't edit.
-#	Date	:	2012 02(February) 02(Thursday) PM.10.39
+#	Date	:	2012 02(February) 04(Saturday) PM.09.30
 #	Project	:	SIxO20
 ####################################################################
 
@@ -52,7 +52,6 @@ clean:
 	$(DELETE) $(OUTDIR)\timer.r30
 	$(DELETE) $(OUTDIR)\device_l.r30
 	$(DELETE) $(OUTDIR)\init_l.r30
-	$(DELETE) $(OUTDIR)\leddrv.r30
 	$(DELETE) $(OUTDIR)\led.r30
 	$(DELETE) $(OUTDIR)\digindrv.r30
 	$(DELETE) $(OUTDIR)\displdrv.r30
@@ -76,7 +75,6 @@ clean:
 	$(DELETE) $(OUTDIR)\sysparam.r30
 	$(DELETE) $(OUTDIR)\tripcnt.r30
 	$(DELETE) $(OUTDIR)\setdev.r30
-	$(DELETE) $(OUTDIR)\beepdrv.r30
 	$(DELETE) $(OUTDIR)\beep.r30
 	$(DELETE) $(OUTDIR)\timedate.r30
 	$(DELETE) $(OUTDIR)\anain.r30
@@ -105,7 +103,6 @@ $(ODINCMD)\$(LNLIST): \
 	$(ECHO)\$(OUTDIR)\timer.r30 >>	$(ODINCMD)\$(LNLIST)
 	$(ECHO)\$(OUTDIR)\device_l.r30 >>	$(ODINCMD)\$(LNLIST)
 	$(ECHO)\$(OUTDIR)\init_l.r30 >>	$(ODINCMD)\$(LNLIST)
-	$(ECHO)\$(OUTDIR)\leddrv.r30 >>	$(ODINCMD)\$(LNLIST)
 	$(ECHO)\$(OUTDIR)\led.r30 >>	$(ODINCMD)\$(LNLIST)
 	$(ECHO)\$(OUTDIR)\digindrv.r30 >>	$(ODINCMD)\$(LNLIST)
 	$(ECHO)\$(OUTDIR)\displdrv.r30 >>	$(ODINCMD)\$(LNLIST)
@@ -129,7 +126,6 @@ $(ODINCMD)\$(LNLIST): \
 	$(ECHO)\$(OUTDIR)\sysparam.r30 >>	$(ODINCMD)\$(LNLIST)
 	$(ECHO)\$(OUTDIR)\tripcnt.r30 >>	$(ODINCMD)\$(LNLIST)
 	$(ECHO)\$(OUTDIR)\setdev.r30 >>	$(ODINCMD)\$(LNLIST)
-	$(ECHO)\$(OUTDIR)\beepdrv.r30 >>	$(ODINCMD)\$(LNLIST)
 	$(ECHO)\$(OUTDIR)\beep.r30 >>	$(ODINCMD)\$(LNLIST)
 	$(ECHO)\$(OUTDIR)\timedate.r30 >>	$(ODINCMD)\$(LNLIST)
 	$(ECHO)\$(OUTDIR)\anain.r30 >>	$(ODINCMD)\$(LNLIST)
@@ -150,7 +146,6 @@ $(OUTDIR)\$(TARGET): \
 		$(OUTDIR)\timer.r30 \
 		$(OUTDIR)\device_l.r30 \
 		$(OUTDIR)\init_l.r30 \
-		$(OUTDIR)\leddrv.r30 \
 		$(OUTDIR)\led.r30 \
 		$(OUTDIR)\digindrv.r30 \
 		$(OUTDIR)\displdrv.r30 \
@@ -174,7 +169,6 @@ $(OUTDIR)\$(TARGET): \
 		$(OUTDIR)\sysparam.r30 \
 		$(OUTDIR)\tripcnt.r30 \
 		$(OUTDIR)\setdev.r30 \
-		$(OUTDIR)\beepdrv.r30 \
 		$(OUTDIR)\beep.r30 \
 		$(OUTDIR)\timedate.r30 \
 		$(OUTDIR)\anain.r30 \
@@ -217,23 +211,13 @@ $(OUTDIR)\beep.r30: \
 		.\stdmsgs.h \
 		.\msgqueue.h \
 		.\timer.h \
-		.\beepdrv.h \
 		.\beep.h \
 		.\debug.h \
 		.\digindrv.h \
 		.\sysparam.h \
-		$(MTOOLINC)\string.h 
+		$(MTOOLINC)\string.h \
+		.\digoutdr.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) beep.c
-$(OUTDIR)\beepdrv.r30: \
-		.\beepdrv.c \
-		.\standard.h \
-		.\beepdrv.h \
-		.\timer.h \
-		.\msgqueue.h \
-		.\stdmsgs.h \
-		.\debug.h \
-		.\sfr62p.h 
-	$(CC) $(MRCFLAGS) $(CFLAGS) beepdrv.c
 $(OUTDIR)\bitmaps.r30: \
 		.\bitmaps.c \
 		.\bitmaps.h 
@@ -304,7 +288,6 @@ $(OUTDIR)\digindrv.r30: \
 		.\digindrv.h \
 		.\measdrv.h \
 		.\digoutdr.h \
-		.\leddrv.h \
 		.\led.h \
 		.\sfr62p.h \
 		.\m16c.h \
@@ -386,7 +369,6 @@ $(OUTDIR)\hwtestdev.r30: \
 		.\sysparam.h \
 		.\anaindrv.h \
 		.\anain.h \
-		.\leddrv.h \
 		.\led.h \
 		.\fonts.h \
 		.\digoutdr.h \
@@ -394,7 +376,6 @@ $(OUTDIR)\hwtestdev.r30: \
 		.\measure.h \
 		.\m16c.h \
 		.\beep.h \
-		.\beepdrv.h \
 		.\displdrv.h \
 		.\measdrv.h \
 		.\timedate.h \
@@ -460,23 +441,13 @@ $(OUTDIR)\led.r30: \
 		.\standard.h \
 		.\stdmsgs.h \
 		.\msgqueue.h \
-		.\leddrv.h \
 		.\led.h \
 		.\timer.h \
 		.\debug.h \
 		.\digindrv.h \
-		$(MTOOLINC)\string.h 
+		$(MTOOLINC)\string.h \
+		.\digoutdr.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) led.c
-$(OUTDIR)\leddrv.r30: \
-		.\leddrv.c \
-		.\standard.h \
-		.\leddrv.h \
-		.\timer.h \
-		.\msgqueue.h \
-		.\stdmsgs.h \
-		.\debug.h \
-		.\sfr62p.h 
-	$(CC) $(MRCFLAGS) $(CFLAGS) leddrv.c
 $(OUTDIR)\main.r30: \
 		.\main.c \
 		.\standard.h \
@@ -485,7 +456,6 @@ $(OUTDIR)\main.r30: \
 		.\stdmsgs.h \
 		.\msgqueue.h \
 		.\timer.h \
-		.\leddrv.h \
 		.\led.h \
 		.\digindrv.h \
 		.\display.h \
@@ -504,7 +474,8 @@ $(OUTDIR)\main.r30: \
 		.\displdrv.h \
 		$(MTOOLINC)\stdio.h \
 		.\compassdrv.h \
-		.\gpo.h 
+		.\gpo.h \
+		.\digoutdr.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) main.c
 $(OUTDIR)\maindev.r30: \
 		.\maindev.c \
@@ -527,7 +498,8 @@ $(OUTDIR)\maindev.r30: \
 		.\surveill.h \
 		$(MTOOLINC)\stdio.h \
 		$(MTOOLINC)\string.h \
-		.\resource_de.h 
+		.\resource_de.h \
+		.\gpo.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) maindev.c
 $(OUTDIR)\measdrv.r30: \
 		.\measdrv.c \

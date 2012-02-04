@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.3  2012/02/04 20:38:05  tuberkel
+ * Moved all BeeperDriver / LEDDriver stuff ==> 'digoutdrv'
+ *
  * Revision 3.2  2012/02/01 22:33:49  tuberkel
  * PWM-Measurement of GPI0..3 running & ok!
  *
@@ -112,7 +115,6 @@
 #include "measdrv.h"
 #include "digoutdr.h"
 #include "msgqueue.h"
-#include "leddrv.h"
 #include "led.h"
 #include "device.h"
 #include "anaindrv.h"

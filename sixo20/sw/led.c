@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.5  2012/02/04 20:38:05  tuberkel
+ * Moved all BeeperDriver / LEDDriver stuff ==> 'digoutdrv'
+ *
  * Revision 3.4  2012/02/04 08:34:10  tuberkel
  * BugFix LED PWM
  *
@@ -81,7 +84,7 @@
 #include "stdmsgs.h"
 #include "msgqueue.h"
 #include "timer.h"
-#include "leddrv.h"
+#include "digoutdr.h"
 #include "led.h"
 #include "debug.h"
 #include "digindrv.h"
@@ -105,10 +108,7 @@ ERRCODE LEDInit(void)
     /* reset PWM timings */
     memset( &LedTiming, 0x00, sizeof(LEDTIMINGTYPE));
 
-    /* reset low level HW */
-    RValue = LEDDrvInit(FALSE);  // TRUE: leds 'flash' one time
-
-    return RValue;
+    return ERR_OK;
 }
 
 
@@ -352,3 +352,28 @@ STRING LEDGetName( LED_ENUM eLED )
 }
 
 
+
+/***********************************************************************
+ *  FUNCTION:       LEDTest
+ *  DESCRIPTION:
+ *  PARAMETER:      -
+ *  RETURN:         -
+ *  COMMENT:        -
+ *********************************************************************** */
+#if(TESTLED==1)
+void LEDTest(unsigned int loopdelay)
+{
+    LEDDRV_LEDS eLED;
+
+    for (eLED = 0; eLED < LEDDRV_MAX; eLED++)
+    {
+        LEDDrvSetLED(eLED, TRUE);
+        Delay_ms(loopdelay);
+    }
+    for (eLED = 0; eLED < LEDDRV_MAX; eLED++)
+    {
+        LEDDrvSetLED(eLED, FALSE);
+        Delay_ms(loopdelay);
+    }
+}
+#endif //(TESTLED==1)

@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.5  2012/02/04 20:38:05  tuberkel
+ * Moved all BeeperDriver / LEDDriver stuff ==> 'digoutdrv'
+ *
  * Revision 3.4  2012/02/04 08:35:12  tuberkel
  * New: PWM-Testcode (TEST_DIGOUT_PWM==1)
  *
@@ -148,7 +151,7 @@
 #include "timer.h"
 #include "sfr62p.h"
 #include "led.h"
-#include "leddrv.h"
+#include "digoutdr.h"
 #include "digindrv.h"
 #include "gpo.h"
 #include "display.h"

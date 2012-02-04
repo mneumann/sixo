@@ -69,6 +69,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.3  2012/02/04 20:38:05  tuberkel
+ * Moved all BeeperDriver / LEDDriver stuff ==> 'digoutdrv'
+ *
  * Revision 3.2  2012/02/04 08:33:13  tuberkel
  * BugFix DigOut PWM
  *
@@ -96,13 +99,21 @@
  *********************************************************************** */
 ERRCODE DigOutInit(void)
 {
+    /* Beeper port pin */
+    fBeep   = 0;    /* switch off output */
+    fBeep_D = 1;    /* enabled output */
 
-#if(DEBUG==1)
-    /* TEST: Port p3_2/3/4 for ossi checks */
-    p3   = p3 & (~0x1c);   /* clear output of p3_2/3/4 */
-    pd3  = p3 |   0x1c;    /* set p3_2/3/4 to output */
-    // use macros TOGGLE_PAD9/10/11 for further tests
-#endif
+  /* switch off all leds */
+    p9 &= ~LEDS_ALL;    // LED pins only !
+
+    /* switch all led port direction register to 'output' */
+    prc2 = 1;           // unprotect pd9 by prc2
+    pd9  = LEDS_ALL;    // bits 3 and 4 reserved for display!
+                        // (prc2 automatic falls back to protection)
+
+    /* switch on LED brightness control */
+    pd8_0 = 1;          // port direction to OUTPUT
+    p8_0  = 1;          // enable LED common current control transistor
 
     /* set general purpose outputs GPO0/1 to prevent damage */
     p3_0 = 0;
@@ -111,9 +122,161 @@ ERRCODE DigOutInit(void)
     pd3_1 = 1;
     // use macros GPO0/1 for further use
     ODS(DBG_DRV,DBG_INFO,"DigOutInit() done!");
+
+
+    /* 'test flash' to display init success? */
+    #if(TEST_LED_PORTS==1)
+    if (fFlash == TRUE)
+    {
+        p9 = LEDS_ALL;      // all LEDs on
+        Delay_ms(500);      // wait
+        p9 &= ~LEDS_ALL;    // all LEDs off
+    }
+    #endif
+
+    /* TEST: Port p3_2/3/4 for ossi checks */
+    #if(TEST_TOGGLEPADS_PORTS==1)
+    p3   = p3 & (~0x1c);   /* clear output of p3_2/3/4 */
+    pd3  = p3 |   0x1c;    /* set p3_2/3/4 to output */
+    // use macros TOGGLE_PAD9/10/11 for further tests
+    #endif
+
     return ERR_OK;
 }
 
+
+
+
+/***********************************************************************
+ *  FUNCTION:       BeepDrvSetBeeper()
+ *  DESCRIPTION:    switches beeper on/off
+ *  PARAMETER:      BOOL    fActive     TRUE = on
+ *  RETURN:         error code
+ *  COMMENT:        -
+ *********************************************************************** */
+ERRCODE BeepDrvSetBeeper(BOOL fActive)
+{
+    fBeep = (fActive == TRUE) ? 1 : 0;
+    if (fActive == TRUE)
+         fBeep   = 1;    /* switch ON output */
+    else fBeep   = 0;    /* switch OFF output */
+    return ERR_OK;
+}
+
+
+
+/***********************************************************************
+ *  FUNCTION:       BeepDrvGetBeeper()
+ *  DESCRIPTION:    returns current beeper pin state
+ *  PARAMETER:      -
+ *  RETURN:         BOOL    fActive     TRUE = on
+ *  COMMENT:        -
+ *********************************************************************** */
+BOOL BeepDrvGetBeeper(void)
+{
+    return ( fBeep );
+}
+
+
+
+/***********************************************************************
+ *  FUNCTION:       LEDDrvSetLED()
+ *  DESCRIPTION:    control over one single LED
+ *  PARAMETER:      eLED            LED indicator
+ *                  fActivate       TRUE = LED on
+ *  RETURN:         ERR_OK          ok
+ *                  ERR_PARAM_ERR   parameter error
+ *  COMMENT:        LED State could have been set _directly_ with
+ *                  given parameter. But we here distinguish
+ *                  the true/false states to support separate debugging
+ *                  breakpoints for both states.
+ *********************************************************************** */
+ERRCODE LEDDrvSetLED(LEDDRV_LEDS eLED, BOOL fActivate)
+{
+    switch (eLED)
+    {
+        case LEDDRV_WARN:
+            if (fActivate)
+                 fLEDDrv_Warn  = 1;
+            else fLEDDrv_Warn  = 0;
+            break;
+        case LEDDRV_ERR:
+            if (fActivate)
+                 fLEDDrv_Err = 1;
+            else fLEDDrv_Err = 0;
+            break;
+        case LEDDRV_INFO:
+            if (fActivate)
+                 fLEDDrv_Info = 1;
+            else fLEDDrv_Info = 0;
+            break;
+        case LEDDRV_BEAM:
+            if (fActivate)
+                 fLEDDrv_Beam = 1;
+            else fLEDDrv_Beam = 0;
+            break;
+        case LEDDRV_NEUTR:
+            if (fActivate)
+                 fLEDDrv_Neutr = 1;
+            else fLEDDrv_Neutr = 0;
+            break;
+        case LEDDRV_TURN:
+            if (fActivate)
+                 fLEDDrv_Turn  = 1;
+            else fLEDDrv_Turn  = 0;
+            break;
+        default:
+            return ERR_PARAM_ERR;
+     }
+    return ERR_OK;
+}
+
+
+
+/***********************************************************************
+ *  FUNCTION:       LEDDrvGetLED()
+ *  DESCRIPTION:    Returns current state of single LED
+ *  PARAMETER:      eLED            LED indicator
+ *  RETURN:         fActivate       TRUE  = LED on
+ *                                  FALSE = LED off
+ *  COMMENT:        -
+ *********************************************************************** */
+BOOL LEDDrvGetLED( LEDDRV_LEDS eLED )
+{
+    BOOL fActivated;
+    switch (eLED)
+    {
+        case LEDDRV_WARN:   fActivated = fLEDDrv_Warn;  break;
+        case LEDDRV_ERR:    fActivated = fLEDDrv_Err  ; break;
+        case LEDDRV_INFO:   fActivated = fLEDDrv_Info ; break;
+        case LEDDRV_BEAM:   fActivated = fLEDDrv_Beam ; break;
+        case LEDDRV_NEUTR:  fActivated = fLEDDrv_Neutr; break;
+        case LEDDRV_TURN:   fActivated = fLEDDrv_Turn ; break;
+        default: return fActivated = FALSE;
+     }
+    return fActivated;
+}
+
+
+
+/***********************************************************************
+ *  FUNCTION:       LEDDrvSetBright
+ *  DESCRIPTION:    Switches common LED current control on/off
+ *  PARAMETER:      bBrightness     0..255  brightness (0=off)
+ *  RETURN:         ERR_OK
+ *  COMMENT:        Simply enables/disables LEDs:
+ *                      0:  all LEDs off
+ *                      >0: all LEDs on
+ *
+ *  T.B.D.: Common LED Brightness Control p8_0 will have to be done with
+ *          analogue signal instead of digital switch yet.
+ *
+ *********************************************************************** */
+ERRCODE LEDDrvSetBright(unsigned char bBrightness)
+{
+    fLEDDrv_Cntrl = (bBrightness == 0) ? 0 : 1;   // set control
+    return(ERR_OK);
+}
 
 
 

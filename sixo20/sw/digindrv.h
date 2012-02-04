@@ -66,6 +66,9 @@
 
 
 
+
+
+
 /* keyboard ports */
 /* port 2_6 and 2_7 reserved for output purpose */
 
@@ -294,6 +297,14 @@ typedef struct
 
 
 /* function prototypes */
+
+
+/* function protoypes */
+ERRCODE BeepDrvInit(void);
+ERRCODE BeepDrvSetBeeper(BOOL fActive);
+BOOL    BeepDrvGetBeeper(void);
+
+
 ERRCODE DigInDrv_Init(void);
 
 UINT8   DigInDrv_GetKeyStates(void);

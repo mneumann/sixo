@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.3  2012/02/04 20:38:05  tuberkel
+ * Moved all BeeperDriver / LEDDriver stuff ==> 'digoutdrv'
+ *
  * Revision 3.2  2012/02/04 08:39:10  tuberkel
  * BugFix DigOut PWM
  *
@@ -76,6 +79,54 @@
 
 
 ERRCODE DigOutInit(void);
+
+
+/* redefine of port register of sfr62p.h for readability */
+
+#define LEDDrv_Port     p9      // Attention: M16C port p9 is protected by prc2!!!
+
+#define fLEDDrv_Warn    p9_1   // D11 pin assignement of led
+#define fLEDDrv_Err     p9_0   // D10
+#define fLEDDrv_Info    p9_5   // D9
+#define fLEDDrv_Beam    p9_2   // D5
+#define fLEDDrv_Neutr   p9_7   // D4
+#define fLEDDrv_Turn    p9_6   // D3
+
+#define fLEDDrv_Cntrl   p8_0    // pin controls common LED current over transistor Q14
+
+
+/* mask for LED access on p9 (p9 mixed with display pins) */
+#define LEDS_ALL        0xe7    // all led pins excepting p9_3 + p9_4
+
+
+
+/* led driver LED enumeration */
+typedef enum
+{
+    LEDDRV_MIN,     // INVALID index, just for loops..
+    LEDDRV_NEUTR,   // D4,  yellow     green
+    LEDDRV_TURN,    // D3,  green      green
+    LEDDRV_INFO,    // D9,  yellow     white
+    LEDDRV_BEAM,    // D5,  blue       blue
+    LEDDRV_WARN,    // D11, orange     orange
+    LEDDRV_ERR,     // D10, red        red
+    LEDDRV_MAX      // INVALID index, just for loops..
+} LEDDRV_LEDS;
+
+
+/* function protoypes */
+ERRCODE LEDDrvInit      ( BOOL fFlash );
+ERRCODE LEDDrvSetLED    ( LEDDRV_LEDS bLEDIndex, BOOL fActivate);
+ERRCODE LEDDrvSetBright ( unsigned char bBrightness);
+BOOL    LEDDrvGetLED    ( LEDDRV_LEDS eLED );
+
+
+
+/* redefine of port register of sfr62p.h for readability */
+#define fBeep_D         pd8_7   /* beeper out pin direction register */
+#define fBeep           p8_7    /* beeper out pin */
+
+
 
 
 #if(TOGGLE_PADS==1)

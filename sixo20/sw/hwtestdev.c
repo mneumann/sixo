@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.3  2012/02/04 20:38:05  tuberkel
+ * Moved all BeeperDriver / LEDDriver stuff ==> 'digoutdrv'
+ *
  * Revision 3.2  2012/01/23 05:43:03  tuberkel
  * GPO1 & 2 activated, if no Tester present
  *
@@ -132,7 +135,6 @@
 #include "sysparam.h"
 #include "anaindrv.h"
 #include "anain.h"
-#include "leddrv.h"
 #include "led.h"
 #include "fonts.h"
 #include "digoutdr.h"
@@ -140,7 +142,6 @@
 #include "measure.h"
 #include "m16c.h"
 #include "beep.h"
-#include "beepdrv.h"
 #include "displdrv.h"
 #include "measdrv.h"
 #include "timedate.h"

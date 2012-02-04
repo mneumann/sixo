@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.4  2012/02/04 20:38:05  tuberkel
+ * Moved all BeeperDriver / LEDDriver stuff ==> 'digoutdrv'
+ *
  * Revision 3.3  2012/01/14 10:26:44  tuberkel
  * LED PWM handling changed:
  * - no longer Msgs/TimerMsgs used (inaccurate optic)
@@ -112,7 +115,7 @@
 #include "stdmsgs.h"
 #include "msgqueue.h"
 #include "timer.h"
-#include "beepdrv.h"
+#include "digoutdr.h"
 #include "beep.h"
 #include "debug.h"
 #include "digindrv.h"
@@ -140,9 +143,7 @@ ERRCODE BeepInit(void)
     /* reset PWM timings */
     memset( &BeepTiming, 0x00, sizeof(BEEPTIMINGTYPE));
 
-    /* reset hw */
-    RValue = BeepDrvInit();
-    return RValue;
+    return ERR_OK;
 }
 
 
