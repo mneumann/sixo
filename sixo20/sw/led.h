@@ -60,7 +60,20 @@
  *  merchantability, fitness for a particular purpose, and
  *  non-infringement.
  *
+ *  --------------------------------------------------------------------
+ *
+ *  CVS History
+ *
+ *  This information is automatically added while 'commit' the
+ *  changes to CVC ('Log message'):
+ *
+ * $Log$
+ * Revision 3.3  2012/02/04 08:40:26  tuberkel
+ * BugFix LED PWM
+ *
+ *
  ************************************************************************ */
+
 
 #ifndef _LED_H
 #define _LED_H
@@ -92,11 +105,11 @@ typedef enum
 /* LED PWM timing */
 typedef struct
 {
-    UINT16  wOnTicks;           /* Beep ON duration in ticks (reload value) */
-    UINT16  wOffTicks;          /* Beep OFF duration in ticks (reload value) */
-    UINT16  wDurationTicks;     /* Beep duration in ticks */
-    UINT16  wOnCurrTicks;       /* Beep On PWM timer - counting done */
-    UINT16  wOffCurrTicks;      /* Beep Off PWM timer - counting done */
+    UINT16  wOnTicks;           /* Led ON duration in ticks (reload value) */
+    UINT16  wOffTicks;          /* Led OFF duration in ticks (reload value) */
+    UINT32  dwDurTicks;         /* Led duration in ticks */
+    UINT16  wOnCurrTicks;       /* Led On  PWM timer (current counter state) */
+    UINT16  wOffCurrTicks;      /* Led Off PWM timer (current counter state) */
 } LEDTIMINGTYPE;
 
 
