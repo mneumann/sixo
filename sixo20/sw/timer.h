@@ -14,7 +14,7 @@
  *  Comments:       -
  *
  *  --------------------------------------------------------------------
- * 
+ *
  *  Compiler:       Renesas NC30WA V.5.00 Release 2
  *  Options:        -
  *
@@ -23,33 +23,33 @@
  *  Licence details
  *
  *  This software is copyright © 2001-2004 by N&K Development, Germany
- *  
- *  You can redistribute it and/or modify it under the terms of the 
- *  GNU General Public License version 2 as published by the 
- *  Free Software Foundation. 
- *  
- *  This program is distributed in the hope that it will be useful, 
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of 
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+ *
+ *  You can redistribute it and/or modify it under the terms of the
+ *  GNU General Public License version 2 as published by the
+ *  Free Software Foundation.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  *  GNU General Public License for more details.
- *  
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, 
+ *  Foundation, Inc., 59 Temple Place - Suite 330, Boston,
  *  MA  02111-1307, USA.
  *
  *  To purchase support or enhancements for this software, contact:
- *  
- *      N&K Development                     N&K Development         
- *      Arnold Neugebauer                   Ralf Schwarzer            
- *      Stöckener Str. 115                  Hudeplan 37 A            
- *      30419 Hannover                      30453 Hannover     
+ *
+ *      N&K Development                     N&K Development
+ *      Arnold Neugebauer                   Ralf Schwarzer
+ *      Stöckener Str. 115                  Hudeplan 37 A
+ *      30419 Hannover                      30453 Hannover
  *      arnold.neugebauer@web.de            ralf.schwarzer@htp-tel.de
- *      
+ *
  *      or try http://www.sixo.de
  *
  *  --------------------------------------------------------------------
- * 
+ *
  *  Disclaimer of warrenty
  *
  *  The software is provided as is without warranties of
@@ -60,7 +60,21 @@
  *  merchantability, fitness for a particular purpose, and
  *  non-infringement.
  *
+ *  --------------------------------------------------------------------
+ *
+ *  CVS History
+ *
+ *  This information is automatically added while 'commit' the
+ *  changes to CVC ('Log message'):
+ *
+ * $Log$
+ * Revision 3.1  2012/02/04 08:41:04  tuberkel
+ * New: MS2TICKSL - long version
+ *
+ *
  ************************************************************************ */
+
+
 #ifndef _TIMER_H
 #define _TIMER_H
 
@@ -70,7 +84,7 @@
 
 
 /* hardware settings */
-#define FQUARTZ     3686400L    // used Quartz                       
+#define FQUARTZ     3686400L    // used Quartz
 #define PLL_FACT    4L          // used PLL factor
 #define FSYS        (4*FQUARTZ) // = 14745600L FSYS with PLL-factor
 
@@ -79,8 +93,8 @@
  *                -> act. value: 50 Hz
  *                -> to change this value look at InitTimerHW() */
 #define TICKS_PER_SECOND    50  // in Hz, for use in common software
-#define TICKS_PER_SECL      50L // in Hz, for use in Timer Init calculation with FSYS 
-#define MSEC              1000L // in ms/second, for use in Timer Init calculation with FSYS 
+#define TICKS_PER_SECL      50L // in Hz, for use in Timer Init calculation with FSYS
+#define MSEC              1000L // in ms/second, for use in Timer Init calculation with FSYS
 
 #define MS_PER_TICK       MSEC/TICKS_PER_SECOND // in ms/Tick, cyccle time, with which the 50-Hz-timer ISR will be callled
 
@@ -104,6 +118,7 @@ typedef struct
 /* macros to convert seconds to timerticks and vice versa */
 /* change milliseconds to ticks */
 #define MS2TICKS(x)        ((x)*TICKS_PER_SECOND/1000)
+#define MS2TICKSL(x)       ((x)*TICKS_PER_SECL/1000L)
 /* change seconds to ticks */
 #define SEC2TICKS(x)        ((x)*TICKS_PER_SECOND)
 /* change ticks to milliseconds */
