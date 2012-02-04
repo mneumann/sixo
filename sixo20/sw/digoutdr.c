@@ -69,6 +69,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.6  2012/02/04 22:25:49  tuberkel
+ * LEDs renamed
+ *
  * Revision 3.5  2012/02/04 21:59:15  tuberkel
  * Toggle Pads renamed
  *
@@ -102,7 +105,7 @@
  *                  destroying transistors, should be called as early as
  *                  possible
  *********************************************************************** */
-ERRCODE DigOutInit(void)
+ERRCODE DigOutDrv_Init(void)
 {
     /* --------------------------------------------------------- */
     /* set general purpose outputs GPO0/1 to prevent damage */
@@ -120,16 +123,16 @@ ERRCODE DigOutInit(void)
     /* LED ports */
 
     /* switch off all leds */
-    p9 &= ~LEDS_ALL;    // LED pins only !
+    PORT_LED &= ~PORT_LED_MASK;     // LED pins only !
 
     /* switch all led port direction register to 'output' */
-    prc2 = 1;           // unprotect pd9 by prc2
-    pd9  = LEDS_ALL;    // bits 3 and 4 reserved for display!
-                        // (prc2 automatic falls back to protection)
+    prc2       = 1;                 // unprotect pd9 by prc2
+    PORT_LED_D = PORT_LED_MASK;     // bits 3 and 4 reserved for display!
+                                    // (prc2 automatic falls back to protection)
 
     /* switch on LED brightness control */
-    pd8_0 = 1;          // port direction to OUTPUT
-    p8_0  = 1;          // enable LED common current control transistor
+    PIN_LED_BRIGHT_D = 1;          // port direction to OUTPUT
+    PIN_LED_BRIGHT   = 1;          // enable LED common current control transistor
 
 
     /* --------------------------------------------------------- */
@@ -137,24 +140,24 @@ ERRCODE DigOutInit(void)
 
 
     // use macros PIN_GPO0/1 for further use
-    ODS(DBG_DRV,DBG_INFO,"DigOutInit() done!");
+    ODS(DBG_DRV,DBG_INFO,"DigOutDrv_Init() done!");
 
 
     /* 'test flash' to display init success? */
     #if(TEST_LED_PORTS==1)
     if (fFlash == TRUE)
     {
-        p9 = LEDS_ALL;      // all LEDs on
+        PORT_LED = PORT_LED_MASK;      // all LEDs on
         Delay_ms(500);      // wait
-        p9 &= ~LEDS_ALL;    // all LEDs off
+        PORT_LED &= ~PORT_LED_MASK;    // all LEDs off
     }
     #endif
 
     /* TEST: Port p3_2/3/4 for ossi checks */
     #if(TEST_TOGGLEPADS_PORTS==1)
-    p3   = p3 & (~0x1c);   /* clear output of p3_2/3/4 */
-    pd3  = p3 |   0x1c;    /* set p3_2/3/4 to output */
-    // use macros PIN_PAD9_TOGGLE/10/11 for further tests
+    PORT_TESTPAD   = PORT_TESTPAD   & (~PORT_TESTPAD_MASK);   /* clear output of p3_2/3/4 */
+    PORT_TESTPAD_D = PORT_TESTPAD_D |   PORT_TESTPAD_MASK;    /* set p3_2/3/4 to output */
+    // use macros PIN_TESTPAD9_TOGGLE/10/11 for further tests
     #endif
 
     return ERR_OK;
@@ -182,33 +185,33 @@ ERRCODE LEDDrvSetLED(LEDDRV_LEDS eLED, BOOL fActivate)
     {
         case LEDDRV_WARN:
             if (fActivate)
-                 fLEDDrv_Warn  = 1;
-            else fLEDDrv_Warn  = 0;
+                 PIN_LED_WARN  = 1;
+            else PIN_LED_WARN  = 0;
             break;
         case LEDDRV_ERR:
             if (fActivate)
-                 fLEDDrv_Err = 1;
-            else fLEDDrv_Err = 0;
+                 PIN_LED_ERR = 1;
+            else PIN_LED_ERR = 0;
             break;
         case LEDDRV_INFO:
             if (fActivate)
-                 fLEDDrv_Info = 1;
-            else fLEDDrv_Info = 0;
+                 PIN_LED_INFO = 1;
+            else PIN_LED_INFO = 0;
             break;
         case LEDDRV_BEAM:
             if (fActivate)
-                 fLEDDrv_Beam = 1;
-            else fLEDDrv_Beam = 0;
+                 PIN_LED_HBEAM = 1;
+            else PIN_LED_HBEAM = 0;
             break;
         case LEDDRV_NEUTR:
             if (fActivate)
-                 fLEDDrv_Neutr = 1;
-            else fLEDDrv_Neutr = 0;
+                 PIN_LED_NEUTR = 1;
+            else PIN_LED_NEUTR = 0;
             break;
         case LEDDRV_TURN:
             if (fActivate)
-                 fLEDDrv_Turn  = 1;
-            else fLEDDrv_Turn  = 0;
+                 PIN_LED_TURN  = 1;
+            else PIN_LED_TURN  = 0;
             break;
         default:
             return ERR_PARAM_ERR;
@@ -231,12 +234,12 @@ BOOL LEDDrvGetLED( LEDDRV_LEDS eLED )
     BOOL fActivated;
     switch (eLED)
     {
-        case LEDDRV_WARN:   fActivated = fLEDDrv_Warn;  break;
-        case LEDDRV_ERR:    fActivated = fLEDDrv_Err  ; break;
-        case LEDDRV_INFO:   fActivated = fLEDDrv_Info ; break;
-        case LEDDRV_BEAM:   fActivated = fLEDDrv_Beam ; break;
-        case LEDDRV_NEUTR:  fActivated = fLEDDrv_Neutr; break;
-        case LEDDRV_TURN:   fActivated = fLEDDrv_Turn ; break;
+        case LEDDRV_WARN:   fActivated = PIN_LED_WARN;  break;
+        case LEDDRV_ERR:    fActivated = PIN_LED_ERR  ; break;
+        case LEDDRV_INFO:   fActivated = PIN_LED_INFO ; break;
+        case LEDDRV_BEAM:   fActivated = PIN_LED_HBEAM ; break;
+        case LEDDRV_NEUTR:  fActivated = PIN_LED_NEUTR; break;
+        case LEDDRV_TURN:   fActivated = PIN_LED_TURN ; break;
         default: return fActivated = FALSE;
      }
     return fActivated;
@@ -259,7 +262,7 @@ BOOL LEDDrvGetLED( LEDDRV_LEDS eLED )
  *********************************************************************** */
 ERRCODE LEDDrvSetBright(unsigned char bBrightness)
 {
-    fLEDDrv_Cntrl = (bBrightness == 0) ? 0 : 1;   // set control
+    PIN_LED_BRIGHT = (bBrightness == 0) ? 0 : 1;   // set control
     return(ERR_OK);
 }
 

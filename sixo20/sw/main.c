@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.6  2012/02/04 22:25:49  tuberkel
+ * LEDs renamed
+ *
  * Revision 3.5  2012/02/04 20:38:05  tuberkel
  * Moved all BeeperDriver / LEDDriver stuff ==> 'digoutdrv'
  *
@@ -287,10 +290,10 @@ int main()
         LCDDrvSetBacklightLevel(TRUE, 63);  // switch on Backlight
         if(gbLogoDelay > 0)                 // only if enabled by user:
         {   IntroScreenShow(TRUE);          //    show 'splash screen'
-            p9 = LEDS_ALL;                  //    all LEDs on
+            PORT_LED = PORT_LED_MASK;       //    all LEDs on
             Delay_ms(gbLogoDelay*100);      //    wait (given in 1/10 sec, set as ms)
             IntroScreenShow(FALSE);         //    clear 'splash screen'
-            p9 &= ~LEDS_ALL;                //    all LEDs off
+            PORT_LED &= ~PORT_LED_MASK;     //    all LEDs off
         }
 
         /* Register cyclicely called (50Hz) fast functions --------- */

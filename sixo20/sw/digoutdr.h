@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.6  2012/02/04 22:25:49  tuberkel
+ * LEDs renamed
+ *
  * Revision 3.5  2012/02/04 21:59:15  tuberkel
  * Toggle Pads renamed
  *
@@ -84,25 +87,6 @@
  ************************************************************************ */
 
 
-ERRCODE DigOutInit(void);
-
-
-/* redefine of port register of sfr62p.h for readability */
-
-#define LEDDrv_Port     p9      // Attention: M16C port p9 is protected by prc2!!!
-
-#define fLEDDrv_Warn    p9_1   // D11 pin assignement of led
-#define fLEDDrv_Err     p9_0   // D10
-#define fLEDDrv_Info    p9_5   // D9
-#define fLEDDrv_Beam    p9_2   // D5
-#define fLEDDrv_Neutr   p9_7   // D4
-#define fLEDDrv_Turn    p9_6   // D3
-
-#define fLEDDrv_Cntrl   p8_0    // pin controls common LED current over transistor Q14
-
-
-/* mask for LED access on p9 (p9 mixed with display pins) */
-#define LEDS_ALL        0xe7    // all led pins excepting p9_3 + p9_4
 
 
 
@@ -138,31 +122,46 @@ BOOL    LEDDrvGetLED    ( LEDDRV_LEDS eLED );
 /* define all Digital Port Pins (& Direction Register) */
 /* (redefine of port register of sfr62p.h for readability) */
 
-#define PIN_PAD9    p3_2    // schematics test pad 9
-#define PIN_PAD10   p3_3    // schematics test pad 10
-#define PIN_PAD11   p3_4    // schematics test pad 11
+#define PORT_TESTPAD        p3      // port p3 controls all pads
+#define PORT_TESTPAD_D      pd3     // port p3 driection register
+#define PORT_TESTPAD_MASK   0x1c    // mask p3 pads pins
+#define PIN_TESTPAD9        p3_2    // schematics test pad 9
+#define PIN_TESTPAD10       p3_3    // schematics test pad 10
+#define PIN_TESTPAD11       p3_4    // schematics test pad 11
 
-#define PIN_BEEP    p8_7    // beeper out port pin
-#define PIN_BEEP_D  pd8_7   // beeper out port pin direction register
+#define PIN_BEEP            p8_7    // beeper out port pin
+#define PIN_BEEP_D          pd8_7   // beeper out port pin direction register
 
-#define PIN_GPO0    p3_0    // General Purpose Out 0 port pin
-#define PIN_GPO0_D  pd3_0   // General Purpose Out 0 port direction register
-#define PIN_GPO1    p3_1    // General Purpose Out 1 port pin
-#define PIN_GPO1_D  pd3_1   // General Purpose Out 0 port direction register
+#define PIN_GPO0            p3_0    // General Purpose Out 0 port pin
+#define PIN_GPO0_D          pd3_0   // General Purpose Out 0 port direction register
+#define PIN_GPO1            p3_1    // General Purpose Out 1 port pin
+#define PIN_GPO1_D          pd3_1   // General Purpose Out 0 port direction register
+
+#define PORT_LED            p9      // port p9 controls all LEDs (!!! p9 is protected by prc2!!!)
+#define PORT_LED_D          pd9     // port 9 direction control register
+#define PORT_LED_MASK       0xe7    // all p9 led pins (except p9_3 + p9_4 used for display!)
+#define PIN_LED_WARN        p9_1    // LED D11 - orange
+#define PIN_LED_ERR         p9_0    // LED D10 - red
+#define PIN_LED_INFO        p9_5    // LED D9  - white
+#define PIN_LED_HBEAM       p9_2    // LED D5  - blue
+#define PIN_LED_NEUTR       p9_7    // LED D4  - green
+#define PIN_LED_TURN        p9_6    // LED D3  - TURN
+#define PIN_LED_BRIGHT      p8_0    // LED current over transistor Q14
+#define PIN_LED_BRIGHT_D    pd8_0   // p8 direction control register
 
 
 
 /* ----------------------------------------------------- */
 /* makros for test pads for ossi checks */
 /* port pin will change state for everey call */
-#if(TOGGLE_PADS==1)
-    #define PIN_PAD9_TOGGLE     (PIN_PAD9  = PIN_PAD9  ? 0 : 1)
-    #define PIN_PAD10_TOGGLE    (PIN_PAD10 = PIN_PAD10 ? 0 : 1)
-    #define PIN_PAD11_TOGGLE    (PIN_PAD11 = PIN_PAD11 ? 0 : 1)
+#if(TOGGLE_TESTPADS==1)
+    #define PIN_TESTPAD9_TOGGLE     (PIN_TESTPAD9  = PIN_TESTPAD9  ? 0 : 1)
+    #define PIN_TESTPAD10_TOGGLE    (PIN_TESTPAD10 = PIN_TESTPAD10 ? 0 : 1)
+    #define PIN_TESTPAD11_TOGGLE    (PIN_TESTPAD11 = PIN_TESTPAD11 ? 0 : 1)
 #else
-    #define PIN_PAD9_TOGGLE     // undefined
-    #define PIN_PAD10_TOGGLE
-    #define PIN_PAD11_TOGGLE
+    #define PIN_TESTPAD9_TOGGLE     // undefined
+    #define PIN_TESTPAD10_TOGGLE
+    #define PIN_TESTPAD11_TOGGLE
 #endif
 
 
@@ -185,6 +184,7 @@ typedef enum
 
 
 // prototypes
-ERRCODE DigOutDrv_SetPin(DIGOUT_PINS eGPO, BOOL fActivate);
-BOOL    DigOutDrv_GetPin(DIGOUT_PINS eGPO );
+ERRCODE DigOutDrv_Init(void);
+ERRCODE DigOutDrv_SetPin(DIGOUT_PINS ePin, BOOL fActivate);
+BOOL    DigOutDrv_GetPin(DIGOUT_PINS ePin );
 

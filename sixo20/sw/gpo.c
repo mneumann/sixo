@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 1.4  2012/02/04 22:25:49  tuberkel
+ * LEDs renamed
+ *
  * Revision 1.3  2012/02/04 21:49:42  tuberkel
  * All BeeperDriver functions mapped ==> DigOutDrv()
  *
@@ -108,7 +111,7 @@ ERRCODE GPOInit(void)
     memset( &GpoTiming, 0x00, sizeof(GPOTIMINGTYPE));
 
     /* reset low level HW */
-    RValue = DigOutInit();
+    RValue = DigOutDrv_Init();
 
     return RValue;
 }

@@ -75,6 +75,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.4  2012/02/04 22:25:49  tuberkel
+ * LEDs renamed
+ *
  * Revision 3.3  2012/02/04 21:59:15  tuberkel
  * Toggle Pads renamed
  *
@@ -296,7 +299,7 @@ ERRCODE MeasDrvInitRPM(void)
 #pragma INTERRUPT   PreScaleWheel_ISR
 void PreScaleWheel_ISR(void)
 {
-    PIN_PAD9_TOGGLE;               /* toggle port pin (debug only) */
+    PIN_TESTPAD9_TOGGLE;               /* toggle port pin (debug only) */
 }
 
 
@@ -311,7 +314,7 @@ void PreScaleWheel_ISR(void)
 #pragma INTERRUPT   PreScaleRPM_ISR
 void PreScaleRPM_ISR(void)
 {
-    PIN_PAD10_TOGGLE;               /* toggle port pin (debug only) */
+    PIN_TESTPAD10_TOGGLE;               /* toggle port pin (debug only) */
 }
 
 
@@ -328,7 +331,7 @@ void PreScaleRPM_ISR(void)
 #pragma INTERRUPT   WheelOverflow_ISR
 void WheelOverflow_ISR(void)
 {
-    PIN_PAD9_TOGGLE;               /* toggle port pin (debug only) */
+    PIN_TESTPAD9_TOGGLE;               /* toggle port pin (debug only) */
     fWheelCnt   = FALSE;        /* stop counter after timeout */
     wWheelCnt   = 0;            /* set and remain at max value */
     MeasDrvClearWheelSamples(); /* reset complete sample buffer */
@@ -348,7 +351,7 @@ void WheelOverflow_ISR(void)
 #pragma INTERRUPT   RPMOverflow_ISR
 void RPMOverflow_ISR(void)
 {
-    PIN_PAD10_TOGGLE;               /* toggle port pin (debug only) */
+    PIN_TESTPAD10_TOGGLE;               /* toggle port pin (debug only) */
     fRPMCnt = FALSE;            /* stop counter after timeout */
     wRPMCnt = 0;                /* set and remain at min value */
     MeasDrvClearRPMSamples();   /* reset complete sample buffer */
@@ -402,7 +405,7 @@ void WheelSensor_ISR(void)
     static UINT8  bImpPrescaler = 0;    /* to sum impulses before detectin a COMPLETE wheel revolution */
     UINT32 dwWheelPeriod;               /* to ge current value */
 
-    PIN_PAD11_TOGGLE;                 /* toggle port pin (debug only) */
+    PIN_TESTPAD11_TOGGLE;                 /* toggle port pin (debug only) */
 
     /* --------------------------------------------------------------------------------- */
     /* wheel revolution prescaler - gbWheelImpulse
@@ -490,7 +493,7 @@ void RPMSensor_ISR(void)
 {
     UINT16 wRPMPeriod;                              /* just to save the current value and restart timer */
 
-    //PIN_PAD11_TOGGLE;                                 /* toggle port pin (debug only, same as WheelSensor_ISR()!!! ) */
+    //PIN_TESTPAD11_TOGGLE;                                 /* toggle port pin (debug only, same as WheelSensor_ISR()!!! ) */
 
     /* get current RPM timer value */
     fRPMCnt     = FALSE;                            /* stop counter now! */
