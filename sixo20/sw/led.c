@@ -60,7 +60,20 @@
  *  merchantability, fitness for a particular purpose, and
  *  non-infringement.
  *
+ *  --------------------------------------------------------------------
+ *
+ *  CVS History
+ *
+ *  This information is automatically added while 'commit' the
+ *  changes to CVC ('Log message'):
+ *
+ * $Log$
+ * Revision 3.4  2012/02/04 08:34:10  tuberkel
+ * BugFix LED PWM
+ *
+ *
  ************************************************************************ */
+
 
 #include <string.h>
 
@@ -123,13 +136,13 @@ ERRCODE LEDService(void)
     {
         /* -------------------------------------------- */
         /* control only, if Duration > 0 */
-        if ( LedTiming[eLed].wDurationTicks > 0 )
+        if ( LedTiming[eLed].dwDurTicks > 0 )
         {
             /* count down our duration timer */
-            LedTiming[eLed].wDurationTicks--;
+            LedTiming[eLed].dwDurTicks--;
 
             /* right now expired? */
-            if ( LedTiming[eLed].wDurationTicks == 0 )
+            if ( LedTiming[eLed].dwDurTicks == 0 )
             {   LEDDrvSetLED(eLed, LED_OFF);         /* assure Led being off now for ever! */
             }
             else
@@ -188,9 +201,9 @@ ERRCODE LEDService(void)
  *  FUNCTION:       LEDSetNewState
  *  DESCRIPTION:    setup of LED PWM signal (granularity in ticks = 20 ms)
  *  PARAMETER:      eLED            index of LE to be controlled
- *                  wOn_ms          cyclic LED ON time in millisec
- *                  wOff_ms         cyclic LED OFF time in millisec
- *                  wDuration_ms    overall duration of PWM in millisec
+ *                  wOn_ms          cyclic LED ON time in millisec (max. 3 sec.)
+ *                  wOff_ms         cyclic LED OFF time in millisec (max. 3 sec.)
+ *                  wDuration_ms    overall duration of PWM in millisec (max 60 s)
  *  RETURN:         error code
  *  COMMENT:        wOff_ms = 0         eq. 'permanent ON'
  *                  wOn_ms = 0          eq. 'permanent OFF'
@@ -223,29 +236,29 @@ ERRCODE LEDSetNewState(LED_ENUM eLed, UINT16 wOn_ms, UINT16 wOff_ms, UINT16 wDur
          wDuration_ms += MS_PER_TICK;
 
     /* check: any changes? */
-    if (  ( LedTiming[eLed].wOnTicks        == MS2TICKS(wOn_ms)       )
-        &&( LedTiming[eLed].wOffTicks       == MS2TICKS(wOff_ms)      )
-        &&( LedTiming[eLed].wDurationTicks  == MS2TICKS(wDuration_ms) ) )
+    if (  ( LedTiming[eLed].wOnTicks   == MS2TICKS(wOn_ms)       )
+        &&( LedTiming[eLed].wOffTicks  == MS2TICKS(wOff_ms)      )
+        &&( LedTiming[eLed].dwDurTicks == MS2TICKSL(wDuration_ms) ) )
     {   //ODS1(DBG_SYS,DBG_INFO,"LEDSetNewState() - no changes for LED[%s]", LEDgetName(eLed) );
         RValue = ERR_OK;
         return (RValue);
     }
 
     /* ok, save new PWM timings (assure at least one tick, intervall is < 1 tick!) */
-    LedTiming[eLed].wOnTicks         = MS2TICKS(wOn_ms      );
-    LedTiming[eLed].wOffTicks        = MS2TICKS(wOff_ms     );
-    LedTiming[eLed].wDurationTicks   = MS2TICKS(wDuration_ms);
+    LedTiming[eLed].wOnTicks    = MS2TICKS(wOn_ms      );
+    LedTiming[eLed].wOffTicks   = MS2TICKS(wOff_ms     );
+    LedTiming[eLed].dwDurTicks  = MS2TICKSL(wDuration_ms);
 
     /* initialize downcounting PWM timers */
     LedTiming[eLed].wOnCurrTicks     = LedTiming[eLed].wOnTicks;
     LedTiming[eLed].wOffCurrTicks    = LedTiming[eLed].wOffTicks;
 
     /* show internal control structure */
-    ODS4(DBG_SYS,DBG_INFO,"LED[%s]: ON:%u OFF:%u DUR:%u (ticks)",
+    ODS4(DBG_SYS,DBG_INFO,"LED[%s]: ON:%u OFF:%u DUR:%ul (ticks)",
                             LEDGetName(eLed),
                             LedTiming[eLed].wOnTicks,
                             LedTiming[eLed].wOffTicks,
-                            LedTiming[eLed].wDurationTicks);
+                            LedTiming[eLed].dwDurTicks);
 
     /* directly switch LED to advised mode (ON/OFF, always starts with ON) */
     if ( LedTiming[eLed].wOnTicks > 0)
