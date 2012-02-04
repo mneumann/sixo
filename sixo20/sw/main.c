@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.4  2012/02/04 08:35:12  tuberkel
+ * New: PWM-Testcode (TEST_DIGOUT_PWM==1)
+ *
  * Revision 3.3  2012/02/02 21:55:30  tuberkel
  * New: GPOs - PWM controlled like LEDs
  *
@@ -301,6 +304,20 @@ int main()
         #if(BIKE_MOTOBAU==1)                                        /* special MOTOBAU behaviour */
         TimerRegisterEntryFunction( LapCntUpdateTime );             /* enable background lapcounter feature */
         #endif // BIKE_MOTOBAU
+
+        /* TEST LED/GPO PWM Output (kept alive via timer interrupt */
+        #if (TEST_DIGOUT_PWM==1)
+        {
+            UINT16 stay, on, off, duration;
+            stay        = 1;
+            on          = 100;
+            off         = 100;
+            duration    = 10000;
+            LEDSetNewState( LED_INFO, on, off, duration );
+            GPOSetNewState( eGPO_1,   on, off, duration );
+            while(stay);
+        }
+        #endif // (TEST_DIGOUT_PWM==1)
 
         // set start screen ------------------------------ */
 
