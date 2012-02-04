@@ -60,19 +60,33 @@
  *  merchantability, fitness for a particular purpose, and
  *  non-infringement.
  *
+ *  --------------------------------------------------------------------
+ *
+ *  CVS History
+ *
+ *  This information is automatically added while 'commit' the
+ *  changes to CVC ('Log message'):
+ *
+ * $Log$
+ * Revision 1.2  2012/02/04 08:39:39  tuberkel
+ * BugFix DigOut PWM
+ *
+ *
  ************************************************************************ */
+
 
 #ifndef _GPO_H
 #define _GPO_H
 
 
+/* number of available GPOs */
+#define GPO_COUNT   2
+
 /* GPO enumeration */
 typedef enum
 {
-    GPO_MIN,     // INVALID index, just for loops..
-    GPO_0,       // GPO0
-    GPO_1,       // GPO1
-    GPO_MAX      // INVALID index, just for loops..
+    eGPO_0,       // GPO0
+    eGPO_1,       // GPO1
 } GPO_ENUM;
 
 
@@ -90,9 +104,9 @@ typedef struct
 {
     UINT16  wOnTicks;           /* Beep ON duration in ticks (reload value) */
     UINT16  wOffTicks;          /* Beep OFF duration in ticks (reload value) */
-    UINT16  wDurationTicks;     /* Beep duration in ticks */
-    UINT16  wOnCurrTicks;       /* Beep On PWM timer - counting done */
-    UINT16  wOffCurrTicks;      /* Beep Off PWM timer - counting done */
+    UINT16  dwDurTicks;         /* Beep duration in ticks */
+    UINT16  wOnCurrTicks;       /* Beep On PWM timer (down counting) */
+    UINT16  wOffCurrTicks;      /* Beep Off PWM timer (down counting) */
 } GPOTIMINGTYPE;
 
 

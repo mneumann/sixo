@@ -60,7 +60,20 @@
  *  merchantability, fitness for a particular purpose, and
  *  non-infringement.
  *
+ *  --------------------------------------------------------------------
+ *
+ *  CVS History
+ *
+ *  This information is automatically added while 'commit' the
+ *  changes to CVC ('Log message'):
+ *
+ * $Log$
+ * Revision 3.2  2012/02/04 08:39:10  tuberkel
+ * BugFix DigOut PWM
+ *
+ *
  ************************************************************************ */
+
 
 ERRCODE DigOutInit(void);
 
@@ -86,10 +99,8 @@ ERRCODE DigOutInit(void);
 /* GPO driver enumeration */
 typedef enum
 {
-    DIGOUT_MIN,     // INVALID index, just for loops..
-    DIGOUT_GPO0,    //
-    DIGOUT_GPO1,    //
-    DIGOUT_MAX      // INVALID index, just for loops..
+    eDIGOUT_GPO0,    //
+    eDIGOUT_GPO1,    //
 } DIGOUT_GPOS;
 
 
