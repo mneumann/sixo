@@ -68,6 +68,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.6  2012/02/04 08:36:32  tuberkel
+ * - MainDeviceMsg_ShowVehicState() ==> TEST-ACTIVATE GPO0 for 250 ms for Coolride
+ * - Some internal functions renamed
+ *
  * Revision 3.5  2012/01/23 04:03:17  tuberkel
  * BugFix Symbol "SystemError"
  *
@@ -146,6 +150,7 @@
 #include "sysparam.h"
 #include "beep.h"
 #include "led.h"
+#include "gpo.h"
 #include "timedate.h"
 #include "anain.h"
 #include "surveill.h"
@@ -360,13 +365,13 @@ static BMPOBJECT    MonFuelBmpObj;
 
 /* ============================================================= */
 /* internal prototypes */
-ERRCODE MainDeviceStateMachine      (MESSAGE Msg);
-ERRCODE MainDeviceResetMsg          (MESSAGE Msg);
-ERRCODE MainDeviceShowVehicStateMsg (MESSAGE Msg);
-void    MainDeviceUpdateTimeDate    (void);
-void    MainDeviceUpdateMeasValues  (void);
+ERRCODE MainDeviceMsg_StateMachine      (MESSAGE Msg);
+ERRCODE MainDeviceMsg_DistanceReset          (MESSAGE Msg);
+ERRCODE MainDeviceMsg_ShowVehicState (MESSAGE Msg);
+void    MainDevice_UpdateTimeDate    (void);
+void    MainDevice_UpdateMeasValues  (void);
 void    MainDeviceObjListInit       (void);
-void    MainDeviceShowHorLine       (void);
+void    MainDevice_ShowHorLine       (void);
 
 
 
@@ -847,7 +852,7 @@ void MainDeviceShow(BOOL fShow)
     if (fShow == TRUE)
     {
         /* update of all displayable values */
-        MainDeviceUpdateMeasValues();
+        MainDevice_UpdateMeasValues();
 
         /* ------------------------------------------ */
         /* do we have to repaint all? */
@@ -860,7 +865,7 @@ void MainDeviceShow(BOOL fShow)
             MDObj.fScreenInit  = TRUE;
 
             /* horizontal line between wheel speed & rpm */
-            MainDeviceShowHorLine();
+            MainDevice_ShowHorLine();
 
             /* always show vehicle speed in upper display part */
             ObjTextShow( &SpeedTxtObj );
@@ -870,7 +875,7 @@ void MainDeviceShow(BOOL fShow)
             /* show lowest display line 'VehicleState' or 'TimeDate' */
             if (SurvShowVehState)
                  ObjTextShow( &SurvVehStateTxtObj );
-            else MainDeviceUpdateTimeDate(); // initial display only!
+            else MainDevice_UpdateTimeDate(); // initial display only!
 
             /* ---------------------------------------------------- */
             /* Info/Warning/Error Icon
@@ -996,7 +1001,7 @@ void MainDeviceShow(BOOL fShow)
             /* show lowest display line 'VehicleState' or 'TimeDate' */
             if (SurvShowVehState)
                  ObjTextShow( &SurvVehStateTxtObj );
-            // else MainDeviceUpdateTimeDate(); // NO UPDATE HERE, will be done by special update messages only!
+            // else MainDevice_UpdateTimeDate(); // NO UPDATE HERE, will be done by special update messages only!
 
             /* which icon has to be used: Info / Warning / Error ?
                (Most important icon is dominant),
@@ -1208,15 +1213,15 @@ ERRCODE MainDeviceMsgEntry(MESSAGE GivenMsg)
                 /* Try to show vehicle state instead of Time/Date ([OK]-short) */
                 /* THIS MESSAGE HANLDER FIRST! (forwards handled messages) */
                 if (RValue == ERR_MSG_NOT_PROCESSED)
-                    RValue = MainDeviceShowVehicStateMsg(GivenMsg);
+                    RValue = MainDeviceMsg_ShowVehicState(GivenMsg);
 
                 /* Try all distance objects, wether to be reseted or not ([OK]-long) */
                 if (RValue == ERR_MSG_NOT_PROCESSED)
-                    RValue = MainDeviceResetMsg(GivenMsg);
+                    RValue = MainDeviceMsg_DistanceReset(GivenMsg);
 
                 /* Try to toggle lower screen part to next information line ([Up/Down]-short) */
                 if (RValue == ERR_MSG_NOT_PROCESSED)
-                    RValue = MainDeviceStateMachine(GivenMsg);
+                    RValue = MainDeviceMsg_StateMachine(GivenMsg);
 
                 /* Try to switch to next device ([Up+Down]-short) */
                 if (  (RValue == ERR_MSG_NOT_PROCESSED                    )
@@ -1242,12 +1247,12 @@ ERRCODE MainDeviceMsgEntry(MESSAGE GivenMsg)
             case MSG_VEHSTATE_SHOW:  // no break!
             case MSG_VEHSTATE_HIDE:
                 if (RValue == ERR_MSG_NOT_PROCESSED)
-                    RValue = MainDeviceShowVehicStateMsg(GivenMsg);
+                    RValue = MainDeviceMsg_ShowVehicState(GivenMsg);
                 break;
 
             /* trigger time / date screen update only */
             case MSG_SECOND_GONE:
-                MainDeviceUpdateTimeDate();
+                MainDevice_UpdateTimeDate();
                 RValue = ERR_MSG_PROCESSED;
                 break;
 
@@ -1261,14 +1266,14 @@ ERRCODE MainDeviceMsgEntry(MESSAGE GivenMsg)
 
 
 /***********************************************************************
- *  FUNCTION:       MainDeviceStateMachine
+ *  FUNCTION:       MainDeviceMsg_StateMachine
  *  DESCRIPTION:    Handle the display states of main device
  *                  and re-init the display state if any changes
  *  PARAMETER:      MESSAGE
  *  RETURN:         ERR_MSG_PROCESSED / ERR_MSG_NOT_PROCESSED
  *  COMMENT:        -
  *********************************************************************** */
-ERRCODE MainDeviceStateMachine(MESSAGE Msg)
+ERRCODE MainDeviceMsg_StateMachine(MESSAGE Msg)
 {
     MESSAGE_ID  MsgId = MSG_ID(Msg);                        /* get message id */
     ERRCODE     RValue = ERR_MSG_NOT_PROCESSED;
@@ -1321,14 +1326,14 @@ ERRCODE MainDeviceStateMachine(MESSAGE Msg)
 
 
 /***********************************************************************
- *  FUNCTION:       MainDeviceResetMsg
+ *  FUNCTION:       MainDeviceMsg_DistanceReset
  *  DESCRIPTION:    Handle the 'distance reset' messages for fuel,
  *                  trip1 and trip2 distance
  *  PARAMETER:      MESSAGE
  *  RETURN:         ERR_MSG_PROCESSED / ERR_MSG_NOT_PROCESSED
  *  COMMENT:        -
  *********************************************************************** */
-ERRCODE MainDeviceResetMsg(MESSAGE Msg)
+ERRCODE MainDeviceMsg_DistanceReset(MESSAGE Msg)
 {
     MESSAGE_ID  MsgId = MSG_ID(Msg);                /* get message id */
     ERRCODE     RValue = ERR_MSG_NOT_PROCESSED;
@@ -1380,7 +1385,7 @@ ERRCODE MainDeviceResetMsg(MESSAGE Msg)
 
 
 /***********************************************************************
- *  FUNCTION:       MainDeviceShowVehicStateMsg
+ *  FUNCTION:       MainDeviceMsg_ShowVehicState
  *  DESCRIPTION:    Handle messages for the monitor sub screen, makes
  *                  lower screen part showing 'vehicle state' instead of
  *                  'Time+Date' for a defined period of time.
@@ -1395,7 +1400,7 @@ ERRCODE MainDeviceResetMsg(MESSAGE Msg)
  *                  and one to HIDE the vehicle state (eq. show Time+Date)
  *                  after n seconds (via SetTimerMsg() ).
  *********************************************************************** */
-ERRCODE MainDeviceShowVehicStateMsg(MESSAGE Msg)
+ERRCODE MainDeviceMsg_ShowVehicState(MESSAGE Msg)
 {
     MESSAGE_ID  MsgId   = MSG_ID(Msg);              /* get message id */
     ERRCODE     RValue  = ERR_MSG_NOT_PROCESSED;    /* return value */
@@ -1409,6 +1414,9 @@ ERRCODE MainDeviceShowVehicStateMsg(MESSAGE Msg)
         /* send message to our self to SHOW vehicle state */
         MSG_BUILD_UINT8(NewMsg, MSG_VEHSTATE_SHOW, 0, 0, 0);
         MsgQPostMsg(NewMsg, MSGQ_PRIO_LOW);
+
+        // TEST: activate GPO0 as Coolride Input!
+        GPOSetNewState( eGPO_0,  250, 0, 500 );
 
         /* prepare delayed message to our self to HIDE vehicle state after 3 seconds */
         MSG_BUILD_UINT8(NewMsg, MSG_VEHSTATE_HIDE, 0, 0, 0);
@@ -1441,14 +1449,14 @@ ERRCODE MainDeviceShowVehicStateMsg(MESSAGE Msg)
 
 
 /***********************************************************************
- *  FUNCTION:       MainDeviceUpdateMeasValues
+ *  FUNCTION:       MainDevice_UpdateMeasValues
  *  DESCRIPTION:    Just Update/Refresh all values that might be
  *                  displayed inside the display
  *  PARAMETER:      -
  *  RETURN:         -
  *  COMMENT:        -
  *********************************************************************** */
-void MainDeviceUpdateMeasValues(void)
+void MainDevice_UpdateMeasValues(void)
 {
     UINT16  wWheelSpeed;
 
@@ -1474,14 +1482,14 @@ void MainDeviceUpdateMeasValues(void)
 
 
 /***********************************************************************
- *  FUNCTION:       MainDeviceUpdateTimeDate
+ *  FUNCTION:       MainDevice_UpdateTimeDate
  *  DESCRIPTION:    Separate handling of TimeDate screen refreshs
  *                  to synchronize display to RTC seconds
  *  PARAMETER:      -
  *  RETURN:         -
  *  COMMENT:        -
  *********************************************************************** */
-void MainDeviceUpdateTimeDate(void)
+void MainDevice_UpdateTimeDate(void)
 {
     CHAR    szBuffer[15];                           // text buffer
 
@@ -1504,14 +1512,14 @@ void MainDeviceUpdateTimeDate(void)
 
 
 /***********************************************************************
- *  FUNCTION:       MainDeviceShowHorLine
+ *  FUNCTION:       MainDevice_ShowHorLine
  *  DESCRIPTION:    Draws a horizontal line between wheel speed
   *                 lower infos
  *  PARAMETER:      -
  *  RETURN:         -
  *  COMMENT:        -
  *********************************************************************** */
-void MainDeviceShowHorLine(void)
+void MainDevice_ShowHorLine(void)
 {
     /* horizontal line between wheel speed & rpm */
     DISPLXY Coord = {0,34};                 /* to be removed to an 'LineObject' !!! */
