@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.2  2012/02/04 21:59:15  tuberkel
+ * Toggle Pads renamed
+ *
  * Revision 3.1  2012/02/01 21:21:15  tuberkel
  * comments
  *
@@ -367,7 +370,7 @@ void TimerInterrupt(void)
     UINT8   bActLoad     = 0;
     UINT8   i;
 
-    TOGGLE_PAD9;
+    PIN_PAD9_TOGGLE;
 
     // get current last time
     TimerGetSys_msec(wEntry_ms);
@@ -463,7 +466,7 @@ void msIntFunction(void)
     // !!! Re-Enable higher interrupts than this interrupt!
     INT_GLOB_ENABLE;
 
-    TOGGLE_PAD10;
+    PIN_PAD10_TOGGLE;
 
     // diagnostic: get current INTERRUPT stack pointer
     // (note: we ARE in a isr, so flagregister u-flag is 0!)

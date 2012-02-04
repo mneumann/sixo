@@ -69,6 +69,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.5  2012/02/04 21:59:15  tuberkel
+ * Toggle Pads renamed
+ *
  * Revision 3.4  2012/02/04 21:49:42  tuberkel
  * All BeeperDriver functions mapped ==> DigOutDrv()
  *
@@ -151,7 +154,7 @@ ERRCODE DigOutInit(void)
     #if(TEST_TOGGLEPADS_PORTS==1)
     p3   = p3 & (~0x1c);   /* clear output of p3_2/3/4 */
     pd3  = p3 |   0x1c;    /* set p3_2/3/4 to output */
-    // use macros TOGGLE_PAD9/10/11 for further tests
+    // use macros PIN_PAD9_TOGGLE/10/11 for further tests
     #endif
 
     return ERR_OK;

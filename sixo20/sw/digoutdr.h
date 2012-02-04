@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.5  2012/02/04 21:59:15  tuberkel
+ * Toggle Pads renamed
+ *
  * Revision 3.4  2012/02/04 21:49:42  tuberkel
  * All BeeperDriver functions mapped ==> DigOutDrv()
  *
@@ -126,32 +129,41 @@ BOOL    LEDDrvGetLED    ( LEDDRV_LEDS eLED );
 
 
 
-#if(TOGGLE_PADS==1)
-/* makros for port3_2/3/4 for ossi checks */
-/* port pin will change state for everey call */
-    #define TOGGLE_PAD9         (p3_2 = p3_2 ? 0 : 1)
-    #define TOGGLE_PAD10        (p3_3 = p3_3 ? 0 : 1)
-    #define TOGGLE_PAD11        (p3_4 = p3_4 ? 0 : 1)
-#else
-    #define TOGGLE_PAD9
-    #define TOGGLE_PAD10
-    #define TOGGLE_PAD11
-#endif
+
+
+
 
 
 /* ----------------------------------------------------- */
-/* redefine of port register of sfr62p.h for readability */
+/* define all Digital Port Pins (& Direction Register) */
+/* (redefine of port register of sfr62p.h for readability) */
+
+#define PIN_PAD9    p3_2    // schematics test pad 9
+#define PIN_PAD10   p3_3    // schematics test pad 10
+#define PIN_PAD11   p3_4    // schematics test pad 11
+
 #define PIN_BEEP    p8_7    // beeper out port pin
 #define PIN_BEEP_D  pd8_7   // beeper out port pin direction register
 
-
-/* ----------------------------------------------------- */
-/* define GeneralPurposeOutput and Pads (& Direction Register) */
 #define PIN_GPO0    p3_0    // General Purpose Out 0 port pin
 #define PIN_GPO0_D  pd3_0   // General Purpose Out 0 port direction register
 #define PIN_GPO1    p3_1    // General Purpose Out 1 port pin
 #define PIN_GPO1_D  pd3_1   // General Purpose Out 0 port direction register
 
+
+
+/* ----------------------------------------------------- */
+/* makros for test pads for ossi checks */
+/* port pin will change state for everey call */
+#if(TOGGLE_PADS==1)
+    #define PIN_PAD9_TOGGLE     (PIN_PAD9  = PIN_PAD9  ? 0 : 1)
+    #define PIN_PAD10_TOGGLE    (PIN_PAD10 = PIN_PAD10 ? 0 : 1)
+    #define PIN_PAD11_TOGGLE    (PIN_PAD11 = PIN_PAD11 ? 0 : 1)
+#else
+    #define PIN_PAD9_TOGGLE     // undefined
+    #define PIN_PAD10_TOGGLE
+    #define PIN_PAD11_TOGGLE
+#endif
 
 
 /* ----------------------------------------------------- */
@@ -170,12 +182,6 @@ typedef enum
 } DIGOUT_PINS;
 
 
-
-
-// solder pads (might be used for debug/extension purpuse)
-#define PAD9    p3_2
-#define PAD10   p3_3
-#define PAD11   p3_4
 
 
 // prototypes
