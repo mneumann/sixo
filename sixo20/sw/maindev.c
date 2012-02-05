@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.11  2012/02/05 21:08:04  tuberkel
+ * New: HeatGrip internal state
+ *
  * Revision 3.10  2012/02/05 11:58:01  tuberkel
  * Coolride Makros adapted
  *
@@ -192,8 +195,9 @@ typedef enum
     MD_FUEL,        /* show fuel distance */
     MD_TRIP1,       /* show TripCounter1 distance */
     MD_TRIP2,       /* show TripCounter2 distance */
-    MD_VEHDIST,   /* show vehicle overall distance */
+    MD_VEHDIST,     /* show vehicle overall distance */
     MD_SPEEDMAX,    /* show Speed Max value */
+    MD_HEATGRIP,    /* show Coolride HeatGrip with bar */
 
     MD_LAST,        /* invalid state*/
 } MAINDEV_STATE;
@@ -257,6 +261,12 @@ extern unsigned char far rg7Seg_7_16x16[];
 extern unsigned char far rg7Seg_8_16x16[];
 extern unsigned char far rg7Seg_9_16x16[];
 
+/* bitmaps for Coolride heat control */
+extern unsigned char far rgHeatGrip16x16[];
+extern unsigned char far rgHeatBarEmpty19x8[];
+extern unsigned char far rgHeatBarFull19x8[];
+
+
 
 
 /* =================================================== */
@@ -302,13 +312,17 @@ static CHAR         szTrip2Dist[10] = "0,0";    /* buffer to contain tripcounter
 /* lower area mode 2..5: common distance descriptor */
 static TEXTOBJECT   DistDescTxtObj;             /* COMMON vehicle & fuel distance decriptor for 'km' or 'mi' */
 
-
 /* lower area mode 6: Max Speed */
 static TEXTOBJECT   SpeedMaxDescTxtObj;         /* SpeedMax descriptor text object for 'v(max)' */
 static TEXTOBJECT   SpeedMaxUnitTxtObj;         /* speed max desciptor text object 'km/h' or 'mi/h' */
 static TEXTOBJECT   SpeedMaxTxtObj;             /* SpeedMax descriptor text object for '110.0' */
 static CHAR         szSpeedMax[4] = "  0";      /* buffer to contain SpeedMax, max. string '999' km/h*/
 extern SPEED_TYPE   Speed_Max;                  /* prepared value */
+
+/* lower area mode 7: Coolride Heat Control */
+static BMPOBJECT    HeatGripIconBmpObj;       /* symbol to indicate heat at handgrip */
+static BMPOBJECT    HeatBarEmptyBmpObj;     /* empty bar icon - for multiple use */
+static BMPOBJECT    HeatBarFullBmpObj;      /* empty bar icon - for multiple use */
 
 /* lower area: Date & Time Display */
 static TEXTOBJECT   TimeDateTxtObj;             /* time & date output opbject */
@@ -403,6 +417,12 @@ static const BMPOBJECT_INITTYPE BmpObjInit[] =
     { &FuelDistBmpObj,              0, 38, 16, 16, rgFuelSymbo16x16,     DPLNORM, FALSE },
     { &VehDistBmpObj,               0, 38, 29, 16, rgEnduroSymbol29x16,  DPLNORM, FALSE },
     { &RPMBmpObj,                   0, 38, 16, 16, rgRPMSymbo16x16,      DPLNORM, FALSE },
+
+    /* Coolride Heat Control - Symbol & Bar icons */
+    /* --------------------------- -- --- --- --- --------------------- -------- ----- */
+    { &HeatGripIconBmpObj,          0, 38, 16, 16, rgHeatGrip16x16,      DPLNORM, FALSE },
+    { &HeatBarEmptyBmpObj,         40, 38, 19,  8, rgHeatBarEmpty19x8,   DPLNORM, FALSE },
+    { &HeatBarFullBmpObj,          80, 38, 19,  8, rgHeatBarFull19x8,    DPLNORM, FALSE },
 
     /* Gear Symbol */
     /* --------------------------- -- --- --- --- --------------------- -------- ----- */
@@ -666,6 +686,30 @@ static const void far * ObjectList_SpeedMax[] =
 #define OBJLIST_SPEEDMAX_CNT (sizeof(ObjectList_SpeedMax)/sizeof(OBJSTATE)/sizeof(void far *))
 
 
+// ---------------------------------------------------------------------
+// Main device State 'MD_HEATGRIP' Settings - Screen Focus Order
+static const void far * ObjectList_HeatGrip[] =
+{
+    // objects - shown in every mode
+    (void far *) &SpeedTxtObj,          // current speed
+    (void far *) &SpeedDescATxtObj,     // speed descriptor A
+    (void far *) &SpeedDescBTxtObj,     // speed descriptor A
+    #if(GEARBOX==1)
+    (void far *) &GearSymbolBmpObj,     // gearbox state
+    #endif
+    (void far *) &VehStateBmpObj,       // Vehicle State Icon
+    (void far *) &TimeDateTxtObj,       // Date & Time
+    (void far *) &SurvVehStateTxtObj,   // Vehicle State
+
+    // objects - shown in 'MD_HEATGRIP' mode only
+    (void far *) &HeatGripIconBmpObj,   // HeatGrip icon
+    (void far *) &HeatBarEmptyBmpObj,   // Empty Bar Icon - will be moved & multiplied
+    (void far *) &HeatBarFullBmpObj,    // Empty Bar Icon - will be moved & multiplied
+};
+#define OBJLIST_HEATGRIP_CNT (sizeof(ObjectList_HeatGrip)/sizeof(OBJSTATE)/sizeof(void far *))
+
+
+
 /* ============================================================= */
 /* this devices object focus handling - list of all objects */
 /* NOTE:    this device does not need any focus, this
@@ -733,7 +777,12 @@ static const void far * ObjectList[] =
     // objects - shown in 'MD_SPEEDMAX' mode only
     (void far *) &SpeedMaxDescTxtObj,
     (void far *) &SpeedMaxUnitTxtObj,
-    (void far *) &SpeedMaxTxtObj
+    (void far *) &SpeedMaxTxtObj,
+
+    // objects - shown in 'MD_HEATGRIP' mode only
+    (void far *) &HeatGripIconBmpObj,
+    (void far *) &HeatBarEmptyBmpObj,
+    (void far *) &HeatBarFullBmpObj,
 
 };
 #define OBJECTLIST_SIZE   (sizeof(ObjectList)/sizeof(OBJSTATE)/sizeof(void far *))
@@ -835,16 +884,23 @@ void MainDeviceObjListInit(void)
     // Setup screen object list: Vehicle Distance display settings
     MDCntrl.List[MD_VEHDIST].ObjList       = ObjectList_Mon;
     MDCntrl.List[MD_VEHDIST].ObjCount      = OBJLIST_VEHDIST_CNT;
-    MDCntrl.List[MD_VEHDIST].FirstSelObj   = DevObjGetFirstSelectable(&MDObj, ObjectList_Trip2, OBJLIST_VEHDIST_CNT);
-    MDCntrl.List[MD_VEHDIST].LastSelObj    = DevObjGetLastSelectable (&MDObj, ObjectList_Trip2, OBJLIST_VEHDIST_CNT);
+    MDCntrl.List[MD_VEHDIST].FirstSelObj   = DevObjGetFirstSelectable(&MDObj, ObjectList_VehDist, OBJLIST_VEHDIST_CNT);
+    MDCntrl.List[MD_VEHDIST].LastSelObj    = DevObjGetLastSelectable (&MDObj, ObjectList_VehDist, OBJLIST_VEHDIST_CNT);
 
     // Setup screen object list: SpeedMax display settings
     MDCntrl.List[MD_SPEEDMAX].ObjList       = ObjectList_Mon;
     MDCntrl.List[MD_SPEEDMAX].ObjCount      = OBJLIST_SPEEDMAX_CNT;
-    MDCntrl.List[MD_SPEEDMAX].FirstSelObj   = DevObjGetFirstSelectable(&MDObj, ObjectList_Trip2, OBJLIST_SPEEDMAX_CNT);
-    MDCntrl.List[MD_SPEEDMAX].LastSelObj    = DevObjGetLastSelectable (&MDObj, ObjectList_Trip2, OBJLIST_SPEEDMAX_CNT);
+    MDCntrl.List[MD_SPEEDMAX].FirstSelObj   = DevObjGetFirstSelectable(&MDObj, ObjectList_SpeedMax, OBJLIST_SPEEDMAX_CNT);
+    MDCntrl.List[MD_SPEEDMAX].LastSelObj    = DevObjGetLastSelectable (&MDObj, ObjectList_SpeedMax, OBJLIST_SPEEDMAX_CNT);
 
-    MDCntrl.eState = MD_MONITOR;    // initial value
+    // Setup screen object list: HeatGrip display settings
+    MDCntrl.List[MD_HEATGRIP].ObjList       = ObjectList_Mon;
+    MDCntrl.List[MD_HEATGRIP].ObjCount      = OBJLIST_HEATGRIP_CNT;
+    MDCntrl.List[MD_HEATGRIP].FirstSelObj   = DevObjGetFirstSelectable(&MDObj, ObjectList_HeatGrip, OBJLIST_HEATGRIP_CNT);
+    MDCntrl.List[MD_HEATGRIP].LastSelObj    = DevObjGetLastSelectable (&MDObj, ObjectList_HeatGrip, OBJLIST_HEATGRIP_CNT);
+
+    // initial value for current mainDevice display state
+    MDCntrl.eState = MD_MONITOR;
 }
 
 
@@ -947,6 +1003,11 @@ void MainDeviceShow(BOOL fShow)
                     ObjTextShow( &SpeedMaxDescTxtObj );
                     ObjTextShow( &SpeedMaxTxtObj );
                     ObjTextShow( &SpeedMaxUnitTxtObj );
+                break;
+                case MD_HEATGRIP:
+                    ObjBmpShow(  &HeatGripIconBmpObj );
+                    ObjBmpShow(  &HeatBarEmptyBmpObj );
+                    ObjBmpShow(  &HeatBarFullBmpObj  );
                 break;
                 case MD_MONITOR:
                 {
@@ -1058,6 +1119,8 @@ void MainDeviceShow(BOOL fShow)
                 case MD_TRIP2:      ObjTextShow( &Trip2DistTxtObj );    break;
                 case MD_VEHDIST:    ObjTextShow( &VehDistTxtObj );      break;
                 case MD_SPEEDMAX:   ObjTextShow( &SpeedMaxTxtObj );     break;
+                case MD_HEATGRIP:   ObjBmpShow(  &HeatBarEmptyBmpObj);
+                                    ObjBmpShow(  &HeatBarFullBmpObj);   break;
 
                 // special case: so small monitor information
                 case MD_MONITOR:
