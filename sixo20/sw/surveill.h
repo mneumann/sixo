@@ -70,6 +70,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.2  2012/02/05 14:37:55  tuberkel
+ * OIL_TEMP_WARN    110 ==> 120 °C
+ * OIL_TEMP_ERR       120   ==> 150 °C
+ *
  * Revision 3.1  2012/01/23 04:04:16  tuberkel
  * BugFix Symbol "SystemError"
  *
@@ -109,10 +113,10 @@
 
 /* surveillance limits */
 #define OIL_TEMP_LOW      50    /* °C */
-#define OIL_TEMP_WARN    110    /* °C */
-#define OIL_TEMP_ERR     120    /* °C */
+#define OIL_TEMP_WARN    120    /* °C */
+#define OIL_TEMP_ERR     150    /* °C */
 
-#define OIL_PRESS_RPM    500   /* U/Min */
+#define OIL_PRESS_RPM    500    /* U/Min */
 
 #define ENG_COLD_RPM    4000    /* U/Min */
 
