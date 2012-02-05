@@ -279,14 +279,14 @@ typedef struct
 {
     UINT16      wStartTime_ms;      /* time stamp of first 'pressed' detection in ms */
     UINT16      wLastSentTime_ms;   /* time stamp to handle intervals between key messages */
-    UINT16      wDuration_ms;       /* duration of 'pressed time' in ms */
+    UINT16      wDur_ms;       /* duration of 'pressed time' in ms */
     KEYTRANSIT  KeyTransit;         /* to handle state transitions */
 } KEYTIME;
 
 
 /* macros for easier acces to message user data */
 /* easier interface to generate MSG_KEY_x messgaes */
-#define MSG_BUILD_KEY(msg, KeyMsgId, fpKeyTime) MSG_BUILD_UINT8(msg, KeyMsgId, LOWBYTE(fpKeyTime->wDuration_ms), HIGHBYTE(fpKeyTime->wDuration_ms), fpKeyTime->KeyTransit);
+#define MSG_BUILD_KEY(msg, KeyMsgId, fpKeyTime) MSG_BUILD_UINT8(msg, KeyMsgId, LOWBYTE(fpKeyTime->wDur_ms), HIGHBYTE(fpKeyTime->wDur_ms), fpKeyTime->KeyTransit);
 /* get key pressed duration out of msg 'MSG_KEY_x': */
 #define MSG_KEY_DURATION(msg)                   (((UINT16)MSG_CHAR1(msg)) + ((UINT16)(MSG_CHAR2(msg)) << 8))
 /* get key transition state out of msg 'MSG_KEY_x': */

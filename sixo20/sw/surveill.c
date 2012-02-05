@@ -70,6 +70,12 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.5  2012/02/05 11:17:08  tuberkel
+ * DigOuts completely reviewed:
+ * - central PWM-Out handled via DigOutDriver for ALL DigOuts!
+ * - simplified LED/Beeper/GPO HL-Driver
+ * - unique API & Parameter Handling for LED/Beeper/GPO
+ *
  * Revision 3.4  2012/02/04 21:49:42  tuberkel
  * All BeeperDriver functions mapped ==> DigOutDrv()
  *
@@ -151,6 +157,7 @@
 #include "sfr62p.h"
 #include "msgqueue.h"
 #include "timer.h"
+#include "digoutdr.h"
 #include "digindrv.h"
 #include "debug.h"
 #include "anain.h"
@@ -461,7 +468,7 @@ void SurvUpdateEngRunTime ( void )
 
 /***********************************************************************
  *  FUNCTION:       SurvCheckRPMFlash
- *  DESCRIPTION:    Controls the RPM Flash light info & GPO_0 output,
+ *  DESCRIPTION:    Controls the RPM Flash light info & eGPO_0 output,
  *                  switches on both, if current RPM value exceeds
  *                  setting in eeprom.
  *  PARAMETER:      -
@@ -479,13 +486,13 @@ void SurvCheckRPMFlash ( void )
         &&( RPMFlash_On == FALSE ) )    // not already activated?
     {
         // ENABLE INFO LAMP
-        RPMFlash_On = TRUE;                         // lock!
-        LEDSetNewState( LED_INFO, LED_PERM_ON );    // permanent on
+        RPMFlash_On = TRUE;                 // lock!
+        LED_SetNewState( eLED_INFO, LED_ON ); // permanent on
 
         // special MOTOBAU behaviour
         #if(BIKE_MOTOBAU==1)
         // kai want's to enable an additional external lamp/indicator
-        PIN_GPO0 = 1;                       // enable output GPO_0 too
+        PIN_GPO0 = 1;                       // enable output eGPO_0 too
         #endif // BIKE_MOTOBAU
     }
 
@@ -498,13 +505,13 @@ void SurvCheckRPMFlash ( void )
            &&( RPMFlash_On == TRUE ) ) )  // still active?
     {
         // DISABLE INFO LAMP
-        RPMFlash_On = FALSE;                        // unlock!
-        LEDSetNewState( LED_INFO, LED_PERM_OFF );   // permannet off
+        RPMFlash_On = FALSE;                    // unlock!
+        LED_SetNewState( eLED_INFO, LED_OFF );    // permanent off
 
         // special MOTOBAU behaviour
         #if(BIKE_MOTOBAU==1)
         // kai want's to enable an additional external lamp/indicator
-        PIN_GPO0 = 0;                       // disable output GPO_0 too
+        PIN_GPO0 = 0;                       // disable output eGPO_0 too
         #endif // BIKE_MOTOBAU
     }
 }
@@ -734,8 +741,8 @@ void SurvCheckAllAnalogWarnings(void)
         if ( gDeviceFlags3.flags.LedWarnMode == SURV_LWM_STD )
         {
             if ( vstatelvl != eSURVST_OK )
-                 LEDSetNewState(LED_WARN, LED_PERM_ON );
-            else LEDSetNewState(LED_WARN, LED_PERM_OFF);
+                 LED_SetNewState(eLED_WARN, LED_ON );
+            else LED_SetNewState(eLED_WARN, LED_OFF);
         }
     }
     else
@@ -852,8 +859,8 @@ void SurvCheckAllDigitalWarnings(void)
             // check: if not using Sixo-Warnmode, setup Error-LED directly here
             if ( gDeviceFlags3.flags.LedWarnMode == SURV_LWM_STD )
             {   if ( DF_ABS_Warn_F650 == 0 )
-                     LEDSetNewState(LED_WARN, LED_PERM_ON );
-                else LEDSetNewState(LED_WARN, LED_PERM_OFF);
+                     LED_SetNewState(eLED_WARN, LED_ON );
+                else LED_SetNewState(eLED_WARN, LED_OFF);
             }
 
             /* --------------------------------------------- */
@@ -864,8 +871,8 @@ void SurvCheckAllDigitalWarnings(void)
             // check: if not using Sixo-Warnmode, setup LED directly here
             if ( gDeviceFlags3.flags.LedWarnMode == SURV_LWM_STD )
             {   if ( DF_ABS_Warn_F650 == 0 )
-                     LEDSetNewState(LED_ERR, LED_PERM_ON );
-                else LEDSetNewState(LED_ERR, LED_PERM_OFF);
+                     LED_SetNewState(eLED_ERROR, LED_ON );
+                else LED_SetNewState(eLED_ERROR, LED_OFF);
             }
         } break;
 
@@ -887,8 +894,8 @@ void SurvCheckAllDigitalWarnings(void)
             // check: if not using Sixo-Warnmode, setup LED directly here
             if ( gDeviceFlags3.flags.LedWarnMode == SURV_LWM_STD )
             {   if ( DF_Fuel_4l_AT == 0 )      // low active
-                     LEDSetNewState(LED_WARN, LED_PERM_ON );
-                else LEDSetNewState(LED_WARN, LED_PERM_OFF );
+                     LED_SetNewState(eLED_WARN, LED_ON );
+                else LED_SetNewState(eLED_WARN, LED_OFF );
             }
 
             /* --------------------------------------------- */
@@ -900,8 +907,8 @@ void SurvCheckAllDigitalWarnings(void)
             // check: if not using Sixo-Warnmode, setup LED directly here
             if ( gDeviceFlags3.flags.LedWarnMode == SURV_LWM_STD )
             {   if ( DF_OILSW == 0 )      // low active
-                     LEDSetNewState(LED_ERR, LED_PERM_ON );
-                else LEDSetNewState(LED_ERR, LED_PERM_OFF );
+                     LED_SetNewState(eLED_ERROR, LED_ON );
+                else LED_SetNewState(eLED_ERROR, LED_OFF );
             }
 
             /* --------------------------------------------- */
@@ -924,8 +931,8 @@ void SurvCheckAllDigitalWarnings(void)
             // check: if not using Sixo-Warnmode, setup LED directly here
             if ( gDeviceFlags3.flags.LedWarnMode == SURV_LWM_STD )
             {   if ( DF_Temp_Warn_BAGHIRA == 1)          // high active
-                     LEDSetNewState(LED_ERR, LED_PERM_ON );
-                else LEDSetNewState(LED_ERR, LED_PERM_OFF );
+                     LED_SetNewState(eLED_ERROR, LED_ON );
+                else LED_SetNewState(eLED_ERROR, LED_OFF );
             }
 
         } break;
@@ -949,8 +956,8 @@ void SurvCheckAllDigitalWarnings(void)
             // check: if not using Sixo-Warnmode, setup LED directly here
             if ( gDeviceFlags3.flags.LedWarnMode == SURV_LWM_STD )
             {   if ( DF_OILSW == 0 )      // low active
-                     LEDSetNewState(LED_ERR, LED_PERM_ON );
-                else LEDSetNewState(LED_ERR, LED_PERM_OFF );
+                     LED_SetNewState(eLED_ERROR, LED_ON );
+                else LED_SetNewState(eLED_ERROR, LED_OFF );
             }
 
         } break;
@@ -1341,39 +1348,39 @@ void SurvSetLEDState( void )
     {
         /* INFO-LED --------------------------------------  */
         if (  ( SurvListGetCount(eSURVST_INFO) >  0     )
-            &&( LEDGetState(LED_INFO) == FALSE ) )
-        {   LEDSetNewState( LED_INFO, LED_PERM_ON );
+            &&( LED_GetState(eLED_INFO) == FALSE ) )
+        {   LED_SetNewState( eLED_INFO, LED_ON );
         }
         if (  ( SurvListGetCount(eSURVST_INFO) == 0     )
-            &&( LEDGetState(LED_INFO)     == TRUE ) )
-        {   LEDSetNewState( LED_INFO, LED_PERM_OFF );
+            &&( LED_GetState(eLED_INFO)     == TRUE ) )
+        {   LED_SetNewState( eLED_INFO, LED_OFF );
         }
 
         /* WARN-LED --------------------------------------  */
         if (  ( SurvListGetCount(eSURVST_WARNING) >  0     )
-            &&( LEDGetState(LED_WARN)     == FALSE ) )
-        {   LEDSetNewState( LED_WARN, LED_PERM_ON );
+            &&( LED_GetState(eLED_WARN)     == FALSE ) )
+        {   LED_SetNewState( eLED_WARN, LED_ON );
         }
         if (  ( SurvListGetCount(eSURVST_WARNING) == 0     )
-            &&( LEDGetState(LED_WARN)     == TRUE ) )
-        {   LEDSetNewState( LED_WARN, LED_PERM_OFF );
+            &&( LED_GetState(eLED_WARN)     == TRUE ) )
+        {   LED_SetNewState( eLED_WARN, LED_OFF );
         }
 
         /* ERROR-LED --------------------------------------  */
         if (  ( SurvListGetCount(eSURVST_ERROR) >  0     )
-            &&( LEDGetState(LED_ERR)     == FALSE ) )
-        {   LEDSetNewState( LED_ERR, LED_PERM_ON );
+            &&( LED_GetState(eLED_ERROR)     == FALSE ) )
+        {   LED_SetNewState( eLED_ERROR, LED_ON );
         }
         if (  ( SurvListGetCount(eSURVST_ERROR) == 0     )
-            &&( LEDGetState(LED_ERR)     == TRUE ) )
-        {   LEDSetNewState( LED_ERR, LED_PERM_OFF );
+            &&( LED_GetState(eLED_ERROR)     == TRUE ) )
+        {   LED_SetNewState( eLED_ERROR, LED_OFF );
         }
     }
 
     // special MOTOBAU behaviour
     #if(BIKE_MOTOBAU==1)
     // kai wants to enable an additional external lamp/indicator
-    //  - enable output GPO_1 too for Warning/Error only
+    //  - enable output eGPO_1 too for Warning/Error only
     PIN_GPO1 = SurvListGetCount(eSURVST_WARNING | eSURVST_ERR );
     #endif // BIKE_MOTOBAU
 }

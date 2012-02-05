@@ -68,6 +68,12 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.3  2012/02/05 11:17:08  tuberkel
+ * DigOuts completely reviewed:
+ * - central PWM-Out handled via DigOutDriver for ALL DigOuts!
+ * - simplified LED/Beeper/GPO HL-Driver
+ * - unique API & Parameter Handling for LED/Beeper/GPO
+ *
  * Revision 3.2  2012/01/14 10:26:44  tuberkel
  * LED PWM handling changed:
  * - no longer Msgs/TimerMsgs used (inaccurate optic)
@@ -114,8 +120,6 @@
 #include "stdmsgs.h"
 #include "msgqueue.h"
 #include "stdmsgs.h"
-#include "led.h"
-#include "beep.h"
 #include "debug.h"
 #include "device.h"
 

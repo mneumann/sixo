@@ -76,6 +76,12 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.2  2012/02/05 11:17:08  tuberkel
+ * DigOuts completely reviewed:
+ * - central PWM-Out handled via DigOutDriver for ALL DigOuts!
+ * - simplified LED/Beeper/GPO HL-Driver
+ * - unique API & Parameter Handling for LED/Beeper/GPO
+ *
  * Revision 3.1  2012/01/14 08:28:42  tuberkel
  * Message-IDs shortened / reviewed
  *
@@ -116,6 +122,7 @@
 #include "resource.h"
 #include "objects.h"
 #include "device.h"
+#include "digoutdr.h"
 #include "digindrv.h"
 #include "measure.h"
 #include "sysparam.h"
@@ -611,8 +618,8 @@ ERRCODE LapCntDeviceResetMsg(MESSAGE Msg)
         }
 
         // acknowledge to user
-        BeepOk();                   /* beep ok */
-        LEDOk();                    /* LED ok */
+        Beep_SignalOk();                   /* beep ok */
+        LED_SignalOk();                    /* LED ok */
         fLocked = TRUE;             /* don't repeat this until key released */
 
         ODS( DBG_SYS, DBG_INFO, "LapCnt reseted!");

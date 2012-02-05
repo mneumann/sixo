@@ -68,6 +68,12 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.2  2012/02/05 11:17:08  tuberkel
+ * DigOuts completely reviewed:
+ * - central PWM-Out handled via DigOutDriver for ALL DigOuts!
+ * - simplified LED/Beeper/GPO HL-Driver
+ * - unique API & Parameter Handling for LED/Beeper/GPO
+ *
  * Revision 3.1  2012/01/14 08:28:42  tuberkel
  * Message-IDs shortened / reviewed
  *
@@ -139,12 +145,14 @@
 #include "resource.h"
 #include "objects.h"
 #include "device.h"
+#include "digoutdr.h"
 #include "digindrv.h"
 #include "measure.h"
 #include "sysparam.h"
 #include "beep.h"
 #include "led.h"
 #include "timedate.h"
+
 //#*#AN debug begin
 #include "compassdrv.h"
 //#*#AN debug end
@@ -568,8 +576,8 @@ ERRCODE TripCntKeyhandling(MESSAGE GivenMsg)
                     TripCnt.km = 0;                         /* clear local counter */
                     MeasSetTripCnt(eTRIPC_B, &TripCnt);     /* copy to TripCnt B */
                     MeasSetTripCnt(eTRIPC_A, &TripCnt);     /* copy to TripCnt A */
-                    BeepOk();
-                    LEDOk();
+                    Beep_SignalOk();
+                    LED_SignalOk();
                 }
             }
             break;

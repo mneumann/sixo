@@ -68,6 +68,12 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.7  2012/02/05 11:17:08  tuberkel
+ * DigOuts completely reviewed:
+ * - central PWM-Out handled via DigOutDriver for ALL DigOuts!
+ * - simplified LED/Beeper/GPO HL-Driver
+ * - unique API & Parameter Handling for LED/Beeper/GPO
+ *
  * Revision 3.6  2012/02/04 22:25:49  tuberkel
  * LEDs renamed
  *
@@ -146,6 +152,8 @@
 
 /* include */
 #include <stdio.h>
+
+/* basic includes */
 #include "standard.h"
 #include "stdmsgs.h"
 #include "debug.h"
@@ -153,9 +161,13 @@
 #include "msgqueue.h"
 #include "timer.h"
 #include "sfr62p.h"
-#include "led.h"
+
+/* low level driver stuff */
 #include "digoutdr.h"
 #include "digindrv.h"
+
+/* high level driver stuff */
+#include "led.h"
 #include "gpo.h"
 #include "display.h"
 #include "displdrv.h"
@@ -245,11 +257,12 @@ int main()
     Error = ParCheckFirstInit();    /* check, wether eeprom/nvram update necessary */
     Error = ParInitSystemPar();     /* initialize all system parameters from eeprom/nvram */
     Error = TimeDateInit();         /* initialize system time & date stuff */
+    Error = DigOutDrv_Init();       /* all digital output ports & PWM out */
     Error = DigInDrv_Init();        /* prepare keyboard ports and other input ports */
     Error = DisplInit(FALSE);       /* prepare lcd output & clear screen */
-    Error = GPOInit();              /* prepare general purpose output ports */
-    Error = LEDInit();              /* prepare led output ports & service */
-    Error = BeepInit();             /* prepare beeper output ports & service */
+    Error = GPO_Init();              /* prepare general purpose output ports */
+    Error = LED_Init();              /* prepare led output ports & service */
+    Error = Beep_Init();             /* prepare beeper output ports & service */
     Error = MsgQInit();             /* reset message queue */
     Error = MeasDrvInit();          /* measurement init stuff (ta2, ta3, ta4, tb2, int1, int0) */
     Error = AnaInInit();            /* A/D converter for all measurements  */
@@ -303,9 +316,7 @@ int main()
         TimerRegisterEntryFunction( DevCyclicRefresh );             /* generation of MSG_SCREEN_RFRSH */
         TimerRegisterEntryFunction( TimeDateUpdate );               /* RTC check */
         TimerRegisterEntryFunction( AnaInDrvTriggerADConverter );   /* generation of AD samples in single sweep mode */
-        TimerRegisterEntryFunction( LEDService );                   /* support LED PWM control */
-        TimerRegisterEntryFunction( GPOService );                   /* support GPO PWM control */
-        TimerRegisterEntryFunction( BeepService );                  /* support Beeper control */
+        TimerRegisterEntryFunction( DigOutDrv_Service );            /* support PWM control for all digital outs */
         TimerRegisterEntryFunction( SurvProcessAll );               /* process complete surveillance for infos/warnings/errors */
         #if(BIKE_MOTOBAU==1)                                        /* special MOTOBAU behaviour */
         TimerRegisterEntryFunction( LapCntUpdateTime );             /* enable background lapcounter feature */
@@ -319,8 +330,8 @@ int main()
             on          = 100;
             off         = 100;
             duration    = 10000;
-            LEDSetNewState( LED_INFO, on, off, duration );
-            GPOSetNewState( eGPO_1,   on, off, duration );
+            LED_SetNewState( eLED_INFO, on, off, duration );
+            GPO_SetNewState( eGPO_1,   on, off, duration );
             while(stay);
         }
         #endif // (TEST_DIGOUT_PWM==1)

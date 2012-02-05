@@ -68,6 +68,12 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.3  2012/02/05 11:17:08  tuberkel
+ * DigOuts completely reviewed:
+ * - central PWM-Out handled via DigOutDriver for ALL DigOuts!
+ * - simplified LED/Beeper/GPO HL-Driver
+ * - unique API & Parameter Handling for LED/Beeper/GPO
+ *
  * Revision 3.2  2012/01/14 10:26:44  tuberkel
  * LED PWM handling changed:
  * - no longer Msgs/TimerMsgs used (inaccurate optic)
@@ -85,30 +91,16 @@
 
 
 
-/* Beep PWM timing */
-typedef struct
-{
-    UINT16  wOnTicks;           /* Beep ON duration in ticks (reload value) */
-    UINT16  wOffTicks;          /* Beep OFF duration in ticks (reload value) */
-    UINT16  wDurationTicks;     /* Beep duration in ticks */
-    UINT16  wOnCurrTicks;       /* Beep On PWM timer - counting done */
-    UINT16  wOffCurrTicks;      /* Beep Off PWM timer - counting done */
-} BEEPTIMINGTYPE;
-
-
 /* beeper defines */
-#define BEEP_OFF FALSE        /* beeper is off */
-#define BEEP_ON  TRUE         /* beeper is on */
+#define BEEP_OFF    DIGOUT_PERM_OFF        /* beeper is off */
+#define BEEP_ON     DIGOUT_PERM_ON         /* beeper is on */
 
 
 /* prototypes */
-ERRCODE BeepInit(void);
-ERRCODE BeepService(void);
-ERRCODE BeepSetNewState(UINT16 wOn_ms, UINT16 wOff_ms, UINT16 wDuration_ms );
-
-void BeepOk(void);
-void BeepEsc(void);
-void BeepClick(void);
+ERRCODE Beep_Init(void);
+void    Beep_SignalOk(void);
+void    Beep_SignalEsc(void);
+void    Beep_SignalClick(void);
 
 
 /* special test defines (default: off)*/
@@ -117,7 +109,7 @@ void BeepClick(void);
 #endif
 
 #if(TESTBEEP==1)
-void TestBeepSendMessage(void);
+
 #endif // TESTBEEP
 
 #endif /* _Beep_H */

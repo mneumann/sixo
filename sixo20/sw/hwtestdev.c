@@ -68,6 +68,12 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.5  2012/02/05 11:17:08  tuberkel
+ * DigOuts completely reviewed:
+ * - central PWM-Out handled via DigOutDriver for ALL DigOuts!
+ * - simplified LED/Beeper/GPO HL-Driver
+ * - unique API & Parameter Handling for LED/Beeper/GPO
+ *
  * Revision 3.4  2012/02/04 21:49:42  tuberkel
  * All BeeperDriver functions mapped ==> DigOutDrv()
  *
@@ -134,6 +140,7 @@
 #include "resource.h"
 #include "objects.h"
 #include "device.h"
+#include "digoutdr.h"
 #include "digindrv.h"
 #include "sysparam.h"
 #include "anaindrv.h"
@@ -156,19 +163,19 @@
 
 
 /* external symbols */
-extern UINT16  wMilliSecCounter;    // valid values: 0h .. ffffh
-extern UINT16  wSecCounter;         // valid values: 0h .. ffffh
+extern UINT16  wMilliSecCounter;                // valid values: 0h .. ffffh
+extern UINT16  wSecCounter;                     // valid values: 0h .. ffffh
 
-extern STRING far           szDevName[];                /* device names */
-extern DEVFLAGS1_TYPE        gDeviceFlags1;               /* system parameters */
+extern STRING far           szDevName[];        /* device names */
+extern DEVFLAGS1_TYPE       gDeviceFlags1;      /* system parameters */
 
 
 /* local objects */
-static DEVDATA      HWTestDev;           /* this device */
-static TEXTOBJECT   HWTestScreen;        /* basic screen content ------------------- */
-static BOOL         gfEOLTest = FALSE;   /* TRUE if test adapter present, FALSE if runs in vehicle */
-static BOOL         fGPO0 = FALSE;       /* for hw stimulation of pin GPO_0 */
-static BOOL         fGPO1 = FALSE;       /* for hw stimulation of pin GPO_1 */
+static DEVDATA      HWTestDev;                  /* this device */
+static TEXTOBJECT   HWTestScreen;               /* basic screen content ------------------- */
+static BOOL         fEOLTester_present = FALSE; /* TRUE if test adapter present, FALSE if runs in vehicle */
+static BOOL         fGPO0_active = FALSE;       /* for hw stimulation of pin eGPO_0 */
+static BOOL         fGPO1_active = FALSE;       /* for hw stimulation of pin eGPO_1 */
 
 /* variable strings to contain current values */
 static char szVoltage[6];
@@ -688,14 +695,14 @@ void HWTestWork ( void )
     HWTestUpdateMeasurement();
 
     // check errors stimulated by end-of-line test adapter (if connected)
-    if ( gfEOLTest == TRUE )
+    if ( fEOLTester_present == TRUE )
         HWTestCheckStimulatedErrors();
 
     // check errors which can always be detected
     HWTestCheckUnstimulatedErrors();
 
     // show input status (if no EOL test adapter)
-    if ( gfEOLTest == FALSE )
+    if ( fEOLTester_present == FALSE )
         HWTestCheckStates();
 }
 
@@ -1137,7 +1144,7 @@ void HWTestInit ( void )
     INT_GLOB_ENABLE;
 
     // check: HW test started at vehicle or at End of line?
-    gfEOLTest = HWTestCheckTesterPresent();
+    fEOLTester_present = HWTestCheckTesterPresent();
 
     // enable uart loopback test, if tester present
     // Note: we don't use uarts, we only check digital port reaction
@@ -1145,7 +1152,7 @@ void HWTestInit ( void )
 #if (MINIEMU==1) || (DEBUG==1) || (COMPASS==1)
     // do not use uart-loopback-test in this case
 #else
-    if (gfEOLTest == TRUE)
+    if (fEOLTester_present == TRUE)
     {
         u0c1 = 0;       // disable uart0 RX & TX
         u1c1 = 0;       // disable uart1 RX & TX
@@ -1171,43 +1178,43 @@ void HWTestInit ( void )
 #pragma INTERRUPT HWTestStimuISR
 void HWTestStimuISR(void)
 {
-    // toggle internal flag fGPO0 with 10 Hz
-    // Note: fGPO0 will be used as source for port pins
+    // toggle internal flag fGPO0_active with 10 Hz
+    // Note: fGPO0_active will be used as source for port pins
     //       only if test adapter present!
-    fGPO0 = fGPO0 ? FALSE : TRUE;
+    fGPO0_active = fGPO0_active ? FALSE : TRUE;
 
-    // slowly toggle internal flag fGPO1
-    // Note: fGPO1 will be used as source for port pins
+    // slowly toggle internal flag fGPO1_active
+    // Note: fGPO1_active will be used as source for port pins
     //       only if test adapter present!
     if ( (wSecCounter%2)==0)
-         fGPO1 = TRUE;
-    else fGPO1 = FALSE;
+         fGPO1_active = TRUE;
+    else fGPO1_active = FALSE;
 
     // HW stimulation only if HW testadapter found
-    if ( gfEOLTest == TRUE )
+    if ( fEOLTester_present == TRUE )
     {
         // toggle PIN_GPO0 as WHEEL & RPM stimulation with 10 Hz
-        PIN_GPO0 = (fGPO0 == TRUE) ? 1 : 0;
+        PIN_GPO0 = (fGPO0_active == TRUE) ? 1 : 0;
 
         // slowly toggle PIN_GPO1 for all GPIs and digital inputs every second
-        PIN_GPO1 = (fGPO1 == TRUE) ? 1 : 0;
+        PIN_GPO1 = (fGPO1_active == TRUE) ? 1 : 0;
 
         //  toggle uart tx pins to stimualte rx (uart0/1 invers)
-        Uart0_TX = (fGPO1 == TRUE) ? 1 : 0;
-        Uart1_TX = (fGPO1 == TRUE) ? 1 : 0;
+        Uart0_TX = (fGPO1_active == TRUE) ? 1 : 0;
+        Uart1_TX = (fGPO1_active == TRUE) ? 1 : 0;
 
     }
 
     // single triggered tests every second
     {   static BOOL fGPO1_OldState = FALSE;
-        if (fGPO1_OldState != fGPO1)
+        if (fGPO1_OldState != fGPO1_active)
         {
             // short time toggle beeper
             DigOutDrv_SetPin( eDIGOUT_BEEP, DIGOUT_ON  );
             DigOutDrv_SetPin( eDIGOUT_BEEP, DIGOUT_OFF );
 
             // save state
-            fGPO1_OldState = fGPO1;
+            fGPO1_OldState = fGPO1_active;
 
             // refresh screen NOW
             {
@@ -1219,7 +1226,7 @@ void HWTestStimuISR(void)
     }
 
     // show key status only (if tester present)
-    if ( gfEOLTest == TRUE )
+    if ( fEOLTester_present == TRUE )
     if (DigInDrv_GetKeyStates() & KEYFL_UP)
          KeyUp.eFormat = TXT_INVERS;
     else KeyUp.eFormat = TXT_NORM;
@@ -1235,7 +1242,7 @@ void HWTestStimuISR(void)
     // - if WHEEL contact closed and used in vehicle (No EOL)
     if (  (DigInDrv_GetKeyStates() & (KEYFL_DOWN | KEYFL_UP | KEYFL_OK))
         ||(  ( WheelPort == TRUE    )
-           &&( gfEOLTest == FALSE ) ) )
+           &&( fEOLTester_present == FALSE ) ) )
          DigOutDrv_SetPin( eDIGOUT_BEEP, DIGOUT_ON );
     else DigOutDrv_SetPin( eDIGOUT_BEEP, DIGOUT_OFF );
 
@@ -1266,27 +1273,27 @@ void HWTestStimuISR(void)
     #endif // VARY_DISPLAY
 
     // activate LEDs as pairs (controlled by PIN_GPO1)
-    if (fGPO1 == 1)
-    {   LEDDrvSetLED(LEDDRV_NEUTR, TRUE);
-        LEDDrvSetLED(LEDDRV_TURN,  FALSE);
-        LEDDrvSetLED(LEDDRV_INFO,  TRUE);
-        LEDDrvSetLED(LEDDRV_BEAM,  FALSE);
-        LEDDrvSetLED(LEDDRV_WARN,  TRUE);
-        LEDDrvSetLED(LEDDRV_ERR,   FALSE);
+    if (fGPO1_active == 1)
+    {   DigOutDrv_SetPin( eDIGOUT_LED_NEUTR, TRUE);
+        DigOutDrv_SetPin( eDIGOUT_LED_TURN,  FALSE);
+        DigOutDrv_SetPin( eDIGOUT_LED_INFO,  TRUE);
+        DigOutDrv_SetPin( eDIGOUT_LED_HBEAM, FALSE);
+        DigOutDrv_SetPin( eDIGOUT_LED_WARN,  TRUE);
+        DigOutDrv_SetPin( eDIGOUT_LED_ERROR,   FALSE);
     }
     else
-    {   LEDDrvSetLED(LEDDRV_NEUTR, FALSE);
-        LEDDrvSetLED(LEDDRV_TURN,  TRUE);
-        LEDDrvSetLED(LEDDRV_INFO,   FALSE);
-        LEDDrvSetLED(LEDDRV_BEAM,  TRUE);
-        LEDDrvSetLED(LEDDRV_WARN,  FALSE);
-        LEDDrvSetLED(LEDDRV_ERR,   TRUE);
+    {   DigOutDrv_SetPin( eDIGOUT_LED_NEUTR, FALSE);
+        DigOutDrv_SetPin( eDIGOUT_LED_TURN,  TRUE);
+        DigOutDrv_SetPin( eDIGOUT_LED_INFO,  FALSE);
+        DigOutDrv_SetPin( eDIGOUT_LED_HBEAM, TRUE);
+        DigOutDrv_SetPin( eDIGOUT_LED_WARN,  FALSE);
+        DigOutDrv_SetPin( eDIGOUT_LED_ERROR,   TRUE);
     }
 
     // addionally toggle PIN_GPO0 & PIN_GPO1 - if NO tester present!
-    if ( gfEOLTest == FALSE )
+    if ( fEOLTester_present == FALSE )
     {
-        if (fGPO1 == 1)
+        if (fGPO1_active == 1)
         {   PIN_GPO0 = 1;
             PIN_GPO1 = 0;
         }

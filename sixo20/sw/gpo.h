@@ -68,6 +68,12 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 1.4  2012/02/05 11:17:08  tuberkel
+ * DigOuts completely reviewed:
+ * - central PWM-Out handled via DigOutDriver for ALL DigOuts!
+ * - simplified LED/Beeper/GPO HL-Driver
+ * - unique API & Parameter Handling for LED/Beeper/GPO
+ *
  * Revision 1.3  2012/02/04 21:49:42  tuberkel
  * All BeeperDriver functions mapped ==> DigOutDrv()
  *
@@ -82,43 +88,28 @@
 #define _GPO_H
 
 
-/* number of available GPOs */
-#define GPO_COUNT   2
+/* Mapping LED API to DigOutDrv API  */
+#define GPO_ON      DIGOUT_PERM_ON
+#define GPO_OFF     DIGOUT_PERM_OFF
 
-/* GPO enumeration */
+#define GPO_ON_CRKEY  250, 0, 400     // coolride key pressed timing 250-on-150-off
+
+
+/* mapping GPO ports to DigOutDriver */
 typedef enum
 {
-    eGPO_0,       // PIN_GPO0
-    eGPO_1,       // PIN_GPO1
+    eGPO_0 = eDIGOUT_GPO_0,
+    eGPO_1 = eDIGOUT_GPO_1
 } GPO_ENUM;
 
 
 
-/* GPO activation */
-#define GPO_ON  TRUE
-#define GPO_OFF FALSE
-
-/* helper for GPOSetNewState() */
-#define GPO_PERM_ON     1,0,0       // OnTime:1 ms, OffTime:0 ms, Duration:0 => permanent off
-#define GPO_PERM_OFF    0,1,0       // OnTime:1 ms, OffTime:0 ms, Duration:0 => permanent off
-
-/* GPO PWM timing */
-typedef struct
-{
-    UINT16  wOnTicks;           /* Beep ON duration in ticks (reload value) */
-    UINT16  wOffTicks;          /* Beep OFF duration in ticks (reload value) */
-    UINT16  dwDurTicks;         /* Beep duration in ticks */
-    UINT16  wOnCurrTicks;       /* Beep On PWM timer (down counting) */
-    UINT16  wOffCurrTicks;      /* Beep Off PWM timer (down counting) */
-} GPOTIMINGTYPE;
-
 
 /* prototypes */
-ERRCODE GPOInit(void);
-ERRCODE GPOService(void);
-ERRCODE GPOSetNewState(GPO_ENUM eGpo, UINT16 wOn_ms, UINT16 wOff_ms, UINT16 wDuration_ms );
-BOOL    GPOGetState(GPO_ENUM eGpo);
-STRING  GPOGetName( GPO_ENUM eGPO);
+ERRCODE GPO_Init           ( void);
+ERRCODE GPO_SetNewState    ( GPO_ENUM eGpo, UINT16 wOn_ms, UINT16 wOff_ms, UINT16 wDur_ms );
+BOOL    GPO_GetState       ( GPO_ENUM eGpo);
+ERRCODE GPO_SignalCoolRide ( void );
 
 
 

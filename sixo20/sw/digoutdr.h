@@ -68,6 +68,12 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.7  2012/02/05 11:17:08  tuberkel
+ * DigOuts completely reviewed:
+ * - central PWM-Out handled via DigOutDriver for ALL DigOuts!
+ * - simplified LED/Beeper/GPO HL-Driver
+ * - unique API & Parameter Handling for LED/Beeper/GPO
+ *
  * Revision 3.6  2012/02/04 22:25:49  tuberkel
  * LEDs renamed
  *
@@ -86,35 +92,8 @@
  *
  ************************************************************************ */
 
-
-
-
-
-/* led driver LED enumeration */
-typedef enum
-{
-    LEDDRV_MIN,     // INVALID index, just for loops..
-    LEDDRV_NEUTR,   // D4,  yellow     green
-    LEDDRV_TURN,    // D3,  green      green
-    LEDDRV_INFO,    // D9,  yellow     white
-    LEDDRV_BEAM,    // D5,  blue       blue
-    LEDDRV_WARN,    // D11, orange     orange
-    LEDDRV_ERR,     // D10, red        red
-    LEDDRV_MAX      // INVALID index, just for loops..
-} LEDDRV_LEDS;
-
-
-/* function protoypes */
-ERRCODE LEDDrvInit      ( BOOL fFlash );
-ERRCODE LEDDrvSetLED    ( LEDDRV_LEDS bLEDIndex, BOOL fActivate);
-ERRCODE LEDDrvSetBright ( unsigned char bBrightness);
-BOOL    LEDDrvGetLED    ( LEDDRV_LEDS eLED );
-
-
-
-
-
-
+#ifndef _DIGOUTDR_H
+#define _DIGOUTDR_H
 
 
 
@@ -152,7 +131,7 @@ BOOL    LEDDrvGetLED    ( LEDDRV_LEDS eLED );
 
 
 /* ----------------------------------------------------- */
-/* makros for test pads for ossi checks */
+/* some test helper makros for test pads for ossi checks */
 /* port pin will change state for everey call */
 #if(TOGGLE_TESTPADS==1)
     #define PIN_TESTPAD9_TOGGLE     (PIN_TESTPAD9  = PIN_TESTPAD9  ? 0 : 1)
@@ -172,14 +151,43 @@ BOOL    LEDDrvGetLED    ( LEDDRV_LEDS eLED );
 
 
 /* ----------------------------------------------------- */
-/* Enumeration of all Digital Out Driver Pins  */
+/* Enumeration of all Digital Out Driver Pins
+   NOTE: Used as DigOut_PWMCtrl[INDEX] too! */
 typedef enum
 {
-    eDIGOUT_GPO0,   // General Purpose Out 0
-    eDIGOUT_GPO1,   // General Purpose Out 1
-    eDIGOUT_BEEP    // Beeper
-} DIGOUT_PINS;
+    eDIGOUT_GPO_0,      // General Purpose Out 0
+    eDIGOUT_GPO_1,      // General Purpose Out 1
 
+    eDIGOUT_BEEP,       // Beeper
+
+    eDIGOUT_LED_NEUTR,  // LED D4,  yellow
+    eDIGOUT_LED_TURN,   // LED D3,  green
+    eDIGOUT_LED_INFO,   // LED D9,  yellow
+    eDIGOUT_LED_HBEAM,  // LED D5,  blue
+    eDIGOUT_LED_WARN,   // LED D11, orange
+    eDIGOUT_LED_ERROR,  // LED D10, red
+
+    eDIGOUT_MAX         // do not use!
+
+} DIGOUT_PINS;
+#define DIGOUT_PINS_MAX  eDIGOUT_MAX  // number of pins to be controlled via DigOutDrv
+
+
+/* ----------------------------------------------------- */
+/* helper macro for DigOutDrv_SetNewState() usage */
+#define DIGOUT_PERM_ON     1,0,0       // OnTime:1 ms, OffTime:0 ms, Duration:0 => permanent off
+#define DIGOUT_PERM_OFF    0,1,0       // OnTime:1 ms, OffTime:0 ms, Duration:0 => permanent off
+
+/* LED PWM timing */
+typedef struct
+{
+    BOOL    fStateBefore;       /* GPO state before starting PWM (to restore state after temp. PWM usage) */
+    UINT16  wOnTicks;           /* Led ON duration in ticks (reload value) */
+    UINT16  wOffTicks;          /* Led OFF duration in ticks (reload value) */
+    UINT32  dwDurTicks;         /* Led duration in ticks */
+    UINT16  wOnCurrTicks;       /* Led On  PWM timer (current counter state) */
+    UINT16  wOffCurrTicks;      /* Led Off PWM timer (current counter state) */
+} DIGOUT_PWMCTRL_TYPE;
 
 
 
@@ -187,4 +195,11 @@ typedef enum
 ERRCODE DigOutDrv_Init(void);
 ERRCODE DigOutDrv_SetPin(DIGOUT_PINS ePin, BOOL fActivate);
 BOOL    DigOutDrv_GetPin(DIGOUT_PINS ePin );
+ERRCODE DigOutDrv_SetNewState( DIGOUT_PINS ePin, UINT16 wOn_ms, UINT16 wOff_ms, UINT16 wDur_ms );
+ERRCODE DigOutDrv_Service(void);
+STRING  DigOutDrv_GetPinName( DIGOUT_PINS ePin );
+
+
+
+#endif // _DIGOUTDR_H
 

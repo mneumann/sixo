@@ -68,6 +68,12 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.4  2012/02/05 11:17:08  tuberkel
+ * DigOuts completely reviewed:
+ * - central PWM-Out handled via DigOutDriver for ALL DigOuts!
+ * - simplified LED/Beeper/GPO HL-Driver
+ * - unique API & Parameter Handling for LED/Beeper/GPO
+ *
  * Revision 3.3  2012/02/04 08:40:26  tuberkel
  * BugFix LED PWM
  *
@@ -79,50 +85,30 @@
 #define _LED_H
 
 
-/* LED enumeration */
+/* Mapping LED API to DigOutDrv API  */
+#define LED_ON      DIGOUT_PERM_ON
+#define LED_OFF     DIGOUT_PERM_OFF
+
+
+/* mapping GPO ports to DigOutDriver */
 typedef enum
 {
-    LED_MIN,     // INVALID index, just for loops..
-    LED_NEUTR,   // D4,  yellow     green
-    LED_TURN,    // D3,  green      green
-    LED_INFO,    // D9,  yellow     white
-    LED_BEAM,    // D5,  blue       blue
-    LED_WARN,    // D11, orange     orange
-    LED_ERR,     // D10, red        red
-    LED_MAX      // INVALID index, just for loops..
+    eLED_NEUTR  = eDIGOUT_LED_NEUTR,
+    eLED_TURN   = eDIGOUT_LED_TURN,
+    eLED_INFO   = eDIGOUT_LED_INFO,
+    eLED_HBEAM  = eDIGOUT_LED_HBEAM,
+    eLED_WARN   = eDIGOUT_LED_WARN,
+    eLED_ERROR  = eDIGOUT_LED_ERROR
 } LED_ENUM;
 
 
-
-/* LED activation */
-#define LED_ON  TRUE
-#define LED_OFF FALSE
-
-/* helper for LEDSetNewState() */
-#define LED_PERM_ON     1,0,0       // OnTime:1 ms, OffTime:0 ms, Duration:0 => permanent off
-#define LED_PERM_OFF    0,1,0       // OnTime:1 ms, OffTime:0 ms, Duration:0 => permanent off
-
-/* LED PWM timing */
-typedef struct
-{
-    UINT16  wOnTicks;           /* Led ON duration in ticks (reload value) */
-    UINT16  wOffTicks;          /* Led OFF duration in ticks (reload value) */
-    UINT32  dwDurTicks;         /* Led duration in ticks */
-    UINT16  wOnCurrTicks;       /* Led On  PWM timer (current counter state) */
-    UINT16  wOffCurrTicks;      /* Led Off PWM timer (current counter state) */
-} LEDTIMINGTYPE;
-
-
-/* prototypes */
-ERRCODE LEDInit(void);
-ERRCODE LEDService(void);
-ERRCODE LEDSetNewState(LED_ENUM eLed, UINT16 wOn_ms, UINT16 wOff_ms, UINT16 wDuration_ms );
-BOOL    LEDGetState(LED_ENUM eLed);
-
-void    LEDOk(void);
-void    LEDEsc(void);
-
-STRING   LEDGetName( LED_ENUM eLED );
+/* public prototypes */
+ERRCODE LED_Init            ( void );
+BOOL    LED_GetState        ( LED_ENUM eLed );
+ERRCODE LED_SetNewState     ( LED_ENUM eLed, UINT16 wOn_ms, UINT16 wOff_ms, UINT16 wDur_ms );
+ERRCODE LED_SetBrightness   ( unsigned char bBrightness);
+void    LED_SignalOk        ( void );
+void    LED_SignalEsc       ( void );
 
 
 /* test functions */

@@ -68,6 +68,12 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.9  2012/02/05 11:17:08  tuberkel
+ * DigOuts completely reviewed:
+ * - central PWM-Out handled via DigOutDriver for ALL DigOuts!
+ * - simplified LED/Beeper/GPO HL-Driver
+ * - unique API & Parameter Handling for LED/Beeper/GPO
+ *
  * Revision 3.8  2012/02/04 21:49:42  tuberkel
  * All BeeperDriver functions mapped ==> DigOutDrv()
  *
@@ -154,6 +160,7 @@
 #include "digindrv.h"
 #include "measure.h"
 #include "sysparam.h"
+#include "digoutdr.h"
 #include "beep.h"
 #include "led.h"
 #include "gpo.h"
@@ -1379,8 +1386,8 @@ ERRCODE MainDeviceMsg_DistanceReset(MESSAGE Msg)
                 case MD_SPEEDMAX: Speed_Max = 0; break;
                 default: break;
             }
-            BeepOk();                   /* beep ok */
-            LEDOk();                    /* LED ok */
+            Beep_SignalOk();                   /* beep ok */
+            LED_SignalOk();                    /* LED ok */
             fLocked = TRUE;             /* don't repeat this until key released */
             RValue = ERR_MSG_PROCESSED; /* done */
         }
@@ -1422,8 +1429,8 @@ ERRCODE MainDeviceMsg_ShowVehicState(MESSAGE Msg)
         MsgQPostMsg(NewMsg, MSGQ_PRIO_LOW);
 
         // TEST: activate PIN_GPO0 as Coolride Input!
-        GPOSetNewState( eGPO_0,  250, 0, 400 );  // ==> Coolride input
-        GPOSetNewState( eGPO_1,  250, 0, 400 );  // ==> juts to view at simulator
+        GPO_SignalCoolRide();   // ==> Coolride key input
+        GPO_SetNewState( eGPO_1,  GPO_ON_CRKEY );  // ==> juts to view at simulator
 
         /* prepare delayed message to our self to HIDE vehicle state after 3 seconds */
         MSG_BUILD_UINT8(NewMsg, MSG_VEHSTATE_HIDE, 0, 0, 0);

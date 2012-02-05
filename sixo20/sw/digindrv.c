@@ -68,6 +68,12 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.4  2012/02/05 11:17:08  tuberkel
+ * DigOuts completely reviewed:
+ * - central PWM-Out handled via DigOutDriver for ALL DigOuts!
+ * - simplified LED/Beeper/GPO HL-Driver
+ * - unique API & Parameter Handling for LED/Beeper/GPO
+ *
  * Revision 3.3  2012/02/04 20:38:05  tuberkel
  * Moved all BeeperDriver / LEDDriver stuff ==> 'digoutdrv'
  *
@@ -200,11 +206,11 @@ ERRCODE DigInDrv_Init(void)
     {
         rgKeyControl[i].wStartTime_ms     = 0;
         rgKeyControl[i].wLastSentTime_ms  = 0;
-        rgKeyControl[i].wDuration_ms      = 0;
+        rgKeyControl[i].wDur_ms      = 0;
     }
     MultiKeyControl.wStartTime_ms     = 0;
     MultiKeyControl.wLastSentTime_ms  = 0;
-    MultiKeyControl.wDuration_ms      = 0;
+    MultiKeyControl.wDur_ms      = 0;
 
     /* initialize digital input filter table */
     DigInDrv_FilterInit();
@@ -310,16 +316,16 @@ ERRCODE DigInDrv_CheckKeyAction(void)
                 if (rgKeyControl[Key].KeyTransit == KEYTRANS_OFF)   /* state until now: OFF! */
                 {
                     /* PRESSED FIRST TIME! */
-                    if (rgKeyControl[Key].wDuration_ms <= MINDURWAIT )
+                    if (rgKeyControl[Key].wDur_ms <= MINDURWAIT )
                     {
                         /* set start time and minimal duration */
                         /* BUT do net send msg now! */
-                        if (rgKeyControl[Key].wDuration_ms == 0)
+                        if (rgKeyControl[Key].wDur_ms == 0)
                         {
                             rgKeyControl[Key].wStartTime_ms = wActTime_ms;
-                            rgKeyControl[Key].wDuration_ms  = MINDUR;
+                            rgKeyControl[Key].wDur_ms  = MINDUR;
                         }
-                        else rgKeyControl[Key].wDuration_ms = wActTime_ms - rgKeyControl[Key].wStartTime_ms;
+                        else rgKeyControl[Key].wDur_ms = wActTime_ms - rgKeyControl[Key].wStartTime_ms;
                     }
                     else
                     {
@@ -327,7 +333,7 @@ ERRCODE DigInDrv_CheckKeyAction(void)
                         /* and THEN send message */
                         rgKeyControl[Key].KeyTransit        = KEYTRANS_PRESSED;
                         rgKeyControl[Key].wLastSentTime_ms  = wActTime_ms;
-                        rgKeyControl[Key].wDuration_ms = wActTime_ms - rgKeyControl[Key].wStartTime_ms;
+                        rgKeyControl[Key].wDur_ms = wActTime_ms - rgKeyControl[Key].wStartTime_ms;
                         DigInDrv_SendKeyMessage(Key, &rgKeyControl[Key]);
                         //ODS1(DBG_SYS,DBG_INFO,"New KeyPress: Key#%u",Key);
                     }
@@ -343,7 +349,7 @@ ERRCODE DigInDrv_CheckKeyAction(void)
                     /* handle 'first delay' & 'repetition rate' */
                     if ( (wActTime_ms - rgKeyControl[Key].wLastSentTime_ms) > wWaitTime)
                     {
-                        rgKeyControl[Key].wDuration_ms = wActTime_ms - rgKeyControl[Key].wStartTime_ms;
+                        rgKeyControl[Key].wDur_ms = wActTime_ms - rgKeyControl[Key].wStartTime_ms;
                         rgKeyControl[Key].KeyTransit = KEYTRANS_ON;
                         rgKeyControl[Key].wLastSentTime_ms = wActTime_ms;
                         DigInDrv_SendKeyMessage(Key, &rgKeyControl[Key]);
@@ -351,24 +357,24 @@ ERRCODE DigInDrv_CheckKeyAction(void)
                     }
                 }
                 /* save common duration of pressed keys only */
-                wCommonDuration_ms = MAX(wCommonDuration_ms, rgKeyControl[Key].wDuration_ms);
+                wCommonDuration_ms = MAX(wCommonDuration_ms, rgKeyControl[Key].wDur_ms);
             }
             /* KEY NOT PRESSED! reset duration */
             else
             {
                 /* key has just at the moment been released? */
-                if (rgKeyControl[Key].wDuration_ms > 0)
+                if (rgKeyControl[Key].wDur_ms > 0)
                 {
                     /* RELEASED AT THIS MOMENT! */
                     rgKeyControl[Key].KeyTransit = KEYTRANS_RELEASED;
                     DigInDrv_SendKeyMessage(Key, &rgKeyControl[Key]);
-                    rgKeyControl[Key].wDuration_ms = 0;     // reset AFTER sending duration !
+                    rgKeyControl[Key].wDur_ms = 0;     // reset AFTER sending duration !
                     //ODS1(DBG_SYS,DBG_INFO,"KeyReleased: Key#%u",Key);
                 }
                 else
                 {
                     /* NO ACTION FOR A LONGER PERIOD */
-                    rgKeyControl[Key].wDuration_ms = 0;
+                    rgKeyControl[Key].wDur_ms = 0;
                     rgKeyControl[Key].KeyTransit = KEYTRANS_OFF;
                 }
             }
@@ -380,12 +386,12 @@ ERRCODE DigInDrv_CheckKeyAction(void)
     if (bKeyCounter > 1)
     {
         /* MULTIPLE KEYS PRESSED! first press? */
-        if (MultiKeyControl.wDuration_ms == 0)
+        if (MultiKeyControl.wDur_ms == 0)
         {
             /* PRESSED FIRST TIME! set start time and minimal duration */
             MultiKeyControl.wStartTime_ms     = wActTime_ms;
             MultiKeyControl.KeyTransit        = KEYTRANS_PRESSED;
-            MultiKeyControl.wDuration_ms      = MINDUR;
+            MultiKeyControl.wDur_ms      = MINDUR;
             MultiKeyControl.wLastSentTime_ms  = wActTime_ms;
             MSG_BUILD_UINT8(    KeyMsg,
                                 MSG_KEYS_PRESSED,
@@ -405,7 +411,7 @@ ERRCODE DigInDrv_CheckKeyAction(void)
             /* handle 'first delay' & 'repitition rate' */
             if ( (wActTime_ms - MultiKeyControl.wLastSentTime_ms) > wWaitTime)
             {
-                MultiKeyControl.wDuration_ms = wActTime_ms - MultiKeyControl.wStartTime_ms;
+                MultiKeyControl.wDur_ms = wActTime_ms - MultiKeyControl.wStartTime_ms;
                 MultiKeyControl.KeyTransit = KEYTRANS_ON;
                 MultiKeyControl.wLastSentTime_ms = wActTime_ms;
                 MSG_BUILD_UINT8(    KeyMsg,
@@ -422,7 +428,7 @@ ERRCODE DigInDrv_CheckKeyAction(void)
     else
     {
         /* key has just at the moment been released? */
-        if (MultiKeyControl.wDuration_ms > 0)
+        if (MultiKeyControl.wDur_ms > 0)
         {
             /* RELEASED AT THIS MOMENT! */
             MultiKeyControl.KeyTransit = KEYTRANS_RELEASED;
@@ -432,13 +438,13 @@ ERRCODE DigInDrv_CheckKeyAction(void)
                                 HIGHBYTE(wCommonDuration_ms),
                                 bKeyState);
             RValue = MsgQPostMsg(KeyMsg, MSGQ_PRIO_HIGH);
-            MultiKeyControl.wDuration_ms = 0;   // reset AFTER sending duration !
+            MultiKeyControl.wDur_ms = 0;   // reset AFTER sending duration !
             //ODS1(DBG_SYS,DBG_INFO,"Multi-KeyReleased: Keys 0x%x",bKeyState);
         }
         else
         {
             /* NO ACTION FOR A LONGER PERIOD */
-            MultiKeyControl.wDuration_ms = 0;
+            MultiKeyControl.wDur_ms = 0;
             MultiKeyControl.KeyTransit = KEYTRANS_OFF;
         }
     }
@@ -498,18 +504,18 @@ void DigInDrv_CheckAllPorts(void)
     /* TURN LED ------------------------------------------- */
     if (  (DF_TURNL == 1)                // high active
         ||(DF_TURNR == 1) )              // high active
-         LEDDrvSetLED(LEDDRV_TURN, TRUE);
-    else LEDDrvSetLED(LEDDRV_TURN, FALSE);
+         DigOutDrv_SetPin( eDIGOUT_LED_TURN, TRUE);
+    else DigOutDrv_SetPin( eDIGOUT_LED_TURN, FALSE);
 
     /* NEUTRAL LED ------------------------------------------- */
     if (DF_NEUTR == 0)                 // low active
-         LEDDrvSetLED(LEDDRV_NEUTR, TRUE);
-    else LEDDrvSetLED(LEDDRV_NEUTR, FALSE);
+         DigOutDrv_SetPin( eDIGOUT_LED_NEUTR, TRUE);
+    else DigOutDrv_SetPin( eDIGOUT_LED_NEUTR, FALSE);
 
     /* HIGHBEAM LED ------------------------------------------- */
     if (DF_HBEAM == 1)                   // high active
-         LEDDrvSetLED(LEDDRV_BEAM, TRUE);
-    else LEDDrvSetLED(LEDDRV_BEAM, FALSE);
+         DigOutDrv_SetPin( eDIGOUT_LED_HBEAM, TRUE);
+    else DigOutDrv_SetPin( eDIGOUT_LED_HBEAM, FALSE);
 
 }
 

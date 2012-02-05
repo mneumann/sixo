@@ -69,6 +69,12 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.3  2012/02/05 11:17:08  tuberkel
+ * DigOuts completely reviewed:
+ * - central PWM-Out handled via DigOutDriver for ALL DigOuts!
+ * - simplified LED/Beeper/GPO HL-Driver
+ * - unique API & Parameter Handling for LED/Beeper/GPO
+ *
  * Revision 3.2  2012/01/15 09:56:54  tuberkel
  * ObjEditBool: new behaviour
  * - UP/DOWN always toggls boolean state
@@ -141,7 +147,9 @@
 #include "display.h"
 #include "fonts.h"
 #include "objects.h"
+
 #include "digindrv.h"
+#include "digoutdr.h"
 #include "beep.h"
 #include "led.h"
 #include "resource.h"
@@ -576,8 +584,8 @@ ERRCODE ObjEditTextMsgEntry( EDITTEXTOBJECT far * fpObject, MESSAGE GivenMsg )
                 strcpy(fpObject->szText, fpObject->szWorkText); /* save edited text! */
                 fpObject->State.bits.fEditActive = FALSE;       /* user ended edit mode! */
                 ODS1(DBG_USER, DBG_INFO, "EditText saved [%s]", fpObject->szWorkText);
-                LEDOk();                                        /* additional 'saved' indicator */
-                BeepOk();                                       /* additional 'saved' indicator */
+                LED_SignalOk();                                        /* additional 'saved' indicator */
+                Beep_SignalOk();                                       /* additional 'saved' indicator */
             }
             /* ------------------------------------------------------------------------ */
             else if (  (MsgId == MSG_KEYS_PRESSED                 )     /* multiple keys */
@@ -586,8 +594,8 @@ ERRCODE ObjEditTextMsgEntry( EDITTEXTOBJECT far * fpObject, MESSAGE GivenMsg )
                 strcpy(fpObject->szWorkText, fpObject->szText); /* reset the work copy to original*/
                 fpObject->State.bits.fEditActive = FALSE;       /* user ended edit mode! */
                 ODS1(DBG_USER, DBG_INFO, "EditText ESC! String [%s] not changed!", fpObject->szWorkText);
-                LEDEsc();                                       /* additional 'ESC' indicator */
-                BeepEsc();                                      /* additional 'ESC' indicator */
+                LED_SignalEsc();                                       /* additional 'ESC' indicator */
+                Beep_SignalEsc();                                      /* additional 'ESC' indicator */
             }
 
             /* ------------------------------------------------------------------------ */
@@ -1027,8 +1035,8 @@ ERRCODE ObjEditNumMsgEntry( EDITNUMBEROBJECT far * fpObject, MESSAGE GivenMsg )
                 ObjEditNumCopy(fpObject, FALSE);                /* save copy into original value */
                 fpObject->State.bits.fEditActive = FALSE;       /* user ended edit mode! */
                 ODS1(DBG_USER, DBG_INFO, "EditNumber saved new value [%s]", ObjEditNum2String(fpObject, rgDebugBuff));
-                LEDOk();                                        /* additional 'saved' indicator */
-                BeepOk();                                       /* additional 'saved' indicator */
+                LED_SignalOk();                                        /* additional 'saved' indicator */
+                Beep_SignalOk();                                       /* additional 'saved' indicator */
             }
             /* ------------------------------------------------------------------------ */
             else if (  (MsgId == MSG_KEYS_PRESSED                 )  /* multiple keys */
@@ -1037,8 +1045,8 @@ ERRCODE ObjEditNumMsgEntry( EDITNUMBEROBJECT far * fpObject, MESSAGE GivenMsg )
                 //strcpy(fpObject->WorkNumber, fpObject->fpNumber);  /* reset the work copy to original*/
                 fpObject->State.bits.fEditActive = FALSE;            /* user ended edit mode! */
                 ODS1(DBG_USER, DBG_INFO, "EditNumber  [%s] not changed!", ObjEditNum2String(fpObject, rgDebugBuff));
-                LEDEsc();                                       /* additional 'ESC' indicator */
-                BeepEsc();                                      /* additional 'ESC' indicator */
+                LED_SignalEsc();                                       /* additional 'ESC' indicator */
+                Beep_SignalEsc();                                      /* additional 'ESC' indicator */
             }
 
             /* ------------------------------------------------------------------------ */
@@ -1886,8 +1894,8 @@ ERRCODE ObjEditBoolMsgEntry( EDITBOOLOBJECT far * fpObject, MESSAGE GivenMsg )
                 *fpObject->fpValue = *fpObject->fpWorkValue;    /* save the working copy into target */
                 fpObject->State.bits.fEditActive = FALSE;       /* user ended edit mode! */
                 ODS1(DBG_USER, DBG_INFO, "EditBool saved [%s]", (*fpObject->fpValue==TRUE)? "1" : "0" );
-                LEDOk();                                        /* additional 'saved' indicator */
-                BeepOk();                                       /* additional 'saved' indicator */
+                LED_SignalOk();                                        /* additional 'saved' indicator */
+                Beep_SignalOk();                                       /* additional 'saved' indicator */
             }
             /* ------------------------------------------------------------------------ */
             else if (  (MsgId == MSG_KEYS_PRESSED                )  /* multiple keys */
@@ -1895,8 +1903,8 @@ ERRCODE ObjEditBoolMsgEntry( EDITBOOLOBJECT far * fpObject, MESSAGE GivenMsg )
             {                                                        /* uses presses ESC! */
                 fpObject->State.bits.fEditActive = FALSE;            /* user ended edit mode! */
                 ODS1(DBG_USER, DBG_INFO, "EditBool [%s] not changed!", (*fpObject->fpValue==TRUE)? "x" : "_" );
-                LEDEsc();                                       /* additional 'ESC' indicator */
-                BeepEsc();                                      /* additional 'ESC' indicator */
+                LED_SignalEsc();                                       /* additional 'ESC' indicator */
+                Beep_SignalEsc();                                      /* additional 'ESC' indicator */
             }
 
             /* ------------------------------------------------------------------------ */
@@ -2193,8 +2201,8 @@ ERRCODE ObjSelectMsgEntry( SELECTOBJECT far * fpObject, MESSAGE GivenMsg )
                 *fpObject->fpValue = *fpObject->fpWorkValue;    /* save the working copy into target */
                 fpObject->State.bits.fEditActive = FALSE;       /* user ended edit mode! */
                 ODS1(DBG_USER, DBG_INFO, "Select saved [%u]", *fpObject->fpValue );
-                LEDOk();                                        /* additional 'saved' indicator */
-                BeepOk();                                       /* additional 'saved' indicator */
+                LED_SignalOk();                                        /* additional 'saved' indicator */
+                Beep_SignalOk();                                       /* additional 'saved' indicator */
             }
             /* ------------------------------------------------------------------------ */
             else if (  (MsgId == MSG_KEYS_PRESSED                 )  /* multiple keys */
@@ -2202,8 +2210,8 @@ ERRCODE ObjSelectMsgEntry( SELECTOBJECT far * fpObject, MESSAGE GivenMsg )
             {                                                        /* ==> user pressed ESC! */
                 fpObject->State.bits.fEditActive = FALSE;            /* user ended edit mode! */
                 ODS1(DBG_USER, DBG_INFO, "Select [%u] not changed!", *fpObject->fpValue);
-                LEDEsc();                                       /* additional 'ESC' indicator */
-                BeepEsc();                                      /* additional 'ESC' indicator */
+                LED_SignalEsc();                                       /* additional 'ESC' indicator */
+                Beep_SignalEsc();                                      /* additional 'ESC' indicator */
             }
             /* ------------------------------------------------------------------------ */
             else if (  (MsgId == MSG_KEY_DOWN )                             /* [DOWN] */
