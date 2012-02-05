@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 1.6  2012/02/05 11:58:01  tuberkel
+ * Coolride Makros adapted
+ *
  * Revision 1.5  2012/02/05 11:17:08  tuberkel
  * DigOuts completely reviewed:
  * - central PWM-Out handled via DigOutDriver for ALL DigOuts!
@@ -195,7 +198,7 @@ BOOL GPO_GetState( GPO_ENUM eGpo )
 ERRCODE GPO_SignalCoolRide( void )
 {
     ERRCODE RValue;
-    RValue = DigOutDrv_SetNewState( eDIGOUT_GPO_0, GPO_ON_CRKEY );
+    RValue = DigOutDrv_SetNewState( COOLRIDE_GPO, COOLRIDE_KEYPRESSED );
     return (RValue);
 }
 

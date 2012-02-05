@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.10  2012/02/05 11:58:01  tuberkel
+ * Coolride Makros adapted
+ *
  * Revision 3.9  2012/02/05 11:17:08  tuberkel
  * DigOuts completely reviewed:
  * - central PWM-Out handled via DigOutDriver for ALL DigOuts!
@@ -1430,7 +1433,7 @@ ERRCODE MainDeviceMsg_ShowVehicState(MESSAGE Msg)
 
         // TEST: activate PIN_GPO0 as Coolride Input!
         GPO_SignalCoolRide();   // ==> Coolride key input
-        GPO_SetNewState( eGPO_1,  GPO_ON_CRKEY );  // ==> juts to view at simulator
+        GPO_SetNewState( eGPO_1,  COOLRIDE_KEYPRESSED );  // ==> juts to view at simulator
 
         /* prepare delayed message to our self to HIDE vehicle state after 3 seconds */
         MSG_BUILD_UINT8(NewMsg, MSG_VEHSTATE_HIDE, 0, 0, 0);

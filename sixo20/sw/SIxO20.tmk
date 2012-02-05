@@ -5,7 +5,7 @@
 # All Rights Reserved.
 #
 #	Notice	:	Don't edit.
-#	Date	:	2012 02(February) 04(Saturday) PM.09.30
+#	Date	:	2012 02(February) 05(Sunday) PM.12.32
 #	Project	:	SIxO20
 ####################################################################
 
@@ -23,12 +23,12 @@ OUTDIR	=	.\outdir
 MKDIR	=	@-mkdir
 ABSFILE	=	$(PROJECT).x30
 ODINCMD	=	$(OUTDIR)
-LN	=	LN30
 TARGET	=	$(ABSFILE)
+LN	=	LN30
 ECHO	=	@-echo
 MKFILE	=	$(PROJECT).tmk
-PROJECT	=	SIxO20
 TYPE	=	@-type
+PROJECT	=	SIxO20
 LFLAGS	=	-MS -L nc30lib -. -G -O $(OUTDIR)\$(TARGET)
 UTLFLAGS	=	
 CFLAGS	=	-c -I. -silent -dir $(OUTDIR) -Wall -DDEBUG=1 -DMINIEMU=1 -DGEARBOX=1 -finfo
@@ -300,7 +300,11 @@ $(OUTDIR)\digoutdr.r30: \
 		.\standard.h \
 		.\debug.h \
 		.\digoutdr.h \
-		.\sfr62p.h 
+		.\sfr62p.h \
+		$(MTOOLINC)\string.h \
+		.\timer.h \
+		.\msgqueue.h \
+		.\stdmsgs.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) digoutdr.c
 $(OUTDIR)\display.r30: \
 		.\display.c \
@@ -434,7 +438,8 @@ $(OUTDIR)\lapcdev.r30: \
 		.\beep.h \
 		$(MTOOLINC)\stdio.h \
 		$(MTOOLINC)\string.h \
-		.\resource_de.h 
+		.\resource_de.h \
+		.\digoutdr.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) lapcdev.c
 $(OUTDIR)\led.r30: \
 		.\led.c \
@@ -444,9 +449,9 @@ $(OUTDIR)\led.r30: \
 		.\led.h \
 		.\timer.h \
 		.\debug.h \
-		.\digindrv.h \
 		$(MTOOLINC)\string.h \
-		.\digoutdr.h 
+		.\digoutdr.h \
+		.\sfr62p.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) led.c
 $(OUTDIR)\main.r30: \
 		.\main.c \
@@ -499,7 +504,8 @@ $(OUTDIR)\maindev.r30: \
 		$(MTOOLINC)\stdio.h \
 		$(MTOOLINC)\string.h \
 		.\resource_de.h \
-		.\gpo.h 
+		.\gpo.h \
+		.\digoutdr.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) maindev.c
 $(OUTDIR)\measdrv.r30: \
 		.\measdrv.c \
@@ -551,17 +557,16 @@ $(OUTDIR)\mondev.r30: \
 		.\timedate.h \
 		$(MTOOLINC)\stdio.h \
 		$(MTOOLINC)\string.h \
-		.\resource_de.h 
+		.\resource_de.h \
+		.\digoutdr.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) mondev.c
 $(OUTDIR)\msgqueue.r30: \
 		.\msgqueue.c \
 		.\standard.h \
 		.\stdmsgs.h \
 		.\msgqueue.h \
-		.\led.h \
 		.\debug.h \
 		.\device.h \
-		.\beep.h \
 		.\m16c.h \
 		$(MTOOLINC)\string.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) msgqueue.c
@@ -592,7 +597,8 @@ $(OUTDIR)\objects.r30: \
 		$(MTOOLINC)\string.h \
 		$(MTOOLINC)\stdlib.h \
 		$(MTOOLINC)\ctype.h \
-		.\resource_de.h 
+		.\resource_de.h \
+		.\digoutdr.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) objects.c
 $(OUTDIR)\setdev.r30: \
 		.\setdev.c \
@@ -729,7 +735,8 @@ $(OUTDIR)\tripcnt.r30: \
 		$(MTOOLINC)\stdio.h \
 		$(MTOOLINC)\string.h \
 		.\resource_de.h \
-		.\compassdrv.h 
+		.\compassdrv.h \
+		.\digoutdr.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) tripcnt.c
 $(OUTDIR)\vehicsim.r30: \
 		.\vehicsim.c \

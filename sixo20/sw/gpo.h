@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 1.5  2012/02/05 11:58:01  tuberkel
+ * Coolride Makros adapted
+ *
  * Revision 1.4  2012/02/05 11:17:08  tuberkel
  * DigOuts completely reviewed:
  * - central PWM-Out handled via DigOutDriver for ALL DigOuts!
@@ -92,7 +95,14 @@
 #define GPO_ON      DIGOUT_PERM_ON
 #define GPO_OFF     DIGOUT_PERM_OFF
 
-#define GPO_ON_CRKEY  250, 0, 400     // coolride key pressed timing 250-on-150-off
+
+/* Coolride Heat Control
+    - SIxO controls Coolride keyInput by shortening CR-Key to SIxO GPO0-Gnd
+    - Coolride needs at least Key-pressed 100 ms and 380 ms Intervall to next Press
+    - we currently reserve GPO_0 as Coolride Control
+    - we here adjust 100 ms GPO-ON-Time and 280 ms DURATION */
+#define COOLRIDE_KEYPRESSED 100, 0, 280
+#define COOLRIDE_GPO        eGPO_0
 
 
 /* mapping GPO ports to DigOutDriver */
