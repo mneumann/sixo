@@ -4,7 +4,17 @@ SIxO20-Software Versions
 Lower version numbers than v2.0.0 are maintained in the repository folder "sixo".
 Note that "sixo" is freezed (except bug fixes and minor updates).
 
+======= ==========  ======================================
 Version Date        Feature
+======= ==========  ======================================
+
+v3.0.3  2012-02-05
+> NEW:
+    + Internal Review: LED / Beeper / GPO handling completely reviewed
+    + Simplified & central PWM handling for ALL digital output
+> BUGFIXES:
+    + PWM handling of LED / Beeper / GPO
+
 ======= ==========  ======================================
 v3.0.2  2012-01-23
 > NEW:
