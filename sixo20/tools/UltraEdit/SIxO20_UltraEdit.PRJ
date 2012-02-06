@@ -7,17 +7,17 @@ Use Relative Directory=1
 Relative to Project File=1
 Project Wordfile=
 [Open Files]
-Open File0=S:\CVS\sixo\sixo20\sw\gpo.c
-Open File Pos0=6785
-Open File Line0=5944
-Active File Index=6
-Open File Window Pos0=0,1,-1,-1,-4,-30,66,87,750,670
-Open File1=S:\CVS\sixo\sixo20\sw\gpo.h
+Open File0=s:\CVS\sixo\sixo20\sw\maindev.c
+Open File Pos0=17307
+Open File Line0=16069
+Active File Index=1
+Open File Window Pos0=0,1,-1,-1,-4,-30,66,87,758,639
+Open File1=s:\CVS\sixo\sixo20\sw\bitmaps.c
 Active File Display Mode=3
-Open File Pos1=2778
-Open File Line1=3131
-Open File Window Pos1=0,1,-1,-1,-4,-30,88,116,776,703
-Open File2=S:\CVS\SIXO\SIXO20\SW\maindev.c
+Open File Pos1=87057
+Open File Line1=86103
+Open File Window Pos1=2,3,-1,-1,-4,-30,44,58,740,614
+Open File2=
 Open File Pos2=45240
 Open File Line2=44033
 Open File Window Pos2=0,1,-1,-1,-4,-30,110,145,798,732
@@ -112,7 +112,7 @@ Open File Window Pos24=2,3,-1,-1,-4,-30,66,87,755,443
 Open File25=
 
 [File View]
-Current Select=Projektdateien\Resources\fonts.c
+Current Select=Projektdateien\Resources\bitmaps.c
 
 [Files - Test]
 
