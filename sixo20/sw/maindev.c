@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.12  2012/02/06 20:54:14  tuberkel
+ * Just renamed all 'Devices' function prefixes for better readability
+ *
  * Revision 3.11  2012/02/05 21:08:04  tuberkel
  * New: HeatGrip internal state
  *
@@ -87,7 +90,7 @@
  * Moved all BeeperDriver / LEDDriver stuff ==> 'digoutdrv'
  *
  * Revision 3.6  2012/02/04 08:36:32  tuberkel
- * - MainDeviceMsg_ShowVehicState() ==> TEST-ACTIVATE PIN_GPO0 for 250 ms for Coolride
+ * - MainDev_MsgEntry_VehState() ==> TEST-ACTIVATE PIN_GPO0 for 250 ms for Coolride
  * - Some internal functions renamed
  *
  * Revision 3.5  2012/01/23 04:03:17  tuberkel
@@ -336,7 +339,7 @@ static BMPOBJECT    VehStateBmpObj;             /* symbol for current vehicle st
 
 /* --------------------------------------------- */
 /* lower area vehicle state objects */
-static TEXTOBJECT   SurvVehStateTxtObj;         /* Vehicle State detected by MonitorDevice */
+static TEXTOBJECT   SurvVehStateTxtObj;         /* Vehicle State detected by MonDev_ */
 extern INT8         SurvParamListCount;         /* number of states currently not ok */
 static INT8         SurvShowVehState = 0;       /* != 0 if vehicle state is to be displayed */
 
@@ -395,13 +398,13 @@ static BMPOBJECT    MonFuelBmpObj;
 
 /* ============================================================= */
 /* internal prototypes */
-ERRCODE MainDeviceMsg_StateMachine      (MESSAGE Msg);
-ERRCODE MainDeviceMsg_DistanceReset          (MESSAGE Msg);
-ERRCODE MainDeviceMsg_ShowVehicState (MESSAGE Msg);
-void    MainDevice_UpdateTimeDate    (void);
-void    MainDevice_UpdateMeasValues  (void);
-void    MainDeviceObjListInit       (void);
-void    MainDevice_ShowHorLine       (void);
+ERRCODE MainDev_MsgEntry_StateMachine      (MESSAGE Msg);
+ERRCODE MainDev_MsgEntry_VehDistRst          (MESSAGE Msg);
+ERRCODE MainDev_MsgEntry_VehState (MESSAGE Msg);
+void    MainDev_UpdTimeDate    (void);
+void    MainDev_UpdMeasVal  (void);
+void    MainDev_ObjListInit       (void);
+void    MainDev_ShowHorLine       (void);
 
 
 
@@ -793,13 +796,13 @@ static const void far * ObjectList[] =
 
 
 /***********************************************************************
- *  FUNCTION:       MainDeviceInit
+ *  FUNCTION:       MainDev_Init
  *  DESCRIPTION:    all initial stuff for all objects
  *  PARAMETER:      -
  *  RETURN:         -
  *  COMMENT:        -
  *********************************************************************** */
-ERRCODE MainDeviceInit(void)
+ERRCODE MainDev_Init(void)
 {
     int i;
 
@@ -810,12 +813,12 @@ ERRCODE MainDeviceInit(void)
     MDObj.fScreenInit  = FALSE;
 
     /* special MDObj object lists control handling */
-    MainDeviceObjListInit();
+    MainDev_ObjListInit();
 
     /* error check: */
     if (  (gDeviceFlags1.flags.MainDevState == MD_FIRST)
         ||(gDeviceFlags1.flags.MainDevState >= MD_LAST ) )
-    {   ODS1( DBG_SYS, DBG_ERROR, "MainDeviceInit(): Invalid MainDevState %u corrected!", gDeviceFlags1.flags.MainDevState );
+    {   ODS1( DBG_SYS, DBG_ERROR, "MainDev_Init(): Invalid MainDevState %u corrected!", gDeviceFlags1.flags.MainDevState );
         gDeviceFlags1.flags.MainDevState = MD_FIRST + 1;
     }
     MDObj.wDevState    = gDeviceFlags1.flags.MainDevState;
@@ -835,21 +838,21 @@ ERRCODE MainDeviceInit(void)
     DevObjFocusReset( &MDObj, ObjectList, OBJECTLIST_SIZE );
 
     /* return */
-    ODS( DBG_SYS, DBG_INFO, "- MainDeviceInit() done!");
+    ODS( DBG_SYS, DBG_INFO, "- MainDev_Init() done!");
     return ERR_OK;
 }
 
 
 
 /***********************************************************************
- *  FUNCTION:       MainDeviceObjListInit
+ *  FUNCTION:       MainDev_ObjListInit
  *  DESCRIPTION:    Initialize special object control structure
  *                  to handle different screens
  *  PARAMETER:      -
  *  RETURN:         -
  *  COMMENT:        -
  *********************************************************************** */
-void MainDeviceObjListInit(void)
+void MainDev_ObjListInit(void)
 {
     // Setup screen object list: Monitor display settings
     MDCntrl.List[MD_MONITOR].ObjList       = ObjectList_Mon;
@@ -906,7 +909,7 @@ void MainDeviceObjListInit(void)
 
 
 /***********************************************************************
- *  FUNCTION:       MainDeviceShow
+ *  FUNCTION:       MainDev_Show
  *  DESCRIPTION:    bring updated main device to display
  *                  by calling Show-Fct. of all relevant objects
  *  PARAMETER:      TRUE    show (all/partial) objects,
@@ -914,7 +917,7 @@ void MainDeviceObjListInit(void)
  *  RETURN:         -
  *  COMMENT:        -
  *********************************************************************** */
-void MainDeviceShow(BOOL fShow)
+void MainDev_Show(BOOL fShow)
 {
     ERRCODE error = ERR_OK;
     MESSAGE NewMsg;             /* for screen fresh message */
@@ -924,7 +927,7 @@ void MainDeviceShow(BOOL fShow)
     if (fShow == TRUE)
     {
         /* update of all displayable values */
-        MainDevice_UpdateMeasValues();
+        MainDev_UpdMeasVal();
 
         /* ------------------------------------------ */
         /* do we have to repaint all? */
@@ -937,7 +940,7 @@ void MainDeviceShow(BOOL fShow)
             MDObj.fScreenInit  = TRUE;
 
             /* horizontal line between wheel speed & rpm */
-            MainDevice_ShowHorLine();
+            MainDev_ShowHorLine();
 
             /* always show vehicle speed in upper display part */
             ObjTextShow( &SpeedTxtObj );
@@ -947,7 +950,7 @@ void MainDeviceShow(BOOL fShow)
             /* show lowest display line 'VehicleState' or 'TimeDate' */
             if (SurvShowVehState)
                  ObjTextShow( &SurvVehStateTxtObj );
-            else MainDevice_UpdateTimeDate(); // initial display only!
+            else MainDev_UpdTimeDate(); // initial display only!
 
             /* ---------------------------------------------------- */
             /* Info/Warning/Error Icon
@@ -1064,7 +1067,7 @@ void MainDeviceShow(BOOL fShow)
                 // break;
                 default:
                     ODS1( DBG_SYS, DBG_ERROR,
-                          "MainDeviceShow(): unknown state: %u", MDObj.wDevState);
+                          "MainDev_Show(): unknown state: %u", MDObj.wDevState);
             }
         }
         else
@@ -1078,7 +1081,7 @@ void MainDeviceShow(BOOL fShow)
             /* show lowest display line 'VehicleState' or 'TimeDate' */
             if (SurvShowVehState)
                  ObjTextShow( &SurvVehStateTxtObj );
-            // else MainDevice_UpdateTimeDate(); // NO UPDATE HERE, will be done by special update messages only!
+            // else MainDev_UpdTimeDate(); // NO UPDATE HERE, will be done by special update messages only!
 
             /* which icon has to be used: Info / Warning / Error ?
                (Most important icon is dominant),
@@ -1171,7 +1174,7 @@ void MainDeviceShow(BOOL fShow)
                 // break;
                 default:
                     ODS1( DBG_SYS, DBG_ERROR,
-                          "MainDeviceShow(): unknown state: %u", MDObj.wDevState);
+                          "MainDev_Show(): unknown state: %u", MDObj.wDevState);
             }
         }
     }
@@ -1194,13 +1197,13 @@ void MainDeviceShow(BOOL fShow)
 
 
 /***********************************************************************
- *  FUNCTION:       MainDeviceMsgEntry
+ *  FUNCTION:       MainDev_MsgEntry
  *  DESCRIPTION:    Receive Message Handler called by MsgQPump
  *  PARAMETER:      msg
  *  RETURN:         ERR_MSG_PROCESSED / ERR_MSG_NOT_PROCESSED
  *  COMMENT:        -
  *********************************************************************** */
-ERRCODE MainDeviceMsgEntry(MESSAGE GivenMsg)
+ERRCODE MainDev_MsgEntry(MESSAGE GivenMsg)
 {
     ERRCODE     RValue = ERR_MSG_NOT_PROCESSED;
     MESSAGE_ID  MsgId;
@@ -1225,7 +1228,7 @@ ERRCODE MainDeviceMsgEntry(MESSAGE GivenMsg)
                 MSG_BUILD_SETFOCUS(NewMsg,DEVID_MAIN,MSG_SENDER_ID(GivenMsg));   /* build answer message */
                 RValue = MsgQPostMsg(NewMsg, MSGQ_PRIO_LOW);                     /* send answer message */
                 MDObj.fFocused = FALSE;                                     /* clear our focus */
-                MainDeviceShow(FALSE);                                           /* clear our screen */
+                MainDev_Show(FALSE);                                           /* clear our screen */
                 RValue = ERR_MSG_PROCESSED;
             }
         } break;
@@ -1249,7 +1252,7 @@ ERRCODE MainDeviceMsgEntry(MESSAGE GivenMsg)
                             szDevName[MSG_SENDER_ID(GivenMsg)],
                             szDevName[DEVID_MAIN]) */;
                 MDObj.fFocused = TRUE;                             /* set our focus */
-                MainDeviceShow(TRUE);                                   /* show our screen */
+                MainDev_Show(TRUE);                                   /* show our screen */
                 gDeviceFlags1.flags.ActDevNr = DEVID_MAIN;               /* save device# for restore */
                 SurvShowVehState = 0;                                   /* reset lower VehicleStateString state */
                 RValue = ERR_MSG_PROCESSED;
@@ -1292,15 +1295,15 @@ ERRCODE MainDeviceMsgEntry(MESSAGE GivenMsg)
                 /* Try to show vehicle state instead of Time/Date ([OK]-short) */
                 /* THIS MESSAGE HANLDER FIRST! (forwards handled messages) */
                 if (RValue == ERR_MSG_NOT_PROCESSED)
-                    RValue = MainDeviceMsg_ShowVehicState(GivenMsg);
+                    RValue = MainDev_MsgEntry_VehState(GivenMsg);
 
                 /* Try all distance objects, wether to be reseted or not ([OK]-long) */
                 if (RValue == ERR_MSG_NOT_PROCESSED)
-                    RValue = MainDeviceMsg_DistanceReset(GivenMsg);
+                    RValue = MainDev_MsgEntry_VehDistRst(GivenMsg);
 
                 /* Try to toggle lower screen part to next information line ([Up/Down]-short) */
                 if (RValue == ERR_MSG_NOT_PROCESSED)
-                    RValue = MainDeviceMsg_StateMachine(GivenMsg);
+                    RValue = MainDev_MsgEntry_StateMachine(GivenMsg);
 
                 /* Try to switch to next device ([Up+Down]-short) */
                 if (  (RValue == ERR_MSG_NOT_PROCESSED                    )
@@ -1309,14 +1312,14 @@ ERRCODE MainDeviceMsgEntry(MESSAGE GivenMsg)
                 {
                     /* give focus immediatly to next screen */
                     MDObj.fFocused = FALSE;                              /* clear our focus */
-                    MainDeviceShow(FALSE);                                    /* clear our screen */
+                    MainDev_Show(FALSE);                                    /* clear our screen */
                     MSG_BUILD_SETFOCUS(NewMsg, DEVID_MAIN, DEVID_TRIPCOUNT);  /* next: TripCounter */
                     MsgQPostMsg(NewMsg, MSGQ_PRIO_LOW);
                     RValue = ERR_MSG_PROCESSED;
                 }
                 break;
             case MSG_SCREEN_RFRSH:
-                MainDeviceShow(TRUE);
+                MainDev_Show(TRUE);
                 RValue = ERR_MSG_PROCESSED;
                 break;
 
@@ -1326,12 +1329,12 @@ ERRCODE MainDeviceMsgEntry(MESSAGE GivenMsg)
             case MSG_VEHSTATE_SHOW:  // no break!
             case MSG_VEHSTATE_HIDE:
                 if (RValue == ERR_MSG_NOT_PROCESSED)
-                    RValue = MainDeviceMsg_ShowVehicState(GivenMsg);
+                    RValue = MainDev_MsgEntry_VehState(GivenMsg);
                 break;
 
             /* trigger time / date screen update only */
             case MSG_SECOND_GONE:
-                MainDevice_UpdateTimeDate();
+                MainDev_UpdTimeDate();
                 RValue = ERR_MSG_PROCESSED;
                 break;
 
@@ -1345,14 +1348,14 @@ ERRCODE MainDeviceMsgEntry(MESSAGE GivenMsg)
 
 
 /***********************************************************************
- *  FUNCTION:       MainDeviceMsg_StateMachine
+ *  FUNCTION:       MainDev_MsgEntry_StateMachine
  *  DESCRIPTION:    Handle the display states of main device
  *                  and re-init the display state if any changes
  *  PARAMETER:      MESSAGE
  *  RETURN:         ERR_MSG_PROCESSED / ERR_MSG_NOT_PROCESSED
  *  COMMENT:        -
  *********************************************************************** */
-ERRCODE MainDeviceMsg_StateMachine(MESSAGE Msg)
+ERRCODE MainDev_MsgEntry_StateMachine(MESSAGE Msg)
 {
     MESSAGE_ID  MsgId = MSG_ID(Msg);                        /* get message id */
     ERRCODE     RValue = ERR_MSG_NOT_PROCESSED;
@@ -1371,7 +1374,7 @@ ERRCODE MainDeviceMsg_StateMachine(MESSAGE Msg)
         if (MDObj.wDevState == MD_FIRST)                    /* wrap around? */
             MDObj.wDevState = (MD_LAST-1);
         MDObj.fScreenInit   = FALSE;                        /* next time rebuild complete screen */
-        MainDeviceShow(TRUE);                               /* rebuild screen right now */
+        MainDev_Show(TRUE);                               /* rebuild screen right now */
         RValue = ERR_MSG_PROCESSED;
         ODS1( DBG_SYS, DBG_INFO, "MainDevState: %u", MDObj.wDevState);
     }
@@ -1390,7 +1393,7 @@ ERRCODE MainDeviceMsg_StateMachine(MESSAGE Msg)
         if (MDObj.wDevState == MD_LAST)                     /* wrap around? */
             MDObj.wDevState = (MD_FIRST+1);
         MDObj.fScreenInit   = FALSE;                        /* next time rebuild complete screen */
-        MainDeviceShow(TRUE);                               /* rebuild screen right now */
+        MainDev_Show(TRUE);                               /* rebuild screen right now */
         RValue = ERR_MSG_PROCESSED;
         ODS1( DBG_SYS, DBG_INFO, "MainDevState: %u", MDObj.wDevState);
     }
@@ -1405,14 +1408,14 @@ ERRCODE MainDeviceMsg_StateMachine(MESSAGE Msg)
 
 
 /***********************************************************************
- *  FUNCTION:       MainDeviceMsg_DistanceReset
+ *  FUNCTION:       MainDev_MsgEntry_VehDistRst
  *  DESCRIPTION:    Handle the 'distance reset' messages for fuel,
  *                  trip1 and trip2 distance
  *  PARAMETER:      MESSAGE
  *  RETURN:         ERR_MSG_PROCESSED / ERR_MSG_NOT_PROCESSED
  *  COMMENT:        -
  *********************************************************************** */
-ERRCODE MainDeviceMsg_DistanceReset(MESSAGE Msg)
+ERRCODE MainDev_MsgEntry_VehDistRst(MESSAGE Msg)
 {
     MESSAGE_ID  MsgId = MSG_ID(Msg);                /* get message id */
     ERRCODE     RValue = ERR_MSG_NOT_PROCESSED;
@@ -1464,7 +1467,7 @@ ERRCODE MainDeviceMsg_DistanceReset(MESSAGE Msg)
 
 
 /***********************************************************************
- *  FUNCTION:       MainDeviceMsg_ShowVehicState
+ *  FUNCTION:       MainDev_MsgEntry_VehState
  *  DESCRIPTION:    Handle messages for the monitor sub screen, makes
  *                  lower screen part showing 'vehicle state' instead of
  *                  'Time+Date' for a defined period of time.
@@ -1479,7 +1482,7 @@ ERRCODE MainDeviceMsg_DistanceReset(MESSAGE Msg)
  *                  and one to HIDE the vehicle state (eq. show Time+Date)
  *                  after n seconds (via SetTimerMsg() ).
  *********************************************************************** */
-ERRCODE MainDeviceMsg_ShowVehicState(MESSAGE Msg)
+ERRCODE MainDev_MsgEntry_VehState(MESSAGE Msg)
 {
     MESSAGE_ID  MsgId   = MSG_ID(Msg);              /* get message id */
     ERRCODE     RValue  = ERR_MSG_NOT_PROCESSED;    /* return value */
@@ -1509,7 +1512,7 @@ ERRCODE MainDeviceMsg_ShowVehicState(MESSAGE Msg)
     else if ( MsgId == MSG_VEHSTATE_SHOW )
     {
         SurvShowVehState = 1;                       /* change view right now! */
-        MainDeviceShow(TRUE);                       /* don't wait until REFRESH, show right now! */
+        MainDev_Show(TRUE);                       /* don't wait until REFRESH, show right now! */
         ODS( DBG_SYS, DBG_INFO, "MainDev: SHOW VehicleState!");
         RValue = ERR_MSG_PROCESSED;                 /* processed! */
     }
@@ -1529,14 +1532,14 @@ ERRCODE MainDeviceMsg_ShowVehicState(MESSAGE Msg)
 
 
 /***********************************************************************
- *  FUNCTION:       MainDevice_UpdateMeasValues
+ *  FUNCTION:       MainDev_UpdMeasVal
  *  DESCRIPTION:    Just Update/Refresh all values that might be
  *                  displayed inside the display
  *  PARAMETER:      -
  *  RETURN:         -
  *  COMMENT:        -
  *********************************************************************** */
-void MainDevice_UpdateMeasValues(void)
+void MainDev_UpdMeasVal(void)
 {
     UINT16  wWheelSpeed;
 
@@ -1562,14 +1565,14 @@ void MainDevice_UpdateMeasValues(void)
 
 
 /***********************************************************************
- *  FUNCTION:       MainDevice_UpdateTimeDate
+ *  FUNCTION:       MainDev_UpdTimeDate
  *  DESCRIPTION:    Separate handling of TimeDate screen refreshs
  *                  to synchronize display to RTC seconds
  *  PARAMETER:      -
  *  RETURN:         -
  *  COMMENT:        -
  *********************************************************************** */
-void MainDevice_UpdateTimeDate(void)
+void MainDev_UpdTimeDate(void)
 {
     CHAR    szBuffer[15];                           // text buffer
 
@@ -1592,14 +1595,14 @@ void MainDevice_UpdateTimeDate(void)
 
 
 /***********************************************************************
- *  FUNCTION:       MainDevice_ShowHorLine
+ *  FUNCTION:       MainDev_ShowHorLine
  *  DESCRIPTION:    Draws a horizontal line between wheel speed
   *                 lower infos
  *  PARAMETER:      -
  *  RETURN:         -
  *  COMMENT:        -
  *********************************************************************** */
-void MainDevice_ShowHorLine(void)
+void MainDev_ShowHorLine(void)
 {
     /* horizontal line between wheel speed & rpm */
     DISPLXY Coord = {0,34};                 /* to be removed to an 'LineObject' !!! */

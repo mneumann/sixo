@@ -69,6 +69,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.2  2012/02/06 20:54:14  tuberkel
+ * Just renamed all 'Devices' function prefixes for better readability
+ *
  * Revision 3.1  2012/01/14 08:28:42  tuberkel
  * Message-IDs shortened / reviewed
  *
@@ -123,7 +126,7 @@
 
 
 /* device static objects */
-static DEVDATA      TestScreenDev;
+static DEVDATA      TestScreen_Dev;
 
 
 /* ----------------------------------------------------------- */
@@ -226,20 +229,20 @@ static const void far * ObjectList[] =
 
 
 /***********************************************************************
- *  FUNCTION:       TestScreenInit
+ *  FUNCTION:       TestScreen_Init
  *  DESCRIPTION:    all initial stuff for all objects of
  *                  'test screen device'
  *  PARAMETER:      -
  *  RETURN:         -
  *  COMMENT:        -
  *********************************************************************** */
-ERRCODE TestScreenInit(void)
+ERRCODE TestScreen_Init(void)
 {
     /* device main data */
-    TestScreenDev.eDevID       = DEVID_TESTSCREEN;
-    TestScreenDev.szDevName    = szDevName[DEVID_TESTSCREEN];
-    TestScreenDev.fFocused     = FALSE;
-    TestScreenDev.fScreenInit  = FALSE;
+    TestScreen_Dev.eDevID       = DEVID_TESTSCREEN;
+    TestScreen_Dev.szDevName    = szDevName[DEVID_TESTSCREEN];
+    TestScreen_Dev.fFocused     = FALSE;
+    TestScreen_Dev.fScreenInit  = FALSE;
 
     // TEST: insert all special chars into textobjects stringbuffer
     {   int i;
@@ -249,29 +252,29 @@ ERRCODE TestScreenInit(void)
     }
 
     /* initialize all objects of any type */
-    DevObjInit( &TestScreenDev, (void far *)TextObjInit,   TEXTOBJECTLISTSIZE,     OBJT_TXT   );
-    DevObjInit( &TestScreenDev, (void far *)EditNumInit,   EDITNUMOBJECTLISTSIZE,  OBJT_ENUM  );
-    DevObjInit( &TestScreenDev, (void far *)SelectObjInit, SELECTOBJECTLISTSIZE,   OBJT_SLCT  );
-    DevObjInit( &TestScreenDev, (void far *)EditBoolInit,  EDITBOOLOBJECTLISTSIZE, OBJT_EBOOL );
-    DevObjInit( &TestScreenDev, (void far *)EditTextInit,  EDITTEXTOBJECTLISTSIZE, OBJT_ETXT );
+    DevObjInit( &TestScreen_Dev, (void far *)TextObjInit,   TEXTOBJECTLISTSIZE,     OBJT_TXT   );
+    DevObjInit( &TestScreen_Dev, (void far *)EditNumInit,   EDITNUMOBJECTLISTSIZE,  OBJT_ENUM  );
+    DevObjInit( &TestScreen_Dev, (void far *)SelectObjInit, SELECTOBJECTLISTSIZE,   OBJT_SLCT  );
+    DevObjInit( &TestScreen_Dev, (void far *)EditBoolInit,  EDITBOOLOBJECTLISTSIZE, OBJT_EBOOL );
+    DevObjInit( &TestScreen_Dev, (void far *)EditTextInit,  EDITTEXTOBJECTLISTSIZE, OBJT_ETXT );
 
     // initialize this devices objects list
-    TestScreenDev.Objects.ObjList       = ObjectList;
-    TestScreenDev.Objects.ObjCount      = OBJECTLIST_SIZE;
-    TestScreenDev.Objects.FirstSelObj   = DevObjGetFirstSelectable(&TestScreenDev, ObjectList, OBJECTLIST_SIZE );
-    TestScreenDev.Objects.LastSelObj    = DevObjGetLastSelectable (&TestScreenDev, ObjectList, OBJECTLIST_SIZE );
+    TestScreen_Dev.Objects.ObjList       = ObjectList;
+    TestScreen_Dev.Objects.ObjCount      = OBJECTLIST_SIZE;
+    TestScreen_Dev.Objects.FirstSelObj   = DevObjGetFirstSelectable(&TestScreen_Dev, ObjectList, OBJECTLIST_SIZE );
+    TestScreen_Dev.Objects.LastSelObj    = DevObjGetLastSelectable (&TestScreen_Dev, ObjectList, OBJECTLIST_SIZE );
 
     /* reset focus handling to start values */
-    DevObjFocusReset( &TestScreenDev, ObjectList, OBJECTLIST_SIZE );
+    DevObjFocusReset( &TestScreen_Dev, ObjectList, OBJECTLIST_SIZE );
 
-    ODS( DBG_SYS, DBG_INFO, "- TestScreenInit() done!");
+    ODS( DBG_SYS, DBG_INFO, "- TestScreen_Init() done!");
     return ERR_OK;
 }
 
 
 
 /***********************************************************************
- *  FUNCTION:       TestScreenShow
+ *  FUNCTION:       TestScreen_Show
  *  DESCRIPTION:    bring updated 'test screen device' to display
  *                  by calling Show-Fct. of all objects
  *  PARAMETER:      fShow   if TRUE, then shows all
@@ -279,7 +282,7 @@ ERRCODE TestScreenInit(void)
  *  RETURN:         -
  *  COMMENT:        -
  *********************************************************************** */
-void TestScreenShow(BOOL fShow)
+void TestScreen_Show(BOOL fShow)
 {
     UINT8   ShowMode;
 
@@ -287,10 +290,10 @@ void TestScreenShow(BOOL fShow)
     if ( fShow == TRUE)
     {
         // show first time? ==> clear screen first!
-        if (TestScreenDev.fScreenInit == FALSE)
+        if (TestScreen_Dev.fScreenInit == FALSE)
         {
             DisplClearScreen(0x00);
-            TestScreenDev.fScreenInit = TRUE;
+            TestScreen_Dev.fScreenInit = TRUE;
             ShowMode = SHOW_ALL;                   // repaint all stuff
         }
         else
@@ -301,9 +304,9 @@ void TestScreenShow(BOOL fShow)
         //DisplClearScreen(0xaa);
 
         /* process complete (active) object to show all objects */
-        DevObjShow( &TestScreenDev,
-                    TestScreenDev.Objects.ObjList,
-                    TestScreenDev.Objects.ObjCount,
+        DevObjShow( &TestScreen_Dev,
+                    TestScreen_Dev.Objects.ObjList,
+                    TestScreen_Dev.Objects.ObjCount,
                     ShowMode );
 
     }
@@ -313,26 +316,26 @@ void TestScreenShow(BOOL fShow)
         DisplClearScreen(0x0);
 
         // reset states of all objects of this device
-        DevObjClearState(  &TestScreenDev,
-                            TestScreenDev.Objects.ObjList,
-                            TestScreenDev.Objects.ObjCount,
+        DevObjClearState(  &TestScreen_Dev,
+                            TestScreen_Dev.Objects.ObjList,
+                            TestScreen_Dev.Objects.ObjCount,
                             OS_DISPL | OS_EDIT );
 
         // set overall device state to 'not init'
-        TestScreenDev.fScreenInit  = FALSE;
+        TestScreen_Dev.fScreenInit  = FALSE;
     }
 }
 
 
 /***********************************************************************
- *  FUNCTION:       TestScreenMsgEntry
+ *  FUNCTION:       TestScreen_MsgEntry
  *  DESCRIPTION:    Receive Message Handler of 'test screen' device
  *                  called by MsgQPump
  *  PARAMETER:      msg
  *  RETURN:         ERR_MSG_NOT_PROCESSED / ERR_MSG_NOT_PROCESSED
  *  COMMENT:        -
  *********************************************************************** */
-ERRCODE TestScreenMsgEntry(MESSAGE GivenMsg)
+ERRCODE TestScreen_MsgEntry(MESSAGE GivenMsg)
 {
     ERRCODE     RValue = ERR_MSG_NOT_PROCESSED;
     MESSAGE_ID  MsgId;
@@ -347,7 +350,7 @@ ERRCODE TestScreenMsgEntry(MESSAGE GivenMsg)
             /*  Some device want's to get the focus:
                 If we've currently got the focus, we'll
                 answer to SET his focus! */
-            if ( TestScreenDev.fFocused == TRUE)
+            if ( TestScreen_Dev.fFocused == TRUE)
             {
                 ODS2(   DBG_SYS, DBG_INFO,
                         "%s wants to have focus from %s!",
@@ -355,8 +358,8 @@ ERRCODE TestScreenMsgEntry(MESSAGE GivenMsg)
                         szDevName[DEVID_TESTSCREEN]);
                 MSG_BUILD_SETFOCUS(NewMsg,DEVID_TESTSCREEN,MSG_SENDER_ID(GivenMsg));   /* build answer message */
                 RValue = MsgQPostMsg(NewMsg, MSGQ_PRIO_LOW);                     /* send answer message */
-                TestScreenDev.fFocused = FALSE;                                  /* clear our focus */
-                TestScreenShow(TRUE);                                            /* clear our screen */
+                TestScreen_Dev.fFocused = FALSE;                                  /* clear our focus */
+                TestScreen_Show(TRUE);                                            /* clear our screen */
                 RValue = ERR_MSG_PROCESSED;
             }
         } break;
@@ -368,7 +371,7 @@ ERRCODE TestScreenMsgEntry(MESSAGE GivenMsg)
                 /*  Someone wants us to take the focus?
                     We assume, that nobody else has the focus
                     and we've got the the screen now for us! */
-                if (  (TestScreenDev.fFocused   == TRUE             )
+                if (  (TestScreen_Dev.fFocused   == TRUE             )
                     &&(MSG_RECEIVER_ID(GivenMsg) == DEVID_TESTSCREEN) )
                     ODS2(   DBG_SYS, DBG_WARNING,
                             "FOCUS: %s -> %s, but it already has focus!",
@@ -379,14 +382,14 @@ ERRCODE TestScreenMsgEntry(MESSAGE GivenMsg)
                             "FOCUS: %s -> %s!",
                             szDevName[MSG_SENDER_ID(GivenMsg)],
                             szDevName[DEVID_TESTSCREEN]) */ ;
-                TestScreenDev.fFocused = TRUE;                          /* set our focus */
-                TestScreenShow(FALSE);                                  /* show our screen */
+                TestScreen_Dev.fFocused = TRUE;                          /* set our focus */
+                TestScreen_Show(FALSE);                                  /* show our screen */
                 gDeviceFlags1.flags.ActDevNr = DEVID_TESTSCREEN;               /* save device# for restore */
                 RValue = ERR_MSG_PROCESSED;
              }
              else
              {
-                if ( TestScreenDev.fFocused == TRUE )
+                if ( TestScreen_Dev.fFocused == TRUE )
                 {
                     /*  Some other device should be given the focus,
                         BUT WE'VE GOT THE FOCUS!
@@ -396,7 +399,7 @@ ERRCODE TestScreenMsgEntry(MESSAGE GivenMsg)
                             szDevName[MSG_SENDER_ID(GivenMsg)],
                             szDevName[MSG_RECEIVER_ID(GivenMsg)],
                             szDevName[DEVID_TESTSCREEN]);
-                    TestScreenDev.fFocused = FALSE;                        /* loose our focus */
+                    TestScreen_Dev.fFocused = FALSE;                        /* loose our focus */
                     ODS1(   DBG_SYS, DBG_WARNING,
                             "%s now loosing focus :-( ",
                             szDevName[DEVID_TESTSCREEN]);
@@ -408,7 +411,7 @@ ERRCODE TestScreenMsgEntry(MESSAGE GivenMsg)
 
     /* this part is only for FOCUSED time
        AND msg not already processed */
-    if (  (TestScreenDev.fFocused == TRUE )
+    if (  (TestScreen_Dev.fFocused == TRUE )
         &&(RValue == ERR_MSG_NOT_PROCESSED ) )
     {
         switch (MsgId)
@@ -416,7 +419,7 @@ ERRCODE TestScreenMsgEntry(MESSAGE GivenMsg)
             /* ------------------------------------------------------------ */
             /* The system tells focused device to refresh its screen! */
             case MSG_SCREEN_RFRSH:
-                TestScreenShow(TRUE);
+                TestScreen_Show(TRUE);
                 RValue = ERR_MSG_PROCESSED;
                 break;
 
@@ -430,11 +433,11 @@ ERRCODE TestScreenMsgEntry(MESSAGE GivenMsg)
             case MSG_KEY_DOWN:
 
                 /* let one of the objects use the msg */
-                RValue = DevObjMsg( &TestScreenDev, TestScreenDev.Objects.ObjList, OBJECTLIST_SIZE, GivenMsg );
+                RValue = DevObjMsg( &TestScreen_Dev, TestScreen_Dev.Objects.ObjList, OBJECTLIST_SIZE, GivenMsg );
 
                 /* try to move focus to next/previous object */
                 if (RValue == ERR_MSG_NOT_PROCESSED)
-                    RValue = DevObjFocusSet(&TestScreenDev, ObjectList, OBJECTLIST_SIZE, GivenMsg);
+                    RValue = DevObjFocusSet(&TestScreen_Dev, ObjectList, OBJECTLIST_SIZE, GivenMsg);
 
                 /* try to give focus to next device */
                 if (  (RValue == ERR_MSG_NOT_PROCESSED      )
@@ -442,8 +445,8 @@ ERRCODE TestScreenMsgEntry(MESSAGE GivenMsg)
                     &&(MSG_KEY_DURATION(GivenMsg) < KEYSHORT              ) )
                 {
                     /* give focus immediatly to IntroScreen */
-                    TestScreenDev.fFocused = FALSE;                         /* clear our focus */
-                    TestScreenShow(FALSE);                                  /* clear our screen */
+                    TestScreen_Dev.fFocused = FALSE;                         /* clear our focus */
+                    TestScreen_Show(FALSE);                                  /* clear our screen */
 
                     // just test: stay inside DEVID_TESTSCREEN!
                     //MSG_BUILD_SETFOCUS(NewMsg, DEVID_TESTSCREEN, DEVID_TESTSCREEN);
@@ -453,7 +456,7 @@ ERRCODE TestScreenMsgEntry(MESSAGE GivenMsg)
                 }
 
                 /* something changed -> Refresh! */
-                TestScreenShow(TRUE);
+                TestScreen_Show(TRUE);
                 break;
 
             /* ------------------------------------------------------------ */

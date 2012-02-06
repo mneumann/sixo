@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.4  2012/02/06 20:54:14  tuberkel
+ * Just renamed all 'Devices' function prefixes for better readability
+ *
  * Revision 3.3  2012/02/05 11:17:08  tuberkel
  * DigOuts completely reviewed:
  * - central PWM-Out handled via DigOutDriver for ALL DigOuts!
@@ -397,30 +400,30 @@ ERRCODE MsgQPumpMsg(MESSAGE_ID bID)
           //    use function prototype 'MSGENTRYFCT' from msgqeue.h
           //
           if (err == ERR_MSG_NOT_PROCESSED)
-            err = TripCntMsgEntry(msg);         /* trip counter device */
+            err = TripCDev_MsgEntry(msg);         /* trip counter device */
 
           if (err == ERR_MSG_NOT_PROCESSED)
-            err = MainDeviceMsgEntry(msg);      /* main device */
+            err = MainDev_MsgEntry(msg);      /* main device */
 
           if (err == ERR_MSG_NOT_PROCESSED)
-            err = MonitorDeviceMsgEntry(msg);   /* monitor device device */
+            err = MonDev_MsgEntry(msg);   /* monitor device device */
 
           if (err == ERR_MSG_NOT_PROCESSED)
-            err = LapCntDeviceMsgEntry(msg);    /* lap counter device - special MOTOBAU version */
+            err = LCDev_MsgEntry(msg);    /* lap counter device - special MOTOBAU version */
 
           if (err == ERR_MSG_NOT_PROCESSED)
-            err = IntroScreenMsgEntry(msg);     /* device 'intro screen' */
+            err = IntroDev_MsgEntry(msg);     /* device 'intro screen' */
 
           if (err == ERR_MSG_NOT_PROCESSED)     /* settings device */
-            err = SetDeviceMsgEntry(msg);
+            err = SetDev_MsgEntry(msg);
 
           #if(TESTSCREEN==1)
           if (err == ERR_MSG_NOT_PROCESSED)
-            err = TestScreenMsgEntry(msg);      /* device 'test screen' */
+            err = TestScreen_MsgEntry(msg);      /* device 'test screen' */
           #endif //(TESTSCREEN==1)
 
           if (err == ERR_MSG_NOT_PROCESSED)
-            err = HWTestDeviceMsgEntry(msg);    /* HW test device */
+            err = HWTDev_MsgEntry(msg);    /* HW test device */
 
           // -------------------------------------------------
 

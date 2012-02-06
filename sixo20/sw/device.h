@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.2  2012/02/06 20:54:14  tuberkel
+ * Just renamed all 'Devices' function prefixes for better readability
+ *
  * Revision 3.1  2012/01/14 08:28:42  tuberkel
  * Message-IDs shortened / reviewed
  *
@@ -249,30 +252,30 @@ UINT8   DevObjGetLastSelectable ( DEVDATA far * fpDevData, void far * far * Give
 
 
 // ----------------------------------------------------------------
-/* SetDevice function prototypes */
-ERRCODE SetDeviceInit(void);
-ERRCODE SetDeviceMsgEntry(MESSAGE msg);
+/* SetDev_ function prototypes */
+ERRCODE SetDev_Init(void);
+ERRCODE SetDev_MsgEntry(MESSAGE msg);
 
 
 /* TripCounter device function prototypes */
-ERRCODE TripCntDevInit(void);
-void    TripCntDevShow(BOOL fShow);
-ERRCODE TripCntMsgEntry(MESSAGE GivenMsg);
+ERRCODE TripCDev_Init(void);
+void    TripCDev_Show(BOOL fShow);
+ERRCODE TripCDev_MsgEntry(MESSAGE GivenMsg);
 
 /* Main device function prototypes */
-ERRCODE MainDeviceInit(void);
-void    MainDeviceShow(BOOL fShow);
-ERRCODE MainDeviceMsgEntry(MESSAGE msg);
+ERRCODE MainDev_Init(void);
+void    MainDev_Show(BOOL fShow);
+ERRCODE MainDev_MsgEntry(MESSAGE msg);
 
 /* Intro screen device function prototypes */
-ERRCODE IntroScreenInit(void);
-void    IntroScreenShow(BOOL fShow);
-ERRCODE IntroScreenMsgEntry(MESSAGE GivenMsg);
+ERRCODE IntroDev_Init(void);
+void    IntroDev_Show(BOOL fShow);
+ERRCODE IntroDev_MsgEntry(MESSAGE GivenMsg);
 
 /* monitor device function protypes */
-ERRCODE MonitorDeviceInit(void);
-void    MonitorDeviceShow(BOOL fShow);
-ERRCODE MonitorDeviceMsgEntry(MESSAGE msg);
+ERRCODE MonDev_Init(void);
+void    MonDev_Show(BOOL fShow);
+ERRCODE MonDev_MsgEntry(MESSAGE msg);
 
 /* statistic device function protypes */
 ERRCODE StatisticDeviceInit(void);
@@ -281,15 +284,15 @@ ERRCODE StatisticDeviceMsgEntry(MESSAGE msg);
 void    StatisticDeviceUpdateStrings(void);
 
 /* lapcounter device function protypes */
-ERRCODE LapCntDeviceInit(void);
-void    LapCntDeviceShow(BOOL fShow);
-ERRCODE LapCntDeviceMsgEntry(MESSAGE msg);
-void    LapCntUpdateTime(void);
+ERRCODE LCDev_Init(void);
+void    LCDev_Show(BOOL fShow);
+ERRCODE LCDev_MsgEntry(MESSAGE msg);
+void    LCDev_UpdTime(void);
 
 /* HW self test device function protypes */
-ERRCODE HWTestDeviceInit(void);
-void    HWTestDeviceShow(BOOL fShow);
-ERRCODE HWTestDeviceMsgEntry(MESSAGE msg);
+ERRCODE HWTDev_Init(void);
+void    HWTDev_Show(BOOL fShow);
+ERRCODE HWTDev_MsgEntry(MESSAGE msg);
 
 /* test device (for development purpose only) */
 #ifndef TESTSCREEN
@@ -297,10 +300,10 @@ ERRCODE HWTestDeviceMsgEntry(MESSAGE msg);
 #endif
 
 #if(TESTSCREEN==1)
-ERRCODE TestScreenInit(void);
-void    TestScreenShow(BOOL fShow);
-ERRCODE TestScreenMsgEntry(MESSAGE msg);
-void    TestScreenStartMsg(UINT16);
+ERRCODE TestScreen_Init(void);
+void    TestScreen_Show(BOOL fShow);
+ERRCODE TestScreen_MsgEntry(MESSAGE msg);
+void    TestScreen_StartMsg(UINT16);
 #endif// TESTSCREEN
 
 

@@ -70,6 +70,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.6  2012/02/06 20:54:14  tuberkel
+ * Just renamed all 'Devices' function prefixes for better readability
+ *
  * Revision 3.5  2012/02/05 11:17:08  tuberkel
  * DigOuts completely reviewed:
  * - central PWM-Out handled via DigOutDriver for ALL DigOuts!
@@ -278,7 +281,7 @@ UINT8           SurvParamListCount;                     /* number of states curr
 
 static INT8     CurStateTextIdx = 0;                    /* index of vehicle parameter currently shown */
        UINT8    eSurvGlobalState;                       /* Most top parameter state, used for Icon in 'MainDevice' */
-       char     szSurvGlobalState[VEHSTATE_TXT_LEN+5];  /* Most top parameter string, used by 'MainDevice' and 'MonitorDevice')
+       char     szSurvGlobalState[VEHSTATE_TXT_LEN+5];  /* Most top parameter string, used by 'MainDevice' and 'MonDev_')
                                                            (+ some security chars) */
 
 
@@ -1306,7 +1309,7 @@ void SurvListShow( void )
  *  PARAMETER:      ucIdx       List entry to be shown (if possible)
  *  RETURN:         -
  *  COMMENT:        global surveillance status + string are used by
- *                  MainDevice and MonitorDevice
+ *                  MainDevice and MonDev_
  *********************************************************************** */
 void SurvSetGlobalState( UINT8 ucIdx )
 {

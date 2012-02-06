@@ -75,6 +75,9 @@
 ;  changes to CVC ('Log message'):
 ;
 ; $Log$
+; Revision 3.2  2012/02/06 20:54:14  tuberkel
+; Just renamed all 'Devices' function prefixes for better readability
+;
 ; Revision 3.1  2012/02/01 21:24:00  tuberkel
 ; INT2..5 enabled & ok for GPI0..3
 ;
@@ -121,7 +124,7 @@
     .glb        _RPMOverflow_ISR    ; as timer ta3 isr vector
     .glb        _WheelSensor_ISR    ; as int0 isr vector
     .glb        _RPMSensor_ISR      ; as int1 isr vector
-    .glb        _HWTestStimuISR     ; as timer tb5 isr vector
+    .glb        _HWTDev_StimuISR     ; as timer tb5 isr vector
 
     .glb        _CompassRxIsr       ; as uart0 receive isr vector
 
@@ -356,7 +359,7 @@ switch_table_top:
         .lword        _dummy_int         ; BRK (vector 0)
         .org          (ROM_VAR_VT+16)
         .lword        _GPI1_Int3_ISR     ; int3 used by GPI1
-        .lword        _HWTestStimuISR    ; timerB5 used to stimulate WHEEL+RPM
+        .lword        _HWTDev_StimuISR    ; timerB5 used to stimulate WHEEL+RPM
         .lword        _dummy_int         ; timerB4 (for user)(vector 6)
         .lword        _dummy_int         ; timerB3 (for user)(vector 7)
         .lword        _GPI3_Int5_ISR     ; si/o4 /int5 used by GPI3

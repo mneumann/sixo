@@ -76,6 +76,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.3  2012/02/06 20:54:14  tuberkel
+ * Just renamed all 'Devices' function prefixes for better readability
+ *
  * Revision 3.2  2012/02/05 11:17:08  tuberkel
  * DigOuts completely reviewed:
  * - central PWM-Out handled via DigOutDriver for ALL DigOuts!
@@ -151,7 +154,7 @@
 
 
 // device object data
-static DEVDATA          LapCntDevice;       // LapCounter Device object itself
+static DEVDATA          LCDev_;       // LapCounter Device object itself
 extern STRING far       szDevName[];        // device names
 extern DEVFLAGS1_TYPE    gDeviceFlags1;      // system parameters
 
@@ -161,11 +164,11 @@ extern UINT16  wSecCounter;             // low  resolution long  distance timer,
 
 
 // non public prototypes
-void    LapCntDeviceShow(BOOL fShow);
-ERRCODE LapCntDeviceStateMachine(MESSAGE Msg);
-ERRCODE LapCntDeviceSetFocus(UINT8 bLap);
-ERRCODE LapCntDeviceResetMsg(MESSAGE Msg);
-ERRCODE LapCntStartStop(MESSAGE Msg);
+void    LCDev_Show(BOOL fShow);
+ERRCODE LCDev_StateMachine(MESSAGE Msg);
+ERRCODE LCDev_SetFocus(UINT8 bLap);
+ERRCODE LCDev_ResetMsg(MESSAGE Msg);
+ERRCODE LCDev_StartStop(MESSAGE Msg);
 
 
 // lap timer text objects
@@ -237,48 +240,48 @@ static const void far * ObjectList[] =
 
 
 /***********************************************************************
- *  FUNCTION:       LapCntDeviceInit
+ *  FUNCTION:       LCDev_Init
  *  DESCRIPTION:    all initial stuff for all objects
  *  PARAMETER:      -
  *  RETURN:         -
  *  COMMENT:        -
  *********************************************************************** */
-ERRCODE LapCntDeviceInit(void)
+ERRCODE LCDev_Init(void)
 {
     int i;
     ERRCODE  RValue = ERR_OK;
 
     /* device main data */
-    LapCntDevice.eDevID       = DEVID_LAPCNT;
-    LapCntDevice.szDevName    = szDevName[DEVID_LAPCNT];
-    LapCntDevice.fFocused     = FALSE;
-    LapCntDevice.fScreenInit  = FALSE;
-    LapCntDevice.wDevState    = 0;
+    LCDev_.eDevID       = DEVID_LAPCNT;
+    LCDev_.szDevName    = szDevName[DEVID_LAPCNT];
+    LCDev_.fFocused     = FALSE;
+    LCDev_.fScreenInit  = FALSE;
+    LCDev_.wDevState    = 0;
 
     // LapCounterState.fActive     = 1;    // default disabled, might be enabled via EEPROM setting
     // LapCounterState.cCurrentLap = 0;    // default start with 0; might be changed via EEPROM setting
 
     /* initialize all objects of any type */
-    DevObjInit( &LapCntDevice, &TextObjInit,   TEXTOBJECTLISTSIZE, OBJT_TXT  );
+    DevObjInit( &LCDev_, &TextObjInit,   TEXTOBJECTLISTSIZE, OBJT_TXT  );
 
     /* initialize this devices objects list */
-    LapCntDevice.Objects.ObjList       = ObjectList;
-    LapCntDevice.Objects.ObjCount      = OBJECTLIST_SIZE;
-    LapCntDevice.Objects.FirstSelObj   = DevObjGetFirstSelectable(&LapCntDevice,ObjectList,OBJECTLIST_SIZE);
-    LapCntDevice.Objects.LastSelObj    = DevObjGetLastSelectable (&LapCntDevice,ObjectList,OBJECTLIST_SIZE);
+    LCDev_.Objects.ObjList       = ObjectList;
+    LCDev_.Objects.ObjCount      = OBJECTLIST_SIZE;
+    LCDev_.Objects.FirstSelObj   = DevObjGetFirstSelectable(&LCDev_,ObjectList,OBJECTLIST_SIZE);
+    LCDev_.Objects.LastSelObj    = DevObjGetLastSelectable (&LCDev_,ObjectList,OBJECTLIST_SIZE);
 
     /* reset focus handling to start values */
-    DevObjFocusReset( &LapCntDevice, ObjectList, OBJECTLIST_SIZE );
+    DevObjFocusReset( &LCDev_, ObjectList, OBJECTLIST_SIZE );
 
     // return
-    ODS( DBG_SYS, DBG_INFO, "- LapCntDeviceInit() done!");
+    ODS( DBG_SYS, DBG_INFO, "- LCDev_Init() done!");
     return ERR_OK;
 }
 
 
 
 /***********************************************************************
- *  FUNCTION:       LapCntDeviceShow
+ *  FUNCTION:       LCDev_Show
  *  DESCRIPTION:    update devices appearence (new/update/clear)
  *                  by calling Show-Fct. of all relevant objects
  *  PARAMETER:      BOOL    TRUE = show objects,
@@ -286,7 +289,7 @@ ERRCODE LapCntDeviceInit(void)
  *  RETURN:         -
  *  COMMENT:        -
  *********************************************************************** */
-void LapCntDeviceShow(BOOL fShow)
+void LCDev_Show(BOOL fShow)
 {
     int     i;
     UINT8   ShowMode;
@@ -294,7 +297,7 @@ void LapCntDeviceShow(BOOL fShow)
     //MESSAGE NewMsg;                                         // for screen fresh message
 
     // update current time
-    LapCntUpdateTime();
+    LCDev_UpdTime();
 
     // update all strings
     for ( i = 0; i < LAPS_MAX; i++)
@@ -308,16 +311,16 @@ void LapCntDeviceShow(BOOL fShow)
     }
 
     // update current focused lap
-    LapCntDeviceSetFocus(LapCounterState.cCurrentLap);
+    LCDev_SetFocus(LapCounterState.cCurrentLap);
 
     // show mode of complete device
     if (fShow == TRUE)                                      // 'show' screen ?
     {
         // show first time? ==> clear screen first!
-        if (LapCntDevice.fScreenInit == FALSE)
+        if (LCDev_.fScreenInit == FALSE)
         {
             DisplClearScreen(0x00);
-            LapCntDevice.fScreenInit = TRUE;
+            LCDev_.fScreenInit = TRUE;
             ShowMode = SHOW_ALL;                   // repaint all stuff
         }
         else
@@ -328,9 +331,9 @@ void LapCntDeviceShow(BOOL fShow)
         //DisplClearScreen(0xaa);
 
         /* process complete (active) object to show all objects */
-        DevObjShow( &LapCntDevice,
-                    LapCntDevice.Objects.ObjList,
-                    LapCntDevice.Objects.ObjCount,
+        DevObjShow( &LCDev_,
+                    LCDev_.Objects.ObjList,
+                    LCDev_.Objects.ObjCount,
                     ShowMode );
 
     }
@@ -340,13 +343,13 @@ void LapCntDeviceShow(BOOL fShow)
         DisplClearScreen(0x0);
 
         // reset states of all objects of this device
-        DevObjClearState(  &LapCntDevice,
-                            LapCntDevice.Objects.ObjList,
-                            LapCntDevice.Objects.ObjCount,
+        DevObjClearState(  &LCDev_,
+                            LCDev_.Objects.ObjList,
+                            LCDev_.Objects.ObjCount,
                             OS_DISPL | OS_EDIT );
 
         // set overall device state to 'not init'
-        LapCntDevice.fScreenInit = FALSE;                      // reset devices screen state
+        LCDev_.fScreenInit = FALSE;                      // reset devices screen state
     }
 }
 
@@ -354,13 +357,13 @@ void LapCntDeviceShow(BOOL fShow)
 
 
 /***********************************************************************
- *  FUNCTION:       LapCntDeviceMsgEntry
+ *  FUNCTION:       LCDev_MsgEntry
  *  DESCRIPTION:    Receive Message Handler called by MsgQPump
  *  PARAMETER:      msg
  *  RETURN:         ERR_MSG_NOT_PROCESSED / ERR_MSG_NOT_PROCESSED
  *  COMMENT:        -
  *********************************************************************** */
-ERRCODE LapCntDeviceMsgEntry(MESSAGE GivenMsg)
+ERRCODE LCDev_MsgEntry(MESSAGE GivenMsg)
 {
     ERRCODE     RValue = ERR_MSG_NOT_PROCESSED;
     MESSAGE_ID  MsgId;
@@ -376,7 +379,7 @@ ERRCODE LapCntDeviceMsgEntry(MESSAGE GivenMsg)
             // Some device want's to get the focus:
             // If we've currently got the focus, we'll
             // answer to SET his focus!
-            if ( LapCntDevice.fFocused == TRUE)
+            if ( LCDev_.fFocused == TRUE)
             {
                 ODS2(   DBG_SYS, DBG_INFO,
                         "%s wants to have focus from %s!",
@@ -384,8 +387,8 @@ ERRCODE LapCntDeviceMsgEntry(MESSAGE GivenMsg)
                         szDevName[DEVID_LAPCNT]);
                 MSG_BUILD_SETFOCUS(NewMsg,DEVID_SET,MSG_SENDER_ID(GivenMsg));   // build answer message
                 RValue = MsgQPostMsg(NewMsg, MSGQ_PRIO_LOW);                    // send answer message
-                LapCntDevice.fFocused = FALSE;                                     // clear our focus
-                LapCntDeviceShow(FALSE);                                           // clear our screen
+                LCDev_.fFocused = FALSE;                                     // clear our focus
+                LCDev_Show(FALSE);                                           // clear our screen
                 RValue = ERR_MSG_PROCESSED;
             }
         } break;
@@ -397,7 +400,7 @@ ERRCODE LapCntDeviceMsgEntry(MESSAGE GivenMsg)
                 // Someone wants us to take the focus?
                 // We assume, that nobody else has the focus
                 // and we've got the the screen now for us!
-                if (  (LapCntDevice.fFocused     == TRUE        )
+                if (  (LCDev_.fFocused     == TRUE        )
                     &&(MSG_RECEIVER_ID(GivenMsg) == DEVID_LAPCNT) )
                 {
                     ODS2(   DBG_SYS, DBG_WARNING,
@@ -411,14 +414,14 @@ ERRCODE LapCntDeviceMsgEntry(MESSAGE GivenMsg)
                             szDevName[MSG_SENDER_ID(GivenMsg)],
                             szDevName[DEVID_SET]) */
                 }
-                LapCntDevice.fFocused = TRUE;                           // set our focus
-                LapCntDeviceShow(TRUE);                                 // show our screen immediatly
+                LCDev_.fFocused = TRUE;                           // set our focus
+                LCDev_Show(TRUE);                                 // show our screen immediatly
                 gDeviceFlags1.flags.ActDevNr = DEVID_LAPCNT;             // save device# for restore
                 RValue = ERR_MSG_PROCESSED;
              }
              else
              {
-                if ( LapCntDevice.fFocused == TRUE )
+                if ( LCDev_.fFocused == TRUE )
                 {
                     // Some other device should be given the focus,
                     // BUT WE'VE GOT THE FOCUS!
@@ -428,7 +431,7 @@ ERRCODE LapCntDeviceMsgEntry(MESSAGE GivenMsg)
                             szDevName[MSG_SENDER_ID(GivenMsg)],
                             szDevName[MSG_RECEIVER_ID(GivenMsg)],
                             szDevName[DEVID_LAPCNT]);
-                    LapCntDevice.fFocused = FALSE;                        // loose our focus
+                    LCDev_.fFocused = FALSE;                        // loose our focus
                     ODS1(   DBG_SYS, DBG_WARNING,
                             "%s now loosing focus :-( ",
                             szDevName[DEVID_LAPCNT]);
@@ -440,7 +443,7 @@ ERRCODE LapCntDeviceMsgEntry(MESSAGE GivenMsg)
 
     // ----------------------------------------------------------------
     // this part is only for FOCUSED time AND msg not already processed
-    if (  (LapCntDevice.fFocused == TRUE )
+    if (  (LCDev_.fFocused == TRUE )
         &&(RValue == ERR_MSG_NOT_PROCESSED ) )
     {
         switch (MsgId)
@@ -453,13 +456,13 @@ ERRCODE LapCntDeviceMsgEntry(MESSAGE GivenMsg)
             case MSG_DPL_FLASH_OFF:
 
                 if( RValue == ERR_MSG_NOT_PROCESSED )
-                    RValue = LapCntStartStop(GivenMsg);                         // try start/stop timer
+                    RValue = LCDev_StartStop(GivenMsg);                         // try start/stop timer
 
                 if( RValue == ERR_MSG_NOT_PROCESSED )
-                    RValue = LapCntDeviceStateMachine(GivenMsg);                // try move focus
+                    RValue = LCDev_StateMachine(GivenMsg);                // try move focus
 
                 if( RValue == ERR_MSG_NOT_PROCESSED )
-                    RValue = LapCntDeviceResetMsg(GivenMsg);                    // try reset all counters
+                    RValue = LCDev_ResetMsg(GivenMsg);                    // try reset all counters
 
 
                 if (  (RValue == ERR_MSG_NOT_PROCESSED                    )
@@ -467,19 +470,19 @@ ERRCODE LapCntDeviceMsgEntry(MESSAGE GivenMsg)
                     &&(MSG_KEY_DURATION(GivenMsg) < KEYSHORT              ) )
                 {
                     // give focus immediatly to next screen
-                    LapCntDevice.fFocused = FALSE;                              // clear our focus
-                    LapCntDeviceShow(FALSE);                                    // clear our screen
+                    LCDev_.fFocused = FALSE;                              // clear our focus
+                    LCDev_Show(FALSE);                                    // clear our screen
                     MSG_BUILD_SETFOCUS(NewMsg, DEVID_LAPCNT, DEVID_MONITOR);
                     MsgQPostMsg(NewMsg, MSGQ_PRIO_LOW);
                     RValue = ERR_MSG_PROCESSED;
                 }
 
-                LapCntDeviceShow(TRUE);     // update screen anyway
+                LCDev_Show(TRUE);     // update screen anyway
                 break;
 
             //case MSG_SCREEN_RFRSH:        /* standard refresh cycle */
             case MSG_SECOND_GONE:  /* additional blink lap trigger */
-                LapCntDeviceShow(TRUE);
+                LCDev_Show(TRUE);
                 RValue = ERR_MSG_PROCESSED;
                 break;
 
@@ -496,13 +499,13 @@ ERRCODE LapCntDeviceMsgEntry(MESSAGE GivenMsg)
 
 
 /***********************************************************************
- *  FUNCTION:       LapCntDeviceStateMachine
+ *  FUNCTION:       LCDev_StateMachine
  *  DESCRIPTION:    focus handles over all selectable objects
  *  PARAMETER:      message id (up/down)
  *  RETURN:         -
  *  COMMENT:        -
  *********************************************************************** */
-ERRCODE LapCntDeviceStateMachine(MESSAGE Msg)
+ERRCODE LCDev_StateMachine(MESSAGE Msg)
 {
     MESSAGE_ID  MsgId = MSG_ID(Msg);                            // get message id
     ERRCODE     RValue = ERR_MSG_NOT_PROCESSED;
@@ -517,8 +520,8 @@ ERRCODE LapCntDeviceStateMachine(MESSAGE Msg)
         if ( LapCounterState.cCurrentLap > 0 )                  // underflow/wrap around?
              LapCounterState.cCurrentLap--;                     // NO:  set previous lap
         else LapCounterState.cCurrentLap = (LAPS_MAX-1);        // YES: set last lap
-        LapCntDeviceSetFocus(LapCounterState.cCurrentLap);      // set focus
-        LapCntDeviceShow(TRUE);                                 // immedeately show result
+        LCDev_SetFocus(LapCounterState.cCurrentLap);      // set focus
+        LCDev_Show(TRUE);                                 // immedeately show result
         RValue = ERR_MSG_PROCESSED;                             // processed!
         ODS1( DBG_SYS, DBG_INFO, "LapCnt decr to lap %u!", LapCounterState.cCurrentLap+1);
     }
@@ -532,8 +535,8 @@ ERRCODE LapCntDeviceStateMachine(MESSAGE Msg)
         if (LapCounterState.cCurrentLap < (LAPS_MAX-1) )        // wrap around?
              LapCounterState.cCurrentLap++;                     // NO:  set next lap
         else LapCounterState.cCurrentLap = 0;                   // YES: set first last
-        LapCntDeviceSetFocus(LapCounterState.cCurrentLap);      // set focus
-        LapCntDeviceShow(TRUE);                                 // immedeately show result
+        LCDev_SetFocus(LapCounterState.cCurrentLap);      // set focus
+        LCDev_Show(TRUE);                                 // immedeately show result
         RValue = ERR_MSG_PROCESSED;                             // processed!
         ODS1( DBG_SYS, DBG_INFO, "LapCnt incr. to lap %u!", LapCounterState.cCurrentLap+1);
     }
@@ -544,14 +547,14 @@ ERRCODE LapCntDeviceStateMachine(MESSAGE Msg)
 
 
 /***********************************************************************
- *  FUNCTION:       LapCntDeviceSetFocus
+ *  FUNCTION:       LCDev_SetFocus
  *  DESCRIPTION:    focus handles over all selectable objects
  *  PARAMETER:      lap to be focused
  *  RETURN:         -
  *  COMMENT:        This is aspecial focus handler, which lets the
  *                  object (current lap) blink without beeing in edit mode!
  *********************************************************************** */
-ERRCODE LapCntDeviceSetFocus(UINT8 bLap)
+ERRCODE LCDev_SetFocus(UINT8 bLap)
 {
     int       i;
     ERRCODE RValue = ERR_MSG_NOT_PROCESSED;
@@ -574,13 +577,13 @@ ERRCODE LapCntDeviceSetFocus(UINT8 bLap)
 
 
 /***********************************************************************
- *  FUNCTION:       LapCntDeviceResetMsg
+ *  FUNCTION:       LCDev_ResetMsg
  *  DESCRIPTION:    Handle the 'reset' messages for all lap timers
  *  PARAMETER:      MESSAGE
  *  RETURN:         ERR_MSG_PROCESSED / ERR_MSG_NOT_PROCESSED
  *  COMMENT:        -
  *********************************************************************** */
-ERRCODE LapCntDeviceResetMsg(MESSAGE Msg)
+ERRCODE LCDev_ResetMsg(MESSAGE Msg)
 {
     MESSAGE_ID  MsgId = MSG_ID(Msg);                /* get message id */
     ERRCODE     RValue = ERR_MSG_NOT_PROCESSED;
@@ -633,7 +636,7 @@ ERRCODE LapCntDeviceResetMsg(MESSAGE Msg)
 
 
 /***********************************************************************
- *  FUNCTION:       LapCntStartStop
+ *  FUNCTION:       LCDev_StartStop
  *  DESCRIPTION:    Handle messages for start/stop the lap timer
  *  PARAMETER:      MESSAGE
  *  RETURN:         ERR_MSG_PROCESSED / ERR_MSG_NOT_PROCESSED
@@ -642,7 +645,7 @@ ERRCODE LapCntDeviceResetMsg(MESSAGE Msg)
  *                  states. Only if the OK key is released after short
  *                  time, it is detected.
  *********************************************************************** */
-ERRCODE LapCntStartStop(MESSAGE Msg)
+ERRCODE LCDev_StartStop(MESSAGE Msg)
 {
     MESSAGE_ID  MsgId   = MSG_ID(Msg);              /* get message id */
     ERRCODE     RValue  = ERR_MSG_NOT_PROCESSED;    /* return value */
@@ -673,7 +676,7 @@ ERRCODE LapCntStartStop(MESSAGE Msg)
 
 
 /***********************************************************************
- *  FUNCTION:       LapCntUpdateTime
+ *  FUNCTION:       LCDev_UpdTime
  *  DESCRIPTION:    If LapCounter currently active, updates time stamp
  *                  of currently focused lap timer
  *                  Will be called cyclicely via timer ISR to enable
@@ -683,7 +686,7 @@ ERRCODE LapCntStartStop(MESSAGE Msg)
  *  COMMENT:        LapCounterState.cCurrentLap (EEPROM value!) indicates current
  *                  focused lap.
  *********************************************************************** */
-void LapCntUpdateTime( void )
+void LCDev_UpdTime( void )
 {
     static UINT8 bLastSecond = 0;       // to prevent multiple time stamp increments
     UINT8        bThisSecond = 0;       // just a time stamp

@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.4  2012/02/06 20:54:14  tuberkel
+ * Just renamed all 'Devices' function prefixes for better readability
+ *
  * Revision 3.3  2012/02/05 11:17:08  tuberkel
  * DigOuts completely reviewed:
  * - central PWM-Out handled via DigOutDriver for ALL DigOuts!
@@ -316,20 +319,20 @@ static const void far * ObjectList[] =
 
 
 /* internal prototypes */
-void MonitorDeviceUpdateStrings ( void );
-ERRCODE MonitorDeviceResetMsg(MESSAGE Msg);
+void MonDev_UpdateStrings ( void );
+ERRCODE MonDev_MsgEntry_Reset(MESSAGE Msg);
 
 
 
 /***********************************************************************
- *  FUNCTION:       MonitorDeviceInit
+ *  FUNCTION:       MonDev_Init
  *  DESCRIPTION:    all initial stuff for all objects of
  *                  'monitor screen device'
  *  PARAMETER:      -
  *  RETURN:         -
  *  COMMENT:        -
  *********************************************************************** */
-ERRCODE MonitorDeviceInit(void)
+ERRCODE MonDev_Init(void)
 {
     int i;
 
@@ -352,19 +355,19 @@ ERRCODE MonitorDeviceInit(void)
     DevObjFocusReset( &MonitorScreenDev, ObjectList, OBJECTLIST_SIZE );
 
     /* return */
-    ODS( DBG_SYS, DBG_INFO, "- MonitorDeviceInit() done!");
+    ODS( DBG_SYS, DBG_INFO, "- MonDev_Init() done!");
     return ERR_OK;
 }
 
 /***********************************************************************
- *  FUNCTION:       MonitorDeviceShow
+ *  FUNCTION:       MonDev_Show
  *  DESCRIPTION:    bring updated 'monitor screen device' to display
  *                  by calling Show-Fct. of all objects
  *  PARAMETER:      BOOL    TRUE = show objects, FALSE = clear screen
  *  RETURN:         -
  *  COMMENT:        -
  *********************************************************************** */
-void MonitorDeviceShow(BOOL fShow)
+void MonDev_Show(BOOL fShow)
 {
     UINT8   ShowMode;
     ERRCODE error = ERR_OK;
@@ -374,7 +377,7 @@ void MonitorDeviceShow(BOOL fShow)
     if (fShow == TRUE)
     {
         /* update all monitor strings */
-        MonitorDeviceUpdateStrings();
+        MonDev_UpdateStrings();
 
         /* do we have to repaint all? */
         if (MonitorScreenDev.fScreenInit == FALSE)
@@ -423,14 +426,14 @@ void MonitorDeviceShow(BOOL fShow)
 
 
 /***********************************************************************
- *  FUNCTION:       MonitorDeviceMsgEntry
+ *  FUNCTION:       MonDev_MsgEntry
  *  DESCRIPTION:    Receive Message Handler of 'monitor screen' device
  *                  called by MsgQPump
  *  PARAMETER:      msg
  *  RETURN:         ERR_MSG_NOT_PROCESSED / ERR_MSG_NOT_PROCESSED
  *  COMMENT:        -
  *********************************************************************** */
-ERRCODE MonitorDeviceMsgEntry(MESSAGE GivenMsg)
+ERRCODE MonDev_MsgEntry(MESSAGE GivenMsg)
 {
     ERRCODE      RValue = ERR_MSG_NOT_PROCESSED;
     MESSAGE_ID   MsgId;
@@ -454,7 +457,7 @@ ERRCODE MonitorDeviceMsgEntry(MESSAGE GivenMsg)
                 MSG_BUILD_SETFOCUS(NewMsg, DEVID_MONITOR, MSG_SENDER_ID(GivenMsg));   /* build answer message */
                 RValue = MsgQPostMsg(NewMsg, MSGQ_PRIO_LOW);                            /* send answer message */
                 MonitorScreenDev.fFocused = FALSE;                                        /* clear our focus */
-                MonitorDeviceShow(FALSE);                                                 /* clear our screen */
+                MonDev_Show(FALSE);                                                 /* clear our screen */
                 RValue = ERR_MSG_PROCESSED;
             }
         } break;
@@ -478,7 +481,7 @@ ERRCODE MonitorDeviceMsgEntry(MESSAGE GivenMsg)
                             szDevName[MSG_SENDER_ID(GivenMsg)],
                             szDevName[DEVID_MONITOR]) */ ;
                 MonitorScreenDev.fFocused = TRUE;                         /* set our focus */
-                MonitorDeviceShow(TRUE);                                  /* show our screen */
+                MonDev_Show(TRUE);                                  /* show our screen */
                 gDeviceFlags1.flags.ActDevNr = DEVID_MONITOR;              /* save device# for restore */
                 RValue = ERR_MSG_PROCESSED;
              }
@@ -512,7 +515,7 @@ ERRCODE MonitorDeviceMsgEntry(MESSAGE GivenMsg)
         switch (MsgId)
         {
             case MSG_SCREEN_RFRSH:
-                MonitorDeviceShow(TRUE);
+                MonDev_Show(TRUE);
                 RValue = ERR_MSG_PROCESSED;
                 break;
             case MSG_KEYS_PRESSED:
@@ -523,7 +526,7 @@ ERRCODE MonitorDeviceMsgEntry(MESSAGE GivenMsg)
                 {
                     /* give focus immediatly to next device  */
                     MonitorScreenDev.fFocused = FALSE;                                        /* clear our focus */
-                    MonitorDeviceShow(FALSE);                                                 /* clear our screen */
+                    MonDev_Show(FALSE);                                                 /* clear our screen */
                     MSG_BUILD_SETFOCUS(NewMsg, DEVID_MONITOR, DEVID_SET);
                     MsgQPostMsg(NewMsg, MSGQ_PRIO_LOW);
                     RValue = ERR_MSG_PROCESSED;
@@ -534,7 +537,7 @@ ERRCODE MonitorDeviceMsgEntry(MESSAGE GivenMsg)
                {
                    /* VehicleSurveillance: scroll back in list of active status messages */
                    SurvScrollVehicleState(VST_SCROLL_UP);
-                   MonitorDeviceShow(TRUE);     // force refresh!
+                   MonDev_Show(TRUE);     // force refresh!
                    RValue = ERR_MSG_PROCESSED;
                }
                break;
@@ -543,7 +546,7 @@ ERRCODE MonitorDeviceMsgEntry(MESSAGE GivenMsg)
                {
                    /* VehicleSurveillance: scroll forward in list of active status messages */
                    SurvScrollVehicleState(VST_SCROLL_DOWN);
-                   MonitorDeviceShow(TRUE);     // force refresh!
+                   MonDev_Show(TRUE);     // force refresh!
                    RValue = ERR_MSG_PROCESSED;
                }
                break;
@@ -552,7 +555,7 @@ ERRCODE MonitorDeviceMsgEntry(MESSAGE GivenMsg)
             case MSG_KEY_OK:
                 /* Try to reset all Min/Max values (if [OK]-long) */
                 if (RValue == ERR_MSG_NOT_PROCESSED)
-                    RValue = MonitorDeviceResetMsg(GivenMsg);
+                    RValue = MonDev_MsgEntry_Reset(GivenMsg);
                 break;
 
             default: return ERR_MSG_NOT_PROCESSED;
@@ -563,14 +566,14 @@ ERRCODE MonitorDeviceMsgEntry(MESSAGE GivenMsg)
 
 
 /***********************************************************************
- *  FUNCTION:       MonitorDeviceUpdateStrings
+ *  FUNCTION:       MonDev_UpdateStrings
  *  DESCRIPTION:    Generates fresh information for all strings
  *                  shown in this device
  *  PARAMETER:      -
  *  RETURN:         -
  *  COMMENT:        -
  *********************************************************************** */
-void MonitorDeviceUpdateStrings ( void )
+void MonDev_UpdateStrings ( void )
 {
     char   szDataBuff[5];
     char   szDataBuff_Min[5];
@@ -708,14 +711,14 @@ void MonitorDeviceUpdateStrings ( void )
 
 
 /***********************************************************************
- *  FUNCTION:       MonitorDeviceResetMsg
+ *  FUNCTION:       MonDev_MsgEntry_Reset
  *  DESCRIPTION:    Handles the 'all reset' messages for all
  *                  min/max values
  *  PARAMETER:      MESSAGE
  *  RETURN:         ERR_MSG_PROCESSED / ERR_MSG_NOT_PROCESSED
  *  COMMENT:        -
  *********************************************************************** */
-ERRCODE MonitorDeviceResetMsg(MESSAGE Msg)
+ERRCODE MonDev_MsgEntry_Reset(MESSAGE Msg)
 {
     MESSAGE_ID  MsgId = MSG_ID(Msg);                /* get message id */
     ERRCODE     RValue = ERR_MSG_NOT_PROCESSED;

@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.1  2012/02/06 20:54:14  tuberkel
+ * Just renamed all 'Devices' function prefixes for better readability
+ *
  * Revision 3.0  2010/11/07 09:15:04  tuberkel
  * V30 Preparations:
  * - diverse new Textblocks for changed Settings/Appearance
@@ -134,7 +137,7 @@
 
 /* vehicle state texts;
  * NOTE: if you add one here, also add the eSURVP_ value in device.h,
- * as well as an assignment in MonitorDeviceInit() */
+ * as well as an assignment in MonDev_Init() */
                                 // ....!....!....!....!.
 #define RESTXT_STATE_ALLRIGHT     "      \xbb All OK \xab     "
 #define RESTXT_STATE_WATERTEMP    "Water Temp. Too High!"

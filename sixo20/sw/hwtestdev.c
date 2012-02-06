@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.6  2012/02/06 20:54:14  tuberkel
+ * Just renamed all 'Devices' function prefixes for better readability
+ *
  * Revision 3.5  2012/02/05 11:17:08  tuberkel
  * DigOuts completely reviewed:
  * - central PWM-Out handled via DigOutDriver for ALL DigOuts!
@@ -115,7 +118,7 @@
  *
  * Revision 2.1  2009/04/14 21:17:55  tuberkel
  * Changes done by Arnold:
- * - HWTestCheckUnstimulatedErrors() uses dyn. Eeprom Magic Number Address
+ * - HWTDev_UpdUnStimErr() uses dyn. Eeprom Magic Number Address
  *
  * Revision 2.0  2006/06/26 23:25:50  tuberkel
  * no message
@@ -172,7 +175,7 @@ extern DEVFLAGS1_TYPE       gDeviceFlags1;      /* system parameters */
 
 /* local objects */
 static DEVDATA      HWTestDev;                  /* this device */
-static TEXTOBJECT   HWTestScreen;               /* basic screen content ------------------- */
+static TEXTOBJECT   HWTestScreen_;               /* basic screen content ------------------- */
 static BOOL         fEOLTester_present = FALSE; /* TRUE if test adapter present, FALSE if runs in vehicle */
 static BOOL         fGPO0_active = FALSE;       /* for hw stimulation of pin eGPO_0 */
 static BOOL         fGPO1_active = FALSE;       /* for hw stimulation of pin eGPO_1 */
@@ -319,7 +322,7 @@ static const TEXTOBJECT_INITTYPE TextObjInit[] =
     /* ----------------- -------  -------  ------------ -- -- ---------- --------- --------------------  --------- */
 
     /* complete static background description incl. descriptors ------  */
-    { &HWTestScreen,     C2PH(0), C2PV(0), DPLFONT_4X6, 8, 32, TXT_LEFT,  TXT_NORM, RESTXT_HWTDEV_SCREEN_32x8,  OC_DISPL },
+    { &HWTestScreen_,     C2PH(0), C2PV(0), DPLFONT_4X6, 8, 32, TXT_LEFT,  TXT_NORM, RESTXT_HWTDEV_SCREEN_32x8,  OC_DISPL },
 
     /* analog values ------  */
     { &VoltageObj,       C2PH(5), C2PV(0), DPLFONT_4X6, 1,  4, TXT_RIGHT, TXT_NORM, szVoltage,  OC_DISPL | OC_DYN },
@@ -381,7 +384,7 @@ static const TEXTOBJECT_INITTYPE TextObjInit[] =
             list is for common object handling only! */
 static const void far * ObjectList[] =
 {
-    (void far *) &HWTestScreen,
+    (void far *) &HWTestScreen_,
     (void far *) &VoltageObj,
     (void far *) &AltWObj,
     (void far *) &RPMObj,
@@ -432,27 +435,27 @@ static const void far * ObjectList[] =
 
 
 /* internal prototypes */
-void HWTestWork ( void );
-void HWTestInit ( void );
+void HWTDev_Update ( void );
+void HWTDev_LowInit ( void );
 void HWTestCheckErrors( void );
-void HWTestCheckStates( void );
-BOOL HWTestCheckTesterPresent( void );
-void HWTestUpdateMeasurement ( void );
-void HWTestCheckStimulatedErrors( void );
-void HWTestCheckUnstimulatedErrors( void );
+void HWTDev_UpdDigIn( void );
+BOOL HWTDev_UpdTestPres( void );
+void HWTDev_UpdMeas ( void );
+void HWTDev_UpdStimErr( void );
+void HWTDev_UpdUnStimErr( void );
 
 
 
 
 /***********************************************************************
- *  FUNCTION:       HWTestDeviceInit
+ *  FUNCTION:       HWTDev_Init
  *  DESCRIPTION:    all initial stuff for all objects of
  *                  'HW Test  screen device'
  *  PARAMETER:      -
  *  RETURN:         -
  *  COMMENT:        -
  *********************************************************************** */
-ERRCODE HWTestDeviceInit(void)
+ERRCODE HWTDev_Init(void)
 {
     int i;
 
@@ -475,17 +478,17 @@ ERRCODE HWTestDeviceInit(void)
     DevObjFocusReset( &HWTestDev, ObjectList, OBJECTLIST_SIZE );
 
     /* initialize HW stuff */
-    HWTestInit();
+    HWTDev_LowInit();
 
     /* return */
-    ODS( DBG_SYS, DBG_INFO, "- HWTestDeviceInit() done!");
+    ODS( DBG_SYS, DBG_INFO, "- HWTDev_Init() done!");
     return ERR_OK;
 }
 
 
 
 /***********************************************************************
- *  FUNCTION:       HWTestDeviceShow
+ *  FUNCTION:       HWTDev_Show
  *  DESCRIPTION:    bring updated 'HW Test screen device' to display
  *                  by calling Show-Fct. of all objects
  *  PARAMETER:      BOOL    TRUE  = show objects,
@@ -493,7 +496,7 @@ ERRCODE HWTestDeviceInit(void)
  *  RETURN:         -
  *  COMMENT:        -
  *********************************************************************** */
-void HWTestDeviceShow(BOOL fShow)
+void HWTDev_Show(BOOL fShow)
 {
     ERRCODE error = ERR_OK;
     UINT8   ShowMode;
@@ -502,7 +505,7 @@ void HWTestDeviceShow(BOOL fShow)
     if (fShow == TRUE)
     {
         /* get/update current display values */
-        HWTestWork();
+        HWTDev_Update();
 
         /* do we have to repaint all? */
         if (HWTestDev.fScreenInit == FALSE)
@@ -542,14 +545,14 @@ void HWTestDeviceShow(BOOL fShow)
 
 
 /***********************************************************************
- *  FUNCTION:       HWTestDeviceMsgEntry
+ *  FUNCTION:       HWTDev_MsgEntry
  *  DESCRIPTION:    Receive Message Handler of 'HW Test screen' device
  *                  called by MsgQPump
  *  PARAMETER:      msg
  *  RETURN:         ERR_MSG_NOT_PROCESSED / ERR_MSG_NOT_PROCESSED
  *  COMMENT:        -
  *********************************************************************** */
-ERRCODE HWTestDeviceMsgEntry(MESSAGE GivenMsg)
+ERRCODE HWTDev_MsgEntry(MESSAGE GivenMsg)
 {
     ERRCODE      RValue = ERR_MSG_NOT_PROCESSED;
     MESSAGE_ID   MsgId;
@@ -573,7 +576,7 @@ ERRCODE HWTestDeviceMsgEntry(MESSAGE GivenMsg)
                 MSG_BUILD_SETFOCUS(NewMsg, DEVID_HWTEST, MSG_SENDER_ID(GivenMsg));   /* build answer message */
                 RValue = MsgQPostMsg(NewMsg, MSGQ_PRIO_LOW);                            /* send answer message */
                 HWTestDev.fFocused = FALSE;                                        /* clear our focus */
-                HWTestDeviceShow(FALSE);                                                 /* clear our screen */
+                HWTDev_Show(FALSE);                                                 /* clear our screen */
                 RValue = ERR_MSG_PROCESSED;
             }
         } break;
@@ -597,7 +600,7 @@ ERRCODE HWTestDeviceMsgEntry(MESSAGE GivenMsg)
                             szDevName[MSG_SENDER_ID(GivenMsg)],
                             szDevName[DEVID_HWTEST]) */ ;
                 HWTestDev.fFocused = TRUE;                         /* set our focus */
-                HWTestDeviceShow(TRUE);                            /* show our screen */
+                HWTDev_Show(TRUE);                            /* show our screen */
                 gDeviceFlags1.flags.ActDevNr = DEVID_HWTEST;        /* save device# for restore */
                 RValue = ERR_MSG_PROCESSED;
              }
@@ -631,14 +634,14 @@ ERRCODE HWTestDeviceMsgEntry(MESSAGE GivenMsg)
         switch (MsgId)
         {
             case MSG_SCREEN_RFRSH:
-                HWTestDeviceShow(TRUE);     // show updated values
+                HWTDev_Show(TRUE);     // show updated values
                 RValue = ERR_MSG_PROCESSED;
                 break;
 
             case MSG_KEY_OK:
             case MSG_KEY_UP:
             case MSG_KEY_DOWN:
-                HWTestDeviceShow(TRUE);     // show updated values
+                HWTDev_Show(TRUE);     // show updated values
                 RValue = ERR_MSG_PROCESSED;
                 break;
 
@@ -656,13 +659,13 @@ ERRCODE HWTestDeviceMsgEntry(MESSAGE GivenMsg)
 
 
 /***********************************************************************
- *  FUNCTION:       HWTestUpdateMeasurement
+ *  FUNCTION:       HWTDev_UpdMeas
  *  DESCRIPTION:    update all HW measurement items to display
  *  PARAMETER:      -
  *  RETURN:         -
  *  COMMENT:        -
  *********************************************************************** */
-void HWTestUpdateMeasurement ( void )
+void HWTDev_UpdMeas ( void )
 {
     AnaInFormatTemperature(AnaInGetTemperature(),     szIntTemp, sizeof(szIntTemp));
     AnaInFormatTemperature(AnaInGetAirTemperature(),  szExtTemp, sizeof(szExtTemp));
@@ -682,34 +685,34 @@ void HWTestUpdateMeasurement ( void )
 
 
 /***********************************************************************
- *  FUNCTION:       HWTestWork
+ *  FUNCTION:       HWTDev_Update
  *  DESCRIPTION:    update all HW test stuff, will cyclicaly called
  *                  by screen refresh
  *  PARAMETER:      -
  *  RETURN:         -
  *  COMMENT:        -
  *********************************************************************** */
-void HWTestWork ( void )
+void HWTDev_Update ( void )
 {
     // always update measurement values
-    HWTestUpdateMeasurement();
+    HWTDev_UpdMeas();
 
     // check errors stimulated by end-of-line test adapter (if connected)
     if ( fEOLTester_present == TRUE )
-        HWTestCheckStimulatedErrors();
+        HWTDev_UpdStimErr();
 
     // check errors which can always be detected
-    HWTestCheckUnstimulatedErrors();
+    HWTDev_UpdUnStimErr();
 
     // show input status (if no EOL test adapter)
     if ( fEOLTester_present == FALSE )
-        HWTestCheckStates();
+        HWTDev_UpdDigIn();
 }
 
 
 
 /***********************************************************************
- *  FUNCTION:       HWTestCheckTesterPresent
+ *  FUNCTION:       HWTDev_UpdTestPres
  *  DESCRIPTION:    check wether HW test adapter is present or not
  *  PARAMETER:      -
  *  RETURN:         TRUE    if test adapter present
@@ -721,7 +724,7 @@ void HWTestWork ( void )
  *                  digital inputs: The testadapter returns output of PIN_GPO1 as
  *                  inverted signal at HBEAM input!
  *********************************************************************** */
-BOOL HWTestCheckTesterPresent( void )
+BOOL HWTDev_UpdTestPres( void )
 {
     int wait;
     // test: activate PIN_GPO1 and validate HBEAM for a very short time
@@ -744,7 +747,7 @@ BOOL HWTestCheckTesterPresent( void )
 
 
 /***********************************************************************
- *  FUNCTION:       HWTestCheckStimulatedErrors
+ *  FUNCTION:       HWTDev_UpdStimErr
  *  DESCRIPTION:    check any difference between expected test adapter
  *                  results and current results
  *  PARAMETER:      -
@@ -754,7 +757,7 @@ BOOL HWTestCheckTesterPresent( void )
  *                      - 'E' if misfunction detected or
  *                      - '.' if function ok
  *********************************************************************** */
-void HWTestCheckStimulatedErrors( void )
+void HWTDev_UpdStimErr( void )
 {
     // check V+ in 100 mV
     if (  ( AnaInGetVoltage() > 1000 )
@@ -880,7 +883,7 @@ void HWTestCheckStimulatedErrors( void )
 
 
 /***********************************************************************
- *  FUNCTION:       HWTestCheckUnstimulatedErrors
+ *  FUNCTION:       HWTDev_UpdUnStimErr
  *  DESCRIPTION:    check any detectable hw error independently of
  *                  hw test adapter.
  *  PARAMETER:      -
@@ -889,7 +892,7 @@ void HWTestCheckStimulatedErrors( void )
  *                      - 'E' if misfunction detected or
  *                      - '.' if function ok
  *********************************************************************** */
-void HWTestCheckUnstimulatedErrors( void )
+void HWTDev_UpdUnStimErr( void )
 {
     #define CYCLE_CHECK_RTC     1       // check RTC    every 2 seconds
     #define CYCLE_CHECK_EEPROM  5       // check EEPROM every 5 seconds
@@ -1015,7 +1018,7 @@ void HWTestCheckUnstimulatedErrors( void )
 
 
 /***********************************************************************
- *  FUNCTION:       HWTestCheckStates
+ *  FUNCTION:       HWTDev_UpdDigIn
  *  DESCRIPTION:    check current state of all digital inputs, if
  *                  port activated, shows INVERS item.
  *  PARAMETER:      -
@@ -1026,7 +1029,7 @@ void HWTestCheckUnstimulatedErrors( void )
  *                      - '_' if input/signal is LOW and
  *                      - 'ù' if input/signal is HIGH.
  *********************************************************************** */
-void HWTestCheckStates( void )
+void HWTDev_UpdDigIn( void )
 {
     #define WHEEL_ON_DELAY  50        // just a counter to delay
     static UINT16 wWheelPortOn = 0;     // to delay the display ON time
@@ -1124,13 +1127,13 @@ void HWTestCheckStates( void )
 
 
 /***********************************************************************
- *  FUNCTION:       HWTestInit
+ *  FUNCTION:       HWTDev_LowInit
  *  DESCRIPTION:    initialize all HW test stuff
  *  PARAMETER:      -
  *  RETURN:         -
  *  COMMENT:        -
  *********************************************************************** */
-void HWTestInit ( void )
+void HWTDev_LowInit ( void )
 {
     /* TIMERB5 as HWTest stimulation Timer 10 Hz */
     INT_GLOB_DISABLE;
@@ -1144,7 +1147,7 @@ void HWTestInit ( void )
     INT_GLOB_ENABLE;
 
     // check: HW test started at vehicle or at End of line?
-    fEOLTester_present = HWTestCheckTesterPresent();
+    fEOLTester_present = HWTDev_UpdTestPres();
 
     // enable uart loopback test, if tester present
     // Note: we don't use uarts, we only check digital port reaction
@@ -1169,14 +1172,14 @@ void HWTestInit ( void )
 
 
 /***********************************************************************
- *        FUNCTION:       HWTestStimuISR
+ *        FUNCTION:       HWTDev_StimuISR
  *        DESCRIPTION:    called by 10 Hz timer tb5
  *        PARAMETER:      -
  *        RETURN:         -
  *        COMMENT:        used to stimulate HW test for WHEEL + RPM
  *********************************************************************** */
-#pragma INTERRUPT HWTestStimuISR
-void HWTestStimuISR(void)
+#pragma INTERRUPT HWTDev_StimuISR
+void HWTDev_StimuISR(void)
 {
     // toggle internal flag fGPO0_active with 10 Hz
     // Note: fGPO0_active will be used as source for port pins

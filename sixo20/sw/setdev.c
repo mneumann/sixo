@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.7  2012/02/06 20:54:14  tuberkel
+ * Just renamed all 'Devices' function prefixes for better readability
+ *
  * Revision 3.6  2012/01/21 19:52:49  tuberkel
  * Additional Logos for 'TeneristI and 'Coolride'
  *
@@ -130,7 +133,7 @@
  * CompassCompassBar as graphic
  *
  * Revision 2.6  2009/04/20 18:26:04  tuberkel
- * Compiler Fix SetDeviceStateMachine()
+ * Compiler Fix SetDev_StateMachine()
  *
  * Revision 2.5  2007/03/30 10:05:13  tuberkel
  * changed EditWheelSizeObj size 11 -> 13 chars
@@ -736,13 +739,13 @@ static const void far * ObjectList_Compass[] =
 
 // ---------------------------------------------------------------------
 // non public prototypes
-void    SetDeviceShow           (BOOL fShow);
-ERRCODE SetDeviceTryObjects     (MESSAGE GivenMsg);
-void    SetDeviceValuesChanges   (void);
-void    SetDeviceValuesUpdate   (void);
-void    SetDeviceValuesInit     (void);
-void    SetDeviceCheckState    (MESSAGE GivenMsg);
-void    SetDeviceObjListInit    (void);
+void    SetDev_Show           (BOOL fShow);
+ERRCODE SetDev_TryObjects     (MESSAGE GivenMsg);
+void    SetDev_ValuesChanges   (void);
+void    SetDev_ValuesUpdate   (void);
+void    SetDev_ValuesInit     (void);
+void    SetDev_CheckState    (MESSAGE GivenMsg);
+void    SetDev_ObjListInit    (void);
 
 
 
@@ -750,14 +753,14 @@ void    SetDeviceObjListInit    (void);
 
 
 /***********************************************************************
- *  FUNCTION:       SetDeviceInit
+ *  FUNCTION:       SetDev_Init
  *  DESCRIPTION:    all initial stuff for all objects
  *  PARAMETER:      -
  *  RETURN:         -
  *  COMMENT:        These initial settings are updated at any time
  *                  the values are edited/changed.
  *********************************************************************** */
-ERRCODE SetDeviceInit(void)
+ERRCODE SetDev_Init(void)
 {
     int i;
     ERRCODE  RValue;
@@ -775,10 +778,10 @@ ERRCODE SetDeviceInit(void)
     DevObjInit( &SDObj, (void far *)EditBoolObj,    EDITBOOLOBJECTLISTSIZE, OBJT_EBOOL );
 
     /* special SDObj object lists control handling */
-    SetDeviceObjListInit();
+    SetDev_ObjListInit();
 
     /* initialize edit values */
-    SetDeviceValuesInit();
+    SetDev_ValuesInit();
 
     /* reset focus handling for current screen  */
     DevObjFocusReset(   &SDObj,
@@ -786,14 +789,14 @@ ERRCODE SetDeviceInit(void)
                         SDCntrl.List[SDCntrl.eState].ObjCount );
 
     // return
-    ODS( DBG_SYS, DBG_INFO, "- SetDeviceInit() done!");
+    ODS( DBG_SYS, DBG_INFO, "- SetDev_Init() done!");
     return ERR_OK;
 }
 
 
 
 /***********************************************************************
- *  FUNCTION:       SetDeviceShow
+ *  FUNCTION:       SetDev_Show
  *  DESCRIPTION:    update devices appearence (new/update/clear)
  *                  by calling Show-Fct. of all relevant objects
  *  PARAMETER:      BOOL    TRUE = show objects, FALSE = clear screen
@@ -801,7 +804,7 @@ ERRCODE SetDeviceInit(void)
  *  COMMENT:        Some editor buffers directly access the original
  *                  value, so they do not have to be refreshed
  *********************************************************************** */
-void SetDeviceShow(BOOL fShow)
+void SetDev_Show(BOOL fShow)
 {
     MESSAGE NewMsg;
     UINT8   ShowMode;
@@ -813,7 +816,7 @@ void SetDeviceShow(BOOL fShow)
         // 'SHOW' SCREEN
 
         // update all object values
-        SetDeviceValuesUpdate();
+        SetDev_ValuesUpdate();
 
         // do we have to repaint all?
         if (SDObj.fScreenInit == FALSE)
@@ -856,13 +859,13 @@ void SetDeviceShow(BOOL fShow)
 
 
 /***********************************************************************
- *  FUNCTION:       SetDeviceMsgEntry
+ *  FUNCTION:       SetDev_MsgEntry
  *  DESCRIPTION:    Receive Message Handler called by MsgQPump
  *  PARAMETER:      msg
  *  RETURN:         ERR_MSG_NOT_PROCESSED / ERR_MSG_NOT_PROCESSED
  *  COMMENT:        -
  *********************************************************************** */
-ERRCODE SetDeviceMsgEntry(MESSAGE GivenMsg)
+ERRCODE SetDev_MsgEntry(MESSAGE GivenMsg)
 {
     ERRCODE     RValue = ERR_MSG_NOT_PROCESSED;
     MESSAGE_ID  MsgId;
@@ -886,7 +889,7 @@ ERRCODE SetDeviceMsgEntry(MESSAGE GivenMsg)
                         szDevName[DEVID_SET]);
                 MSG_BUILD_SETFOCUS(NewMsg,DEVID_SET,MSG_SENDER_ID(GivenMsg));   // build answer message
                 RValue = MsgQPostMsg(NewMsg, MSGQ_PRIO_LOW);                    // send answer message
-                SetDeviceShow(FALSE);                                           // clear our screen
+                SetDev_Show(FALSE);                                           // clear our screen
                 SDObj.fScreenInit = FALSE;                                  // reset init state
                 SDObj.fFocused    = FALSE;                                  // clear our focus
                 RValue = ERR_MSG_PROCESSED;
@@ -911,7 +914,7 @@ ERRCODE SetDeviceMsgEntry(MESSAGE GivenMsg)
                             "FOCUS: %s -> %s!",
                             szDevName[MSG_SENDER_ID(GivenMsg)],
                             szDevName[DEVID_SET]) */;
-                SetDeviceShow(TRUE);                                    // show our screen immediatly
+                SetDev_Show(TRUE);                                    // show our screen immediatly
                 SDObj.fScreenInit = TRUE;                           // reset init state
                 SDObj.fFocused    = TRUE;                           // set our focus
                 gDeviceFlags1.flags.ActDevNr = DEVID_SET;                // save device# for restore
@@ -963,8 +966,8 @@ ERRCODE SetDeviceMsgEntry(MESSAGE GivenMsg)
                                         GivenMsg);
                     /* Any change? check & execute & show it! */
                     if( RValue == ERR_MSG_PROCESSED )
-                    {   SetDeviceValuesChanges();
-                        SetDeviceShow(TRUE);
+                    {   SetDev_ValuesChanges();
+                        SetDev_Show(TRUE);
                     }
                 }
 
@@ -978,10 +981,10 @@ ERRCODE SetDeviceMsgEntry(MESSAGE GivenMsg)
                                              GivenMsg);
                     /* Focus moved? => check to change to next/previous screen! */
                     if (RValue == ERR_MSG_PROCESSED)
-                    {   SetDeviceCheckState(GivenMsg);
+                    {   SetDev_CheckState(GivenMsg);
                     }
                     /* show changes anyway */
-                    SetDeviceShow(TRUE);
+                    SetDev_Show(TRUE);
                 }
 
                 /* try to give focus to next device */
@@ -992,7 +995,7 @@ ERRCODE SetDeviceMsgEntry(MESSAGE GivenMsg)
                     /* give focus immediatly to next screen */
                     SDObj.fScreenInit = FALSE;                         // reset init state
                     SDObj.fFocused    = FALSE;                         // clear our focus
-                    SetDeviceShow(FALSE);                              // clear our screen
+                    SetDev_Show(FALSE);                              // clear our screen
                     MSG_BUILD_SETFOCUS(NewMsg, DEVID_SET, DEVID_INTRO);
                     MsgQPostMsg(NewMsg, MSGQ_PRIO_LOW);
                     RValue = ERR_MSG_PROCESSED;
@@ -1005,7 +1008,7 @@ ERRCODE SetDeviceMsgEntry(MESSAGE GivenMsg)
                     &&(EditBacklLevObj.State.bits.fEditActive == FALSE) )
                     LCDDrvSetBacklightLevel(    DisplBacklightCheckOn(gDisplayFlags.flags.BacklOnLevel),
                                                 gDisplayFlags.flags.BacklLev );
-                SetDeviceShow(TRUE);
+                SetDev_Show(TRUE);
                 RValue = ERR_MSG_PROCESSED;
                 break;
             default: return ERR_MSG_NOT_PROCESSED;
@@ -1018,7 +1021,7 @@ ERRCODE SetDeviceMsgEntry(MESSAGE GivenMsg)
 
 
 /***********************************************************************
- *  FUNCTION:       SetDeviceValuesChanges
+ *  FUNCTION:       SetDev_ValuesChanges
  *  DESCRIPTION:    Gets called, after OK button pressed:
  *                  Compares all screen object data for any change.
  *                  If any, the global data sources will be updated too
@@ -1043,7 +1046,7 @@ ERRCODE SetDeviceMsgEntry(MESSAGE GivenMsg)
  *                  while edit mode is active, you should use the EDIT
  *                  BUFFER value instead! (e.g. DisplayContrast)
  *********************************************************************** */
-void SetDeviceValuesChanges( void )
+void SetDev_ValuesChanges( void )
 {
     // Wheel Size changed? -------------------------
     // no check necessary, we directly access global data when editor finishes!
@@ -1059,10 +1062,10 @@ void SetDeviceValuesChanges( void )
     if( gfEepromReset == 1 )        // saved with changes?
     {
         gfEepromReset  = 0;                     // clear for next use
-        SetDeviceShow(FALSE);                   // clear screen
+        SetDev_Show(FALSE);                   // clear screen
         ParSetDefaults(PARTIAL);                // reset ALL parameters
         Delay_ms(500);                          // wait, simulate a reset
-        SetDeviceShow(TRUE);                    // rebuild screen
+        SetDev_Show(TRUE);                    // rebuild screen
     }
 
     // Beeper Usage was changed? -----------------
@@ -1306,7 +1309,7 @@ void SetDeviceValuesChanges( void )
 
 
 /***********************************************************************
- *  FUNCTION:       SetDeviceValuesUpdate
+ *  FUNCTION:       SetDev_ValuesUpdate
  *  DESCRIPTION:    Updates all SDObj parameters in order to be
  *                  shown immediatly.
  *  PARAMETER:      -
@@ -1329,7 +1332,7 @@ void SetDeviceValuesChanges( void )
  *                  while edit mode is active, you should use the EDIT
  *                  BUFFER value instead! (e.g. DisplayContrast)
  *********************************************************************** */
-void SetDeviceValuesUpdate(void)
+void SetDev_ValuesUpdate(void)
 {
 
     // REFRESH ALL DYNAMIC VALUES - ONLY IF NOT IN EDIT MODE
@@ -1430,14 +1433,14 @@ void SetDeviceValuesUpdate(void)
 
 
 /***********************************************************************
- *  FUNCTION:       SetDeviceValuesInit
+ *  FUNCTION:       SetDev_ValuesInit
  *  DESCRIPTION:    get local copies of global unions
  *                  to handle edit objects
  *  PARAMETER:      -
  *  RETURN:         -
  *  COMMENT:        -
  *********************************************************************** */
-void SetDeviceValuesInit(void)
+void SetDev_ValuesInit(void)
 {
     // cylinder correctur factor
     CCFNom          = CCF.nibble.nom;
@@ -1469,7 +1472,7 @@ void SetDeviceValuesInit(void)
 
 
 /***********************************************************************
- *  FUNCTION:       SetDeviceCheckState
+ *  FUNCTION:       SetDev_CheckState
  *  DESCRIPTION:    Checks, wether UP/DOWN was treated as Wraparound
  *                  of focus inside current object list. If so, the
  *                  next/previous object LIST is activated by setting
@@ -1478,7 +1481,7 @@ void SetDeviceValuesInit(void)
  *  RETURN:         -
  *  COMMENT:        -
  *********************************************************************** */
-void SetDeviceCheckState(MESSAGE GivenMsg)
+void SetDev_CheckState(MESSAGE GivenMsg)
 {
     ERRCODE                 RValue = ERR_MSG_NOT_PROCESSED;
     MESSAGE_ID              MsgId;
@@ -1498,7 +1501,7 @@ void SetDeviceCheckState(MESSAGE GivenMsg)
         &&( SDCntrl.eState > SD_VEHIC )
         &&( SDObj.bFocusObj == SDCntrl.List[SDCntrl.eState].LastSelObj) )
     {
-        // set new SetDevice state/screen + focus + flag
+        // set new SetDev_ state/screen + focus + flag
         SDCntrl.eState--;
         SDObj.bFocusObj = SDCntrl.List[SDCntrl.eState].LastSelObj;
         fChanged = TRUE;
@@ -1512,7 +1515,7 @@ void SetDeviceCheckState(MESSAGE GivenMsg)
         &&( SDCntrl.eState < (SD_LAST-1) )
         &&( SDObj.bFocusObj == SDCntrl.List[SDCntrl.eState].FirstSelObj) )
     {
-        // set new SetDevice state/screen + focus + flag
+        // set new SetDev_ state/screen + focus + flag
         SDCntrl.eState++;
         SDObj.bFocusObj = SDCntrl.List[SDCntrl.eState].FirstSelObj;
         fChanged = TRUE;
@@ -1538,7 +1541,7 @@ void SetDeviceCheckState(MESSAGE GivenMsg)
         SDObj.fScreenInit = FALSE;
 
         // clear screen
-        SetDeviceShow(FALSE);
+        SetDev_Show(FALSE);
         ODS3( DBG_SYS, DBG_WARNING, "[%s] New Screen/Focus: %u/%u", SDObj.szDevName, SDCntrl.eState, SDObj.bFocusObj);
     }
 }
@@ -1547,14 +1550,14 @@ void SetDeviceCheckState(MESSAGE GivenMsg)
 
 
 /***********************************************************************
- *  FUNCTION:       SetDeviceObjListInit
+ *  FUNCTION:       SetDev_ObjListInit
  *  DESCRIPTION:    Initialize special object control structure
  *                  to handle different screens
  *  PARAMETER:      -
  *  RETURN:         -
  *  COMMENT:        -
  *********************************************************************** */
-void SetDeviceObjListInit(void)
+void SetDev_ObjListInit(void)
 {
     // Setup 1 st screen object list: Vehicle settings
     SDCntrl.List[SD_VEHIC].ObjList       = ObjectList_Veh;

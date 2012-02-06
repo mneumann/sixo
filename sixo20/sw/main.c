@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.8  2012/02/06 20:54:14  tuberkel
+ * Just renamed all 'Devices' function prefixes for better readability
+ *
  * Revision 3.7  2012/02/05 11:17:08  tuberkel
  * DigOuts completely reviewed:
  * - central PWM-Out handled via DigOutDriver for ALL DigOuts!
@@ -128,7 +131,7 @@
  * Added error check for wrong system init values
  *
  * Revision 2.2  2007/03/27 00:06:55  tuberkel
- * BugFix: added missing LapCntUpdateTime()
+ * BugFix: added missing LCDev_UpdTime()
  *
  * Revision 2.1  2007/03/26 23:25:13  tuberkel
  * changed MOTOBAU version handling
@@ -277,7 +280,7 @@ int main()
     {
         // HW SELF TEST MODE ============================================
         TimerRegisterEntryFunction( AnaInDrvTriggerADConverter );   /* generation of AD samples in single sweep mode */
-        Error = HWTestDeviceInit();                                 /* HW test device */
+        Error = HWTDev_Init();                                 /* HW test device */
         eStartDevice = DEVID_HWTEST;                                /* start HW TEST MODE */
         MSG_BUILD_SETFOCUS(Msg, DEVID_UNKNOWN, eStartDevice);       /* give focus to that device */
         MsgQPostMsg(Msg, MSGQ_PRIO_LOW);                            /* post message */
@@ -287,25 +290,25 @@ int main()
         // NORMAL USER MODE =============================================
         /* device screen inits --------------------------- */
         ODS(DBG_SYS,DBG_INFO,"\n\rInitialize Devices:");
-        Error = IntroScreenInit();                                  /* intro screen device */
-        Error = MainDeviceInit();                                   /* main device (speed&rpm) */
-        Error = TripCntDevInit();                                   /* trip counter device */
-        Error = MonitorDeviceInit();                                /* monitor device */
+        Error = IntroDev_Init();                                  /* intro screen device */
+        Error = MainDev_Init();                                   /* main device (speed&rpm) */
+        Error = TripCDev_Init();                                   /* trip counter device */
+        Error = MonDev_Init();                                /* monitor device */
         #if(BIKE_MOTOBAU==1)                                        /* special MOTOBAU behaviour */
-        Error = LapCntDeviceInit();                                 /* LapCounter device */
+        Error = LCDev_Init();                                 /* LapCounter device */
         #endif // BIKE_MOTOBAU
-        Error = SetDeviceInit();                                    /* settings device */
+        Error = SetDev_Init();                                    /* settings device */
         #if(TESTSCREEN==1)
-        Error = TestScreenInit();                                   /* testscreen device */
+        Error = TestScreen_Init();                                   /* testscreen device */
         #endif
 
         /* Display & LED 'HW pseudo test' ---------------- */
         LCDDrvSetBacklightLevel(TRUE, 63);  // switch on Backlight
         if(gbLogoDelay > 0)                 // only if enabled by user:
-        {   IntroScreenShow(TRUE);          //    show 'splash screen'
+        {   IntroDev_Show(TRUE);          //    show 'splash screen'
             PORT_LED = PORT_LED_MASK;       //    all LEDs on
             Delay_ms(gbLogoDelay*100);      //    wait (given in 1/10 sec, set as ms)
-            IntroScreenShow(FALSE);         //    clear 'splash screen'
+            IntroDev_Show(FALSE);         //    clear 'splash screen'
             PORT_LED &= ~PORT_LED_MASK;     //    all LEDs off
         }
 
@@ -319,7 +322,7 @@ int main()
         TimerRegisterEntryFunction( DigOutDrv_Service );            /* support PWM control for all digital outs */
         TimerRegisterEntryFunction( SurvProcessAll );               /* process complete surveillance for infos/warnings/errors */
         #if(BIKE_MOTOBAU==1)                                        /* special MOTOBAU behaviour */
-        TimerRegisterEntryFunction( LapCntUpdateTime );             /* enable background lapcounter feature */
+        TimerRegisterEntryFunction( LCDev_UpdTime );             /* enable background lapcounter feature */
         #endif // BIKE_MOTOBAU
 
         /* TEST LED/GPO PWM Output (kept alive via timer interrupt */
@@ -369,7 +372,7 @@ int main()
 
         /* if hw self diagnostic test active */
         if (eStartDevice == DEVID_HWTEST)
-            HWTestDeviceShow(TRUE);
+            HWTDev_Show(TRUE);
 
         /* if enabled: RPM+WHEEL simulation support */
         if (gDeviceFlags2.flags.VehicSimul == TRUE)

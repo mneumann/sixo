@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.3  2012/02/06 20:54:14  tuberkel
+ * Just renamed all 'Devices' function prefixes for better readability
+ *
  * Revision 3.2  2012/02/05 11:17:08  tuberkel
  * DigOuts completely reviewed:
  * - central PWM-Out handled via DigOutDriver for ALL DigOuts!
@@ -211,11 +214,11 @@ extern const unsigned char far * rgCompassBot144x8[];
 
 
 /* internal prototypes */
-ERRCODE TripCntKeyhandling(MESSAGE GivenMsg);
-UINT16  TripCntToggleSpeed(MESSAGE GivenMsg);
-void    TripCntUpdateTimeDate(void);
-void    TripCntUpdateCompassHeading(void);
-void    TripCntUpdateCompassBargraph(void);
+ERRCODE TripCDev_MsgEntry_Keys(MESSAGE GivenMsg);
+UINT16  TripCDev_ExpSpeed(MESSAGE GivenMsg);
+void    TripCDev_UpdTimeDate(void);
+void    TripCDev_UpdCompassHead(void);
+void    TripCDev_UpdCompassBargr(void);
 
 /* text object table */
 static const TEXTOBJECT_INITTYPE TextObjInit[] =
@@ -249,13 +252,13 @@ static const void far * ObjectList[] =
 
 
 /***********************************************************************
- *  FUNCTION:       TripCntDevInit
+ *  FUNCTION:       TripCDev_Init
  *  DESCRIPTION:    all initial stuff for all objects
  *  PARAMETER:      -
  *  RETURN:         -
  *  COMMENT:        -
  *********************************************************************** */
-ERRCODE TripCntDevInit(void)
+ERRCODE TripCDev_Init(void)
 {
     int i;
 
@@ -275,21 +278,21 @@ ERRCODE TripCntDevInit(void)
     TripCntDev.Objects.LastSelObj    = DevObjGetLastSelectable (&TripCntDev, ObjectList, OBJECTLIST_SIZE );
 
     /* return */
-    ODS( DBG_SYS, DBG_INFO, "- TripCntDevInit() done!");
+    ODS( DBG_SYS, DBG_INFO, "- TripCDev_Init() done!");
     return ERR_OK;
 }
 
 
 
 /***********************************************************************
- *  FUNCTION:       TripCntDevShow
+ *  FUNCTION:       TripCDev_Show
  *  DESCRIPTION:    bring updated trip counter device to display
  *                  by calling Show-Fct. of all relevant objects
  *  PARAMETER:      BOOL    TRUE = show objects, FALSE = clear screen
  *  RETURN:         -
  *  COMMENT:        -
  *********************************************************************** */
-void TripCntDevShow(BOOL fShow)
+void TripCDev_Show(BOOL fShow)
 {
     ERRCODE     error = ERR_OK;
     MESSAGE     NewMsg;             /* for screen fresh message */
@@ -346,16 +349,16 @@ void TripCntDevShow(BOOL fShow)
 
             // the following should be initialized ONCE,
             // but refreshed with diccated message!
-            TripCntUpdateTimeDate();
+            TripCDev_UpdTimeDate();
 
 #if (COMPASS==1)
             // show compass VALUE only if enabled
             if (gDeviceFlags2.flags.ShowCompassValue == 1)
-                TripCntUpdateCompassHeading();
+                TripCDev_UpdCompassHead();
 
             // show compass BARGRAGH only if enabled
             if (gDeviceFlags2.flags.ShowCompassBar == 1)
-                TripCntUpdateCompassBargraph();
+                TripCDev_UpdCompassBargr();
 #endif //COMPASS
 
             /* horizontal line between big & small trip counter */
@@ -385,13 +388,13 @@ void TripCntDevShow(BOOL fShow)
 
 
 /***********************************************************************
- *  FUNCTION:       TripCntMsgEntry
+ *  FUNCTION:       TripCDev_MsgEntry
  *  DESCRIPTION:    Receive Message Handler called by MsgQPump
  *  PARAMETER:      msg
  *  RETURN:         ERR_MSG_NOT_PROCESSED / ERR_MSG_NOT_PROCESSED
  *  COMMENT:        -
  *********************************************************************** */
-ERRCODE TripCntMsgEntry(MESSAGE GivenMsg)
+ERRCODE TripCDev_MsgEntry(MESSAGE GivenMsg)
 {
     ERRCODE     RValue = ERR_MSG_NOT_PROCESSED;
     MESSAGE_ID  MsgId;
@@ -418,7 +421,7 @@ ERRCODE TripCntMsgEntry(MESSAGE GivenMsg)
                 MSG_BUILD_SETFOCUS(NewMsg,DEVID_TRIPCOUNT,MSG_SENDER_ID(GivenMsg));   /* build answer message */
                 RValue = MsgQPostMsg(NewMsg, MSGQ_PRIO_LOW);                     /* send answer message */
                 TripCntDev.fFocused = FALSE;                                     /* clear our focus */
-                TripCntDevShow(FALSE);                                           /* clear our screen */
+                TripCDev_Show(FALSE);                                           /* clear our screen */
                 RValue = ERR_MSG_PROCESSED;
             }
         } break;
@@ -442,7 +445,7 @@ ERRCODE TripCntMsgEntry(MESSAGE GivenMsg)
                             szDevName[MSG_SENDER_ID(GivenMsg)],
                             szDevName[DEVID_TRIPCOUNT]) */;
                 TripCntDev.fFocused = TRUE;                             /* set our focus */
-                TripCntDevShow(TRUE);                                   /* show our screen */
+                TripCDev_Show(TRUE);                                   /* show our screen */
                 gDeviceFlags1.flags.ActDevNr = DEVID_TRIPCOUNT;          /* save device# for restore */
                 RValue = ERR_MSG_PROCESSED;
              }
@@ -481,7 +484,7 @@ ERRCODE TripCntMsgEntry(MESSAGE GivenMsg)
             case MSG_SCREEN_RFRSH:
                 // Please note, that Compass Data and Time is refreshed on dedicated
                 // message MSG_COMPASS_RFRSH and MSG_SECOND_GONE only (see below)
-                TripCntDevShow(TRUE);
+                TripCDev_Show(TRUE);
                 RValue = ERR_MSG_PROCESSED;
                 break;
 
@@ -494,13 +497,13 @@ ERRCODE TripCntMsgEntry(MESSAGE GivenMsg)
                 {
                     /* give focus immediatly to next screen */
                     TripCntDev.fFocused = FALSE;                              /* clear our focus */
-                    TripCntDevShow(FALSE);                                    /* clear our screen */
+                    TripCDev_Show(FALSE);                                    /* clear our screen */
 
                     // special MOTOBAU behaviour
                     #if(BIKE_MOTOBAU==1)
                         MSG_BUILD_SETFOCUS(NewMsg, DEVID_TRIPCOUNT, DEVID_LAPCNT);  // goto LapCounterDevice
                     #else // BIKE_MOTOBAU
-                        MSG_BUILD_SETFOCUS(NewMsg, DEVID_TRIPCOUNT, DEVID_MONITOR); // goto MonitorDevice
+                        MSG_BUILD_SETFOCUS(NewMsg, DEVID_TRIPCOUNT, DEVID_MONITOR); // goto MonDev_
                     #endif // BIKE_MOTOBAU
                     MsgQPostMsg(NewMsg, MSGQ_PRIO_LOW);
                     RValue = ERR_MSG_PROCESSED;
@@ -511,12 +514,12 @@ ERRCODE TripCntMsgEntry(MESSAGE GivenMsg)
             case MSG_KEY_OK:
             case MSG_KEY_UP:
             case MSG_KEY_DOWN:
-                RValue = TripCntKeyhandling(GivenMsg);          /* used for Ok, Up, Down: */
+                RValue = TripCDev_MsgEntry_Keys(GivenMsg);          /* used for Ok, Up, Down: */
                 break;
 
             /* trigger time / date screen update only */
             case MSG_SECOND_GONE:
-                TripCntUpdateTimeDate();
+                TripCDev_UpdTimeDate();
                 RValue = ERR_MSG_PROCESSED;
                 break;
 
@@ -525,10 +528,10 @@ ERRCODE TripCntMsgEntry(MESSAGE GivenMsg)
             case MSG_COMPASS_RFRSH:
                 // show compass VALUE only if enabled
                 if (gDeviceFlags2.flags.ShowCompassValue == 1)
-                    TripCntUpdateCompassHeading();
+                    TripCDev_UpdCompassHead();
                 // show compass BARGRAGH only if enabled
                 if (gDeviceFlags2.flags.ShowCompassBar == 1)
-                    TripCntUpdateCompassBargraph();
+                    TripCDev_UpdCompassBargr();
                 // msg processed anyway
                 RValue = ERR_MSG_PROCESSED;
                 break;
@@ -544,13 +547,13 @@ ERRCODE TripCntMsgEntry(MESSAGE GivenMsg)
 
 
 /***********************************************************************
- *  FUNCTION:       TripCntKeyhandling
+ *  FUNCTION:       TripCDev_MsgEntry_Keys
  *  DESCRIPTION:    Handling of all pressed keys
  *  PARAMETER:      MESSAGE Given Key Msg
  *  RETURN:         error code
  *  COMMENT:        -
  *********************************************************************** */
-ERRCODE TripCntKeyhandling(MESSAGE GivenMsg)
+ERRCODE TripCDev_MsgEntry_Keys(MESSAGE GivenMsg)
 {
     ERRCODE     RValue = ERR_MSG_PROCESSED;
     MESSAGE_ID  MsgId;
@@ -585,7 +588,7 @@ ERRCODE TripCntKeyhandling(MESSAGE GivenMsg)
             if (  (MSG_KEY_TRANSITION(GivenMsg) == KEYTRANS_PRESSED )   // just pressed?
                 ||(MSG_KEY_TRANSITION(GivenMsg) == KEYTRANS_ON      ) ) // key repetition rate active?
             {
-                UINT16 wIncrVal = TripCntToggleSpeed(GivenMsg);         /* get incr value = f(key press duration) */
+                UINT16 wIncrVal = TripCDev_ExpSpeed(GivenMsg);         /* get incr value = f(key press duration) */
                 MeasGetRawTripCnt(eTRIPC_A, &TripCnt);                  /* get current trip counter value */
                 if ((TripCnt.dkm + wIncrVal) < DIST_MAX_VEHIC)          /* no overflow? */
                 {
@@ -598,7 +601,7 @@ ERRCODE TripCntKeyhandling(MESSAGE GivenMsg)
             if (  (MSG_KEY_TRANSITION(GivenMsg) == KEYTRANS_PRESSED )   // just pressed?
                 ||(MSG_KEY_TRANSITION(GivenMsg) == KEYTRANS_ON      ) ) // key repetition rate active?
             {
-                UINT16 wDecrValue = TripCntToggleSpeed(GivenMsg);       /* get decr value = f(key press duration) */
+                UINT16 wDecrValue = TripCDev_ExpSpeed(GivenMsg);       /* get decr value = f(key press duration) */
                 MeasGetRawTripCnt(eTRIPC_A, &TripCnt);                              /* get current trip counter value */
                 if (wDecrValue > TripCnt.dkm)                           /* too big to decr? */
                     wDecrValue = TripCnt.dkm;                           /*-> clip to ensure reset to zero! */
@@ -616,19 +619,19 @@ ERRCODE TripCntKeyhandling(MESSAGE GivenMsg)
 
     /* refresh trip counter display immediatly, if necessary */
     if (RValue == ERR_MSG_PROCESSED)
-        TripCntDevShow(TRUE);
+        TripCDev_Show(TRUE);
     return RValue;
 }
 
 
 /***********************************************************************
- *  FUNCTION:       TripCntToggleSpeed
+ *  FUNCTION:       TripCDev_ExpSpeed
  *  DESCRIPTION:    gives a value adequate to time the user presses key
  *  PARAMETER:      Given msg including the duration
  *  RETURN:         inkr/decr value in 10 m
  *  COMMENT:        -
  *********************************************************************** */
-UINT16 TripCntToggleSpeed(MESSAGE GivenMsg)
+UINT16 TripCDev_ExpSpeed(MESSAGE GivenMsg)
 {
     UINT16 RValue;
 
@@ -653,14 +656,14 @@ UINT16 TripCntToggleSpeed(MESSAGE GivenMsg)
 
 
 /***********************************************************************
- *  FUNCTION:       TripCntUpdateTimeDate
+ *  FUNCTION:       TripCDev_UpdTimeDate
  *  DESCRIPTION:    Separate handling of TimeDate screen refreshs
  *                  to synchronize display to RTC seconds
  *  PARAMETER:      -
  *  RETURN:         -
  *  COMMENT:        -
  *********************************************************************** */
-void TripCntUpdateTimeDate(void)
+void TripCDev_UpdTimeDate(void)
 {
     // check conditions to display timedate */
     if ( TripCntDev.fScreenInit == TRUE  )       // screen is ready?
@@ -673,7 +676,7 @@ void TripCntUpdateTimeDate(void)
 
 
 /***********************************************************************
- *  FUNCTION:       TripCntUpdateCompassHeading
+ *  FUNCTION:       TripCDev_UpdCompassHead
  *  DESCRIPTION:    Separate handling of CompassHeading screen refreshs,
  *                  update compass heading for lower state line '359°'
  *  PARAMETER:      -
@@ -681,7 +684,7 @@ void TripCntUpdateTimeDate(void)
  *  COMMENT:        -
  *********************************************************************** */
 #if (COMPASS==1)
-void TripCntUpdateCompassHeading(void)
+void TripCDev_UpdCompassHead(void)
 {
     tCompassHeadingInfo *ptHeadingInfo;
     static usOldHeading = 0xffff;
@@ -708,7 +711,7 @@ void TripCntUpdateCompassHeading(void)
 
 
 /***********************************************************************
- *  FUNCTION:       TripCntUpdateCompassBargraph
+ *  FUNCTION:       TripCDev_UpdCompassBargr
  *  DESCRIPTION:    Shows a big graphic on display (half filled)
  *                  with a small floating bar of heading values
  *                  and a big heading value in front.
@@ -719,7 +722,7 @@ void TripCntUpdateCompassHeading(void)
  *                  can be enabled!
  *********************************************************************** */
 #if (COMPASS==1)
-void TripCntUpdateCompassBargraph(void)
+void TripCDev_UpdCompassBargr(void)
 {
     UINT16 usHeading;
     UINT16 usOffset;

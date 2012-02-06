@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.4  2012/02/06 20:54:14  tuberkel
+ * Just renamed all 'Devices' function prefixes for better readability
+ *
  * Revision 3.3  2012/01/21 19:52:49  tuberkel
  * Additional Logos for 'TeneristI and 'Coolride'
  *
@@ -148,7 +151,7 @@
 
 /* vehicle/device parameter state texts;
  * NOTE: if you add one here, also add the eSURVP_ value in device.h,
- * as well as an assignment in MonitorDeviceInit()
+ * as well as an assignment in MonDev_Init()
  *  Note: (max 4+17 chars),
  *  E.g.: "1/1    <8 l. Sprit!  */
                                 //+....!....!....!..+..+..+

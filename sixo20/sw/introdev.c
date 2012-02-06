@@ -69,6 +69,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.2  2012/02/06 20:54:14  tuberkel
+ * Just renamed all 'Devices' function prefixes for better readability
+ *
  * Revision 3.1  2012/01/14 08:28:42  tuberkel
  * Message-IDs shortened / reviewed
  *
@@ -199,21 +202,21 @@ static const void far * ObjectList[] =
 
 
 /* internal prototypes */
-ERRCODE IntroScreenChangeLogo(MESSAGE Msg);
+ERRCODE IntroDev_ChangeLogo(MESSAGE Msg);
 
 
 
 
 
 /***********************************************************************
- *  FUNCTION:       IntroScreenInit
+ *  FUNCTION:       IntroDev_Init
  *  DESCRIPTION:    all initial stuff for all objects of
  *                  'intro screen device'
  *  PARAMETER:      -
  *  RETURN:         -
  *  COMMENT:        -
  *********************************************************************** */
-ERRCODE IntroScreenInit(void)
+ERRCODE IntroDev_Init(void)
 {
     /* device main data */
     IntroScreenDev.eDevID       = DEVID_INTRO;
@@ -235,7 +238,7 @@ ERRCODE IntroScreenInit(void)
     DevObjFocusReset( &IntroScreenDev, ObjectList, OBJECTLIST_SIZE );
 
     /* return */
-    ODS( DBG_SYS, DBG_INFO, "- IntroScreenInit() done!");
+    ODS( DBG_SYS, DBG_INFO, "- IntroDev_Init() done!");
     return ERR_OK;
 }
 
@@ -246,14 +249,14 @@ ERRCODE IntroScreenInit(void)
 
 
 /***********************************************************************
- *  FUNCTION:       IntroScreenShow
+ *  FUNCTION:       IntroDev_Show
  *  DESCRIPTION:    bring updated 'intro screen device' to display
  *                  by calling Show-Fct. of all objects
  *  PARAMETER:      BOOL    TRUE = show objects, FALSE = clear screen
  *  RETURN:         -
  *  COMMENT:        -
  *********************************************************************** */
-void IntroScreenShow(BOOL fShow)
+void IntroDev_Show(BOOL fShow)
 {
     ERRCODE error = ERR_OK;
     /* its on screen? */
@@ -305,14 +308,14 @@ void IntroScreenShow(BOOL fShow)
 
 
 /***********************************************************************
- *  FUNCTION:       IntroScreenMsgEntry
+ *  FUNCTION:       IntroDev_MsgEntry
  *  DESCRIPTION:    Receive Message Handler of 'intro screen' device
  *                  called by MsgQPump
  *  PARAMETER:      msg
  *  RETURN:         ERR_MSG_NOT_PROCESSED / ERR_MSG_NOT_PROCESSED
  *  COMMENT:        -
  *********************************************************************** */
-ERRCODE IntroScreenMsgEntry(MESSAGE GivenMsg)
+ERRCODE IntroDev_MsgEntry(MESSAGE GivenMsg)
 {
     ERRCODE     RValue = ERR_MSG_NOT_PROCESSED;
     MESSAGE_ID  MsgId;
@@ -337,7 +340,7 @@ ERRCODE IntroScreenMsgEntry(MESSAGE GivenMsg)
                 MSG_BUILD_SETFOCUS(NewMsg,DEVID_INTRO,MSG_SENDER_ID(GivenMsg));   /* build answer message */
                 RValue = MsgQPostMsg(NewMsg, MSGQ_PRIO_LOW);                            /* send answer message */
                 IntroScreenDev.fFocused = FALSE;                                        /* clear our focus */
-                IntroScreenShow(FALSE);                                                 /* clear our screen */
+                IntroDev_Show(FALSE);                                                 /* clear our screen */
                 RValue = ERR_MSG_PROCESSED;
             }
         } break;
@@ -361,7 +364,7 @@ ERRCODE IntroScreenMsgEntry(MESSAGE GivenMsg)
                             szDevName[MSG_SENDER_ID(GivenMsg)],
                             szDevName[DEVID_INTRO]) */ ;
                 IntroScreenDev.fFocused = TRUE;                         /* set our focus */
-                IntroScreenShow(TRUE);                                  /* show our screen */
+                IntroDev_Show(TRUE);                                  /* show our screen */
                 gDeviceFlags1.flags.ActDevNr = DEVID_INTRO;              /* save device# for restore */
                 RValue = ERR_MSG_PROCESSED;
              }
@@ -395,7 +398,7 @@ ERRCODE IntroScreenMsgEntry(MESSAGE GivenMsg)
         switch (MsgId)
         {
             case MSG_SCREEN_RFRSH:
-                IntroScreenShow(TRUE);
+                IntroDev_Show(TRUE);
                 RValue = ERR_MSG_PROCESSED;
                 break;
             case MSG_KEYS_PRESSED:
@@ -406,7 +409,7 @@ ERRCODE IntroScreenMsgEntry(MESSAGE GivenMsg)
                 {
                     /* give focus immediatly to next device  */
                     IntroScreenDev.fFocused = FALSE;                                        /* clear our focus */
-                    IntroScreenShow(FALSE);                                                 /* clear our screen */
+                    IntroDev_Show(FALSE);                                                 /* clear our screen */
                     #if(TESTSCREEN==1)
                         MSG_BUILD_SETFOCUS(NewMsg, DEVID_INTRO, DEVID_TESTSCREEN);
                     #else
@@ -419,7 +422,7 @@ ERRCODE IntroScreenMsgEntry(MESSAGE GivenMsg)
             case MSG_KEY_UP:
             case MSG_KEY_DOWN:
                 if (RValue == ERR_MSG_NOT_PROCESSED)
-                    RValue = IntroScreenChangeLogo(GivenMsg);         /* try to change BMP */
+                    RValue = IntroDev_ChangeLogo(GivenMsg);         /* try to change BMP */
                 break;
             case MSG_DPL_FLASH_ON:
             case MSG_DPL_FLASH_OFF:
@@ -434,14 +437,14 @@ ERRCODE IntroScreenMsgEntry(MESSAGE GivenMsg)
 
 
 /***********************************************************************
- *  FUNCTION:       IntroScreenChangeLogo
+ *  FUNCTION:       IntroDev_ChangeLogo
  *  DESCRIPTION:    UP / DOWN key will change SIxO logo, if key pressed
  *                  long.
  *  PARAMETER:      msg
  *  RETURN:         ERR_MSG_NOT_PROCESSED / ERR_MSG_NOT_PROCESSED
  *  COMMENT:        -
  *********************************************************************** */
-ERRCODE IntroScreenChangeLogo(MESSAGE Msg)
+ERRCODE IntroDev_ChangeLogo(MESSAGE Msg)
 {
     MESSAGE_ID  MsgId = MSG_ID(Msg);                        /* get message id */
     ERRCODE     RValue = ERR_MSG_NOT_PROCESSED;
