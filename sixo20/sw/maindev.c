@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.14  2012/02/06 21:40:00  tuberkel
+ * HeatGrip-Part: Now shows 5 bar-parts
+ *
  * Revision 3.13  2012/02/06 21:09:56  tuberkel
  * void MainDev_Show(BOOL fShow)
  * - devided into special subfunctions for Monitor-Part and HeatGrip-Part
@@ -327,9 +330,9 @@ static CHAR         szSpeedMax[4] = "  0";      /* buffer to contain SpeedMax, m
 extern SPEED_TYPE   Speed_Max;                  /* prepared value */
 
 /* lower area mode 7: Coolride Heat Control */
-static BMPOBJECT    HeatGripIconBmpObj;       /* symbol to indicate heat at handgrip */
-static BMPOBJECT    HeatBarEmptyBmpObj;     /* empty bar icon - for multiple use */
-static BMPOBJECT    HeatBarFullBmpObj;      /* empty bar icon - for multiple use */
+static BMPOBJECT    HeatGripIconBmpObj;         /* symbol to indicate heat at handgrip */
+static BMPOBJECT    HeatBarBmpObj;              /* empty/full bar icon - for multiple use */
+#define MD_HEATBARPARTS 5                       /* number of bargrapgh parts */
 
 /* lower area: Date & Time Display */
 static TEXTOBJECT   TimeDateTxtObj;             /* time & date output opbject */
@@ -427,11 +430,10 @@ static const BMPOBJECT_INITTYPE BmpObjInit[] =
     { &VehDistBmpObj,               0, 38, 29, 16, rgEnduroSymbol29x16,  DPLNORM, FALSE },
     { &RPMBmpObj,                   0, 38, 16, 16, rgRPMSymbo16x16,      DPLNORM, FALSE },
 
-    /* Coolride Heat Control - Symbol & Bar icons */
+    /* Coolride Heat Control - Symbol & Bar icons (HeatBarBmpObj gets 5x moved & changed!)*/
     /* --------------------------- -- --- --- --- --------------------- -------- ----- */
     { &HeatGripIconBmpObj,          0, 38, 16, 16, rgHeatGrip16x16,      DPLNORM, FALSE },
-    { &HeatBarEmptyBmpObj,         40, 38, 19,  8, rgHeatBarEmpty19x8,   DPLNORM, FALSE },
-    { &HeatBarFullBmpObj,          80, 38, 19,  8, rgHeatBarFull19x8,    DPLNORM, FALSE },
+    { &HeatBarBmpObj,              22, 40, 19,  8, rgHeatBarEmpty19x8,   DPLNORM, FALSE },
 
     /* Gear Symbol */
     /* --------------------------- -- --- --- --- --------------------- -------- ----- */
@@ -712,8 +714,7 @@ static const void far * ObjectList_HeatGrip[] =
 
     // objects - shown in 'MD_HEATGRIP' mode only
     (void far *) &HeatGripIconBmpObj,   // HeatGrip icon
-    (void far *) &HeatBarEmptyBmpObj,   // Empty Bar Icon - will be moved & multiplied
-    (void far *) &HeatBarFullBmpObj,    // Empty Bar Icon - will be moved & multiplied
+    (void far *) &HeatBarBmpObj,   // Empty Bar Icon - will be moved & multiplied
 };
 #define OBJLIST_HEATGRIP_CNT (sizeof(ObjectList_HeatGrip)/sizeof(OBJSTATE)/sizeof(void far *))
 
@@ -790,9 +791,7 @@ static const void far * ObjectList[] =
 
     // objects - shown in 'MD_HEATGRIP' mode only
     (void far *) &HeatGripIconBmpObj,
-    (void far *) &HeatBarEmptyBmpObj,
-    (void far *) &HeatBarFullBmpObj,
-
+    (void far *) &HeatBarBmpObj,
 };
 #define OBJECTLIST_SIZE   (sizeof(ObjectList)/sizeof(OBJSTATE)/sizeof(void far *))
 
@@ -1229,6 +1228,12 @@ void MainDev_Show_Monitor(BOOL fShow)
  *                  FALSE   clear screen
  *  RETURN:         -
  *  COMMENT:        Assumes to be called for MD_HEATGRIP state only!
+ *                  Uses a SINGLE heat bargraph bmp object to
+ *                  generate a complete 5-part bar:
+ *                      - changes the referenced bitmap to 'full'/'empty' if needed
+ *                      - changes the origin x-pos to show first bar-part
+ *                      - adapts to bmp-obj width to increment x-pos
+ *                        of 4 further bar-parts
  *********************************************************************** */
 void MainDev_Show_Heatgrip(BOOL fShow)
 {
@@ -1238,15 +1243,28 @@ void MainDev_Show_Heatgrip(BOOL fShow)
     {
         /* YES, show ALL objects for initial state */
         ObjBmpShow(  &HeatGripIconBmpObj );
-        ObjBmpShow(  &HeatBarEmptyBmpObj );
-        ObjBmpShow(  &HeatBarFullBmpObj  );
+
+        /* show 5 initial empty bar-parts at initial time
+           NOTE: - uses initial bmp object xpos at start value
+                 - uses bmp object width for offset value for further displayed objects */
+        {
+            UINT8       i;
+            BMPOBJECT   objBmp = HeatBarBmpObj;     // use a copy of that object!
+            for (i=0; i<MD_HEATBARPARTS; i++)
+            {
+                /* show this bmp object */
+                ObjBmpShow( &objBmp );
+
+                /* adapt to next position */
+                objBmp.Org.wXPos += objBmp.Data.wWidth + 1;
+            }
+        }
     }
     else
     /* ================================================= */
     {
         /* No, repaint only changed stuff */
-        ObjBmpShow(  &HeatBarEmptyBmpObj);
-        ObjBmpShow(  &HeatBarFullBmpObj);
+        ObjBmpShow(  &HeatBarBmpObj);
     }
 }
 
