@@ -68,6 +68,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.13  2012/02/06 21:09:56  tuberkel
+ * void MainDev_Show(BOOL fShow)
+ * - devided into special subfunctions for Monitor-Part and HeatGrip-Part
+ *
  * Revision 3.12  2012/02/06 20:54:14  tuberkel
  * Just renamed all 'Devices' function prefixes for better readability
  *
@@ -398,13 +402,15 @@ static BMPOBJECT    MonFuelBmpObj;
 
 /* ============================================================= */
 /* internal prototypes */
-ERRCODE MainDev_MsgEntry_StateMachine      (MESSAGE Msg);
-ERRCODE MainDev_MsgEntry_VehDistRst          (MESSAGE Msg);
-ERRCODE MainDev_MsgEntry_VehState (MESSAGE Msg);
-void    MainDev_UpdTimeDate    (void);
-void    MainDev_UpdMeasVal  (void);
-void    MainDev_ObjListInit       (void);
-void    MainDev_ShowHorLine       (void);
+void    MainDev_Show_Monitor            (BOOL fShow);
+void    MainDev_Show_Heatgrip           (BOOL fShow);
+ERRCODE MainDev_MsgEntry_StateMachine   (MESSAGE Msg);
+ERRCODE MainDev_MsgEntry_VehDistRst     (MESSAGE Msg);
+ERRCODE MainDev_MsgEntry_VehState       (MESSAGE Msg);
+void    MainDev_UpdTimeDate             (void);
+void    MainDev_UpdMeasVal              (void);
+void    MainDev_ObjListInit             (void);
+void    MainDev_ShowHorLine             (void);
 
 
 
@@ -981,90 +987,38 @@ void MainDev_Show(BOOL fShow)
                     ObjTextShow( &RPMTxtObj );
                     ObjTextShow( &RPMDescTxtObj );
                     ObjBmpShow( &RPMBmpObj );
-                break;
+                    break;
                 case MD_FUEL:
                     ObjTextShow( &FuelDistTxtObj );
                     ObjTextShow( &DistDescTxtObj );
                     ObjBmpShow( &FuelDistBmpObj );
-                break;
+                    break;
                 case MD_VEHDIST:
                     ObjTextShow( &VehDistTxtObj );
                     ObjTextShow( &DistDescTxtObj );
                     ObjBmpShow( &VehDistBmpObj );
-                break;
+                    break;
                 case MD_TRIP1:
                     ObjTextShow( &Trip1DescTxtObj );
                     ObjTextShow( &Trip1DistTxtObj );
                     ObjTextShow( &DistDescTxtObj );
-                break;
+                    break;
                 case MD_TRIP2:
                     ObjTextShow( &Trip2DescTxtObj );
                     ObjTextShow( &Trip2DistTxtObj );
                     ObjTextShow( &DistDescTxtObj );
-                break;
+                    break;
                 case MD_SPEEDMAX:
                     ObjTextShow( &SpeedMaxDescTxtObj );
                     ObjTextShow( &SpeedMaxTxtObj );
                     ObjTextShow( &SpeedMaxUnitTxtObj );
-                break;
+                    break;
                 case MD_HEATGRIP:
-                    ObjBmpShow(  &HeatGripIconBmpObj );
-                    ObjBmpShow(  &HeatBarEmptyBmpObj );
-                    ObjBmpShow(  &HeatBarFullBmpObj  );
-                break;
+                    MainDev_Show_Heatgrip(fShow);
+                    break;
                 case MD_MONITOR:
-                {
-                    /* ---------------------------------------------------- */
-                    // vertical divider line */
-                    ObjBmpShow( &MonVertLineBmpObj );
-
-                    /* ---------------------------------------------------- */
-                    // show internal/external temperature
-                    ObjBmpShow ( &MonAmbientTempBmpObj );
-                    ObjTextShow( &MonAmbientTempTxtObj );
-                    ObjTextShow( &MonAmbientTempDescTxtObj );
-
-                    /* ---------------------------------------------------- */
-                    // show supply voltage
-                    ObjBmpShow ( &MonVoltageBmpObj );
-                    ObjTextShow( &MonVoltageTxtObj );
-                    ObjTextShow( &MonVoltageDescTxtObj );
-
-                    /* ---------------------------------------------------- */
-                    // Automatic Display Switch between WaterTemp / FuelDistance
-                    // TBD: Will later be done via Settings, but at the moment we
-                    //      use this so called 'Arnoldschen Elfenbeinturm' here! ;-)
-                    // Water temp available?
-                    if ( AnaInGetWatTemperature() > ANAIN_TEMP_SENSORDETECT )
-                    {   ObjBmpShow ( &MonWaterTempBmpObj     );
-                        ObjTextShow( &MonWaterTempTxtObj     );
-                        ObjTextShow( &MonWaterTempDescTxtObj );
-                    }
-                    else /* display fuel distance if no water temp sensor connected */
-                    {   ObjTextShow( &MonFuelTxtObj     );
-                        ObjTextShow( &MonFuelDescTxtObj );
-                        ObjBmpShow ( &MonFuelBmpObj     );
-                    }
-
-                    /* ---------------------------------------------------- */
-                    // Automatic Display Switch between OilTemp / RPM
-                    // TBD: Will later be done via Settings, but at the moment we
-                    //      use this so called 'Arnoldschen Elfenbeinturm' here! ;-)
-                    // Oil temp available?
-                    if ( AnaInGetOilTemperature() > ANAIN_TEMP_SENSORDETECT )
-                    {   ObjBmpShow ( &MonOilTempBmpObj );
-                        ObjTextShow( &MonOilTempTxtObj );
-                        ObjTextShow( &MonOilTempDescTxtObj );
-                    }
-                    else /* display RPM if no oil temp sensor connected */
-                    {   ObjBmpShow ( &MonRPMBmpObj );
-                        ObjTextShow( &MonRPMTxtObj );
-                        ObjTextShow( &MonRPMDescTxtObj );
-                    }
-                } break;
-
-                // case eMainClock:
-                // break;
+                    MainDev_Show_Monitor(fShow);
+                    break;
                 default:
                     ODS1( DBG_SYS, DBG_ERROR,
                           "MainDev_Show(): unknown state: %u", MDObj.wDevState);
@@ -1122,56 +1076,14 @@ void MainDev_Show(BOOL fShow)
                 case MD_TRIP2:      ObjTextShow( &Trip2DistTxtObj );    break;
                 case MD_VEHDIST:    ObjTextShow( &VehDistTxtObj );      break;
                 case MD_SPEEDMAX:   ObjTextShow( &SpeedMaxTxtObj );     break;
-                case MD_HEATGRIP:   ObjBmpShow(  &HeatBarEmptyBmpObj);
-                                    ObjBmpShow(  &HeatBarFullBmpObj);   break;
-
-                // special case: so small monitor information
+                case MD_HEATGRIP:
+                    MainDev_Show_Heatgrip(fShow);
+                    break;
                 case MD_MONITOR:
-                {
-                    // show external air temp (if n.a.: internal device temp)
-                    ObjTextShow( &MonAmbientTempTxtObj );
+                    /* call the dedicated subfunction */
+                    MainDev_Show_Monitor(fShow);
+                    break;
 
-                    // show battery supply voltage
-                    ObjTextShow( &MonVoltageTxtObj );
-
-                    // Automatic Display Switch between WaterTemp / FuelDistance
-                    // TBD: Will later be done via Settings, but at the moment we
-                    //      use this so called 'Arnoldschen Elfenbeinturm' here! ;-)
-                    // Water temp available?
-                    if ( AnaInGetWatTemperature() > ANAIN_TEMP_SENSORDETECT )
-                    {   /* might have been changed! */
-                        ObjBmpShow ( &MonWaterTempBmpObj     );
-                        ObjTextShow( &MonWaterTempTxtObj     );
-                        ObjTextShow( &MonWaterTempDescTxtObj );
-                    }
-                    else
-                    {   /* might have been changed! */
-                        ObjTextShow( &MonFuelTxtObj     );
-                        ObjTextShow( &MonFuelDescTxtObj );
-                        ObjBmpShow ( &MonFuelBmpObj     );
-                    }
-
-                    // Automatic Display Switch between OilTemp / RPM
-                    // TBD: Will later be done via Settings, but at the moment we
-                    //      use this so called 'Arnoldschen Elfenbeinturm' here! ;-)
-                    // Oil temp available?
-                    if ( AnaInGetOilTemperature() > ANAIN_TEMP_SENSORDETECT )
-                    {   /* might have been changed! */
-                        ObjBmpShow ( &MonOilTempBmpObj     );
-                        ObjTextShow( &MonOilTempTxtObj     );
-                        ObjTextShow( &MonOilTempDescTxtObj );
-                    }
-                    else
-                    {   /* might have been changed! */
-                        ObjBmpShow ( &MonRPMBmpObj );
-                        ObjTextShow( &MonRPMTxtObj );
-                        ObjTextShow( &MonRPMDescTxtObj );
-                    }
-
-                } break;
-                // case eMainClock:
-                //      Clock & Date are always visible and therefore independent of state machine
-                // break;
                 default:
                     ODS1( DBG_SYS, DBG_ERROR,
                           "MainDev_Show(): unknown state: %u", MDObj.wDevState);
@@ -1194,6 +1106,151 @@ void MainDev_Show(BOOL fShow)
         MDObj.fScreenInit = FALSE;
     }
 }
+
+
+
+/***********************************************************************
+ *  FUNCTION:       MainDev_Show_Monitor
+ *  DESCRIPTION:    Special subfunction to show monitor part only
+ *                  by calling Show-Fct. of all relevant objects
+ *  PARAMETER:      TRUE    show (all/partial) objects,
+ *                  FALSE   clear screen
+ *  RETURN:         -
+ *  COMMENT:        Assumes to be called for MD_MONITOR state only!
+ *********************************************************************** */
+void MainDev_Show_Monitor(BOOL fShow)
+{
+    /* ================================================= */
+    /* 'show' or 'clear' screen? */
+    if (fShow == TRUE)
+    {
+        /* ---------------------------------------------------- */
+        // vertical divider line */
+        ObjBmpShow( &MonVertLineBmpObj );
+
+        /* ---------------------------------------------------- */
+        // show internal/external temperature
+        ObjBmpShow ( &MonAmbientTempBmpObj );
+        ObjTextShow( &MonAmbientTempTxtObj );
+        ObjTextShow( &MonAmbientTempDescTxtObj );
+
+        /* ---------------------------------------------------- */
+        // show supply voltage
+        ObjBmpShow ( &MonVoltageBmpObj );
+        ObjTextShow( &MonVoltageTxtObj );
+        ObjTextShow( &MonVoltageDescTxtObj );
+
+        /* ---------------------------------------------------- */
+        // Automatic Display Switch between WaterTemp / FuelDistance
+        // TBD: Will later be done via Settings, but at the moment we
+        //      use this so called 'Arnoldschen Elfenbeinturm' here! ;-)
+        // Water temp available?
+        if ( AnaInGetWatTemperature() > ANAIN_TEMP_SENSORDETECT )
+        {   ObjBmpShow ( &MonWaterTempBmpObj     );
+            ObjTextShow( &MonWaterTempTxtObj     );
+            ObjTextShow( &MonWaterTempDescTxtObj );
+        }
+        else /* display fuel distance if no water temp sensor connected */
+        {   ObjTextShow( &MonFuelTxtObj     );
+            ObjTextShow( &MonFuelDescTxtObj );
+            ObjBmpShow ( &MonFuelBmpObj     );
+        }
+
+        /* ---------------------------------------------------- */
+        // Automatic Display Switch between OilTemp / RPM
+        // TBD: Will later be done via Settings, but at the moment we
+        //      use this so called 'Arnoldschen Elfenbeinturm' here! ;-)
+        // Oil temp available?
+        if ( AnaInGetOilTemperature() > ANAIN_TEMP_SENSORDETECT )
+        {   ObjBmpShow ( &MonOilTempBmpObj );
+            ObjTextShow( &MonOilTempTxtObj );
+            ObjTextShow( &MonOilTempDescTxtObj );
+        }
+        else /* display RPM if no oil temp sensor connected */
+        {   ObjBmpShow ( &MonRPMBmpObj );
+            ObjTextShow( &MonRPMTxtObj );
+            ObjTextShow( &MonRPMDescTxtObj );
+        }
+    }
+    else
+    /* ================================================= */
+    {
+        /* No, repaint only changed stuff */
+
+        // show external air temp (if n.a.: internal device temp)
+        ObjTextShow( &MonAmbientTempTxtObj );
+
+        // show battery supply voltage
+        ObjTextShow( &MonVoltageTxtObj );
+
+        // Automatic Display Switch between WaterTemp / FuelDistance
+        // TBD: Will later be done via Settings, but at the moment we
+        //      use this so called 'Arnoldschen Elfenbeinturm' here! ;-)
+        // Water temp available?
+        if ( AnaInGetWatTemperature() > ANAIN_TEMP_SENSORDETECT )
+        {   /* might have been changed! */
+            ObjBmpShow ( &MonWaterTempBmpObj     );
+            ObjTextShow( &MonWaterTempTxtObj     );
+            ObjTextShow( &MonWaterTempDescTxtObj );
+        }
+        else
+        {   /* might have been changed! */
+            ObjTextShow( &MonFuelTxtObj     );
+            ObjTextShow( &MonFuelDescTxtObj );
+            ObjBmpShow ( &MonFuelBmpObj     );
+        }
+
+        // Automatic Display Switch between OilTemp / RPM
+        // TBD: Will later be done via Settings, but at the moment we
+        //      use this so called 'Arnoldschen Elfenbeinturm' here! ;-)
+        // Oil temp available?
+        if ( AnaInGetOilTemperature() > ANAIN_TEMP_SENSORDETECT )
+        {   /* might have been changed! */
+            ObjBmpShow ( &MonOilTempBmpObj     );
+            ObjTextShow( &MonOilTempTxtObj     );
+            ObjTextShow( &MonOilTempDescTxtObj );
+        }
+        else
+        {   /* might have been changed! */
+            ObjBmpShow ( &MonRPMBmpObj );
+            ObjTextShow( &MonRPMTxtObj );
+            ObjTextShow( &MonRPMDescTxtObj );
+        }
+    }
+}
+
+
+
+/***********************************************************************
+ *  FUNCTION:       MainDev_Show_Heatgrip
+ *  DESCRIPTION:    Special subfunction to show heat-grip part only
+ *                  by calling Show-Fct. of all relevant objects
+ *  PARAMETER:      TRUE    show (all/partial) objects,
+ *                  FALSE   clear screen
+ *  RETURN:         -
+ *  COMMENT:        Assumes to be called for MD_HEATGRIP state only!
+ *********************************************************************** */
+void MainDev_Show_Heatgrip(BOOL fShow)
+{
+    /* ================================================= */
+    /* 'show' or 'clear' screen? */
+    if (fShow == TRUE)
+    {
+        /* YES, show ALL objects for initial state */
+        ObjBmpShow(  &HeatGripIconBmpObj );
+        ObjBmpShow(  &HeatBarEmptyBmpObj );
+        ObjBmpShow(  &HeatBarFullBmpObj  );
+    }
+    else
+    /* ================================================= */
+    {
+        /* No, repaint only changed stuff */
+        ObjBmpShow(  &HeatBarEmptyBmpObj);
+        ObjBmpShow(  &HeatBarFullBmpObj);
+    }
+}
+
+
 
 
 /***********************************************************************
