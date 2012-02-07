@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.15  2012/02/07 17:11:16  tuberkel
+ * HeatGrip PWM display test now ok
+ *
  * Revision 3.14  2012/02/06 21:40:00  tuberkel
  * HeatGrip-Part: Now shows 5 bar-parts
  *
@@ -433,7 +436,7 @@ static const BMPOBJECT_INITTYPE BmpObjInit[] =
     /* Coolride Heat Control - Symbol & Bar icons (HeatBarBmpObj gets 5x moved & changed!)*/
     /* --------------------------- -- --- --- --- --------------------- -------- ----- */
     { &HeatGripIconBmpObj,          0, 38, 16, 16, rgHeatGrip16x16,      DPLNORM, FALSE },
-    { &HeatBarBmpObj,              22, 40, 19,  8, rgHeatBarEmpty19x8,   DPLNORM, FALSE },
+    { &HeatBarBmpObj,              22, 40, 19,  8, rgHeatBarEmpty19x8,   DPLNORM, OC_DISPL | OC_DYN },
 
     /* Gear Symbol */
     /* --------------------------- -- --- --- --- --------------------- -------- ----- */
@@ -1013,10 +1016,10 @@ void MainDev_Show(BOOL fShow)
                     ObjTextShow( &SpeedMaxUnitTxtObj );
                     break;
                 case MD_HEATGRIP:
-                    MainDev_Show_Heatgrip(fShow);
+                    MainDev_Show_Heatgrip(TRUE);
                     break;
                 case MD_MONITOR:
-                    MainDev_Show_Monitor(fShow);
+                    MainDev_Show_Monitor(TRUE);
                     break;
                 default:
                     ODS1( DBG_SYS, DBG_ERROR,
@@ -1076,11 +1079,11 @@ void MainDev_Show(BOOL fShow)
                 case MD_VEHDIST:    ObjTextShow( &VehDistTxtObj );      break;
                 case MD_SPEEDMAX:   ObjTextShow( &SpeedMaxTxtObj );     break;
                 case MD_HEATGRIP:
-                    MainDev_Show_Heatgrip(fShow);
+                    MainDev_Show_Heatgrip(FALSE);
                     break;
                 case MD_MONITOR:
                     /* call the dedicated subfunction */
-                    MainDev_Show_Monitor(fShow);
+                    MainDev_Show_Monitor(FALSE);
                     break;
 
                 default:
@@ -1112,16 +1115,16 @@ void MainDev_Show(BOOL fShow)
  *  FUNCTION:       MainDev_Show_Monitor
  *  DESCRIPTION:    Special subfunction to show monitor part only
  *                  by calling Show-Fct. of all relevant objects
- *  PARAMETER:      TRUE    show (all/partial) objects,
- *                  FALSE   clear screen
+ *  PARAMETER:      fComplete   TRUE  = show all objects,
+ *                              FALSE = show only dynamic stuff
  *  RETURN:         -
  *  COMMENT:        Assumes to be called for MD_MONITOR state only!
  *********************************************************************** */
-void MainDev_Show_Monitor(BOOL fShow)
+void MainDev_Show_Monitor(BOOL fComplete)
 {
     /* ================================================= */
-    /* 'show' or 'clear' screen? */
-    if (fShow == TRUE)
+    /* show complete or refresh dynamic only? */
+    if (fComplete == TRUE)
     {
         /* ---------------------------------------------------- */
         // vertical divider line */
@@ -1224,8 +1227,8 @@ void MainDev_Show_Monitor(BOOL fShow)
  *  FUNCTION:       MainDev_Show_Heatgrip
  *  DESCRIPTION:    Special subfunction to show heat-grip part only
  *                  by calling Show-Fct. of all relevant objects
- *  PARAMETER:      TRUE    show (all/partial) objects,
- *                  FALSE   clear screen
+ *  PARAMETER:      fComplete   TRUE  = show all objects,
+ *                              FALSE = show only dynamic stuff
  *  RETURN:         -
  *  COMMENT:        Assumes to be called for MD_HEATGRIP state only!
  *                  Uses a SINGLE heat bargraph bmp object to
@@ -1235,11 +1238,11 @@ void MainDev_Show_Monitor(BOOL fShow)
  *                      - adapts to bmp-obj width to increment x-pos
  *                        of 4 further bar-parts
  *********************************************************************** */
-void MainDev_Show_Heatgrip(BOOL fShow)
+void MainDev_Show_Heatgrip(BOOL fComplete)
 {
     /* ================================================= */
-    /* 'show' or 'clear' screen? */
-    if (fShow == TRUE)
+    /* show complete or refresh dynamic only? */
+    if (fComplete == TRUE)
     {
         /* YES, show ALL objects for initial state */
         ObjBmpShow(  &HeatGripIconBmpObj );
@@ -1264,7 +1267,30 @@ void MainDev_Show_Heatgrip(BOOL fShow)
     /* ================================================= */
     {
         /* No, repaint only changed stuff */
-        ObjBmpShow(  &HeatBarBmpObj);
+        UINT8       i;
+        BMPOBJECT   objBmp    = HeatBarBmpObj;  // use a copy of that object!
+        UINT8       ucPwmCurr = 40;             // current PWM value
+        UINT8       ucPwmCmp  = 0;              // comparison value to select emty/full bmp
+
+        /* get a fresh PWM value */
+
+        /* loop to generate all 5 bar parts (full/empty) */
+        for (i=0; i<MD_HEATBARPARTS; i++)
+        {
+            /* check: use full/empty bitmap? */
+            if ( ucPwmCurr > ucPwmCmp )
+                 objBmp.Data.fpucBitmap = rgHeatBarFull19x8;
+            else objBmp.Data.fpucBitmap = rgHeatBarEmpty19x8;
+
+            /* show the modified bmp object */
+            ObjBmpShow( &objBmp );
+
+            /* adapt to next position */
+            objBmp.Org.wXPos += objBmp.Data.wWidth + 1;
+
+            /* increase PWM comparison value for next loop */
+            ucPwmCmp += 100 / MD_HEATBARPARTS;
+        }
     }
 }
 
