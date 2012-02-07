@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.16  2012/02/07 17:32:31  tuberkel
+ * HeatGrip PWM test animated
+ *
  * Revision 3.15  2012/02/07 17:11:16  tuberkel
  * HeatGrip PWM display test now ok
  *
@@ -1269,10 +1272,14 @@ void MainDev_Show_Heatgrip(BOOL fComplete)
         /* No, repaint only changed stuff */
         UINT8       i;
         BMPOBJECT   objBmp    = HeatBarBmpObj;  // use a copy of that object!
-        UINT8       ucPwmCurr = 40;             // current PWM value
-        UINT8       ucPwmCmp  = 0;              // comparison value to select emty/full bmp
+        static UINT8 ucPwmCurr = 0;             // current PWM value
+        UINT8 ucPwmCmp;              // comparison value to select emty/full bmp
 
         /* get a fresh PWM value */
+        ucPwmCmp   = 0;
+        ucPwmCurr += 5;
+        if (ucPwmCurr > 100)
+            ucPwmCurr = 0;
 
         /* loop to generate all 5 bar parts (full/empty) */
         for (i=0; i<MD_HEATBARPARTS; i++)

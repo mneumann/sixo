@@ -143,8 +143,8 @@ typedef enum                    // enumerate GPI0..3 Interrup Measurement
     eGPI1_Int3,
     eGPI2_Int4,
     eGPI3_Int5,
-    eGPI3_LAST,                 // invalid
-} DIGINTMEAS_INT;
+    eGPI_MAX,                   // invalid
+} DIGINTMEAS_GPI;
 
 
 /* digital filter structure */

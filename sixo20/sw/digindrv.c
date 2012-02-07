@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.5  2012/02/07 17:32:31  tuberkel
+ * HeatGrip PWM test animated
+ *
  * Revision 3.4  2012/02/05 11:17:08  tuberkel
  * DigOuts completely reviewed:
  * - central PWM-Out handled via DigOutDriver for ALL DigOuts!
@@ -144,7 +147,7 @@ DIGFILTTYPE DigInFilter[eDF_LAST];
 
 
 /* GPI0..3 / INT2..5 interrupt time measurements (PulseWidth & Frequency) */
-DIGINTMEAS DigIntMeas[eGPI3_LAST];
+DIGINTMEAS DigIntMeas[eGPI_MAX];
 
 
 
@@ -670,6 +673,22 @@ UINT8   DigInDrv_FilterConvertTime(UINT16 wFilterTime)
     return ((UINT8) rvalue);
 }
 
+
+
+/***********************************************************************
+ *  FUNCTION:       DigInDrv_GetPWMStates
+ *  DESCRIPTION:    return actual keyboard status in a bit field
+ *  PARAMETER:      -
+ *  RETURN:         UINT8 bit masked key states (FALSE if 'pressed')
+ *  COMMENT:        Key pressed pulls down signal to LOW.
+ *********************************************************************** */
+UINT8 DigInDrv_GetPWMStates(void)
+{
+    /* GPI0..3 / INT2..5 interrupt time measurements (PulseWidth & Frequency) */
+DIGINTMEAS DigIntMeas[eGPI_MAX];
+
+    UINT8 RValue = 0x0;
+}
 
 
 /***********************************************************************
