@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.18  2012/02/08 04:52:34  tuberkel
+ * Real HeatGrip measurement activated (but not yet bugfree)
+ *
  * Revision 3.17  2012/02/08 03:55:24  tuberkel
  * KEY_TIMING parameter names reviewed/changed
  *
@@ -1273,16 +1276,14 @@ void MainDev_Show_Heatgrip(BOOL fComplete)
     /* ================================================= */
     {
         /* No, repaint only changed stuff */
-        UINT8       i;
-        BMPOBJECT   objBmp    = HeatBarBmpObj;  // use a copy of that object!
-        static UINT8 ucPwmCurr = 0;             // current PWM value
-        UINT8 ucPwmCmp;              // comparison value to select emty/full bmp
+        UINT8               i;
+        BMPOBJECT           objBmp    = HeatBarBmpObj;  // we use a copy of that object to manipulate!
+        UINT8               ucPwmCurr = 0;              // current PWM value
+        UINT8               ucPwmCmp;                   // comparison value to select emty/full bmp
 
         /* get a fresh PWM value */
-        ucPwmCmp   = 0;
-        ucPwmCurr += 5;
-        if (ucPwmCurr > 100)
-            ucPwmCurr = 0;
+        ucPwmCmp        = 0;
+        ucPwmCurr       = DigInDrv_GetGPIMeas(eGPI0_Int2)->ucPWM;
 
         /* loop to generate all 5 bar parts (full/empty) */
         for (i=0; i<MD_HEATBARPARTS; i++)

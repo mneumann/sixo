@@ -7,21 +7,21 @@ Use Relative Directory=1
 Relative to Project File=1
 Project Wordfile=
 [Open Files]
-Open File0=s:\CVS\sixo\sixo20\sw\maindev.c
-Open File Pos0=56845
-Open File Line0=56139
-Active File Index=0
-Open File Window Pos0=2,3,-1,-1,-4,-30,0,0,692,552
-Open File1=s:\CVS\sixo\sixo20\sw\device.h
+Open File0=S:\CVS\sixo\sixo20\sw\digindrv.h
+Open File Pos0=5464
+Open File Line0=4061
+Active File Index=2
+Open File Window Pos0=0,1,-1,-1,-4,-30,0,0,692,552
+Open File1=s:\CVS\sixo\sixo20\sw\digindrv.c
 Active File Display Mode=3
-Open File Pos1=10425
-Open File Line1=8970
+Open File Pos1=8220
+Open File Line1=7365
 Open File Window Pos1=0,1,-1,-1,-4,-30,22,29,718,585
-Open File2=S:\CVS\SIXO\SIXO20\SW\objects.h
-Open File Pos2=9029
-Open File Line2=8449
-Open File Window Pos2=0,1,-1,-1,-4,-30,44,58,740,614
-Open File3=S:\CVS\SIXO\SIXO20\SW\display.h
+Open File2=s:\CVS\sixo\sixo20\sw\maindev.c
+Open File Pos2=57130
+Open File Line2=56155
+Open File Window Pos2=2,3,-1,-1,-4,-30,44,58,740,614
+Open File3=
 Open File Pos3=5130
 Open File Line3=4233
 Open File Window Pos3=0,1,-1,-1,-4,-30,66,87,762,643
@@ -112,7 +112,7 @@ Open File Window Pos24=2,3,-1,-1,-4,-30,66,87,755,443
 Open File25=
 
 [File View]
-Current Select=Projektdateien\LLDrv\digindrv.c
+Current Select=Projektdateien\Devices\maindev.c
 
 [Files - Test]
 

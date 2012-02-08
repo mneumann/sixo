@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.8  2012/02/08 04:52:34  tuberkel
+ * Real HeatGrip measurement activated (but not yet bugfree)
+ *
  * Revision 3.7  2012/02/08 03:55:24  tuberkel
  * KEY_TIMING parameter names reviewed/changed
  *
@@ -682,18 +685,43 @@ UINT8   DigInDrv_FilterConvertTime(UINT16 wFilterTime)
 
 
 /***********************************************************************
- *  FUNCTION:       DigInDrv_GetGPOState
- *  DESCRIPTION:    return actual keyboard status in a bit field
- *  PARAMETER:      -
- *  RETURN:         UINT8 bit masked key states (FALSE if 'pressed')
- *  COMMENT:        Key pressed pulls down signal to LOW.
+ *  FUNCTION:       DigInDrv_GetGPIMeas
+ *  DESCRIPTION:    return complete GPI_x measurement status in a structure
+ *  PARAMETER:      eGpi            GPI port to be returned
+ *  RETURN:         reference       to DIGINTMEAS structure
+ *  COMMENT:        Updates calculated values on each call
  *********************************************************************** */
-UINT8 DigInDrv_GetGPOState(void)
+DIGINTMEAS far * DigInDrv_GetGPIMeas(DIGINTMEAS_GPI eGpi)
 {
-    /* GPI0..3 / INT2..5 interrupt time measurements (PulseWidth & Frequency) */
-DIGINTMEAS DigIntMeas[eGPI_MAX];
+    /* check parameter */
+    if ( eGpi >= eGPI_MAX )
+    {   ODS(DBG_DRV,DBG_INFO,"DigInDrv_FilterInit() set to default settings!");
+        return 0L;
+    }
 
-    UINT8 RValue = 0x0;
+    /* update calculated values */
+    DigIntMeas[eGpi].wPulseCycle = DigIntMeas[eGpi].wHighWidth + DigIntMeas[eGpi].wLowWidth;
+    DigIntMeas[eGpi].wPulseFreq  = ( 1000 / DigIntMeas[eGpi].wPulseCycle) / 1000;
+    DigIntMeas[eGpi].ucPWM       = ((1000 * DigIntMeas[eGpi].wPulseCycle) / DigIntMeas[eGpi].wHighWidth) / 1000 * 100;
+    switch(eGpi)
+    {   case eGPI0_Int2: DigIntMeas[eGpi].fCurrState = DigIn_GPI_0; break;
+        case eGPI1_Int3: DigIntMeas[eGpi].fCurrState = DigIn_GPI_1; break;
+        case eGPI2_Int4: DigIntMeas[eGpi].fCurrState = DigIn_GPI_2; break;
+        case eGPI3_Int5: DigIntMeas[eGpi].fCurrState = DigIn_GPI_3; break;
+        default: break;
+    }
+
+    /* correct calculated values, if missing interrupts for long time */
+    if ( ( wMilliSecCounter - DigIntMeas[eGpi].wLastHLTrans ) > DIGINTMEAS_TIMEOUT )
+    {
+        /* TOO old events: check 0% / 100% */
+        if ( DigIntMeas[eGpi].fCurrState == DIGIN_HIGH )
+             DigIntMeas[eGpi].ucPWM = 100;
+        else DigIntMeas[eGpi].ucPWM = 0;
+    }
+
+    /* return results */
+    return ( &DigIntMeas[eGpi]);
 }
 
 

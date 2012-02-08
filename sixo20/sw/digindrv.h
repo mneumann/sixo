@@ -66,8 +66,13 @@
 
 
 
+/* digital input state */
+#define DIGIN_HIGH  TRUE
+#define DIGIN_LOW   FALSE
 
 
+
+/* ======================================================== */
 
 /* keyboard ports */
 /* port 2_6 and 2_7 reserved for output purpose */
@@ -128,16 +133,24 @@
 #define DigIn_GPID_3  pd0_7
 
 
+
+
+/* ======================================================== */
 /* GPI0..3 / INT2..5 interrupt time measurements (PulseWidth & Frequency) */
 typedef struct
 {
+    /* measured values */
     UINT32  dwLHCounter;        // counts Low->High edges only!
     UINT16  wLastHLTrans;       // system time stamp of last High->Low edge (in ms)
     UINT16  wLastLHTrans;       // system time stamp of last Low->High edge (in ms)
     UINT16  wHighWidth;         // High-PulseWidth (in ms)
     UINT16  wLowWidth;          // Low-PulseWidth (in ms)
 
-
+    /* calculated values */
+    UINT16  wPulseCycle;        // pulse cycle time (wLowWidth+wHighWidth, in ms)
+    UINT16  wPulseFreq;         // pulse frequency (1/wPulseCycle, in Hz)
+    BOOL    fCurrState;         // current input state (DIGIN_HIGH/LOW)
+    UINT8   ucPWM;              // PWM load (wLowWidth+wHighWidth/wHighWidth, in %)
 } DIGINTMEAS;
 
 typedef enum                    // enumerate GPI0..3 Interrup Measurement
@@ -148,7 +161,14 @@ typedef enum                    // enumerate GPI0..3 Interrup Measurement
     eGPI_MAX,                   // invalid
 } DIGINTMEAS_GPI;
 
+#define DIGINTMEAS_TIMEOUT  1000    // timout in ms to detect missing PWM interrupts
 
+
+
+
+
+
+/* ======================================================== */
 /* digital filter structure */
 typedef struct
 {
@@ -203,6 +223,7 @@ typedef enum
 
 
 
+/* ======================================================== */
 
 /* ----------------------------------------------------------
    Digital Input Filter
@@ -317,6 +338,8 @@ void    DigInDrv_CheckAllPorts(void);
 void    DigInDrv_FilterInit(void);
 void    DigInDrv_Filter(void);
 UINT8   DigInDrv_FilterConvertTime(UINT16 wFilterTime);
+
+DIGINTMEAS far * DigInDrv_GetGPIMeas(DIGINTMEAS_GPI eGpi);
 
 #endif /* _DIGINDRV_H */
 
