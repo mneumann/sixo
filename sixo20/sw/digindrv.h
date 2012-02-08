@@ -139,6 +139,10 @@
 /* GPI0..3 / INT2..5 interrupt time measurements (PulseWidth & Frequency) */
 typedef struct
 {
+    /* setup values */
+    BOOL    fHighActive;        // TRUE: pin signal interpreted as 'high active'
+    UINT16  wTimeOut;           // timeout to detect 'no transition/INT signal' (in ms)
+
     /* measured values */
     UINT32  dwLHCounter;        // counts Low->High edges only!
     UINT16  wLastHLTrans;       // system time stamp of last High->Low edge (in ms)
@@ -160,10 +164,6 @@ typedef enum                    // enumerate GPI0..3 Interrup Measurement
     eGPI3_Int5,
     eGPI_MAX,                   // invalid
 } DIGINTMEAS_GPI;
-
-#define DIGINTMEAS_TIMEOUT  1000    // timout in ms to detect missing PWM interrupts
-
-
 
 
 
@@ -327,9 +327,9 @@ typedef struct
 
 ERRCODE DigInDrv_Init(void);
 
-UINT8   DigInDrv_GetKeyStates(void);
-ERRCODE DigInDrv_CheckKeyAction(void);
-ERRCODE DigInDrv_SendKeyMessage(const KEYNUMBER Key, const KEYTIME far * fpKeyData);
+UINT8   DigInDrv_Key_GetStates(void);
+ERRCODE DigInDrv_Key_CheckKeys(void);
+ERRCODE DigInDrv_Key_SendMsg(const KEYNUMBER Key, const KEYTIME far * fpKeyData);
 
 UINT8   DigInDrv_GetHWVersion(void);
 
@@ -339,7 +339,10 @@ void    DigInDrv_FilterInit(void);
 void    DigInDrv_Filter(void);
 UINT8   DigInDrv_FilterConvertTime(UINT16 wFilterTime);
 
-DIGINTMEAS far * DigInDrv_GetGPIMeas(DIGINTMEAS_GPI eGpi);
+DIGINTMEAS far * DigInDrv_GPI_GetMeas(DIGINTMEAS_GPI eGpi);
+void             DigInDrv_GPI_RstCount( DIGINTMEAS_GPI eGpi );
+void             DigInDrv_GPI_SetupMeas(DIGINTMEAS_GPI eGpi, BOOL fHighAct, UINT16 wTimeout );
+void             DigInDrv_GPI_UpdateMeas(void);
 
 #endif /* _DIGINDRV_H */
 

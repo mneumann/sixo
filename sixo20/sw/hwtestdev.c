@@ -68,6 +68,11 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.8  2012/02/08 23:05:47  tuberkel
+ * - GPI PWM calculations improved
+ * - renamed DigIn GPI Functions
+ * - renamed DigIn Key Functions
+ *
  * Revision 3.7  2012/02/08 03:41:30  tuberkel
  * renamed #define MINIEMU ==> KD30_USED
  *
@@ -915,11 +920,11 @@ void HWTDev_UpdUnStimErr( void )
 
     // =============================================================================
     // check key UP/DOWN/Ok status (only 1 time)
-    if (DigInDrv_GetKeyStates() & KEYFL_UP)
+    if (DigInDrv_Key_GetStates() & KEYFL_UP)
          StatObj_KEY0.szText  = szOk;
-    if (DigInDrv_GetKeyStates() & KEYFL_DOWN)
+    if (DigInDrv_Key_GetStates() & KEYFL_DOWN)
          StatObj_KEY1.szText  = szOk;
-    if (DigInDrv_GetKeyStates() & KEYFL_OK)
+    if (DigInDrv_Key_GetStates() & KEYFL_OK)
          StatObj_KEY2.szText  = szOk;
 
     // check LDR: any value, but valid! (<255)
@@ -1038,7 +1043,7 @@ void HWTDev_UpdDigIn( void )
     static UINT16 wWheelPortOn = 0;     // to delay the display ON time
 
     // check key UP status
-    if (DigInDrv_GetKeyStates() & KEYFL_UP)
+    if (DigInDrv_Key_GetStates() & KEYFL_UP)
     {   StatObj_KEY0.eFormat = TXT_INVERS;
         KeyUp.eFormat        = TXT_INVERS;
     } else
@@ -1047,7 +1052,7 @@ void HWTDev_UpdDigIn( void )
     }
 
     // check key DOWN status
-    if (DigInDrv_GetKeyStates() & KEYFL_DOWN)
+    if (DigInDrv_Key_GetStates() & KEYFL_DOWN)
     {   StatObj_KEY1.eFormat = TXT_INVERS;
         KeyDown.eFormat      = TXT_INVERS;
     } else
@@ -1056,7 +1061,7 @@ void HWTDev_UpdDigIn( void )
     }
 
     // check key OK status
-    if (DigInDrv_GetKeyStates() & KEYFL_OK)
+    if (DigInDrv_Key_GetStates() & KEYFL_OK)
     {   StatObj_KEY2.eFormat = TXT_INVERS;
         KeyOk.eFormat        = TXT_INVERS;
     } else
@@ -1233,20 +1238,20 @@ void HWTDev_StimuISR(void)
 
     // show key status only (if tester present)
     if ( fEOLTester_present == TRUE )
-    if (DigInDrv_GetKeyStates() & KEYFL_UP)
+    if (DigInDrv_Key_GetStates() & KEYFL_UP)
          KeyUp.eFormat = TXT_INVERS;
     else KeyUp.eFormat = TXT_NORM;
-    if (DigInDrv_GetKeyStates() & KEYFL_DOWN)
+    if (DigInDrv_Key_GetStates() & KEYFL_DOWN)
          KeyDown.eFormat = TXT_INVERS;
     else KeyDown.eFormat = TXT_NORM;
-    if (DigInDrv_GetKeyStates() & KEYFL_OK)
+    if (DigInDrv_Key_GetStates() & KEYFL_OK)
          KeyOk.eFormat = TXT_INVERS;
     else KeyOk.eFormat = TXT_NORM;
 
     // activate beeper, if
     // - any key pressed OR
     // - if WHEEL contact closed and used in vehicle (No EOL)
-    if (  (DigInDrv_GetKeyStates() & (KEYFL_DOWN | KEYFL_UP | KEYFL_OK))
+    if (  (DigInDrv_Key_GetStates() & (KEYFL_DOWN | KEYFL_UP | KEYFL_OK))
         ||(  ( WheelPort == TRUE    )
            &&( fEOLTester_present == FALSE ) ) )
          DigOutDrv_SetPin( eDIGOUT_BEEP, DIGOUT_ON );

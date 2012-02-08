@@ -68,6 +68,11 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.9  2012/02/08 23:05:47  tuberkel
+ * - GPI PWM calculations improved
+ * - renamed DigIn GPI Functions
+ * - renamed DigIn Key Functions
+ *
  * Revision 3.8  2012/02/08 04:52:34  tuberkel
  * Real HeatGrip measurement activated (but not yet bugfree)
  *
@@ -124,7 +129,7 @@
  *
  ************************************************************************ */
 
-
+#include <string.h>
 #include "sfr62p.h"
 #include "m16c.h"
 #include "standard.h"
@@ -227,6 +232,9 @@ ERRCODE DigInDrv_Init(void)
     /* initialize digital input filter table */
     DigInDrv_FilterInit();
 
+    /* Setup Coolride GPI Measurement (GPI0, low-active, 1 sec timeout) */
+    DigInDrv_GPI_SetupMeas( eGPI0_Int2, FALSE, 1000 );
+
     INT_GLOB_ENABLE;             /* enable all ISRs */
 
     ODS(DBG_DRV,DBG_INFO,"DigInDrv_Init() done!");
@@ -235,13 +243,13 @@ ERRCODE DigInDrv_Init(void)
 
 
 /***********************************************************************
- *  FUNCTION:       DigInDrv_GetKeyStates
+ *  FUNCTION:       DigInDrv_Key_GetStates
  *  DESCRIPTION:    return actual keyboard status in a bit field
  *  PARAMETER:      -
  *  RETURN:         UINT8 bit masked key states (FALSE if 'pressed')
  *  COMMENT:        Key pressed pulls down signal to LOW.
  *********************************************************************** */
-UINT8 DigInDrv_GetKeyStates(void)
+UINT8 DigInDrv_Key_GetStates(void)
 {
     UINT8 RValue = 0x0;
 
@@ -279,7 +287,7 @@ UINT8 DigInDrv_GetKeyStates(void)
 
 
 /***********************************************************************
- *  FUNCTION:       DigInDrv_CheckKeyAction
+ *  FUNCTION:       DigInDrv_Key_CheckKeys
  *  DESCRIPTION:    supports protocol of transition and duration
  *                  of keys and sends messages
  *  PARAMETER:      -
@@ -292,7 +300,7 @@ UINT8 DigInDrv_GetKeyStates(void)
  *                  3) If more than 1 key has been pressed, we sent a
  *                  special additional 'multiple key' message
  *********************************************************************** */
-ERRCODE DigInDrv_CheckKeyAction(void)
+ERRCODE DigInDrv_Key_CheckKeys(void)
 {
     ERRCODE     RValue = ERR_OK;
     static UINT8       bKeyState;                      /* current bit masked key state */
@@ -305,7 +313,7 @@ ERRCODE DigInDrv_CheckKeyAction(void)
 
     /* ---------------------------------------------------- */
     /* init stuff */
-    bKeyState = DigInDrv_GetKeyStates();         /* get current state of all keys (bitmasked) */
+    bKeyState = DigInDrv_Key_GetStates();         /* get current state of all keys (bitmasked) */
     TimerGetSys_msec( wActTime_ms );            /* to handle time stamps */
     bKeyCounter = 0;
     for (Key = KEY_OK; Key < KEY_LAST; Key++)
@@ -346,7 +354,7 @@ ERRCODE DigInDrv_CheckKeyAction(void)
                         rgKeyControl[Key].KeyTransit        = KEYTRANS_PRESSED;
                         rgKeyControl[Key].wLastSentTime_ms  = wActTime_ms;
                         rgKeyControl[Key].wDur_ms = wActTime_ms - rgKeyControl[Key].wStartTime_ms;
-                        DigInDrv_SendKeyMessage(Key, &rgKeyControl[Key]);
+                        DigInDrv_Key_SendMsg(Key, &rgKeyControl[Key]);
                         //ODS1(DBG_SYS,DBG_INFO,"New KeyPress: Key#%u",Key);
                     }
                 }
@@ -364,7 +372,7 @@ ERRCODE DigInDrv_CheckKeyAction(void)
                         rgKeyControl[Key].wDur_ms = wActTime_ms - rgKeyControl[Key].wStartTime_ms;
                         rgKeyControl[Key].KeyTransit = KEYTRANS_ON;
                         rgKeyControl[Key].wLastSentTime_ms = wActTime_ms;
-                        DigInDrv_SendKeyMessage(Key, &rgKeyControl[Key]);
+                        DigInDrv_Key_SendMsg(Key, &rgKeyControl[Key]);
                         //ODS1(DBG_SYS,DBG_INFO,"KeyPress repetition: Key#%u",Key);
                     }
                 }
@@ -379,7 +387,7 @@ ERRCODE DigInDrv_CheckKeyAction(void)
                 {
                     /* RELEASED AT THIS MOMENT! */
                     rgKeyControl[Key].KeyTransit = KEYTRANS_RELEASED;
-                    DigInDrv_SendKeyMessage(Key, &rgKeyControl[Key]);
+                    DigInDrv_Key_SendMsg(Key, &rgKeyControl[Key]);
                     rgKeyControl[Key].wDur_ms = 0;     // reset AFTER sending duration !
                     //ODS1(DBG_SYS,DBG_INFO,"KeyReleased: Key#%u",Key);
                 }
@@ -466,14 +474,14 @@ ERRCODE DigInDrv_CheckKeyAction(void)
 
 
 /***********************************************************************
- *  FUNCTION:       DigInDrv_SendKeyMessage
+ *  FUNCTION:       DigInDrv_Key_SendMsg
  *  DESCRIPTION:    Sends a message for one key - according
  *                  to actual and past keyboard state;
  *  PARAMETER:      -
  *  RETURN:         ERR_OK
  *  COMMENT:        -
  *********************************************************************** */
-ERRCODE DigInDrv_SendKeyMessage(const KEYNUMBER Key, const KEYTIME far * fpKeyData)
+ERRCODE DigInDrv_Key_SendMsg(const KEYNUMBER Key, const KEYTIME far * fpKeyData)
 {
     ERRCODE     RValue = ERR_OK;
     MESSAGE     KeyMsg;
@@ -684,25 +692,70 @@ UINT8   DigInDrv_FilterConvertTime(UINT16 wFilterTime)
 
 
 
-/***********************************************************************
- *  FUNCTION:       DigInDrv_GetGPIMeas
- *  DESCRIPTION:    return complete GPI_x measurement status in a structure
- *  PARAMETER:      eGpi            GPI port to be returned
- *  RETURN:         reference       to DIGINTMEAS structure
- *  COMMENT:        Updates calculated values on each call
- *********************************************************************** */
-DIGINTMEAS far * DigInDrv_GetGPIMeas(DIGINTMEAS_GPI eGpi)
-{
-    /* check parameter */
-    if ( eGpi >= eGPI_MAX )
-    {   ODS(DBG_DRV,DBG_INFO,"DigInDrv_FilterInit() set to default settings!");
-        return 0L;
-    }
 
-    /* update calculated values */
-    DigIntMeas[eGpi].wPulseCycle = DigIntMeas[eGpi].wHighWidth + DigIntMeas[eGpi].wLowWidth;
-    DigIntMeas[eGpi].wPulseFreq  = ( 1000 / DigIntMeas[eGpi].wPulseCycle) / 1000;
-    DigIntMeas[eGpi].ucPWM       = ((1000 * DigIntMeas[eGpi].wPulseCycle) / DigIntMeas[eGpi].wHighWidth) / 1000 * 100;
+/***********************************************************************
+ *  FUNCTION:       DigInDrv_GPI_SetupMeas
+ *  DESCRIPTION:    Basic setup for adapted PWM measurement
+ *  PARAMETER:      eGpi        GPI port to be setup
+ *                  fHighAct    TRUE eq. 'port is high-active' (low-active else)
+ *                  wTimeout    timeout in ms to detect missing interupts (static signal)
+ *  RETURN:         -
+ *  COMMENT:        -
+ *********************************************************************** */
+void DigInDrv_GPI_SetupMeas( DIGINTMEAS_GPI eGpi, BOOL fHighAct, UINT16 wTimeout )
+{
+    /* save given values */
+    DigIntMeas[eGpi].fHighActive = fHighAct;
+    DigIntMeas[eGpi].wTimeOut    = wTimeout;
+}
+
+
+
+/***********************************************************************
+ *  FUNCTION:       DigInDrv_GPI_RstCount
+ *  DESCRIPTION:    Reset Interrupt Counter
+ *  PARAMETER:      eGpi        GPI port to be setup
+ *  RETURN:         -
+ *  COMMENT:        To be PROTECTED against interrupts!
+ *********************************************************************** */
+void DigInDrv_GPI_RstCount( DIGINTMEAS_GPI eGpi )
+{
+    /* reset counter */
+    INT_GLOB_DISABLE;
+    DigIntMeas[eGpi].dwLHCounter = 0L;
+    INT_GLOB_ENABLE;
+}
+
+
+
+/***********************************************************************
+ *  FUNCTION:       DigInDrv_GPI_UpdateMeas
+ *  DESCRIPTION:    Service function to update cyclic measurement stuff
+ *  PARAMETER:      -
+ *  RETURN:         -
+ *  COMMENT:        Assumes to be called cyclicly, does only update
+ *                  one GPI at each call to decrease system load.
+ *********************************************************************** */
+void DigInDrv_GPI_UpdateMeas(void)
+{
+    static DIGINTMEAS_GPI eGpi = eGPI0_Int2;
+
+    UINT16  wLastHLTrans;
+    UINT16  wLastLHTrans;
+    UINT16  wHighWidth;
+    UINT16  wLowWidth;
+
+    /* get a copy of measured values (use interrupt blocker to prevent conflict access) */
+    INT_GLOB_DISABLE;
+    wLastHLTrans    = DigIntMeas[eGpi].wLastHLTrans;
+    wLastLHTrans    = DigIntMeas[eGpi].wLastHLTrans;
+    wHighWidth      = DigIntMeas[eGpi].wHighWidth;
+    wLowWidth       = DigIntMeas[eGpi].wLowWidth;
+    INT_GLOB_ENABLE;
+
+    /* update calculated values (adapt to 'high/low-active' mode) */
+    DigIntMeas[eGpi].wPulseCycle = wHighWidth + wLowWidth;
+    DigIntMeas[eGpi].wPulseFreq  = (UINT16)( 1000L / (UINT32)DigIntMeas[eGpi].wPulseCycle) / 1000L;
     switch(eGpi)
     {   case eGPI0_Int2: DigIntMeas[eGpi].fCurrState = DigIn_GPI_0; break;
         case eGPI1_Int3: DigIntMeas[eGpi].fCurrState = DigIn_GPI_1; break;
@@ -711,17 +764,63 @@ DIGINTMEAS far * DigInDrv_GetGPIMeas(DIGINTMEAS_GPI eGpi)
         default: break;
     }
 
-    /* correct calculated values, if missing interrupts for long time */
-    if ( ( wMilliSecCounter - DigIntMeas[eGpi].wLastHLTrans ) > DIGINTMEAS_TIMEOUT )
+    /* adapt to 'high/low-active' mode) */
+    if ( DigIntMeas[eGpi].fHighActive == TRUE )
     {
-        /* TOO old events: check 0% / 100% */
-        if ( DigIntMeas[eGpi].fCurrState == DIGIN_HIGH )
-             DigIntMeas[eGpi].ucPWM = 100;
-        else DigIntMeas[eGpi].ucPWM = 0;
+        /* calculate PWM for 'high-active' mode in %*/
+        DigIntMeas[eGpi].ucPWM = (UINT8) ((1000L * (UINT32)wHighWidth) / (UINT32)DigIntMeas[eGpi].wPulseCycle) / 10L;
+
+        /* correct PWM, if missing interrupts for long time */
+        if (  ( ( wMilliSecCounter - DigIntMeas[eGpi].wLastHLTrans ) > DigIntMeas[eGpi].wTimeOut )
+            ||( ( wMilliSecCounter - DigIntMeas[eGpi].wLastLHTrans ) > DigIntMeas[eGpi].wTimeOut ) )
+        {
+            /* TOO old events: check 0% / 100% */
+            if ( DigIntMeas[eGpi].fCurrState == DIGIN_HIGH )
+                 DigIntMeas[eGpi].ucPWM = 100;
+            else DigIntMeas[eGpi].ucPWM = 0;
+        }
+    }
+    else
+    {   /* calculate PWM for 'low-active' mode in %*/
+        DigIntMeas[eGpi].ucPWM = (UINT8)( (1000L * (UINT32)wLowWidth) / (UINT32)DigIntMeas[eGpi].wPulseCycle) / 10L;
+
+        /* correct PWM, if missing interrupts for long time */
+        if (  ( ( wMilliSecCounter - DigIntMeas[eGpi].wLastHLTrans ) > DigIntMeas[eGpi].wTimeOut )
+            ||( ( wMilliSecCounter - DigIntMeas[eGpi].wLastLHTrans ) > DigIntMeas[eGpi].wTimeOut ) )
+        {
+            /* TOO old events: check 0% / 100% */
+            if ( DigIntMeas[eGpi].fCurrState == DIGIN_LOW )
+                 DigIntMeas[eGpi].ucPWM = 100;
+            else DigIntMeas[eGpi].ucPWM = 0;
+        }
     }
 
+    /* increment to next GPI for next call */
+    if ( eGpi < eGPI3_Int5 )
+         eGpi++;
+    else eGpi = 0;
+}
+
+
+
+/***********************************************************************
+ *  FUNCTION:       DigInDrv_GPI_GetMeas
+ *  DESCRIPTION:    return complete GPI_x measurement status in a structure
+ *  PARAMETER:      eGpi            GPI port to be returned
+ *  RETURN:         reference       to DIGINTMEAS structure
+ *  COMMENT:        Updates calculated values on each call
+ *********************************************************************** */
+DIGINTMEAS far * DigInDrv_GPI_GetMeas(DIGINTMEAS_GPI eGpi)
+{
+    DIGINTMEAS sMeasCopy;
+
+    /* get a copy of that GPI (interrupt protected) */
+    INT_GLOB_DISABLE;
+    sMeasCopy = DigIntMeas[eGpi];
+    INT_GLOB_ENABLE;
+
     /* return results */
-    return ( &DigIntMeas[eGpi]);
+    return ( &sMeasCopy );
 }
 
 

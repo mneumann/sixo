@@ -68,6 +68,11 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.9  2012/02/08 23:05:47  tuberkel
+ * - GPI PWM calculations improved
+ * - renamed DigIn GPI Functions
+ * - renamed DigIn Key Functions
+ *
  * Revision 3.8  2012/02/06 20:54:14  tuberkel
  * Just renamed all 'Devices' function prefixes for better readability
  *
@@ -276,7 +281,7 @@ int main()
 
     /* check: hw self diagnostic test ---------------- */
     /* (all keys pressed together at startup) */
-    if ( DigInDrv_GetKeyStates() == ( KEYFL_OK | KEYFL_UP | KEYFL_DOWN ) )
+    if ( DigInDrv_Key_GetStates() == ( KEYFL_OK | KEYFL_UP | KEYFL_DOWN ) )
     {
         // HW SELF TEST MODE ============================================
         TimerRegisterEntryFunction( AnaInDrvTriggerADConverter );   /* generation of AD samples in single sweep mode */
@@ -313,13 +318,14 @@ int main()
         }
 
         /* Register cyclicely called (50Hz) fast functions --------- */
-        TimerRegisterEntryFunction( DigInDrv_CheckKeyAction );      /* check keys */
+        TimerRegisterEntryFunction( DigInDrv_Key_CheckKeys );      /* check keys */
         TimerRegisterEntryFunction( DigInDrv_CheckAllPorts );       /* update of standard LEDs for Turn/HighBeam/Neutral */
         TimerRegisterEntryFunction( ParCyclicSaveValues );          /* check/save eeprom values */
         TimerRegisterEntryFunction( DevCyclicRefresh );             /* generation of MSG_SCREEN_RFRSH */
         TimerRegisterEntryFunction( TimeDateUpdate );               /* RTC check */
         TimerRegisterEntryFunction( AnaInDrvTriggerADConverter );   /* generation of AD samples in single sweep mode */
         TimerRegisterEntryFunction( DigOutDrv_Service );            /* support PWM control for all digital outs */
+        TimerRegisterEntryFunction( DigInDrv_GPI_UpdateMeas );       /* support PWM control for all digital input */
         TimerRegisterEntryFunction( SurvProcessAll );               /* process complete surveillance for infos/warnings/errors */
         #if(BIKE_MOTOBAU==1)                                        /* special MOTOBAU behaviour */
         TimerRegisterEntryFunction( LCDev_UpdTime );             /* enable background lapcounter feature */

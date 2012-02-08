@@ -68,6 +68,11 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.19  2012/02/08 23:05:47  tuberkel
+ * - GPI PWM calculations improved
+ * - renamed DigIn GPI Functions
+ * - renamed DigIn Key Functions
+ *
  * Revision 3.18  2012/02/08 04:52:34  tuberkel
  * Real HeatGrip measurement activated (but not yet bugfree)
  *
@@ -1283,7 +1288,7 @@ void MainDev_Show_Heatgrip(BOOL fComplete)
 
         /* get a fresh PWM value */
         ucPwmCmp        = 0;
-        ucPwmCurr       = DigInDrv_GetGPIMeas(eGPI0_Int2)->ucPWM;
+        ucPwmCurr       = DigInDrv_GPI_GetMeas(eGPI0_Int2)->ucPWM;
 
         /* loop to generate all 5 bar parts (full/empty) */
         for (i=0; i<MD_HEATBARPARTS; i++)
