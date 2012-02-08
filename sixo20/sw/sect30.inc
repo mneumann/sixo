@@ -13,7 +13,7 @@
 ;  Purpose:        section definitions
 ;  Comments:       use as30 define
 ;
-;                      MINIEMU=1
+;                      KD30_USED=1
 ;
 ;                  for use with mini emulator!
 ;
@@ -23,7 +23,7 @@
 ;  --------------------------------------------------------------------
 ;
 ;  Compiler:       Renesas NC30WA V.5.00 Release 2
-;  Options:        #define MINIEMU=1
+;  Options:        #define KD30_USED=1
 ;
 ;  --------------------------------------------------------------------
 ;
@@ -75,6 +75,9 @@
 ;  changes to CVC ('Log message'):
 ;
 ; $Log$
+; Revision 3.3  2012/02/08 03:41:30  tuberkel
+; renamed #define MINIEMU ==> KD30_USED
+;
 ; Revision 3.2  2012/02/06 20:54:14  tuberkel
 ; Just renamed all 'Devices' function prefixes for better readability
 ;
@@ -175,7 +178,7 @@ ROM_CODE_INT_SIZE       .equ    0FCFFh          ; interrupt service routines
 RAM_SFR_START           .equ        0h          ; register reserved
 RAM_SFR_END             .equ     03ffh
 RAM_USER_START          .equ     0400h          ; user area: 20479 byte
-.if MINIEMU==1
+.if KD30_USED==1
     RAM_USER_END        .equ    052ffh          ; restricted for mini emu use
     .assert "INFO: Prepared for KD30 usage!"
 .else
@@ -192,7 +195,7 @@ ROM_USER_START          .equ   0c0000h          ; flash area begin
 ROM_SPPAGES_VT          .equ   0ffe00h          ; special pages vector table, 476 bytes
 ROM_FIX_VT              .equ   0fffdch          ; fixed vector table, 36 bytes
 
-.if MINIEMU==1
+.if KD30_USED==1
     ROM_VAR_VT          .equ   0fbd00h          ; variable vector table, 256 bytes
 .else                                           ; (monitor program begins at fbe00h)
     ROM_VAR_VT          .equ   0ffd00h          ; variable vector table, 256 bytes
@@ -377,7 +380,7 @@ switch_table_top:
 .else                                    ; there is no transmit ISR
         .lword        _dummy_int         ; uart0 receive(for user)(vector 18)
 .endif
-.if        MINIEMU==1
+.if        KD30_USED==1
         .lword        0FF900h            ; uart1 tx interrupt for KD30 V3.02
         .lword        0FF900h            ; uart1 rx interrupt for KD30 V3.02
 .else

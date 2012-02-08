@@ -12,9 +12,9 @@
 ;  Module:         hardware settings                                   
 ;  Purpose:        uC start up code                                    
 ;  History:        10-02-2004 changed comment of CM1DATA               
-;                             skip clock init when MINIEMU==1          
+;                             skip clock init when KD30_USED==1          
 ;                  11-02-2004 changed CM1DATAPLL (had wrong value)     
-;  Comments:       startup code skips clock initialisation when MINIEMU
+;  Comments:       startup code skips clock initialisation when KD30_USED
 ;                  is defined (the underlying monitor program starts   
 ;                  first and has already done the initalisation)       
 ;
@@ -269,7 +269,7 @@ start:
 ;
 ;---------------------------------------------------------------------
 
-.if MINIEMU==0                        ; do not initialise clocks if running under monitor control
+.if KD30_USED==0                        ; do not initialise clocks if running under monitor control
         mov.w      #0ffffh,R2         ; wait for stabilized clock
 start_delay:
         sub.w      #1,R2
@@ -372,7 +372,7 @@ pll_loop:
    .glb        _init
    .call        _init,G
    jsr.a        _init
-    .if        MINIEMU==1
+    .if        KD30_USED==1
         .assert "INFO: Generates DebugOuts on Uart0!"        
    .else
         .assert "INFO: Generates DebugOuts on Uart1!"              

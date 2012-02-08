@@ -5,7 +5,7 @@
 # All Rights Reserved.
 #
 #	Notice	:	Don't edit.
-#	Date	:	2012 02(February) 05(Sunday) PM.12.32
+#	Date	:	2012 02(February) 08(Wednesday) AM.04.37
 #	Project	:	SIxO20
 ####################################################################
 
@@ -31,10 +31,10 @@ TYPE	=	@-type
 PROJECT	=	SIxO20
 LFLAGS	=	-MS -L nc30lib -. -G -O $(OUTDIR)\$(TARGET)
 UTLFLAGS	=	
-CFLAGS	=	-c -I. -silent -dir $(OUTDIR) -Wall -DDEBUG=1 -DMINIEMU=1 -DGEARBOX=1 -finfo
+CFLAGS	=	-c -I. -silent -dir $(OUTDIR) -Wall -DDEBUG=1 -DKD30_USED=1 -DGEARBOX=1 -finfo
 LMCFLAGS	=	-. -ID
 LIBFLAGS	=	-C
-AFLAGS	=	-. -DDEBUG=1:MINIEMU=1 -finfo -O$(OUTDIR)
+AFLAGS	=	-. -DDEBUG=1:KD30_USED=1 -finfo -O$(OUTDIR)
 .SUFFIXES: .a30 .r30 .c .x30 .lib
 .PHONY: all
 all: \

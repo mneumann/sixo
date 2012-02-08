@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.6  2012/02/08 03:41:30  tuberkel
+ * renamed #define MINIEMU ==> KD30_USED
+ *
  * Revision 3.5  2012/02/07 17:32:31  tuberkel
  * HeatGrip PWM test animated
  *
@@ -152,11 +155,11 @@ DIGINTMEAS DigIntMeas[eGPI_MAX];
 
 
 /* KD30 support: These values can set via KD30-GUI too! */
-#if(MINIEMU==1)
-unsigned char kd30_Ok_Pressed = 0;
-unsigned char kd30_Up_Pressed = 0;
-unsigned char kd30_Down_Pressed = 0;
-unsigned char kd30_UpDown_Pressed = 0;
+#if(KD30_USED==1)
+unsigned char KD30_KEY_OK = 0;
+unsigned char KD30_KEY_UP = 0;
+unsigned char KD30_KEY_DOWN = 0;
+unsigned char KD30_KEY_UPDOWN = 0;
 #endif
 
 
@@ -244,23 +247,23 @@ UINT8 DigInDrv_GetKeyStates(void)
     if (KeyPort_Down == 0)
         RValue |= KEYFL_DOWN;
 
-#if(MINIEMU==1)
+#if(KD30_USED==1)
     /* check value given by KD30 */
-    if (kd30_Ok_Pressed)
+    if (KD30_KEY_OK)
         RValue |= KEYFL_OK;
-    if ((kd30_Up_Pressed) || (kd30_UpDown_Pressed))
+    if ((KD30_KEY_UP) || (KD30_KEY_UPDOWN))
         RValue |= KEYFL_UP;
-    if ((kd30_Down_Pressed) || (kd30_UpDown_Pressed))
+    if ((KD30_KEY_DOWN) || (KD30_KEY_UPDOWN))
         RValue |= KEYFL_DOWN;
     /* make a 'longer press' by decr. until 0 reached */
-    if (kd30_Ok_Pressed)
-        kd30_Ok_Pressed--;
-    if (kd30_Up_Pressed)
-        kd30_Up_Pressed--;
-    if (kd30_Down_Pressed)
-        kd30_Down_Pressed--;
-    if (kd30_UpDown_Pressed)
-        kd30_UpDown_Pressed--;
+    if (KD30_KEY_OK)
+        KD30_KEY_OK--;
+    if (KD30_KEY_UP)
+        KD30_KEY_UP--;
+    if (KD30_KEY_DOWN)
+        KD30_KEY_DOWN--;
+    if (KD30_KEY_UPDOWN)
+        KD30_KEY_UPDOWN--;
 #endif
 
 
@@ -676,13 +679,13 @@ UINT8   DigInDrv_FilterConvertTime(UINT16 wFilterTime)
 
 
 /***********************************************************************
- *  FUNCTION:       DigInDrv_GetPWMStates
+ *  FUNCTION:       DigInDrv_GetGPOState
  *  DESCRIPTION:    return actual keyboard status in a bit field
  *  PARAMETER:      -
  *  RETURN:         UINT8 bit masked key states (FALSE if 'pressed')
  *  COMMENT:        Key pressed pulls down signal to LOW.
  *********************************************************************** */
-UINT8 DigInDrv_GetPWMStates(void)
+UINT8 DigInDrv_GetGPOState(void)
 {
     /* GPI0..3 / INT2..5 interrupt time measurements (PulseWidth & Frequency) */
 DIGINTMEAS DigIntMeas[eGPI_MAX];

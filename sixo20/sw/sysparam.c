@@ -78,6 +78,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.3  2012/02/08 03:41:30  tuberkel
+ * renamed #define MINIEMU ==> KD30_USED
+ *
  * Revision 3.2  2011/05/29 21:00:57  tuberkel
  * szSWVersion String extended
  *
@@ -883,7 +886,7 @@ void ParSetupSWVersionStr( void )
     #if(DEBUG==1)
         strcat ( szSWVersion, RESTXT_SWVER_DEBUG);
     #endif
-    #if(MINIEMU==1)
+    #if(KD30_USED==1)
         strcat ( szSWVersion, RESTXT_SWVER_MINIEMU);
     #endif
     #if(COMPASS==1)

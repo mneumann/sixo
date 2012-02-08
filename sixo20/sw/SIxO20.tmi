@@ -13,14 +13,14 @@ Version=V.5.00 Release 2
 
 [MEMBER]
 Count=8
-Name1=A+C-FLAG: MINIEMU
+Name1=A+C-FLAG: KD30_USED
 Section1== 0 / 1 (def:0)   ==> SEE NOTES!!!
 Mail1=if 1, activates KD30 V3.0 Monitor usage on Uart1
 TEL1=if DEBUG = 1, printf() is moved from Uart1 to Uart0
 ETC1=Set both - A-FLAGS & C-FLAGS !!!
 Name2=A+C-FLAG: DEBUG
 Section2== 0 / 1 (def:0)   ==> SEE NOTES!!!
-Mail2=if 1, activates DebugOut with printf() on Uart1 or Uart0 (see MINIEMU)
+Mail2=if 1, activates DebugOut with printf() on Uart1 or Uart0 (see KD30_USED)
 TEL2=activates several modules debug code too
 ETC2=Set both - A-FLAGS & C-FLAGS !!!
 Name3=C-FLAG: TOGGLE_PADS
@@ -41,7 +41,7 @@ ETC5=
 Name6=A+C-FLAG: COMPASS
 Section6== 0 / 1 (def:0)   ==> SEE NOTES!!!
 Mail6=if 1, enables use of COMPASS attached to Uart0
-TEL6=only two of COMPASS, DEBUG, MINIEMU can be defined
+TEL6=only two of COMPASS, DEBUG, KD30_USED can be defined
 ETC6=Set both - A-FLAGS & C-FLAGS !!!
 Name7=C-FLAG: TESTSCREEN
 Section7== 0..n (def:0)
@@ -50,7 +50,7 @@ TEL7=for development purpose only
 ETC7=
 Name8=C-FLAG: GEARBOX
 Section8== 0 / 1 (def:0)
-Mail8=if 1, enables adaptive GEARBOX display 
+Mail8=if 1, enables adaptive GEARBOX display
 TEL8=experimental
 ETC8=
 Name9=C-FLAG: TESTSCREEN
@@ -61,7 +61,7 @@ ETC9=
 Name10=A+C-FLAG: COMPASS
 Section10=0 / 1 NOTE: Set both A-FLAGS & C-FLAGS !!!
 Mail10=if defined, enables use of compass attached to UART0
-TEL10=only two of COMPASS, DEBUG, MINIEMU can be defined
+TEL10=only two of COMPASS, DEBUG, KD30_USED can be defined
 ETC10=
 Name11=C-FLAG: BIKE_HUSQV
 Section11=- / def
@@ -91,7 +91,7 @@ ETC15=
 Name16=A+C-FLAG: COMPASS
 Section16=0 / 1 NOTE: Set both A-FLAGS & C-FLAGS !!!
 Mail16=if defined, enables use of compass attached to UART0
-TEL16=only two of COMPASS, DEBUG, MINIEMU can be defined
+TEL16=only two of COMPASS, DEBUG, KD30_USED can be defined
 ETC16=
 
 [DOCUMENTFILE]

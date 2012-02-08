@@ -92,8 +92,8 @@
 #if (COMPASS==1)
 
 
-#if (DEBUG==1) && (MINIEMU==1)
-    #error "ERROR: Use only two of DEBUG, MINIEMU and COMPASS!"
+#if (DEBUG==1) && (KD30_USED==1)
+    #error "ERROR: Use only two of DEBUG, KD30_USED and COMPASS!"
 #endif
 
 

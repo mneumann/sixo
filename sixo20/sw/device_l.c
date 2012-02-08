@@ -36,7 +36,7 @@
    The release version does not use KD30, so UART1
    is free for flash programming and debug outs!
 */
-#if(MINIEMU==1)
+#if(KD30_USED==1)
 #define UART0
 #endif
 

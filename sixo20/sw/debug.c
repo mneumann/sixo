@@ -16,7 +16,7 @@
  *  --------------------------------------------------------------------
  *
  *  Compiler:       Renesas NC30WA V.5.00 Release 2
- *  Options:        if MINIEMU is defined, debug out is given to
+ *  Options:        if KD30_USED is defined, debug out is given to
  *                  uart0, else debug out uses uart1
  *
  *  --------------------------------------------------------------------
@@ -69,6 +69,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.2  2012/02/08 03:41:30  tuberkel
+ * renamed #define MINIEMU ==> KD30_USED
+ *
  * Revision 3.1  2010/11/07 09:18:26  tuberkel
  * Revision History added
  *
@@ -312,11 +315,11 @@ ERRCODE DebugInit(DBGFILT_TYPE bFilter, DBGDETDIR_TYPE bDetails)
    wErrorCode = DebugOut("\r\n\r\n# ----------------------------------------\r\n");
    wErrorCode = DebugOut("# WELCOME TO SIxO DEBUGGING ! \r\n");
    DebugSetFilterDetails(bFilter,bDetails);
-   #if(MINIEMU==1)
+   #if(KD30_USED==1)
       wErrorCode = DebugOut("# Debug Port:    UART0 \r\n");
    #else
       wErrorCode = DebugOut("# Debug Port:    UART1 \r\n");
-   #endif /* MINIEMU */
+   #endif /* KD30_USED */
    wErrorCode = DebugOut("# now starting..\r\n\r\n");
 #endif /* DEBUG */
    return wErrorCode;

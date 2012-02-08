@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.7  2012/02/08 03:41:30  tuberkel
+ * renamed #define MINIEMU ==> KD30_USED
+ *
  * Revision 3.6  2012/02/06 20:54:14  tuberkel
  * Just renamed all 'Devices' function prefixes for better readability
  *
@@ -801,7 +804,7 @@ void HWTDev_UpdStimErr( void )
     else StatObj_TWAT.szText = szErr;
 
 // we have a 'misterous factor 2' between MiniEmu and Not-MiniEmu-Version!
-#if(MINIEMU==1)
+#if(KD30_USED==1)
     // check vehicle speed in km/h
     if (  (MeasGetWheelSpeed(MR_KM_PER_H) > 70 )
         &&(MeasGetWheelSpeed(MR_KM_PER_H) < 85 ) )
@@ -864,7 +867,7 @@ void HWTDev_UpdStimErr( void )
          StatObj_GPI3.szText = szOk;
     else StatObj_GPI3.szText = szErr;
 
-#if (MINIEMU==1) || (DEBUG==1) || (COMPASS==1)
+#if (KD30_USED==1) || (DEBUG==1) || (COMPASS==1)
     // do not use uart-loopback-test in this case
     // error status remains 'unknown'
 #else
@@ -1152,7 +1155,7 @@ void HWTDev_LowInit ( void )
     // enable uart loopback test, if tester present
     // Note: we don't use uarts, we only check digital port reaction
     // Note: can not be used if DEBUG or MiniEmulator uses Uarts
-#if (MINIEMU==1) || (DEBUG==1) || (COMPASS==1)
+#if (KD30_USED==1) || (DEBUG==1) || (COMPASS==1)
     // do not use uart-loopback-test in this case
 #else
     if (fEOLTester_present == TRUE)
