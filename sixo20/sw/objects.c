@@ -69,6 +69,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.4  2012/02/08 03:55:24  tuberkel
+ * KEY_TIMING parameter names reviewed/changed
+ *
  * Revision 3.3  2012/02/05 11:17:08  tuberkel
  * DigOuts completely reviewed:
  * - central PWM-Out handled via DigOutDriver for ALL DigOuts!
@@ -579,7 +582,7 @@ ERRCODE ObjEditTextMsgEntry( EDITTEXTOBJECT far * fpObject, MESSAGE GivenMsg )
             }
             /* ------------------------------------------------------------------------ */
             else if (  (MsgId == MSG_KEY_OK   )              /* [OK] */
-                &&(MSG_KEY_DURATION(GivenMsg) > KEYSAVE) )   /* pressed 'long'? */
+                &&(MSG_KEY_DURATION(GivenMsg) > KEYTM_PRESSED_VLONG) )   /* pressed 'long'? */
             {                                                   /* [OK] pressed 'long'! */
                 strcpy(fpObject->szText, fpObject->szWorkText); /* save edited text! */
                 fpObject->State.bits.fEditActive = FALSE;       /* user ended edit mode! */
@@ -1030,7 +1033,7 @@ ERRCODE ObjEditNumMsgEntry( EDITNUMBEROBJECT far * fpObject, MESSAGE GivenMsg )
             }
             /* ------------------------------------------------------------------------ */
             else if (  (MsgId == MSG_KEY_OK   )                 /* [OK] */
-                &&(MSG_KEY_DURATION(GivenMsg) > KEYSAVE) )      /* pressed 'long'? */
+                &&(MSG_KEY_DURATION(GivenMsg) > KEYTM_PRESSED_VLONG) )      /* pressed 'long'? */
             {                                                   /* [OK] pressed 'long'! */
                 ObjEditNumCopy(fpObject, FALSE);                /* save copy into original value */
                 fpObject->State.bits.fEditActive = FALSE;       /* user ended edit mode! */
@@ -1889,7 +1892,7 @@ ERRCODE ObjEditBoolMsgEntry( EDITBOOLOBJECT far * fpObject, MESSAGE GivenMsg )
             }
             /* ------------------------------------------------------------------------ */
             else if (  (MsgId == MSG_KEY_OK   )                 /* [OK] */
-                &&(MSG_KEY_DURATION(GivenMsg) > KEYSAVE) )      /* pressed 'long'? */
+                &&(MSG_KEY_DURATION(GivenMsg) > KEYTM_PRESSED_VLONG) )      /* pressed 'long'? */
             {                                                   /* [OK] pressed 'long'! */
                 *fpObject->fpValue = *fpObject->fpWorkValue;    /* save the working copy into target */
                 fpObject->State.bits.fEditActive = FALSE;       /* user ended edit mode! */
@@ -2196,7 +2199,7 @@ ERRCODE ObjSelectMsgEntry( SELECTOBJECT far * fpObject, MESSAGE GivenMsg )
             }
             /* ------------------------------------------------------------------------ */
             else if (  (MsgId == MSG_KEY_OK   )                 /* [OK] */
-                &&(MSG_KEY_DURATION(GivenMsg) > KEYSAVE) )      /* pressed 'long'? */
+                &&(MSG_KEY_DURATION(GivenMsg) > KEYTM_PRESSED_VLONG) )      /* pressed 'long'? */
             {                                                   /* [OK] pressed 'long'! */
                 *fpObject->fpValue = *fpObject->fpWorkValue;    /* save the working copy into target */
                 fpObject->State.bits.fEditActive = FALSE;       /* user ended edit mode! */

@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.17  2012/02/08 03:55:24  tuberkel
+ * KEY_TIMING parameter names reviewed/changed
+ *
  * Revision 3.16  2012/02/07 17:32:31  tuberkel
  * HeatGrip PWM test animated
  *
@@ -1416,7 +1419,7 @@ ERRCODE MainDev_MsgEntry(MESSAGE GivenMsg)
                 /* Try to switch to next device ([Up+Down]-short) */
                 if (  (RValue == ERR_MSG_NOT_PROCESSED                    )
                     &&(MSG_KEY_STATES(GivenMsg) == (KEYFL_UP | KEYFL_DOWN))
-                    &&(MSG_KEY_DURATION(GivenMsg) < KEYSHORT              ) )
+                    &&(MSG_KEY_DURATION(GivenMsg) < KEYTM_PRESSED_SHORT              ) )
                 {
                     /* give focus immediatly to next screen */
                     MDObj.fFocused = FALSE;                              /* clear our focus */
@@ -1540,7 +1543,7 @@ ERRCODE MainDev_MsgEntry_VehDistRst(MESSAGE Msg)
                 release the key which would repeat the distance reset */
         if (  ( MsgId == MSG_KEY_OK                          )      /* OK key?  */
             &&( MSG_KEY_TRANSITION(Msg) == KEYTRANS_RELEASED )      /* right now released* */
-            &&( MSG_KEY_DURATION(Msg) > KEYSAVE              )      /* has just shortly been pressed? */
+            &&( MSG_KEY_DURATION(Msg) > KEYTM_PRESSED_VLONG              )      /* has just shortly been pressed? */
             &&( fLocked == TRUE                              ) )    /* is not already active? */
         {
             fLocked = FALSE;                // Re-enable another Reset of distances
@@ -1550,7 +1553,7 @@ ERRCODE MainDev_MsgEntry_VehDistRst(MESSAGE Msg)
         /* user presses OK Button > 2 sec: focus & start edit */
         else if (  ( MsgId == MSG_KEY_OK                    )    /* [OK] pressed? */
                  &&( MSG_KEY_TRANSITION(Msg) == KEYTRANS_ON )    /* still pressed? */
-                 &&( MSG_KEY_DURATION(Msg) > KEYSAVE        )    /* longer than 2 sec.? */
+                 &&( MSG_KEY_DURATION(Msg) > KEYTM_PRESSED_VLONG        )    /* longer than 2 sec.? */
                  &&( fLocked == FALSE                       ) )  /* key released since last reset? */
         {
             DIST_TYPE Dist;
@@ -1599,7 +1602,7 @@ ERRCODE MainDev_MsgEntry_VehState(MESSAGE Msg)
     /* [OK] pressed+released shortly'? -> ITS FOR US! -> show 'Vehicle State' instead of TimeDate! */
     if (  ( MsgId == MSG_KEY_OK                          )      /* OK key?  */
         &&( MSG_KEY_TRANSITION(Msg) == KEYTRANS_RELEASED )      /* right now released* */
-        &&( MSG_KEY_DURATION(Msg) < KEYSAVE              ) )    /* has just shortly been pressed? */
+        &&( MSG_KEY_DURATION(Msg) < KEYTM_PRESSED_VLONG              ) )    /* has just shortly been pressed? */
     {
         /* send message to our self to SHOW vehicle state */
         MSG_BUILD_UINT8(NewMsg, MSG_VEHSTATE_SHOW, 0, 0, 0);

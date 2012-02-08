@@ -69,6 +69,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.3  2012/02/08 03:55:24  tuberkel
+ * KEY_TIMING parameter names reviewed/changed
+ *
  * Revision 3.2  2012/02/06 20:54:14  tuberkel
  * Just renamed all 'Devices' function prefixes for better readability
  *
@@ -405,7 +408,7 @@ ERRCODE IntroDev_MsgEntry(MESSAGE GivenMsg)
                 /* check if UP&DOWN are pressed short: */
                 if (  (RValue == ERR_MSG_NOT_PROCESSED                    )
                     &&(MSG_KEY_STATES(GivenMsg) == (KEYFL_UP | KEYFL_DOWN))
-                    &&(MSG_KEY_DURATION(GivenMsg) < KEYSHORT              ) )
+                    &&(MSG_KEY_DURATION(GivenMsg) < KEYTM_PRESSED_SHORT              ) )
                 {
                     /* give focus immediatly to next device  */
                     IntroScreenDev.fFocused = FALSE;                                        /* clear our focus */
@@ -457,7 +460,7 @@ ERRCODE IntroDev_ChangeLogo(MESSAGE Msg)
 
     /* user presses UP/DOWN Button > 2 sec: change logo! */
     if (  (MsgId == MSG_KEY_UP                   )                /* [UP] */
-        &&(MSG_KEY_DURATION(Msg) > KEYSAVE       )                /* pressed 'long'? */
+        &&(MSG_KEY_DURATION(Msg) > KEYTM_PRESSED_VLONG       )                /* pressed 'long'? */
         &&( (wActTime - wLastChange) > CHANGE_LOGO_DELAY) )              /* delay? */
     {
         if ( gLogoSelection > BIKELOGO_FIRST)
@@ -467,7 +470,7 @@ ERRCODE IntroDev_ChangeLogo(MESSAGE Msg)
         RValue = ERR_MSG_PROCESSED;
     }
     else if (  (MsgId == MSG_KEY_DOWN                  )           /* [DOWN] */
-             &&(MSG_KEY_DURATION(Msg) > KEYSAVE        )           /* pressed 'long'? */
+             &&(MSG_KEY_DURATION(Msg) > KEYTM_PRESSED_VLONG        )           /* pressed 'long'? */
              &&( (wActTime - wLastChange) > CHANGE_LOGO_DELAY ) )         /* delay? */
     {
         if ( gLogoSelection < BIKELOGOG_LAST )

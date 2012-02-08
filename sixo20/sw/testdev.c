@@ -69,6 +69,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.3  2012/02/08 03:55:24  tuberkel
+ * KEY_TIMING parameter names reviewed/changed
+ *
  * Revision 3.2  2012/02/06 20:54:14  tuberkel
  * Just renamed all 'Devices' function prefixes for better readability
  *
@@ -442,7 +445,7 @@ ERRCODE TestScreen_MsgEntry(MESSAGE GivenMsg)
                 /* try to give focus to next device */
                 if (  (RValue == ERR_MSG_NOT_PROCESSED      )
                     &&(MSG_KEY_STATES(GivenMsg) == (KEYFL_UP | KEYFL_DOWN))
-                    &&(MSG_KEY_DURATION(GivenMsg) < KEYSHORT              ) )
+                    &&(MSG_KEY_DURATION(GivenMsg) < KEYTM_PRESSED_SHORT              ) )
                 {
                     /* give focus immediatly to IntroScreen */
                     TestScreen_Dev.fFocused = FALSE;                         /* clear our focus */

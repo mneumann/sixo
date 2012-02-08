@@ -76,6 +76,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.4  2012/02/08 03:55:24  tuberkel
+ * KEY_TIMING parameter names reviewed/changed
+ *
  * Revision 3.3  2012/02/06 20:54:14  tuberkel
  * Just renamed all 'Devices' function prefixes for better readability
  *
@@ -467,7 +470,7 @@ ERRCODE LCDev_MsgEntry(MESSAGE GivenMsg)
 
                 if (  (RValue == ERR_MSG_NOT_PROCESSED                    )
                     &&(MSG_KEY_STATES(GivenMsg) == (KEYFL_UP | KEYFL_DOWN))     // try to give msg to next device
-                    &&(MSG_KEY_DURATION(GivenMsg) < KEYSHORT              ) )
+                    &&(MSG_KEY_DURATION(GivenMsg) < KEYTM_PRESSED_SHORT              ) )
                 {
                     // give focus immediatly to next screen
                     LCDev_.fFocused = FALSE;                              // clear our focus
@@ -594,7 +597,7 @@ ERRCODE LCDev_ResetMsg(MESSAGE Msg)
             release the key which would repeat the distance reset */
     if (  ( MsgId == MSG_KEY_OK                          )      /* OK key?  */
         &&( MSG_KEY_TRANSITION(Msg) == KEYTRANS_RELEASED )      /* right now released* */
-        &&( MSG_KEY_DURATION(Msg) > KEYSAVE              )      /* has just shortly been pressed? */
+        &&( MSG_KEY_DURATION(Msg) > KEYTM_PRESSED_VLONG              )      /* has just shortly been pressed? */
         &&( fLocked == TRUE                              ) )    /* is not already active? */
     {
         fLocked = FALSE;                // Re-enable another Reset of distances
@@ -604,7 +607,7 @@ ERRCODE LCDev_ResetMsg(MESSAGE Msg)
     /* user presses OK Button > 2 sec: focus & start edit */
     else if (  ( MsgId == MSG_KEY_OK                    )    /* [OK] pressed? */
              &&( MSG_KEY_TRANSITION(Msg) == KEYTRANS_ON )    /* still pressed? */
-             &&( MSG_KEY_DURATION(Msg) > KEYSAVE        )    /* longer than 2 sec.? */
+             &&( MSG_KEY_DURATION(Msg) > KEYTM_PRESSED_VLONG        )    /* longer than 2 sec.? */
              &&( fLocked == FALSE                       ) )  /* key released since last reset? */
     {
         int i;
@@ -654,7 +657,7 @@ ERRCODE LCDev_StartStop(MESSAGE Msg)
     /* [OK] pressed+released shortly'? -> ITS FOR US! -> show 'Vehicle State' instead of TimeDate! */
     if (  ( MsgId == MSG_KEY_OK                          )      /* OK key?  */
         &&( MSG_KEY_TRANSITION(Msg) == KEYTRANS_RELEASED )      /* right now released* */
-        &&( MSG_KEY_DURATION(Msg) < KEYSAVE              ) )    /* has just shortly been pressed? */
+        &&( MSG_KEY_DURATION(Msg) < KEYTM_PRESSED_VLONG              ) )    /* has just shortly been pressed? */
     {
         // start / stop lap timer
         if ( LapCounterState.fActive == 1 )

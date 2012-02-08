@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.5  2012/02/08 03:55:24  tuberkel
+ * KEY_TIMING parameter names reviewed/changed
+ *
  * Revision 3.4  2012/02/06 20:54:14  tuberkel
  * Just renamed all 'Devices' function prefixes for better readability
  *
@@ -522,7 +525,7 @@ ERRCODE MonDev_MsgEntry(MESSAGE GivenMsg)
                 /* check if UP&DOWN are pressed short: */
                 if (  (RValue == ERR_MSG_NOT_PROCESSED                    )
                     &&(MSG_KEY_STATES(GivenMsg) == (KEYFL_UP | KEYFL_DOWN))
-                    &&(MSG_KEY_DURATION(GivenMsg) < KEYSHORT              ) )
+                    &&(MSG_KEY_DURATION(GivenMsg) < KEYTM_PRESSED_SHORT              ) )
                 {
                     /* give focus immediatly to next device  */
                     MonitorScreenDev.fFocused = FALSE;                                        /* clear our focus */
@@ -729,7 +732,7 @@ ERRCODE MonDev_MsgEntry_Reset(MESSAGE Msg)
             release the key which would repeat the distance reset */
     if (  ( MsgId == MSG_KEY_OK                          )      /* OK key?  */
         &&( MSG_KEY_TRANSITION(Msg) == KEYTRANS_RELEASED )      /* right now released* */
-        &&( MSG_KEY_DURATION(Msg) > KEYSAVE              )      /* has just shortly been pressed? */
+        &&( MSG_KEY_DURATION(Msg) > KEYTM_PRESSED_VLONG              )      /* has just shortly been pressed? */
         &&( fLocked == TRUE                              ) )    /* is not already active? */
     {
         fLocked = FALSE;                // Re-enable another Reset of distances
@@ -739,7 +742,7 @@ ERRCODE MonDev_MsgEntry_Reset(MESSAGE Msg)
     /* user presses OK Button > 2 sec: focus & start edit */
     else if (  ( MsgId == MSG_KEY_OK                    )    /* [OK] pressed? */
              &&( MSG_KEY_TRANSITION(Msg) == KEYTRANS_ON )    /* still pressed? */
-             &&( MSG_KEY_DURATION(Msg) > KEYSAVE        )    /* longer than 2 sec.? */
+             &&( MSG_KEY_DURATION(Msg) > KEYTM_PRESSED_VLONG        )    /* longer than 2 sec.? */
              &&( fLocked == FALSE                       ) )  /* key released since last reset? */
     {
         // RESET ALL!

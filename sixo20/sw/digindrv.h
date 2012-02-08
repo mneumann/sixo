@@ -131,11 +131,13 @@
 /* GPI0..3 / INT2..5 interrupt time measurements (PulseWidth & Frequency) */
 typedef struct
 {
-    UINT32  dwLHCounter;          // counts Low->High edges only!
+    UINT32  dwLHCounter;        // counts Low->High edges only!
     UINT16  wLastHLTrans;       // system time stamp of last High->Low edge (in ms)
     UINT16  wLastLHTrans;       // system time stamp of last Low->High edge (in ms)
     UINT16  wHighWidth;         // High-PulseWidth (in ms)
     UINT16  wLowWidth;          // Low-PulseWidth (in ms)
+
+
 } DIGINTMEAS;
 
 typedef enum                    // enumerate GPI0..3 Interrup Measurement
@@ -205,6 +207,10 @@ typedef enum
 /* ----------------------------------------------------------
    Digital Input Filter
 
+   Usage:   - realizes a kind of time hyterisis for the input value
+            - an input value must remain at least n msec to be detected
+            - asymmetric handling of transistion L->H and H->L implemented
+
    Note:    - digital inputs are mapped to UINT8 variabel
             - any HIGH value incr. filter value with SLOW/FAST_INR
             - any LOW  value decr. filter value with SLOW/FAST_DECR
@@ -228,23 +234,23 @@ typedef enum
 
     ---------------------------------------------------------- */
 
-#define DIGFILT_MIN           1         // in ms, time until LOW/HIGH detected!
-#define DIGFILT_MAX        5100         // in ms, time until LOW/HIGH detected!
+#define DIGFILTM_MIN           1         // in ms, time until LOW/HIGH detected!
+#define DIGFILTM_MAX        5100         // in ms, time until LOW/HIGH detected!
 
-#define DIGFILT_DEF     DIGFILT_MIN     // indicated immediate behaviour (no filtering)
+#define DIGFILTM_DEF     DIGFILTM_MIN     // indicated immediate behaviour (no filtering)
 
-#define DIGFILT_FUEL_HIGH      2000     // in ms, time until HIGH detected!
-#define DIGFILT_FUEL_LOW       4000     // in ms, time until LOW detected!
+#define DIGFILTM_FUEL_HIGH      2000     // in ms, time until HIGH detected!
+#define DIGFILTM_FUEL_LOW       4000     // in ms, time until LOW detected!
 
 
 
 /* time constants */
-#define MINDURWAIT     (UINT8)15        /* minimal wait time in ms before 'pressed' detected */
-#define MINDUR         (UINT8)1         /* minimum 1 ms duration */
-#define KEYSHORT       (UINT16)800      /* delay to begin key repetition rate in ms */
-#define KEYREPRATE     (UINT16)100      /* message repition rate in ms, when pressed long time */
-#define KEYSECURE      (UINT16)2000     /* time for user before strongly reset values in ms */
-#define KEYSAVE        (UINT16)1200     /* time for user close & save an edited value in ms */
+#define KEYTM_PRESSED       (UINT8)15        /* minimal wait time in ms before 'pressed' detected */
+#define KEYTM_MIN           (UINT8)1         /* minimum 1 ms duration */
+#define KEYTM_PRESSED_SHORT (UINT16)800      /* delay to begin key repetition rate in ms */
+#define KEYTM_MSGREPRATE    (UINT16)100      /* message repition rate in ms, when pressed long time */
+#define KEYTM_PRESSED_LONG  (UINT16)2000     /* time for user before strongly reset values in ms */
+#define KEYTM_PRESSED_VLONG (UINT16)1200     /* time for user close & save an edited value in ms */
 
 
 
@@ -268,7 +274,7 @@ typedef enum
 {
     KEYTRANS_OFF,       /* key is unpressed for a longer period */
     KEYTRANS_PRESSED,   /* key has just been pressed! */
-    KEYTRANS_ON,        /* key has been pressed for a longer period (KEYSHORT) */
+    KEYTRANS_ON,        /* key has been pressed for a longer period (KEYTM_PRESSED_SHORT) */
     KEYTRANS_RELEASED,  /* key has just been released! */
     KEYTRANS_LAST       /* THIS IS AN INVALID TRANSITION STATE! */
 } KEYTRANSIT;

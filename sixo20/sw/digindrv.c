@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.7  2012/02/08 03:55:24  tuberkel
+ * KEY_TIMING parameter names reviewed/changed
+ *
  * Revision 3.6  2012/02/08 03:41:30  tuberkel
  * renamed #define MINIEMU ==> KD30_USED
  *
@@ -322,14 +325,14 @@ ERRCODE DigInDrv_CheckKeyAction(void)
                 if (rgKeyControl[Key].KeyTransit == KEYTRANS_OFF)   /* state until now: OFF! */
                 {
                     /* PRESSED FIRST TIME! */
-                    if (rgKeyControl[Key].wDur_ms <= MINDURWAIT )
+                    if (rgKeyControl[Key].wDur_ms <= KEYTM_PRESSED )
                     {
                         /* set start time and minimal duration */
                         /* BUT do net send msg now! */
                         if (rgKeyControl[Key].wDur_ms == 0)
                         {
                             rgKeyControl[Key].wStartTime_ms = wActTime_ms;
-                            rgKeyControl[Key].wDur_ms  = MINDUR;
+                            rgKeyControl[Key].wDur_ms  = KEYTM_MIN;
                         }
                         else rgKeyControl[Key].wDur_ms = wActTime_ms - rgKeyControl[Key].wStartTime_ms;
                     }
@@ -349,8 +352,8 @@ ERRCODE DigInDrv_CheckKeyAction(void)
                 {
                     /* check if pressed detected 2nd time : */
                     if ( rgKeyControl[Key].KeyTransit == KEYTRANS_PRESSED)
-                         wWaitTime = KEYSHORT;      /* this is the second key event */
-                    else wWaitTime = KEYREPRATE;    /* there have been more key events */
+                         wWaitTime = KEYTM_PRESSED_SHORT;      /* this is the second key event */
+                    else wWaitTime = KEYTM_MSGREPRATE;    /* there have been more key events */
 
                     /* handle 'first delay' & 'repetition rate' */
                     if ( (wActTime_ms - rgKeyControl[Key].wLastSentTime_ms) > wWaitTime)
@@ -397,7 +400,7 @@ ERRCODE DigInDrv_CheckKeyAction(void)
             /* PRESSED FIRST TIME! set start time and minimal duration */
             MultiKeyControl.wStartTime_ms     = wActTime_ms;
             MultiKeyControl.KeyTransit        = KEYTRANS_PRESSED;
-            MultiKeyControl.wDur_ms      = MINDUR;
+            MultiKeyControl.wDur_ms      = KEYTM_MIN;
             MultiKeyControl.wLastSentTime_ms  = wActTime_ms;
             MSG_BUILD_UINT8(    KeyMsg,
                                 MSG_KEYS_PRESSED,
@@ -412,8 +415,8 @@ ERRCODE DigInDrv_CheckKeyAction(void)
         {
             /* check if pressed detected 2nd time : */
             if ( MultiKeyControl.KeyTransit == KEYTRANS_PRESSED)
-                 wWaitTime = KEYSHORT;      /* this is the second key event */
-            else wWaitTime = KEYREPRATE;    /* there have been more key events */
+                 wWaitTime = KEYTM_PRESSED_SHORT;      /* this is the second key event */
+            else wWaitTime = KEYTM_MSGREPRATE;    /* there have been more key events */
             /* handle 'first delay' & 'repitition rate' */
             if ( (wActTime_ms - MultiKeyControl.wLastSentTime_ms) > wWaitTime)
             {
@@ -609,8 +612,8 @@ void    DigInDrv_FilterInit(void)
     // reset all filter entries to common default filter settings
     for (elem = eDF_TURNL; elem < eDF_LAST; elem++)
     {
-        DigInFilter[elem].bIncrValue    = DigInDrv_FilterConvertTime( DIGFILT_DEF );
-        DigInFilter[elem].bDecrValue    = DigInDrv_FilterConvertTime( DIGFILT_DEF );
+        DigInFilter[elem].bIncrValue    = DigInDrv_FilterConvertTime( DIGFILTM_DEF );
+        DigInFilter[elem].bDecrValue    = DigInDrv_FilterConvertTime( DIGFILTM_DEF );
         DigInFilter[elem].swFiltValue   = 0;
         DigInFilter[elem].fState        = FALSE;
     }
@@ -624,8 +627,8 @@ void    DigInDrv_FilterInit(void)
             // DF_ABS_Warn_F650 - no special filtering
 
             // DF_Fuel_4l_F650 filter values
-            DigInFilter[eDF_GPI_1].bIncrValue = DigInDrv_FilterConvertTime( DIGFILT_FUEL_HIGH );
-            DigInFilter[eDF_GPI_1].bDecrValue = DigInDrv_FilterConvertTime( DIGFILT_FUEL_LOW  );
+            DigInFilter[eDF_GPI_1].bIncrValue = DigInDrv_FilterConvertTime( DIGFILTM_FUEL_HIGH );
+            DigInFilter[eDF_GPI_1].bDecrValue = DigInDrv_FilterConvertTime( DIGFILTM_FUEL_LOW  );
 
             ODS(DBG_DRV,DBG_INFO,"DigInDrv_FilterInit() set to eBIKE_F650!");
         } break;
@@ -633,12 +636,12 @@ void    DigInDrv_FilterInit(void)
         case eBIKE_AFRICATWIN:
         {
             // DF_Fuel_8l_AT filter values
-            DigInFilter[eDF_GPI_0].bIncrValue = DigInDrv_FilterConvertTime( DIGFILT_FUEL_HIGH );
-            DigInFilter[eDF_GPI_0].bDecrValue = DigInDrv_FilterConvertTime( DIGFILT_FUEL_LOW  );
+            DigInFilter[eDF_GPI_0].bIncrValue = DigInDrv_FilterConvertTime( DIGFILTM_FUEL_HIGH );
+            DigInFilter[eDF_GPI_0].bDecrValue = DigInDrv_FilterConvertTime( DIGFILTM_FUEL_LOW  );
 
             // DF_Fuel_4l_AT filter values
-            DigInFilter[eDF_GPI_1].bIncrValue = DigInDrv_FilterConvertTime( DIGFILT_FUEL_HIGH );
-            DigInFilter[eDF_GPI_1].bDecrValue = DigInDrv_FilterConvertTime( DIGFILT_FUEL_LOW  );
+            DigInFilter[eDF_GPI_1].bIncrValue = DigInDrv_FilterConvertTime( DIGFILTM_FUEL_HIGH );
+            DigInFilter[eDF_GPI_1].bDecrValue = DigInDrv_FilterConvertTime( DIGFILTM_FUEL_LOW  );
 
             ODS(DBG_DRV,DBG_INFO,"DigInDrv_FilterInit() set to eBIKE_AFRICATWIN!");
         } break;
@@ -662,8 +665,8 @@ UINT8   DigInDrv_FilterConvertTime(UINT16 wFilterTime)
     UINT16 rvalue;
 
     // check limits
-    wFilterTime = MIN(wFilterTime, DIGFILT_MAX);
-    wFilterTime = MAX(wFilterTime, DIGFILT_MIN);
+    wFilterTime = MIN(wFilterTime, DIGFILTM_MAX);
+    wFilterTime = MAX(wFilterTime, DIGFILTM_MIN);
 
     // calculate incr/der value
     rvalue = UINT8_MAX * MS_PER_TICK / wFilterTime;
