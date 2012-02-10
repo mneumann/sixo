@@ -68,6 +68,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.9  2012/02/10 23:45:22  tuberkel
+ * - Survelannce HeatGrip <Info> - if active
+ * - Surveillance-API reviewed
+ *
  * Revision 3.8  2012/02/08 03:55:24  tuberkel
  * KEY_TIMING parameter names reviewed/changed
  *
@@ -1206,7 +1210,7 @@ void SetDev_ValuesChanges( void )
     if ( gBikeType != LocalBikeType )
     {    gBikeType  = LocalBikeType;                // save that new value
         // essential: reset all vehicle states to 'all right' too! */
-        SurvResetAllParameters();
+        Surv_ResetAllParameters();
         // essential: adapt vehicle specific digital filter settings too! */
         DigInDrv_FilterInit();
     }

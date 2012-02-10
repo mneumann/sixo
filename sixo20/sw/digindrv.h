@@ -339,10 +339,10 @@ void    DigInDrv_FilterInit(void);
 void    DigInDrv_Filter(void);
 UINT8   DigInDrv_FilterConvertTime(UINT16 wFilterTime);
 
-DIGINTMEAS far * DigInDrv_GPI_GetMeas(DIGINTMEAS_GPI eGpi);
-void             DigInDrv_GPI_RstCount( DIGINTMEAS_GPI eGpi );
-void             DigInDrv_GPI_SetupMeas(DIGINTMEAS_GPI eGpi, BOOL fHighAct, UINT16 wTimeout );
-void             DigInDrv_GPI_UpdateMeas(void);
+DIGINTMEAS far * DigInDrv_GPI_GetMeas   ( DIGINTMEAS_GPI eGpi );
+void             DigInDrv_GPI_RstCount  ( DIGINTMEAS_GPI eGpi );
+void             DigInDrv_GPI_SetupMeas ( DIGINTMEAS_GPI eGpi, BOOL fHighAct, UINT16 wTimeout );
+void             DigInDrv_GPI_UpdateMeas( void);
 
 #endif /* _DIGINDRV_H */
 

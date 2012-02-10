@@ -70,9 +70,13 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.3  2012/02/10 23:45:22  tuberkel
+ * - Survelannce HeatGrip <Info> - if active
+ * - Surveillance-API reviewed
+ *
  * Revision 3.2  2012/02/05 14:37:55  tuberkel
- * OIL_TEMP_WARN    110 ==> 120 °C
- * OIL_TEMP_ERR       120   ==> 150 °C
+ * SURV_OILTEMP_WARN    110 ==> 120 °C
+ * SURV_OILTEMP_ERR       120   ==> 150 °C
  *
  * Revision 3.1  2012/01/23 04:04:16  tuberkel
  * BugFix Symbol "SystemError"
@@ -112,31 +116,31 @@
 
 
 /* surveillance limits */
-#define OIL_TEMP_LOW      50    /* °C */
-#define OIL_TEMP_WARN    120    /* °C */
-#define OIL_TEMP_ERR     150    /* °C */
+#define SURV_OILTEMP_LOW      50        /* °C */
+#define SURV_OILTEMP_WARN    120        /* °C */
+#define SURV_OILTEMP_ERR     150        /* °C */
 
-#define OIL_PRESS_RPM    500    /* U/Min */
+#define SURV_OILPRESS_RPM    500        /* U/Min */
 
-#define ENG_COLD_RPM    4000    /* U/Min */
+#define SURV_ENGCOLD_RPM    4000        /* U/Min */
 
-#define WAT_TEMP_LOW      75    /* °C */
-#define WAT_TEMP_WARN    100    /* °C */
-#define WAT_TEMP_ERR     110    /* °C */
+#define SURV_WATTEMP_LOW      75        /* °C */
+#define SURV_WATTEMP_WARN    100        /* °C */
+#define SURV_WATTEMP_ERR     110        /* °C */
 
-#define AIR_TEMP_GLACED_LOW   -2 /* °C */
-#define AIR_TEMP_GLACED_HIGH   2 /* °C */
+#define SURV_AIRTEMP_GLACED_LOW   -2    /* °C */
+#define SURV_AIRTEMP_GLACED_HIGH   2    /* °C */
 
-#define VOLTAGE_LOW      1050   /* 10,5V */
-#define VOLTAGE_LOW_RPM  1700   /* U/Min */
-#define VOLTAGE_HIGH     1550   /* 15,5V */
+#define SURV_BATT_LOW      1050         /* 10,5V */
+#define SURV_BATT_LOW_RPM  1700         /* U/Min */
+#define SURV_BATT_HIGH     1550         /* 15,5V */
 
-#define ALTERN_LOW        800   /* 8V */
-#define ALTERN_LOW_RPM   2000   /* U/Min */
+#define SURV_ALTERN_LOW        800      /* 8V */
+#define SURV_ALTERN_LOW_RPM   2000      /* U/Min */
 
-#define ENGRUNTIME_RPM       500    /* U/Min */
-#define ENGRUNTIME_ALL_MAX  9999    /* h */
-#define ENGRUNTIME_SRV_MAX   999    /* h */
+#define SURV_ENGRTIME_RPM       500     /* U/Min */
+#define SURV_ENGRTIME_ALL_MAX  9999     /* h */
+#define SURV_ENGRTIME_SRV_MAX   999     /* h */
 
 
 /* Surveilance start delay in sec. (time for e.g. AD-Values to become valid) */
@@ -147,30 +151,31 @@
 /* all surveilled vehicle/device parameter index/id */
 typedef enum
 {
-   eSURVP_NOENTRY = 0,  // 00 MUST BE THE FIRST - default string, indicates 'no problem available'
-   eSURVP_OILTEMP,      // 01 oil temp sensor
-   eSURVP_WATTEMP,      // 02 water temp sensor
-   eSURVP_VOLTAGE_LOW,  // 03 RPM + device power supply
-   eSURVP_VOLTAGE_HIGH, // 04 device power supply
-   eSURVP_ALTERNATOR,   // 05 RPM + external alternator input
-   eSURVP_OILPRESS,     // 06 RPM + oil switch or oil sensor
-   eSURVP_OILSWDEF,     // 07 RPM + oil switch defekt?
-   eSURVP_ENGINECOLD,   // 08 RPM + oil/water temp sensor
-   eSURVP_FUEL8L,       // 09 digital input
-   eSURVP_FUEL4L,       // 10 digital input
-   eSURVP_ABS,          // 11 digital input
-   eSURVP_WATTEMPSW,    // 12 water temp switch
-   eSURVP_GLACED,       // 13 air temp sensor
-   eSURVP_SERVICEKM,    // 14 general distance vehicle service intervall
-   eSURVP_SERVICEHOUR,  // 15 general runtime  vehicle service intervall
-   eSURVP_SIMULATION,   // 16 vehicle simulation is active!
-   eSURVP_HARDCOPY,     // 17 screen hardcopy via HBEAM switch and UART available!
-   eSURVP_DLS_SUMMER,   // 18 changed daylight saving from winter -> summer
-   eSURVP_DLS_WINTER,   // 19 changed daylight saving from summer -> winter
-   eSURVP_RTC_BATT,     // 20 Invalid NVRAM parameters -> RTC Battery defect!
+   eSURVID_NOENTRY = 0,     // 00 MUST BE THE FIRST - default string, indicates 'no problem available'
+   eSURVID_OILTEMP,         // 01 oil temp sensor
+   eSURVID_WATTEMP,         // 02 water temp sensor
+   eSURVID_SURV_BATT_LOW,   // 03 RPM + device power supply
+   eSURVID_SURV_BATT_HIGH,  // 04 device power supply
+   eSURVID_ALTERNATOR,      // 05 RPM + external alternator input
+   eSURVID_OILPRESS,        // 06 RPM + oil switch or oil sensor
+   eSURVID_OILSWDEF,        // 07 RPM + oil switch defekt?
+   eSURVID_ENGINECOLD,      // 08 RPM + oil/water temp sensor
+   eSURVID_FUEL8L,          // 09 digital input
+   eSURVID_FUEL4L,          // 10 digital input
+   eSURVID_ABS,             // 11 digital input
+   eSURVID_WATTEMPSW,       // 12 water temp switch
+   eSURVID_GLACED,          // 13 air temp sensor
+   eSURVID_SERVICEKM,       // 14 general distance vehicle service intervall
+   eSURVID_SERVICEHOUR,     // 15 general runtime  vehicle service intervall
+   eSURVID_SIMULATION,      // 16 vehicle simulation is active!
+   eSURVID_HARDCOPY,        // 17 screen hardcopy via HBEAM switch and UART available!
+   eSURVID_DLS_SUMMER,      // 18 changed daylight saving from winter -> summer
+   eSURVID_DLS_WINTER,      // 19 changed daylight saving from summer -> winter
+   eSURVID_RTC_BATT,        // 20 Invalid NVRAM parameters -> RTC Battery defect!
+   eSURVID_HEATGRIP,        // 21 heat grip active!
 
-   eSURVP_LAST          // --- invalid state ---
-} SURV_PARAM_ID_TYPE;
+   eSURVID_LAST             // --- invalid state ---
+} SURVP_ID;
 
 
 /* surveillance parameter states
@@ -182,7 +187,7 @@ typedef enum
    eSURVST_WARNING  = 2,    // indicates 'might be a problem!'
    eSURVST_ERROR    = 4,    // indicates 'we have a serious problem!'
    eSURVST_ALL      = 255   // indicates 'any information/problem!'
-} SURV_PARAM_STATE_TYPE;
+} SURVP_STATE;
 
 
 /* surveillance LED warning mode */
@@ -193,43 +198,50 @@ typedef enum
 /* surveillance parameter bundle (id/state) */
 typedef struct
 {
-    SURV_PARAM_ID_TYPE      param;  // parameter ID
-    SURV_PARAM_STATE_TYPE   state;  // state of this parameter
-} SURV_PARAM_TYPE;
+    SURVP_ID      param;  // parameter ID
+    SURVP_STATE   state;  // state of this parameter
+} SURVP_TYPE;
 
-#define SURV_PARAM_MAX  9   // max number of supported concurrent infos/warnings/errors
+#define SURVP_MAX  9   // max number of supported concurrent infos/warnings/errors
                             // Note: limited to 1 cipher, because of '1/x error text' format
 
-// parameter for SurvScrollVehicleState()
+// parameter for Surv_ScrollVehicleState()
 #define VST_SCROLL_DOWN     FALSE
 #define VST_SCROLL_UP       TRUE
 
 
 // public prototypes
-ERRCODE SurvInit                    (void);
-ERRCODE SurvProcessAll              (void);
-void    SurvSetGlobalState          (UINT8 ucIdx);
-void    SurvSetLEDState             (void);
 
-void    SurvCheckAllDigitalWarnings (void);
-void    SurvCheckAllAnalogWarnings  (void);
-void    SurvCheckAllDeviceWarnings  (void);
-void    SurvListSetParamState       (SURV_PARAM_ID_TYPE parameter, SURV_PARAM_STATE_TYPE level);
-void    SurvScrollVehicleState      (BOOL fScrollDir);
-void    SurvUpdateAnalogData        (void);
-void    SurvUpdateEngRunTime        (void);
-void    SurvCheckRPMFlash           (void);
-void    SurvResetAllParameters      (void);
-
-void    SurvListRemoveParam ( UINT8 bListIndex );
-void    SurvListUpdateParam ( UINT8 bListIndex, SURV_PARAM_STATE_TYPE state );
-void    SurvListAddParam    ( SURV_PARAM_ID_TYPE parameter, SURV_PARAM_STATE_TYPE state );
-UINT8   SurvListGetIndex    ( SURV_PARAM_ID_TYPE parameter );
-UINT8   SurvListGetCount    ( UINT8 statemask );
-void    SurvListShow        ( void );
+ERRCODE Surv_Init                    (void);
+ERRCODE Surv_ProcessAll              (void);
+void    Surv_ListSetParamState       (SURVP_ID parameter, SURVP_STATE level);
+void    Surv_ScrollVehicleState      (BOOL fScrollDir);
+void    Surv_ResetAllParameters      (void);
+UINT8   Surv_ListGetCount            (UINT8 statemask);
 
 
-SURV_PARAM_STATE_TYPE SurvListGetParamState         (SURV_PARAM_ID_TYPE parameter);
+// non public prototypes
+
+void    Surv_SetGlobalState          (UINT8 ucIdx);
+void    Surv_SetLEDState             (void);
+
+void    Surv_CheckDigitalPorts (void);
+void    Surv_CheckAnalogPorts  (void);
+void    Surv_CheckDevice  (void);
+void    Surv_CheckRPMFlash           (void);
+
+void    Surv_UpdateEngRunTime        (void);
+
+void    Surv_ListRemoveParam ( UINT8 bListIndex );
+void    Surv_ListUpdateParam ( UINT8 bListIndex, SURVP_STATE state );
+void    Surv_ListAddParam    ( SURVP_ID parameter, SURVP_STATE state );
+UINT8   Surv_ListGetIndex    ( SURVP_ID parameter );
+void    Surv_ListShow        ( void );
+
+void    Surv_UpdateStatistics( void );
+void    Surv_UpdateMeasData  ( void );
+
+SURVP_STATE Surv_ListGetParamState         (SURVP_ID parameter);
 
 
 #endif // _SURVEILL_H

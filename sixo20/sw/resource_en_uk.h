@@ -68,6 +68,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.2  2012/02/10 23:45:22  tuberkel
+ * - Survelannce HeatGrip <Info> - if active
+ * - Surveillance-API reviewed
+ *
  * Revision 3.1  2012/02/06 20:54:14  tuberkel
  * Just renamed all 'Devices' function prefixes for better readability
  *
@@ -136,15 +140,15 @@
 
 
 /* vehicle state texts;
- * NOTE: if you add one here, also add the eSURVP_ value in device.h,
+ * NOTE: if you add one here, also add the eSURVID_ value in device.h,
  * as well as an assignment in MonDev_Init() */
                                 // ....!....!....!....!.
 #define RESTXT_STATE_ALLRIGHT     "      \xbb All OK \xab     "
 #define RESTXT_STATE_WATERTEMP    "Water Temp. Too High!"
 #define RESTXT_STATE_OILTEMP      " Oil Temp. Too High! "
 #define RESTXT_STATE_ENGINE_COLD  "  Engine Too Cold!   "
-#define RESTXT_STATE_VOLTAGE_LOW  "  Voltage Too Low!   "
-#define RESTXT_STATE_VOLTAGE_HIGH "  Voltage Too High!  "
+#define RESTXT_STATE_SURV_BATT_LOW  "  Voltage Too Low!   "
+#define RESTXT_STATE_SURV_BATT_HIGH "  Voltage Too High!  "
 #define RESTXT_STATE_ALTERNATOR   "    Not Charging!    "
 #define RESTXT_STATE_OILPRESS     "  Low Oil Pressure!  "
 #define RESTXT_STATE_OILSWDEF     " Oil Pr. Sw. Defect? "

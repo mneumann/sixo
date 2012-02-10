@@ -70,6 +70,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.7  2012/02/10 23:45:22  tuberkel
+ * - Survelannce HeatGrip <Info> - if active
+ * - Surveillance-API reviewed
+ *
  * Revision 3.6  2012/02/06 20:54:14  tuberkel
  * Just renamed all 'Devices' function prefixes for better readability
  *
@@ -126,7 +130,7 @@
  * - now uses values <-20° to detect missing temp sensor
  *
  * Revision 2.3  2006/10/01 22:19:02  tuberkel
- * SurvCheckAllDigitalWarnings()
+ * Surv_CheckDigitalPorts()
  * - now uses digital filtered values only
  *
  * Revision 2.2  2006/07/20 23:13:43  tuberkel
@@ -227,14 +231,14 @@ static TIME_TYPE    ClockTime;              // copy of RTC data
 
 
 /* const array with parameter names */
-/* NOTE: must be adequate to enum type SURV_PARAM_ID_TYPE! */
+/* NOTE: must be adequate to enum type SURVP_ID! */
 static const STRING szSurvParamDesc[] =
 {
     RESTXT_STATE_ALLRIGHT    ,  // 00
     RESTXT_STATE_OILTEMP     ,  // 01
     RESTXT_STATE_WATERTEMP   ,  // 02
-    RESTXT_STATE_VOLTAGE_LOW ,  // 03
-    RESTXT_STATE_VOLTAGE_HIGH,  // 04
+    RESTXT_STATE_SURV_BATT_LOW ,  // 03
+    RESTXT_STATE_SURV_BATT_HIGH,  // 04
     RESTXT_STATE_ALTERNATOR  ,  // 05
     RESTXT_STATE_OILPRESS    ,  // 06
     RESTXT_STATE_OILSWDEF    ,  // 07
@@ -250,7 +254,8 @@ static const STRING szSurvParamDesc[] =
     RESTXT_STATE_HARDCOPY    ,  // 17
     RESTXT_STATE_DLS_SUMMER  ,  // 18
     RESTXT_STATE_DLS_WINTER  ,  // 19
-    RESTXT_STATE_RTC_BATT       // 20
+    RESTXT_STATE_RTC_BATT    ,  // 20
+    RESTXT_STATE_COOLRIDE       // 21
 };
 
 // just for debug purpose
@@ -270,7 +275,7 @@ static const STRING szErrorLevel[] =
          into this list. If the state returns to '== ok', it will be removed.
          At runtime, this list conatins a sorted list (error first, infos last)
          of all currently available surveillance parameters. */
-static SURV_PARAM_TYPE  SurvParamList[SURV_PARAM_MAX];
+static SURVP_TYPE  SurvParamList[SURVP_MAX];
 /* ----------------------------------------------------- */
 
 
@@ -291,40 +296,40 @@ static INT8     CurStateTextIdx = 0;                    /* index of vehicle para
 
 
 /***********************************************************************
- *  FUNCTION:       SurvInit
+ *  FUNCTION:       Surv_Init
  *  DESCRIPTION:    initilizes vehicle surveillance
  *  PARAMETER:      -
  *  RETURN:         ERR_OK
  *  COMMENT:
  *********************************************************************** */
-ERRCODE SurvInit(void)
+ERRCODE Surv_Init(void)
 {
     UINT8 i;
 
     /* completely clear all surveilled parameters */
-    SurvResetAllParameters();
+    Surv_ResetAllParameters();
 
     /* show our empty list */
-    SurvListShow();
+    Surv_ListShow();
 
     /* default global surrveilance state (before starting surveillance after x seconds */
-    SurvSetGlobalState( 0 );
+    Surv_SetGlobalState( 0 );
 
     /* done */
-    ODS(DBG_MEAS, DBG_INFO, "SurvInit() Done!");
+    ODS(DBG_MEAS, DBG_INFO, "Surv_Init() Done!");
     return ERR_OK;
 }
 
 
 
 /***********************************************************************
- *  FUNCTION:       SurvUpdateMeasData
+ *  FUNCTION:       Surv_UpdateMeasData
  *  DESCRIPTION:    Update of all surveilled measurement data
  *  PARAMETER:      -
  *  RETURN:         -
  *  COMMENT:        -
  *********************************************************************** */
-void SurvUpdateMeasData (void)
+void Surv_UpdateMeasData (void)
 {
     // values should now be valid ---------------------
     iTempAir    = AnaInGetAirTemperature();   // if -ANAIN_TEMP_OFFSET -> not available!
@@ -340,7 +345,7 @@ void SurvUpdateMeasData (void)
 
 
 /***********************************************************************
- *  FUNCTION:       SurvUpdateStatistics
+ *  FUNCTION:       Surv_UpdateStatistics
  *  DESCRIPTION:    updates min/max values
  *  PARAMETER:      -
  *  RETURN:         -
@@ -349,7 +354,7 @@ void SurvUpdateMeasData (void)
  *                      - the analog data exceeds old limit (> Max / < Min)
  *                      - the old limit has never been initialized (ANAIN_INVALID_x)
  *********************************************************************** */
-void SurvUpdateStatistics (void)
+void Surv_UpdateStatistics (void)
 {
     // check battery voltage (if valid):
     if ( wBattSupply != ANAIN_INVALID_U )
@@ -415,19 +420,19 @@ void SurvUpdateStatistics (void)
 
 
 /***********************************************************************
- *  FUNCTION:       SurvUpdateEngRunTime
+ *  FUNCTION:       Surv_UpdateEngRunTime
  *  DESCRIPTION:    Updates EngineRunTime (All/Service) every second,
  *                  if engine runs, checks service km intervall
  *  PARAMETER:      -
  *  RETURN:         -
  *  COMMENT:        Engine RunTimes will be saved in NVRAM  automatically
  *********************************************************************** */
-void SurvUpdateEngRunTime ( void )
+void Surv_UpdateEngRunTime ( void )
 {
     static UINT8 bLastSecond = 0;               // to prevent multiple time stamp increments
 
     // check basic conditions
-    if (  ( wRPM           > ENGRUNTIME_RPM )   // engine runs?
+    if (  ( wRPM           > SURV_ENGRTIME_RPM )   // engine runs?
         &&( ClockTime.bSec != bLastSecond   ) ) // RTC second has wrapped around?
     {
         bLastSecond = ClockTime.bSec;           // lock!
@@ -445,8 +450,8 @@ void SurvUpdateEngRunTime ( void )
             {
                 EngRunTime_Srv.bMin = 0;
                 EngRunTime_Srv.wHour++;
-                if (EngRunTime_Srv.wHour > ENGRUNTIME_SRV_MAX)
-                    EngRunTime_Srv.wHour = ENGRUNTIME_SRV_MAX;  // limit time
+                if (EngRunTime_Srv.wHour > SURV_ENGRTIME_SRV_MAX)
+                    EngRunTime_Srv.wHour = SURV_ENGRTIME_SRV_MAX;  // limit time
             }
         }
         #endif // BIKE_MOTOBAU
@@ -461,8 +466,8 @@ void SurvUpdateEngRunTime ( void )
             {
                 EngRunTime_All.bMin = 0;
                 EngRunTime_All.wHour++;
-                if (EngRunTime_All.wHour > ENGRUNTIME_ALL_MAX)
-                    EngRunTime_All.wHour = ENGRUNTIME_ALL_MAX;  // limit time
+                if (EngRunTime_All.wHour > SURV_ENGRTIME_ALL_MAX)
+                    EngRunTime_All.wHour = SURV_ENGRTIME_ALL_MAX;  // limit time
             }
         }
     }
@@ -470,7 +475,7 @@ void SurvUpdateEngRunTime ( void )
 
 
 /***********************************************************************
- *  FUNCTION:       SurvCheckRPMFlash
+ *  FUNCTION:       Surv_CheckRPMFlash
  *  DESCRIPTION:    Controls the RPM Flash light info & eGPO_0 output,
  *                  switches on both, if current RPM value exceeds
  *                  setting in eeprom.
@@ -478,7 +483,7 @@ void SurvUpdateEngRunTime ( void )
  *  RETURN:         -
  *  COMMENT:        RPM Flash lamp is enabled, if eeprom value > 0 RPM!
  *********************************************************************** */
-void SurvCheckRPMFlash ( void )
+void Surv_CheckRPMFlash ( void )
 {
     static BOOL RPMFlash_On = FALSE;
     MESSAGE msg;
@@ -520,22 +525,35 @@ void SurvCheckRPMFlash ( void )
 }
 
 
+
 /***********************************************************************
- *  FUNCTION:       SurvCheckNextServiceKm
- *  DESCRIPTION:    Simple check wether ServiceIntervall (km) reached
+ *  FUNCTION:       Surv_CheckService
+ *  DESCRIPTION:    Check wether ServiceIntervall (hours) reached
  *                  (Eeprom setting)
  *  PARAMETER:      -
  *  RETURN:         -
  *  COMMENT:        -
  *********************************************************************** */
-void SurvCheckNextServiceKm ( void )
+void Surv_CheckService ( void )
 {
-    DIST_TYPE       VehicDist;      // current vehicle distance
-    SURV_PARAM_ID_TYPE vstateprm;      // vehicle state parameter
-    SURV_PARAM_STATE_TYPE vstatelvl;      // vehicle state level
+    DIST_TYPE   VehicDist;      // current vehicle distance
+    SURVP_ID    vstateprm;      // vehicle state parameter
+    SURVP_STATE vstatelvl;      // vehicle state level
+
+    // default value: ok!
+    vstateprm = eSURVID_SERVICEHOUR;
+    vstatelvl = eSURVST_OK;
+
+    // check: current vehicle runtime hours reached service intervall hours?
+    if (  (EngRunTime_Srv.wHour != EngRunTime_Srv_def.wHour )      // check enabled?
+        &&(EngRunTime_Srv.wHour <= EngRunTime_All.wHour     ) )    // exceeded hours?
+        vstatelvl = eSURVST_WARNING;
+
+    // update this warning
+    Surv_ListSetParamState(vstateprm, vstatelvl);
 
     // default value: ok
-    vstateprm = eSURVP_SERVICEKM;
+    vstateprm = eSURVID_SERVICEKM;
     vstatelvl = eSURVST_OK;
 
     // check: current vehicle distance reached service intervall?
@@ -545,41 +563,15 @@ void SurvCheckNextServiceKm ( void )
         vstatelvl = eSURVST_WARNING;
 
     // update this warning
-    SurvListSetParamState(vstateprm, vstatelvl);
-}
+    Surv_ListSetParamState(vstateprm, vstatelvl);
 
-
-/***********************************************************************
- *  FUNCTION:       SurvCheckNextServiceHours
- *  DESCRIPTION:    Check wether ServiceIntervall (hours) reached
- *                  (Eeprom setting)
- *  PARAMETER:      -
- *  RETURN:         -
- *  COMMENT:        -
- *********************************************************************** */
-void SurvCheckNextServiceHours ( void )
-{
-    SURV_PARAM_ID_TYPE vstateprm;      // vehicle state parameter
-    SURV_PARAM_STATE_TYPE vstatelvl;      // vehicle state level
-
-    // default value: ok!
-    vstateprm = eSURVP_SERVICEHOUR;
-    vstatelvl = eSURVST_OK;
-
-    // check: current vehicle runtime hours reached service intervall hours?
-    if (  (EngRunTime_Srv.wHour != EngRunTime_Srv_def.wHour )      // check enabled?
-        &&(EngRunTime_Srv.wHour <= EngRunTime_All.wHour     ) )    // exceeded hours?
-        vstatelvl = eSURVST_WARNING;
-
-    // update this warning
-    SurvListSetParamState(vstateprm, vstatelvl);
 }
 
 
 
 
 /***********************************************************************
- *  FUNCTION:       SurvProcessAll
+ *  FUNCTION:       Surv_ProcessAll
  *  DESCRIPTION:    vehicle surveillance update, will be called
  *                  cyclicly every 20 ms via TimerInterrupt
  *  PARAMETER:      -
@@ -587,23 +579,22 @@ void SurvCheckNextServiceHours ( void )
  *  COMMENT:        We use a short start delay SURV_STARTDELAY to prevent
  *                  unpredictable messages at ADC start behavior.
  *********************************************************************** */
-ERRCODE SurvProcessAll(void)
+ERRCODE Surv_ProcessAll(void)
 {
     // check startup delay ---------------------------
     if ( wSecCounter  >  SURV_STARTDELAY )
     {
-        SurvUpdateMeasData ();          // updates analog data
-        SurvUpdateStatistics();         // updates min/max values
-        SurvUpdateEngRunTime();         // updates engine runtime Serv/All
+        Surv_UpdateMeasData ();         // updates analog data
+        Surv_UpdateStatistics();        // updates min/max values
+        Surv_UpdateEngRunTime();        // updates engine runtime Serv/All
 
-        SurvCheckAllDigitalWarnings();  // check all digital ports relevant for this bike
-        SurvCheckAllAnalogWarnings();   // check all analog ports relevant for this bike
-        SurvCheckNextServiceKm();       // check for km   Service Intervall
-        SurvCheckNextServiceHours();    // check for hour Service Intervall
-        SurvCheckAllDeviceWarnings();   // check all device internal warnings
-        SurvCheckRPMFlash();            // Updates RPM Flash information
+        Surv_CheckDigitalPorts();       // check all digital ports relevant for this bike
+        Surv_CheckAnalogPorts();        // check all analog ports relevant for this bike
+        Surv_CheckService();            // check for hour Service Intervall
+        Surv_CheckDevice();             // check all device internal infos/warnings/errors
+        Surv_CheckRPMFlash();           // Updates RPM Flash information
 
-        //SurvSetLEDState();              // update Info/Warn/Err LED status
+        //Surv_SetLEDState();              // update Info/Warn/Err LED status
     }
 
     return ERR_OK;
@@ -612,7 +603,7 @@ ERRCODE SurvProcessAll(void)
 
 
 /***********************************************************************
- *  FUNCTION:       SurvScrollVehicleState
+ *  FUNCTION:       Surv_ScrollVehicleState
  *  DESCRIPTION:    scrolls currently displayed vehicle state string
  *                  to next upper/lower active vehicle state string
  *                  if possible and available
@@ -621,13 +612,13 @@ ERRCODE SurvProcessAll(void)
  *  RETURN:         -
  *  COMMENT:        Controls global surveillance status + string too!
  *********************************************************************** */
-void SurvScrollVehicleState(BOOL fScrollDir)
+void Surv_ScrollVehicleState(BOOL fScrollDir)
 {
     static  UINT8   ucIdx = 0;      // last used read list idx
             UINT8   ucCount;        // overall error count
 
     /* check: currently no parameter active? */
-    ucCount = SurvListGetCount(eSURVST_ALL);
+    ucCount = Surv_ListGetCount(eSURVST_ALL);
 
     /* clip current index to max. */
     if ( ucCount == 0 )
@@ -647,7 +638,7 @@ void SurvScrollVehicleState(BOOL fScrollDir)
     ODS1(DBG_MEAS, DBG_INFO, "Scrolled to %u", ucIdx );
 
     /* update our global state */
-    SurvSetGlobalState( ucIdx );
+    Surv_SetGlobalState( ucIdx );
 
 }
 
@@ -655,88 +646,88 @@ void SurvScrollVehicleState(BOOL fScrollDir)
 
 
 /***********************************************************************
- *  FUNCTION:       SurvCheckAllAnalogWarnings
+ *  FUNCTION:       Surv_CheckAnalogPorts
  *  DESCRIPTION:    check all analog values and update monitor states
  *  PARAMETER:      -
  *  RETURN:         nothing
  *  COMMENT:
  *********************************************************************** */
-void SurvCheckAllAnalogWarnings(void)
+void Surv_CheckAnalogPorts(void)
 {
-    SURV_PARAM_ID_TYPE      vstateprm;      // vehicle state parameter
-    SURV_PARAM_STATE_TYPE   vstatelvl;      // vehicle state level
+    SURVP_ID      vstateprm;      // vehicle state parameter
+    SURVP_STATE   vstatelvl;      // vehicle state level
 
-    /* Check eSURVP_ENGINECOLD -------------------------------------
+    /* Check eSURVID_ENGINECOLD -------------------------------------
         default:                                               -> Ok
         if wRPM over warning limit AND (oil OR water to cold): -> Warning! */
-    vstateprm = eSURVP_ENGINECOLD;
+    vstateprm = eSURVID_ENGINECOLD;
     vstatelvl = eSURVST_OK;
-    if (  ( wRPM > ENG_COLD_RPM                         )
+    if (  ( wRPM > SURV_ENGCOLD_RPM                         )
         &&(  (  (iTempOil > ANAIN_TEMP_SENSORDETECT )
-              &&(iTempOil < OIL_TEMP_LOW            ) )
+              &&(iTempOil < SURV_OILTEMP_LOW            ) )
            ||(  (iTempWat > ANAIN_TEMP_SENSORDETECT )
-              &&(iTempWat < WAT_TEMP_LOW            ) ) ) )
+              &&(iTempWat < SURV_WATTEMP_LOW            ) ) ) )
            vstatelvl = eSURVST_INFO;
     /* now add this resh state to our surveillance list */
-    SurvListSetParamState(vstateprm, vstatelvl);
+    Surv_ListSetParamState(vstateprm, vstatelvl);
 
-    /* Check eSURVP_GLACED -------------------------------------
+    /* Check eSURVID_GLACED -------------------------------------
         default:                 -> Ok
         if air between -2..+2°C  -> Warning! */
-    vstateprm = eSURVP_GLACED;
+    vstateprm = eSURVID_GLACED;
     vstatelvl = eSURVST_OK;
-    if (  ( iTempAir > AIR_TEMP_GLACED_LOW  )
-        &&( iTempAir < AIR_TEMP_GLACED_HIGH ) )
+    if (  ( iTempAir > SURV_AIRTEMP_GLACED_LOW  )
+        &&( iTempAir < SURV_AIRTEMP_GLACED_HIGH ) )
            vstatelvl = eSURVST_INFO;
     /* now add this resh state to our surveillance list */
-    SurvListSetParamState(vstateprm, vstatelvl);
+    Surv_ListSetParamState(vstateprm, vstatelvl);
 
-    /* Check eSURVP_OILTEMP -------------------------------------
+    /* Check eSURVID_OILTEMP -------------------------------------
         default value:          -> Ok
         if oil temp very high:  -> Warning
         if oil temp too high:   -> Error */
-    vstateprm = eSURVP_OILTEMP;
+    vstateprm = eSURVID_OILTEMP;
     vstatelvl = eSURVST_OK;
-    if (iTempOil  > OIL_TEMP_WARN)
+    if (iTempOil  > SURV_OILTEMP_WARN)
         vstatelvl = eSURVST_WARNING;
-    if (iTempOil  > OIL_TEMP_ERR)
+    if (iTempOil  > SURV_OILTEMP_ERR)
         vstatelvl = eSURVST_ERROR;
     /* now add this resh state to our surveillance list */
-    SurvListSetParamState(vstateprm, vstatelvl);
+    Surv_ListSetParamState(vstateprm, vstatelvl);
 
-    /* Check eSURVP_WATTEMP -------------------------------------
+    /* Check eSURVID_WATTEMP -------------------------------------
         default value:            -> Ok
         if water temp very high:  -> Warning
         if water temp too high:   -> Error */
-    vstateprm = eSURVP_WATTEMP;
+    vstateprm = eSURVID_WATTEMP;
     vstatelvl = eSURVST_OK;
-    if (iTempWat  > WAT_TEMP_WARN)
+    if (iTempWat  > SURV_WATTEMP_WARN)
         vstatelvl = eSURVST_WARNING;
-    if (iTempWat  > WAT_TEMP_ERR)
+    if (iTempWat  > SURV_WATTEMP_ERR)
         vstatelvl = eSURVST_ERROR;
     /* now add this resh state to our surveillance list */
-    SurvListSetParamState(vstateprm, vstatelvl);
+    Surv_ListSetParamState(vstateprm, vstatelvl);
 
-    /* Check eSURVP_ALTERNATOR -------------------------------
+    /* Check eSURVID_ALTERNATOR -------------------------------
         default value:                                      -> Ok
         if wRPM over warning limit and wAlternator too low: -> Warning! */
     if ( gBikeType == eBIKE_R100GS )
     {
         // special BIKE_R100GS checking
-        vstateprm = eSURVP_ALTERNATOR;
-        vstatelvl = SurvListGetParamState(vstateprm);     // first get current state
+        vstateprm = eSURVID_ALTERNATOR;
+        vstatelvl = Surv_ListGetParamState(vstateprm);     // first get current state
 
         /* Note: The warning will be cleared only, if the ALTW voltage will be
                  permanantly > threshold (or RPM == 0)! */
         if ( vstatelvl == eSURVST_OK )                  // no warning until now?
-        {   if (  ( wRPM        > ALTERN_LOW_RPM)       // check: RPM over check limit?
-                &&(wAlternator  < ALTERN_LOW    ) )     //        AND voltage below threshold?
+        {   if (  ( wRPM        > SURV_ALTERN_LOW_RPM)       // check: RPM over check limit?
+                &&(wAlternator  < SURV_ALTERN_LOW    ) )     //        AND voltage below threshold?
             {   vstatelvl = eSURVST_WARNING;            // SET WARNING!
             }
         }
         else                                            // we already had a warning!
         {   if (  ( wRPM        == 0         )          // no error if motor stands still
-                ||( wAlternator > ALTERN_LOW ) )        // check: voltage higher than threshold?
+                ||( wAlternator > SURV_ALTERN_LOW ) )        // check: voltage higher than threshold?
             {   vstatelvl = eSURVST_OK;                 // CLEAR WARNING!
             }
         }
@@ -750,59 +741,61 @@ void SurvCheckAllAnalogWarnings(void)
     }
     else
     {   /* standard behaviour: not used, always ok */
-        vstateprm = eSURVP_ALTERNATOR;
+        vstateprm = eSURVID_ALTERNATOR;
         vstatelvl = eSURVST_OK;
     }
 
     /* now add this resh state to our surveillance list */
-    SurvListSetParamState(vstateprm, vstatelvl);
+    Surv_ListSetParamState(vstateprm, vstatelvl);
 
-    /* Check eSURVP_VOLTAGE_LOW -------------------------------
+    /* Check eSURVID_SURV_BATT_LOW -------------------------------
         default value:                                      -> Ok
         if wRPM over warning limit and wBattSupply too low: -> Warning! */
-    vstateprm = eSURVP_VOLTAGE_LOW;
+    vstateprm = eSURVID_SURV_BATT_LOW;
     vstatelvl = eSURVST_OK;
-    if (  (wRPM > VOLTAGE_LOW_RPM)
-        &&(wBattSupply < VOLTAGE_LOW   ) )
+    if (  (wRPM > SURV_BATT_LOW_RPM)
+        &&(wBattSupply < SURV_BATT_LOW   ) )
         vstatelvl = eSURVST_WARNING;
     /* now add this resh state to our surveillance list */
-    SurvListSetParamState(vstateprm, vstatelvl);
+    Surv_ListSetParamState(vstateprm, vstatelvl);
 
-    /* Check eSURVP_VOLTAGE_HIGH -------------------------------
+    /* Check eSURVID_SURV_BATT_HIGH -------------------------------
         default value:           -> Ok
         if wBattSupply too high: -> Error! */
-    vstateprm = eSURVP_VOLTAGE_HIGH;
+    vstateprm = eSURVID_SURV_BATT_HIGH;
     vstatelvl = eSURVST_OK;
-    if (wBattSupply > VOLTAGE_HIGH )
+    if (wBattSupply > SURV_BATT_HIGH )
         vstatelvl = eSURVST_ERROR;
     /* now add this resh state to our surveillance list */
-    SurvListSetParamState(vstateprm, vstatelvl);
+    Surv_ListSetParamState(vstateprm, vstatelvl);
 
 }
 
 
 
 /***********************************************************************
- *  FUNCTION:       SurvCheckAllDeviceWarnings
+ *  FUNCTION:       Surv_CheckDevice
  *  DESCRIPTION:    check all device internal states
  *  PARAMETER:      -
  *  RETURN:         -
  *  COMMENT:        -
  *********************************************************************** */
-void SurvCheckAllDeviceWarnings(void)
+void Surv_CheckDevice(void)
 {
-    /* ============================================================== */
-    /* COMMON WARNINGS */
+    /* User Info: heatgrips active? */
+    if ( DigInDrv_GPI_GetMeas(eGPI0_Int2)->ucPWM > 0 )
+         Surv_ListSetParamState(eSURVID_HEATGRIP, eSURVST_INFO);
+    else Surv_ListSetParamState(eSURVID_HEATGRIP, eSURVST_OK);
 
     /* User Info: do not drive with vehicle simulation on! */
     if (gDeviceFlags2.flags.VehicSimul == TRUE)
-         SurvListSetParamState(eSURVP_SIMULATION, eSURVST_INFO);
-    else SurvListSetParamState(eSURVP_SIMULATION, eSURVST_OK);
+         Surv_ListSetParamState(eSURVID_SIMULATION, eSURVST_INFO);
+    else Surv_ListSetParamState(eSURVID_SIMULATION, eSURVST_OK);
 
     /* User warning: Hardcopy via HBEAM-switch active? */
     if (gDeviceFlags2.flags.Hardcopy == TRUE)
-         SurvListSetParamState(eSURVP_HARDCOPY, eSURVST_INFO);
-    else SurvListSetParamState(eSURVP_HARDCOPY, eSURVST_OK);
+         Surv_ListSetParamState(eSURVID_HARDCOPY, eSURVST_INFO);
+    else Surv_ListSetParamState(eSURVID_HARDCOPY, eSURVST_OK);
 
     /* User Warning: Automatic RTC Clock change because of summer/winter time? */
     if (  ( gDeviceFlags2.flags.DaylightSaveAuto == TRUE )
@@ -810,32 +803,32 @@ void SurvCheckAllDeviceWarnings(void)
     {
         fCESTChanged = FALSE;               // reset for next change detection
         if ( TimeDate_GetCEST() == TRUE )   // select msg
-             SurvListSetParamState(eSURVP_DLS_SUMMER, eSURVST_INFO);
-        else SurvListSetParamState(eSURVP_DLS_WINTER, eSURVST_INFO);
+             Surv_ListSetParamState(eSURVID_DLS_SUMMER, eSURVST_INFO);
+        else Surv_ListSetParamState(eSURVID_DLS_WINTER, eSURVST_INFO);
     }
     else
-    {   SurvListSetParamState(eSURVP_DLS_SUMMER, eSURVST_OK);
-        SurvListSetParamState(eSURVP_DLS_WINTER, eSURVST_OK);
+    {   Surv_ListSetParamState(eSURVID_DLS_SUMMER, eSURVST_OK);
+        Surv_ListSetParamState(eSURVID_DLS_WINTER, eSURVST_OK);
     }
 
     /* User Warning: NVRAM delivered invalid vales -> RTC Batterie defect? */
     if (  fRTCDefect == TRUE )
-         SurvListSetParamState(eSURVP_RTC_BATT, eSURVST_WARNING);
-    else SurvListSetParamState(eSURVP_RTC_BATT, eSURVST_OK);
+         Surv_ListSetParamState(eSURVID_RTC_BATT, eSURVST_WARNING);
+    else Surv_ListSetParamState(eSURVID_RTC_BATT, eSURVST_OK);
 
 }
 
 
 
 /***********************************************************************
- *  FUNCTION:       SurvCheckAllDigitalWarnings
+ *  FUNCTION:       Surv_CheckDigitalPorts
  *  DESCRIPTION:    check all other digital in ports and sets
  *                  vehicle state
  *  PARAMETER:      -
  *  RETURN:         -
  *  COMMENT:        We use digital filtered values only
  *********************************************************************** */
-void SurvCheckAllDigitalWarnings(void)
+void Surv_CheckDigitalPorts(void)
 {
     /* ============================================================== */
     /* COMMON WARNINGS */
@@ -851,14 +844,14 @@ void SurvCheckAllDigitalWarnings(void)
             /* --------------------------------------------- */
             /* F650 - Fuel 4 l Switch (low active) - Warning */
             if ( DF_Fuel_4l_F650 == FALSE )
-                 SurvListSetParamState(eSURVP_FUEL4L, eSURVST_WARNING);
-            else SurvListSetParamState(eSURVP_FUEL4L, eSURVST_OK);
+                 Surv_ListSetParamState(eSURVID_FUEL4L, eSURVST_WARNING);
+            else Surv_ListSetParamState(eSURVID_FUEL4L, eSURVST_OK);
 
             /* --------------------------------------------- */
             /* F650 - ABS inactive signal (low active) - Error */
             if ( DF_ABS_Warn_F650 == 0 )
-                 SurvListSetParamState(eSURVP_ABS, eSURVST_ERROR);
-            else SurvListSetParamState(eSURVP_ABS, eSURVST_OK);
+                 Surv_ListSetParamState(eSURVID_ABS, eSURVST_ERROR);
+            else Surv_ListSetParamState(eSURVID_ABS, eSURVST_OK);
             // check: if not using Sixo-Warnmode, setup Error-LED directly here
             if ( gDeviceFlags3.flags.LedWarnMode == SURV_LWM_STD )
             {   if ( DF_ABS_Warn_F650 == 0 )
@@ -869,8 +862,8 @@ void SurvCheckAllDigitalWarnings(void)
             /* --------------------------------------------- */
             /* F650 - Watertemp High Switch (high active) - Error */
             if ( DF_Temp_Warn_F650 == 1)
-                 SurvListSetParamState(eSURVP_WATTEMPSW, eSURVST_ERROR);
-            else SurvListSetParamState(eSURVP_WATTEMPSW, eSURVST_OK);
+                 Surv_ListSetParamState(eSURVID_WATTEMPSW, eSURVST_ERROR);
+            else Surv_ListSetParamState(eSURVID_WATTEMPSW, eSURVST_OK);
             // check: if not using Sixo-Warnmode, setup LED directly here
             if ( gDeviceFlags3.flags.LedWarnMode == SURV_LWM_STD )
             {   if ( DF_ABS_Warn_F650 == 0 )
@@ -885,15 +878,15 @@ void SurvCheckAllDigitalWarnings(void)
             /* --------------------------------------------- */
             /* AfricaTwin - Fuel 8 l - Warning */
             if ( DF_Fuel_8l_AT == 0)                 // low active
-                 SurvListSetParamState(eSURVP_FUEL8L, eSURVST_WARNING);
-            else SurvListSetParamState(eSURVP_FUEL8L, eSURVST_OK);
+                 Surv_ListSetParamState(eSURVID_FUEL8L, eSURVST_WARNING);
+            else Surv_ListSetParamState(eSURVID_FUEL8L, eSURVST_OK);
 
             /* --------------------------------------------- */
             /* AfricaTwin - Oil switch defect? - Warning */
             if (  ( DF_OILSW == 1 )         // no oil signal
                 &&( wRPM     == 0 ) )       // but engine stands still?
-                 SurvListSetParamState(eSURVP_OILSWDEF, eSURVST_WARNING);
-            else SurvListSetParamState(eSURVP_OILSWDEF, eSURVST_OK);
+                 Surv_ListSetParamState(eSURVID_OILSWDEF, eSURVST_WARNING);
+            else Surv_ListSetParamState(eSURVID_OILSWDEF, eSURVST_OK);
             // check: if not using Sixo-Warnmode, setup LED directly here
             if ( gDeviceFlags3.flags.LedWarnMode == SURV_LWM_STD )
             {   if ( DF_Fuel_4l_AT == 0 )      // low active
@@ -904,9 +897,9 @@ void SurvCheckAllDigitalWarnings(void)
             /* --------------------------------------------- */
             /* AfricaTwin - Oil pressure ok? - Error (low active) */
             if (  ( DF_OILSW == 0             )      // low active
-                &&( wRPM     >  OIL_PRESS_RPM ) )    // and engine running?
-                 SurvListSetParamState(eSURVP_OILPRESS, eSURVST_ERROR);
-            else SurvListSetParamState(eSURVP_OILPRESS, eSURVST_OK);
+                &&( wRPM     >  SURV_OILPRESS_RPM ) )    // and engine running?
+                 Surv_ListSetParamState(eSURVID_OILPRESS, eSURVST_ERROR);
+            else Surv_ListSetParamState(eSURVID_OILPRESS, eSURVST_OK);
             // check: if not using Sixo-Warnmode, setup LED directly here
             if ( gDeviceFlags3.flags.LedWarnMode == SURV_LWM_STD )
             {   if ( DF_OILSW == 0 )      // low active
@@ -917,8 +910,8 @@ void SurvCheckAllDigitalWarnings(void)
             /* --------------------------------------------- */
             /* AfricaTwin - Fuel 4 l - Error (low active)*/
             if ( DF_Fuel_4l_AT == 0 )
-                 SurvListSetParamState(eSURVP_FUEL4L, eSURVST_ERROR);
-            else SurvListSetParamState(eSURVP_FUEL4L, eSURVST_OK);
+                 Surv_ListSetParamState(eSURVID_FUEL4L, eSURVST_ERROR);
+            else Surv_ListSetParamState(eSURVID_FUEL4L, eSURVST_OK);
 
         } break;
 
@@ -929,8 +922,8 @@ void SurvCheckAllDigitalWarnings(void)
             /* --------------------------------------------- */
             /* Baghira - Water-Temperatur - Error (high active) */
             if ( DF_Temp_Warn_BAGHIRA == 1)          // high active
-                 SurvListSetParamState(eSURVP_WATTEMPSW, eSURVST_ERROR);
-            else SurvListSetParamState(eSURVP_WATTEMPSW, eSURVST_OK);
+                 Surv_ListSetParamState(eSURVID_WATTEMPSW, eSURVST_ERROR);
+            else Surv_ListSetParamState(eSURVID_WATTEMPSW, eSURVST_OK);
             // check: if not using Sixo-Warnmode, setup LED directly here
             if ( gDeviceFlags3.flags.LedWarnMode == SURV_LWM_STD )
             {   if ( DF_Temp_Warn_BAGHIRA == 1)          // high active
@@ -947,15 +940,15 @@ void SurvCheckAllDigitalWarnings(void)
             /* Standard - oil switch defect? - Warning */
             if (  ( DF_OILSW == 1 )      // no oil signal
                 &&( wRPM     == 0 ) )    // but engine stands still?
-                 SurvListSetParamState(eSURVP_OILSWDEF, eSURVST_WARNING);
-            else SurvListSetParamState(eSURVP_OILSWDEF, eSURVST_OK);
+                 Surv_ListSetParamState(eSURVID_OILSWDEF, eSURVST_WARNING);
+            else Surv_ListSetParamState(eSURVID_OILSWDEF, eSURVST_OK);
 
             /* --------------------------------------------- */
             /* Standard - Oil pressure ok? */
             if (  ( DF_OILSW == 0             )      // low active
-                &&( wRPM     >  OIL_PRESS_RPM ) )    // and engine running?
-                 SurvListSetParamState(eSURVP_OILPRESS, eSURVST_ERROR);
-            else SurvListSetParamState(eSURVP_OILPRESS, eSURVST_OK);
+                &&( wRPM     >  SURV_OILPRESS_RPM ) )    // and engine running?
+                 Surv_ListSetParamState(eSURVID_OILPRESS, eSURVST_ERROR);
+            else Surv_ListSetParamState(eSURVID_OILPRESS, eSURVST_OK);
             // check: if not using Sixo-Warnmode, setup LED directly here
             if ( gDeviceFlags3.flags.LedWarnMode == SURV_LWM_STD )
             {   if ( DF_OILSW == 0 )      // low active
@@ -971,14 +964,14 @@ void SurvCheckAllDigitalWarnings(void)
 
 
 /***********************************************************************
- *  FUNCTION:       SurvResetAllParameters
+ *  FUNCTION:       Surv_ResetAllParameters
  *  DESCRIPTION:    Resets any surveilled parameter by clearing complete
  *                  list.
  *  PARAMETER:      -
  *  RETURN:         -
  *  COMMENT:        -
  *********************************************************************** */
-void SurvResetAllParameters(void)
+void Surv_ResetAllParameters(void)
 {
     // clear our current parameter list
     memset (&SurvParamList, 0x0, sizeof(SurvParamList) );
@@ -990,12 +983,12 @@ void SurvResetAllParameters(void)
 
 
 /***********************************************************************
- *  FUNCTION:       SurvListSetParamState
+ *  FUNCTION:       Surv_ListSetParamState
  *  DESCRIPTION:    Inserts/Remove given surveillance parameter.
  *                  - state = eSURVST_OK: delete parameter from list
  *                  - state > eSURVST_OK: add/update parameter at sorted position
- *  PARAMETER:      SURV_PARAM_ID_TYPE     parameter
- *                  SURV_PARAM_STATE_TYPE  state
+ *  PARAMETER:      SURVP_ID     parameter
+ *                  SURVP_STATE  state
  *  RETURN:         nothing
  *  COMMENT:        The generated list is sorted:
  *                      Most top: all eSURVST_ERROR
@@ -1009,21 +1002,21 @@ void SurvResetAllParameters(void)
  *                  If list is full, the least important parameter will
  *                  be removed.
  *********************************************************************** */
-void SurvListSetParamState( SURV_PARAM_ID_TYPE      GivenParam,
-                            SURV_PARAM_STATE_TYPE   GivenState   )
+void Surv_ListSetParamState( SURVP_ID      GivenParam,
+                            SURVP_STATE   GivenState   )
 {
     UINT8   bListIndex;     // index of parameter inside surveillance list
 
-    // try to find inside our list (if not already in list: bListIndex = SURV_PARAM_MAX )
-    bListIndex = SurvListGetIndex( GivenParam );
+    // try to find inside our list (if not already in list: bListIndex = SURVP_MAX )
+    bListIndex = Surv_ListGetIndex( GivenParam );
 
     // check: parameter never inserted and still ok -> irrelevant!
-    if (  ( bListIndex == SURV_PARAM_MAX )
+    if (  ( bListIndex == SURVP_MAX )
         &&( GivenState == eSURVST_OK     ) )
         return;
 
     // check: parameter exists but unchanged -> nothing to do!
-    if (  ( bListIndex <  SURV_PARAM_MAX                  )
+    if (  ( bListIndex <  SURVP_MAX                  )
         &&( GivenState == SurvParamList[bListIndex].state ) )
         return;
 
@@ -1031,54 +1024,54 @@ void SurvListSetParamState( SURV_PARAM_ID_TYPE      GivenParam,
     if( GivenState == eSURVST_OK )
     {
         /* ok, remove from list */
-        SurvListRemoveParam ( bListIndex );
+        Surv_ListRemoveParam ( bListIndex );
     }
     else
     {
         // check: already inside list?
-        if (bListIndex < SURV_PARAM_MAX )
+        if (bListIndex < SURVP_MAX )
         {
             // ok, replace & resort parameter
-            SurvListUpdateParam ( bListIndex, GivenState );
+            Surv_ListUpdateParam ( bListIndex, GivenState );
         }
         else
         {
             // ok, add new parameter sorted
-            SurvListAddParam( GivenParam, GivenState );
+            Surv_ListAddParam( GivenParam, GivenState );
         }
     }
 
     /* show our updated list */
-    SurvListShow();
+    Surv_ListShow();
 
     /* update 'GlobalSurvState' = most top surv.-parameter (index 0)
        for MainDevice-Status field */
-    SurvSetGlobalState(0);    // use most important (top) list entry
+    Surv_SetGlobalState(0);    // use most important (top) list entry
 
     /* update our led states */
-    SurvSetLEDState();
+    Surv_SetLEDState();
 }
 
 
 
 /***********************************************************************
- *  FUNCTION:       SurvListGetParamState
+ *  FUNCTION:       Surv_ListGetParamState
  *  DESCRIPTION:    returns state of given parameter
- *  PARAMETER:      SURV_PARAM_ID_TYPE
- *  RETURN:         SURV_PARAM_STATE_TYPE     error/warning/level
+ *  PARAMETER:      SURVP_ID
+ *  RETURN:         SURVP_STATE     error/warning/level
  *  COMMENT:        If parameter not found (inactive),
  *                  then eSURVST_OK is returned
  *********************************************************************** */
-SURV_PARAM_STATE_TYPE SurvListGetParamState(SURV_PARAM_ID_TYPE parameter)
+SURVP_STATE Surv_ListGetParamState(SURVP_ID parameter)
 {
-    SURV_PARAM_STATE_TYPE   RValue;
+    SURVP_STATE   RValue;
     UINT8                   idx;
 
     /* try to find parameter */
-    idx = SurvListGetIndex( parameter );
+    idx = Surv_ListGetIndex( parameter );
 
     /* check: not found? */
-    if ( idx == SURV_PARAM_MAX  )
+    if ( idx == SURVP_MAX  )
     {   RValue = eSURVST_OK;                // not found => ok!
     }
     else
@@ -1092,23 +1085,23 @@ SURV_PARAM_STATE_TYPE SurvListGetParamState(SURV_PARAM_ID_TYPE parameter)
 
 
 /***********************************************************************
- *  FUNCTION:       SurvListGetIndex
+ *  FUNCTION:       Surv_ListGetIndex
  *  DESCRIPTION:    Tries to find the given surveillance parameter
  *                  in the current list.
  *  PARAMETER:      parameter       SurvParametere to be found/returned
  *  RETURN:         index           of parameter (if found)
- *                  SURV_PARAM_MAX  if not found
+ *                  SURVP_MAX  if not found
  *  COMMENT:        Just to find out presence and state of given parameter.
  *                  If parameter does NOT have an info/warning/error state
  *                  (means, it is 'ok' or 'inactive', the parameter will
  *                  NOT be found!
  *********************************************************************** */
-UINT8 SurvListGetIndex( SURV_PARAM_ID_TYPE parameter )
+UINT8 Surv_ListGetIndex( SURVP_ID parameter )
 {
     UINT8 i;
 
     // scan complete list - until found
-    for ( i=0; i<SURV_PARAM_MAX; i++ )
+    for ( i=0; i<SURVP_MAX; i++ )
     {   if ( SurvParamList[i].param == parameter )
         {   break;      // found!
         }
@@ -1124,22 +1117,22 @@ UINT8 SurvListGetIndex( SURV_PARAM_ID_TYPE parameter )
 
 
 /***********************************************************************
- *  FUNCTION:       SurvListGetCount
+ *  FUNCTION:       Surv_ListGetCount
  *  DESCRIPTION:    Returns number of current entries in parameter list
  *  PARAMETER:      u8GetMask       expects one of the SURVST_xxx bitmasks
  *  RETURN:         count           sum of active requested parameters
  *  COMMENT:        -
  *********************************************************************** */
-UINT8 SurvListGetCount( UINT8 statemask )
+UINT8 Surv_ListGetCount( UINT8 statemask )
 {
     UINT8 i;
     UINT8 RValue = 0;
 
     // scan complete list - until found
-    for ( i=0; i<SURV_PARAM_MAX; i++ )
+    for ( i=0; i<SURVP_MAX; i++ )
     {
         // check: row is used AND state is one of our searched?
-        if (  ( SurvParamList[i].param != eSURVP_NOENTRY )
+        if (  ( SurvParamList[i].param != eSURVID_NOENTRY )
             &&( SurvParamList[i].state &  statemask      ) )
             RValue++;
     }
@@ -1150,24 +1143,24 @@ UINT8 SurvListGetCount( UINT8 statemask )
 
 
 /***********************************************************************
- *  FUNCTION:       SurvListRemoveParam
+ *  FUNCTION:       Surv_ListRemoveParam
  *  DESCRIPTION:    Removes the given entry from by moving all following
  *                  entries one row up.
  *  PARAMETER:      bListIndex      Index to be removed from list
  *  RETURN:         -
  *  COMMENT:        Assumes the given parameter already to be found
- *                  via SurvListGetIndex()
+ *                  via Surv_ListGetIndex()
  *********************************************************************** */
-void SurvListRemoveParam ( UINT8 bListIndex )
+void Surv_ListRemoveParam ( UINT8 bListIndex )
 {
     UINT8   i;
 
-    ODS1(DBG_MEAS, DBG_INFO, "SurvListRemoveParam('%s')", szSurvParamDesc[SurvParamList[bListIndex].param]);
+    ODS1(DBG_MEAS, DBG_INFO, "Surv_ListRemoveParam('%s')", szSurvParamDesc[SurvParamList[bListIndex].param]);
 
     // move all following entries 1 step up
     //  - start with given index
     //  - end one entry before(!) list end
-    for ( i=bListIndex; i<(SURV_PARAM_MAX-1); i++ )
+    for ( i=bListIndex; i<(SURVP_MAX-1); i++ )
     {
         // move lower entry one row up
         SurvParamList[i].param = SurvParamList[i+1].param;
@@ -1175,27 +1168,27 @@ void SurvListRemoveParam ( UINT8 bListIndex )
     }
 
     // clear last entry
-    SurvParamList[SURV_PARAM_MAX-1].param = eSURVP_NOENTRY;
-    SurvParamList[SURV_PARAM_MAX-1].state = eSURVST_OK;
+    SurvParamList[SURVP_MAX-1].param = eSURVID_NOENTRY;
+    SurvParamList[SURVP_MAX-1].state = eSURVST_OK;
 }
 
 
 
 /***********************************************************************
- *  FUNCTION:       SurvListUpdateParam
+ *  FUNCTION:       Surv_ListUpdateParam
  *  DESCRIPTION:    Updates given parameter by first removing it
  *                  and the re-inserting (incl. correct sorting).
  *  PARAMETER:      bListIndex      entry to be updated
  *                  state           new state to be set
  *  RETURN:         -
  *  COMMENT:        Assumes the given parameter already to be found
- *                  via SurvListGetIndex()
+ *                  via Surv_ListGetIndex()
  *********************************************************************** */
-void SurvListUpdateParam ( UINT8 bListIndex, SURV_PARAM_STATE_TYPE state )
+void Surv_ListUpdateParam ( UINT8 bListIndex, SURVP_STATE state )
 {
-    SURV_PARAM_TYPE     TempParam;
+    SURVP_TYPE     TempParam;
 
-    ODS1(DBG_MEAS, DBG_INFO, "SurvListUpdateParam('%s')", szSurvParamDesc[SurvParamList[bListIndex].param]);
+    ODS1(DBG_MEAS, DBG_INFO, "Surv_ListUpdateParam('%s')", szSurvParamDesc[SurvParamList[bListIndex].param]);
 
     // check: parameter already has correct state?
     if ( SurvParamList[bListIndex].state == state )
@@ -1206,16 +1199,16 @@ void SurvListUpdateParam ( UINT8 bListIndex, SURV_PARAM_STATE_TYPE state )
     TempParam.state = state;
 
     // now clear old parameter from list
-    SurvListRemoveParam ( bListIndex );
+    Surv_ListRemoveParam ( bListIndex );
 
     // then re-insert changed parameter
-    SurvListAddParam( TempParam.param, TempParam.state );
+    Surv_ListAddParam( TempParam.param, TempParam.state );
 }
 
 
 
 /***********************************************************************
- *  FUNCTION:       SurvListAddParam
+ *  FUNCTION:       Surv_ListAddParam
  *  DESCRIPTION:    Adds a new parameter to the list of active parameters
  *  PARAMETER:      parameter       parameter to be added
  *                  state           state of that parameter
@@ -1225,14 +1218,14 @@ void SurvListUpdateParam ( UINT8 bListIndex, SURV_PARAM_STATE_TYPE state )
  *                  If list is complete full, the least important entry
  *                  will be removed.
  *********************************************************************** */
-void SurvListAddParam( SURV_PARAM_ID_TYPE parameter, SURV_PARAM_STATE_TYPE state )
+void Surv_ListAddParam( SURVP_ID parameter, SURVP_STATE state )
 {
     UINT8               i;
     UINT8               count;
-    SURV_PARAM_TYPE     NewParam;   // just to insert new one
-    SURV_PARAM_TYPE     LastParam;  // just to save old last one to re-insert
+    SURVP_TYPE     NewParam;   // just to insert new one
+    SURVP_TYPE     LastParam;  // just to save old last one to re-insert
 
-    ODS1(DBG_MEAS, DBG_INFO, "SurvListAddParam('%s')", szSurvParamDesc[parameter]);
+    ODS1(DBG_MEAS, DBG_INFO, "Surv_ListAddParam('%s')", szSurvParamDesc[parameter]);
 
     // check: given parameter is != ok?
     if ( state == eSURVST_OK )
@@ -1243,16 +1236,16 @@ void SurvListAddParam( SURV_PARAM_ID_TYPE parameter, SURV_PARAM_STATE_TYPE state
     NewParam.state = state;
 
     // save last entry, might be re-inserted if list full & new one less important
-    LastParam = SurvParamList[SURV_PARAM_MAX-1];
+    LastParam = SurvParamList[SURVP_MAX-1];
 
     // completely move current list one row down
-    for ( i=(SURV_PARAM_MAX-1); i>0; i-- )
+    for ( i=(SURVP_MAX-1); i>0; i-- )
         SurvParamList[i] = SurvParamList[i-1];
 
     // now try to insert new parameter -
     //  - beginning from upper side
     //  - stop one before end
-    for ( i=0; i<(SURV_PARAM_MAX-1); i++ )
+    for ( i=0; i<(SURVP_MAX-1); i++ )
     {
         // check: new parameter-state is >= next lower parameter-state?
         if ( NewParam.state  >= SurvParamList[i+1].state )
@@ -1268,7 +1261,7 @@ void SurvListAddParam( SURV_PARAM_ID_TYPE parameter, SURV_PARAM_STATE_TYPE state
     }
 
     // check: we reached the last row? (new one is less important than all existing entries)
-    if ( i == (SURV_PARAM_MAX-1) )
+    if ( i == (SURVP_MAX-1) )
     {
         // re-insert previous last parameter
         SurvParamList[i] = LastParam;
@@ -1279,20 +1272,20 @@ void SurvListAddParam( SURV_PARAM_ID_TYPE parameter, SURV_PARAM_STATE_TYPE state
 
 
 /***********************************************************************
- *  FUNCTION:       SurvListShow
+ *  FUNCTION:       Surv_ListShow
  *  DESCRIPTION:    just shows the current content of the list
  *  PARAMETER:      -
  *  RETURN:         -
  *  COMMENT:        just a debug helper: printout our new sorted list
  *********************************************************************** */
-void SurvListShow( void )
+void Surv_ListShow( void )
 {
     UINT8               i;
     UINT8               count;
 
     ODS(DBG_MEAS, DBG_INFO, "Surv-ParamList Content:" );
-    count = SurvListGetCount(eSURVST_ALL);
-    for ( i=0; i<SURV_PARAM_MAX; i++ )
+    count = Surv_ListGetCount(eSURVST_ALL);
+    for ( i=0; i<SURVP_MAX; i++ )
     {
         ODS4(DBG_MEAS, DBG_INFO, "%u/%u: '%18s' : '%s'",
                 i+1, count,
@@ -1304,19 +1297,19 @@ void SurvListShow( void )
 
 
 /***********************************************************************
- *  FUNCTION:       SurvSetGlobalState
+ *  FUNCTION:       Surv_SetGlobalState
  *  DESCRIPTION:    Updates global state & string
  *  PARAMETER:      ucIdx       List entry to be shown (if possible)
  *  RETURN:         -
  *  COMMENT:        global surveillance status + string are used by
  *                  MainDevice and MonDev_
  *********************************************************************** */
-void SurvSetGlobalState( UINT8 ucIdx )
+void Surv_SetGlobalState( UINT8 ucIdx )
 {
     UINT8   ucCount;        // overall error count
 
     /* check: how many error parameters active? */
-    ucCount = SurvListGetCount(eSURVST_ALL);
+    ucCount = Surv_ListGetCount(eSURVST_ALL);
 
     /* clip idx to limit (=0 OR < max) */
     if (ucCount == 0)
@@ -1332,7 +1325,7 @@ void SurvSetGlobalState( UINT8 ucIdx )
 
 
 /***********************************************************************
- *  FUNCTION:       SurvSetLEDState
+ *  FUNCTION:       Surv_SetLEDState
  *  DESCRIPTION:    Updates global LED status for Info/Warn/Error,
  *                  based on our SurvList (instead of direct input switch)
  *  PARAMETER:      -
@@ -1342,7 +1335,7 @@ void SurvSetGlobalState( UINT8 ucIdx )
  *                  Toggle/Invert activation mode of each Info/Warn/Err LED
  *                  separately, BUT only if necessary!
  *********************************************************************** */
-void SurvSetLEDState( void )
+void Surv_SetLEDState( void )
 {
     MESSAGE msg;            // for LED event message
 
@@ -1350,31 +1343,31 @@ void SurvSetLEDState( void )
     if ( gDeviceFlags3.flags.LedWarnMode == SURV_LWM_SIXO )
     {
         /* INFO-LED --------------------------------------  */
-        if (  ( SurvListGetCount(eSURVST_INFO) >  0     )
+        if (  ( Surv_ListGetCount(eSURVST_INFO) >  0     )
             &&( LED_GetState(eLED_INFO) == FALSE ) )
         {   LED_SetNewState( eLED_INFO, LED_ON );
         }
-        if (  ( SurvListGetCount(eSURVST_INFO) == 0     )
+        if (  ( Surv_ListGetCount(eSURVST_INFO) == 0     )
             &&( LED_GetState(eLED_INFO)     == TRUE ) )
         {   LED_SetNewState( eLED_INFO, LED_OFF );
         }
 
         /* WARN-LED --------------------------------------  */
-        if (  ( SurvListGetCount(eSURVST_WARNING) >  0     )
+        if (  ( Surv_ListGetCount(eSURVST_WARNING) >  0     )
             &&( LED_GetState(eLED_WARN)     == FALSE ) )
         {   LED_SetNewState( eLED_WARN, LED_ON );
         }
-        if (  ( SurvListGetCount(eSURVST_WARNING) == 0     )
+        if (  ( Surv_ListGetCount(eSURVST_WARNING) == 0     )
             &&( LED_GetState(eLED_WARN)     == TRUE ) )
         {   LED_SetNewState( eLED_WARN, LED_OFF );
         }
 
         /* ERROR-LED --------------------------------------  */
-        if (  ( SurvListGetCount(eSURVST_ERROR) >  0     )
+        if (  ( Surv_ListGetCount(eSURVST_ERROR) >  0     )
             &&( LED_GetState(eLED_ERROR)     == FALSE ) )
         {   LED_SetNewState( eLED_ERROR, LED_ON );
         }
-        if (  ( SurvListGetCount(eSURVST_ERROR) == 0     )
+        if (  ( Surv_ListGetCount(eSURVST_ERROR) == 0     )
             &&( LED_GetState(eLED_ERROR)     == TRUE ) )
         {   LED_SetNewState( eLED_ERROR, LED_OFF );
         }
@@ -1384,6 +1377,6 @@ void SurvSetLEDState( void )
     #if(BIKE_MOTOBAU==1)
     // kai wants to enable an additional external lamp/indicator
     //  - enable output eGPO_1 too for Warning/Error only
-    PIN_GPO1 = SurvListGetCount(eSURVST_WARNING | eSURVST_ERR );
+    PIN_GPO1 = Surv_ListGetCount(eSURVST_WARNING | eSURVST_ERR );
     #endif // BIKE_MOTOBAU
 }

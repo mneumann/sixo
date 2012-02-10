@@ -68,6 +68,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.11  2012/02/10 23:45:22  tuberkel
+ * - Survelannce HeatGrip <Info> - if active
+ * - Surveillance-API reviewed
+ *
  * Revision 3.10  2012/02/10 22:12:27  tuberkel
  * PWM-Measurement now fully functional
  *
@@ -517,7 +521,7 @@ ERRCODE DigInDrv_Key_SendMsg(const KEYNUMBER Key, const KEYTIME far * fpKeyData)
  *  PARAMETER:      -
  *  RETURN:         -
  *  COMMENT:        Bike specific handling is handled in surveillance
- *                  modules SurvProcessAll()
+ *                  modules Surv_ProcessAll()
  *********************************************************************** */
 void DigInDrv_CheckAllPorts(void)
 {

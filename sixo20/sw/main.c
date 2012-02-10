@@ -68,6 +68,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.10  2012/02/10 23:45:22  tuberkel
+ * - Survelannce HeatGrip <Info> - if active
+ * - Surveillance-API reviewed
+ *
  * Revision 3.9  2012/02/08 23:05:47  tuberkel
  * - GPI PWM calculations improved
  * - renamed DigIn GPI Functions
@@ -274,7 +278,7 @@ int main()
     Error = MsgQInit();             /* reset message queue */
     Error = MeasDrvInit();          /* measurement init stuff (ta2, ta3, ta4, tb2, int1, int0) */
     Error = AnaInInit();            /* A/D converter for all measurements  */
-    Error = SurvInit();             /* vehicle surveillance */
+    Error = Surv_Init();             /* vehicle surveillance */
 #if (COMPASS==1)
     Error = CompassInit();          /* inits UART0 and its receive interrupt for compass use */
 #endif // COMPASS
@@ -326,7 +330,7 @@ int main()
         TimerRegisterEntryFunction( AnaInDrvTriggerADConverter );   /* generation of AD samples in single sweep mode */
         TimerRegisterEntryFunction( DigOutDrv_Service );            /* support PWM control for all digital outs */
         TimerRegisterEntryFunction( DigInDrv_GPI_UpdateMeas );       /* support PWM control for all digital input */
-        TimerRegisterEntryFunction( SurvProcessAll );               /* process complete surveillance for infos/warnings/errors */
+        TimerRegisterEntryFunction( Surv_ProcessAll );               /* process complete surveillance for infos/warnings/errors */
         #if(BIKE_MOTOBAU==1)                                        /* special MOTOBAU behaviour */
         TimerRegisterEntryFunction( LCDev_UpdTime );             /* enable background lapcounter feature */
         #endif // BIKE_MOTOBAU

@@ -68,6 +68,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.21  2012/02/10 23:45:22  tuberkel
+ * - Survelannce HeatGrip <Info> - if active
+ * - Surveillance-API reviewed
+ *
  * Revision 3.20  2012/02/10 22:12:27  tuberkel
  * PWM-Measurement now fully functional
  *
@@ -983,11 +987,11 @@ void MainDev_Show(BOOL fShow)
                just switch the Bitmap raw data to the adequate ressource */
             // default: empty symbol
             VehStateBmpObj.Data.fpucBitmap = rgEmptySymbol16x16;
-            if      ( SurvListGetCount( eSURVST_ERROR   ) )
+            if      ( Surv_ListGetCount( eSURVST_ERROR   ) )
                 VehStateBmpObj.Data.fpucBitmap = rgErrorSymbol16x16;
-            else if ( SurvListGetCount( eSURVST_WARNING ) )
+            else if ( Surv_ListGetCount( eSURVST_WARNING ) )
                 VehStateBmpObj.Data.fpucBitmap = rgWarningSymbol16x16;
-            else if ( SurvListGetCount( eSURVST_INFO    ) )
+            else if ( Surv_ListGetCount( eSURVST_INFO    ) )
                 VehStateBmpObj.Data.fpucBitmap = rgInfoSymbol16x16;
             // show selected symbol
             ObjBmpShow( &VehStateBmpObj );
@@ -1060,11 +1064,11 @@ void MainDev_Show(BOOL fShow)
                (Most important icon is dominant),
                just switch the Bitmap raw data to the adequate ressource */
             VehStateBmpObj.Data.fpucBitmap = rgEmptySymbol16x16;    // default: no/empty icon
-            if      ( SurvListGetCount( eSURVST_ERROR ) )
+            if      ( Surv_ListGetCount( eSURVST_ERROR ) )
                 VehStateBmpObj.Data.fpucBitmap = rgErrorSymbol16x16;
-            else if ( SurvListGetCount( eSURVST_WARNING) )
+            else if ( Surv_ListGetCount( eSURVST_WARNING) )
                 VehStateBmpObj.Data.fpucBitmap = rgWarningSymbol16x16;
-            else if ( SurvListGetCount( eSURVST_INFO  ) )
+            else if ( Surv_ListGetCount( eSURVST_INFO  ) )
                 VehStateBmpObj.Data.fpucBitmap = rgInfoSymbol16x16;
             ObjBmpShow( &VehStateBmpObj );
 
@@ -1620,7 +1624,7 @@ ERRCODE MainDev_MsgEntry_VehState(MESSAGE Msg)
 
         // TEST: activate PIN_GPO0 as Coolride Input!
         GPO_SignalCoolRide();   // ==> Coolride key input
-        GPO_SetNewState( eGPO_1,  COOLRIDE_KEYPRESSED );  // ==> juts to view at simulator
+        GPO_SetNewState( eGPO_1,  COOLRIDE_KEYPRESSED );  // ==> just to view at simulator
 
         /* prepare delayed message to our self to HIDE vehicle state after 3 seconds */
         MSG_BUILD_UINT8(NewMsg, MSG_VEHSTATE_HIDE, 0, 0, 0);

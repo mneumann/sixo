@@ -68,6 +68,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.6  2012/02/10 23:45:22  tuberkel
+ * - Survelannce HeatGrip <Info> - if active
+ * - Surveillance-API reviewed
+ *
  * Revision 3.5  2012/02/08 03:55:24  tuberkel
  * KEY_TIMING parameter names reviewed/changed
  *
@@ -539,7 +543,7 @@ ERRCODE MonDev_MsgEntry(MESSAGE GivenMsg)
                if (MSG_KEY_TRANSITION(GivenMsg) == KEYTRANS_PRESSED)
                {
                    /* VehicleSurveillance: scroll back in list of active status messages */
-                   SurvScrollVehicleState(VST_SCROLL_UP);
+                   Surv_ScrollVehicleState(VST_SCROLL_UP);
                    MonDev_Show(TRUE);     // force refresh!
                    RValue = ERR_MSG_PROCESSED;
                }
@@ -548,7 +552,7 @@ ERRCODE MonDev_MsgEntry(MESSAGE GivenMsg)
                if (MSG_KEY_TRANSITION(GivenMsg) == KEYTRANS_PRESSED)
                {
                    /* VehicleSurveillance: scroll forward in list of active status messages */
-                   SurvScrollVehicleState(VST_SCROLL_DOWN);
+                   Surv_ScrollVehicleState(VST_SCROLL_DOWN);
                    MonDev_Show(TRUE);     // force refresh!
                    RValue = ERR_MSG_PROCESSED;
                }

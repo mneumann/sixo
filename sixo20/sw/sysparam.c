@@ -78,6 +78,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.4  2012/02/10 23:45:22  tuberkel
+ * - Survelannce HeatGrip <Info> - if active
+ * - Surveillance-API reviewed
+ *
  * Revision 3.3  2012/02/08 03:41:30  tuberkel
  * renamed #define MINIEMU ==> KD30_USED
  *
@@ -820,9 +824,9 @@ ERRCODE ParInitSystemPar (void)
          TripD.dkm = 0;
     if ( FuelDist.km > DIST_MAX_VEHIC )     // invalid?
          FuelDist.km = 0;
-    if ( EngRunTime_All.wHour > ENGRUNTIME_ALL_MAX )
+    if ( EngRunTime_All.wHour > SURV_ENGRTIME_ALL_MAX )
          EngRunTime_All.wHour = 0;
-    if ( EngRunTime_Srv.wHour > ENGRUNTIME_SRV_MAX )
+    if ( EngRunTime_Srv.wHour > SURV_ENGRTIME_SRV_MAX )
          EngRunTime_Srv.wHour = 0;
 
 
