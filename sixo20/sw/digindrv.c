@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.10  2012/02/10 22:12:27  tuberkel
+ * PWM-Measurement now fully functional
+ *
  * Revision 3.9  2012/02/08 23:05:47  tuberkel
  * - GPI PWM calculations improved
  * - renamed DigIn GPI Functions
@@ -221,19 +224,19 @@ ERRCODE DigInDrv_Init(void)
     /* init key pressed time protocol */
     for (i=0; i<(KEY_LAST); i++)
     {
-        rgKeyControl[i].wStartTime_ms     = 0;
-        rgKeyControl[i].wLastSentTime_ms  = 0;
-        rgKeyControl[i].wDur_ms      = 0;
+        rgKeyControl[i].wStartTime_ms    = 0;
+        rgKeyControl[i].wLastSentTime_ms = 0;
+        rgKeyControl[i].wDur_ms          = 0;
     }
-    MultiKeyControl.wStartTime_ms     = 0;
-    MultiKeyControl.wLastSentTime_ms  = 0;
-    MultiKeyControl.wDur_ms      = 0;
+    MultiKeyControl.wStartTime_ms    = 0;
+    MultiKeyControl.wLastSentTime_ms = 0;
+    MultiKeyControl.wDur_ms          = 0;
 
     /* initialize digital input filter table */
     DigInDrv_FilterInit();
 
-    /* Setup Coolride GPI Measurement (GPI0, low-active, 1 sec timeout) */
-    DigInDrv_GPI_SetupMeas( eGPI0_Int2, FALSE, 1000 );
+    /* Setup Coolride GPI Measurement (GPI0, High-active, 1 sec timeout) */
+    DigInDrv_GPI_SetupMeas( eGPI0_Int2, TRUE, 1000 );
 
     INT_GLOB_ENABLE;             /* enable all ISRs */
 
@@ -734,71 +737,68 @@ void DigInDrv_GPI_RstCount( DIGINTMEAS_GPI eGpi )
  *  PARAMETER:      -
  *  RETURN:         -
  *  COMMENT:        Assumes to be called cyclicly, does only update
- *                  one GPI at each call to decrease system load.
+ *                  one(!) GPI at each call to decrease system load.
+ *
+ *                  GETS IN 50-Hz-TIMER-ISR-CONTEXT!
+ *
+ *                  Assumes to get called with HIGHER INT priority than
+ *                  GPI-INTs (to not get interrupted by GPI-INTs)
  *********************************************************************** */
 void DigInDrv_GPI_UpdateMeas(void)
 {
-    static DIGINTMEAS_GPI eGpi = eGPI0_Int2;
+    static DIGINTMEAS_GPI eGpi = eGPI0_Int2;    // processes only one(!) GPI at each call!
 
-    UINT16  wLastHLTrans;
-    UINT16  wLastLHTrans;
-    UINT16  wHighWidth;
-    UINT16  wLowWidth;
+    // some high end temp variables for calculations
+    UINT32  dwLastHLTrans;      // copy of timestamp in ms
+    UINT32  dwLastLHTrans;      // copy of timestamp in ms
+    UINT32  dwHighWidth;        // copy of HIGH width in ms
+    UINT32  dwLowWidth;         // copy of LOW  width in ms
+    UINT32  dwPulseCycle;       // copy of PULSE CYCLE in ms
+    UINT32  dwPulseFreq;        // copy of FREQUENCY in mHz
+    BOOL    fCurrState;         // copy of current GPI state
+    UINT32  dwPwm;              // logical (high/low) PulseWidth in % (depends on fHighActive)
+    UINT32  dwPulseWidth;       // HIGH/LOW width in ms (depends on fHighActive)
+    BOOL    fLogicHigh;         // logical 'HIGH' GPI state (depends on fHighActive)
 
-    /* get a copy of measured values (use interrupt blocker to prevent conflict access) */
-    INT_GLOB_DISABLE;
-    wLastHLTrans    = DigIntMeas[eGpi].wLastHLTrans;
-    wLastLHTrans    = DigIntMeas[eGpi].wLastHLTrans;
-    wHighWidth      = DigIntMeas[eGpi].wHighWidth;
-    wLowWidth       = DigIntMeas[eGpi].wLowWidth;
-    INT_GLOB_ENABLE;
-
-    /* update calculated values (adapt to 'high/low-active' mode) */
-    DigIntMeas[eGpi].wPulseCycle = wHighWidth + wLowWidth;
-    DigIntMeas[eGpi].wPulseFreq  = (UINT16)( 1000L / (UINT32)DigIntMeas[eGpi].wPulseCycle) / 1000L;
+    /* get a copy of measured/current values */
+    dwLastHLTrans   = (UINT32)DigIntMeas[eGpi].wLastHLTrans;
+    dwLastLHTrans   = (UINT32)DigIntMeas[eGpi].wLastHLTrans;
+    dwHighWidth     = (UINT32)DigIntMeas[eGpi].wHighWidth;
+    dwLowWidth      = (UINT32)DigIntMeas[eGpi].wLowWidth;
     switch(eGpi)
-    {   case eGPI0_Int2: DigIntMeas[eGpi].fCurrState = DigIn_GPI_0; break;
-        case eGPI1_Int3: DigIntMeas[eGpi].fCurrState = DigIn_GPI_1; break;
-        case eGPI2_Int4: DigIntMeas[eGpi].fCurrState = DigIn_GPI_2; break;
-        case eGPI3_Int5: DigIntMeas[eGpi].fCurrState = DigIn_GPI_3; break;
-        default: break;
+    {   case eGPI0_Int2: fCurrState = DigIn_GPI_0; break;
+        case eGPI1_Int3: fCurrState = DigIn_GPI_1; break;
+        case eGPI2_Int4: fCurrState = DigIn_GPI_2; break;
+        case eGPI3_Int5: fCurrState = DigIn_GPI_3; break;
+        default:         fCurrState = DIGIN_LOW;   break;
     }
 
-    /* adapt to 'high/low-active' mode) */
-    if ( DigIntMeas[eGpi].fHighActive == TRUE )
-    {
-        /* calculate PWM for 'high-active' mode in %*/
-        DigIntMeas[eGpi].ucPWM = (UINT8) ((1000L * (UINT32)wHighWidth) / (UINT32)DigIntMeas[eGpi].wPulseCycle) / 10L;
+    /* calculate values */
+    dwPulseWidth = (DigIntMeas[eGpi].fHighActive == TRUE) ? dwHighWidth : dwLowWidth;
+    dwPulseCycle = dwHighWidth + dwLowWidth;
+    dwPulseFreq  = ( 1000000L * 1L / dwPulseCycle ) / 1000L;
+    dwPwm        = ((1000L * dwPulseWidth) / dwPulseCycle / 10L);   // '/1000 * 100%' => 10L)
 
-        /* correct PWM, if missing interrupts for long time */
-        if (  ( ( wMilliSecCounter - DigIntMeas[eGpi].wLastHLTrans ) > DigIntMeas[eGpi].wTimeOut )
-            ||( ( wMilliSecCounter - DigIntMeas[eGpi].wLastLHTrans ) > DigIntMeas[eGpi].wTimeOut ) )
-        {
-            /* TOO old events: check 0% / 100% */
-            if ( DigIntMeas[eGpi].fCurrState == DIGIN_HIGH )
-                 DigIntMeas[eGpi].ucPWM = 100;
-            else DigIntMeas[eGpi].ucPWM = 0;
-        }
-    }
-    else
-    {   /* calculate PWM for 'low-active' mode in %*/
-        DigIntMeas[eGpi].ucPWM = (UINT8)( (1000L * (UINT32)wLowWidth) / (UINT32)DigIntMeas[eGpi].wPulseCycle) / 10L;
+    /* save results for later use */
+    DigIntMeas[eGpi].wPulseCycle    = (UINT16)dwPulseCycle;
+    DigIntMeas[eGpi].wPulseFreq     = (UINT16)dwPulseFreq;
+    DigIntMeas[eGpi].ucPWM          = (UINT8) dwPwm;
+    DigIntMeas[eGpi].fCurrState     = fCurrState;
 
-        /* correct PWM, if missing interrupts for long time */
-        if (  ( ( wMilliSecCounter - DigIntMeas[eGpi].wLastHLTrans ) > DigIntMeas[eGpi].wTimeOut )
-            ||( ( wMilliSecCounter - DigIntMeas[eGpi].wLastLHTrans ) > DigIntMeas[eGpi].wTimeOut ) )
-        {
-            /* TOO old events: check 0% / 100% */
-            if ( DigIntMeas[eGpi].fCurrState == DIGIN_LOW )
-                 DigIntMeas[eGpi].ucPWM = 100;
-            else DigIntMeas[eGpi].ucPWM = 0;
-        }
+    /* correct PWM to 0%/100%, if missing interrupts for long time */
+    fLogicHigh = (DigIntMeas[eGpi].fHighActive == FALSE) ? DIGIN_HIGH : DIGIN_LOW;
+    if (  ( ( wMilliSecCounter - DigIntMeas[eGpi].wLastHLTrans ) > DigIntMeas[eGpi].wTimeOut )
+        ||( ( wMilliSecCounter - DigIntMeas[eGpi].wLastLHTrans ) > DigIntMeas[eGpi].wTimeOut ) )
+    {   /* TOO old events: set to  0%/100% */
+        if ( fCurrState == fLogicHigh )
+             DigIntMeas[eGpi].ucPWM = 100;
+        else DigIntMeas[eGpi].ucPWM = 0;
     }
 
     /* increment to next GPI for next call */
     if ( eGpi < eGPI3_Int5 )
-         eGpi++;
-    else eGpi = 0;
+         eGpi++;                // continue with next
+    else eGpi = eGPI0_Int2;     // restart with GPI0
 }
 
 

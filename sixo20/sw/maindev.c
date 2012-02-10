@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.20  2012/02/10 22:12:27  tuberkel
+ * PWM-Measurement now fully functional
+ *
  * Revision 3.19  2012/02/08 23:05:47  tuberkel
  * - GPI PWM calculations improved
  * - renamed DigIn GPI Functions
@@ -1284,16 +1287,17 @@ void MainDev_Show_Heatgrip(BOOL fComplete)
         UINT8               i;
         BMPOBJECT           objBmp    = HeatBarBmpObj;  // we use a copy of that object to manipulate!
         UINT8               ucPwmCurr = 0;              // current PWM value
-        UINT8               ucPwmCmp;                   // comparison value to select emty/full bmp
+        UINT8               ucPwmCmp  = 10;             // comparison value to select emty/full bmp
 
         /* get a fresh PWM value */
-        ucPwmCmp        = 0;
         ucPwmCurr       = DigInDrv_GPI_GetMeas(eGPI0_Int2)->ucPWM;
 
         /* loop to generate all 5 bar parts (full/empty) */
         for (i=0; i<MD_HEATBARPARTS; i++)
         {
-            /* check: use full/empty bitmap? */
+            /* check: use full/empty bitmap?
+               Note: ucPwmCmp level always 10% higher to
+                     assure 20% detection accuracy */
             if ( ucPwmCurr > ucPwmCmp )
                  objBmp.Data.fpucBitmap = rgHeatBarFull19x8;
             else objBmp.Data.fpucBitmap = rgHeatBarEmpty19x8;
