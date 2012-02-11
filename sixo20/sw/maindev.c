@@ -68,6 +68,11 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.23  2012/02/11 09:15:26  tuberkel
+ * Coolride HeatGrip now usable
+ * - icon shon in right way/time
+ * - Key/LED Handling ok
+ *
  * Revision 3.22  2012/02/11 00:06:42  tuberkel
  * - HeatGrip Icon shown in upper area
  *
@@ -460,8 +465,8 @@ static const BMPOBJECT_INITTYPE BmpObjInit[] =
 
     /* Coolride Heat Control - Symbol & Bar icons (HeatBarBmpObj gets 5x moved & changed!)*/
     /* --------------------------- -- --- --- --- --------------------- -------- ----- */
-    { &HeatGripIconBmpObj,          0, 38, 16, 16, rgHeatGrip16x16,      DPLNORM, FALSE },
-    { &HeatBarBmpObj,              22, 40, 19,  8, rgHeatBarEmpty19x8,   DPLNORM, OC_DISPL | OC_DYN },
+    { &HeatGripIconBmpObj,          2, 38, 16, 16, rgHeatGrip16x16,      DPLNORM, FALSE },
+    { &HeatBarBmpObj,              24, 40, 19,  8, rgHeatBarEmpty19x8,   DPLNORM, OC_DISPL | OC_DYN },
 
     /* Gear Symbol */
     /* --------------------------- -- --- --- --- --------------------- -------- ----- */
@@ -1129,25 +1134,23 @@ void MainDev_Show_Icon(void)
     /* default: no/empty icon */
     VehStateBmpObj.Data.fpucBitmap = rgEmptySymbol16x16;
 
-
     /* which icon has to be used: Info / Warning / Error ? */
     if      ( Surv_ListGetCount( eSURVST_ERROR ) )
         VehStateBmpObj.Data.fpucBitmap = rgErrorSymbol16x16;
     else if ( Surv_ListGetCount( eSURVST_WARNING) )
         VehStateBmpObj.Data.fpucBitmap = rgWarningSymbol16x16;
     else if ( Surv_ListGetCount( eSURVST_INFO  ) )
-    {
-        /* Check: heatgrip Info is most top? */
-        if (  ( 0           == Surv_ListGetIndex( eSURVID_HEATGRIP ) )
-            &&( MD_HEATGRIP != MDObj.wDevState                       ) )
-        {   /* show special heatgrip icon (only if not already shown in lower area) */
-            VehStateBmpObj.Data.fpucBitmap = rgHeatGrip16x16;
-        }
-        else
-        {   /* show default info icon */
-            VehStateBmpObj.Data.fpucBitmap = rgInfoSymbol16x16;
-        }
+    {   VehStateBmpObj.Data.fpucBitmap = rgInfoSymbol16x16;
     }
+
+    /* Check: No icon shown? -> Heatgrip-icon needed?
+       Note: Only if not already shown in MD_HEATGRIP state */
+    if (  ( VehStateBmpObj.Data.fpucBitmap          == rgEmptySymbol16x16 )     // no other icon used?
+        &&( MDObj.wDevState                         != MD_HEATGRIP        )     // not already shown below?
+        &&( DigInDrv_GPI_GetMeas(eGPI0_Int2)->ucPWM > 0                   ) )   // PWM is active?
+    {   VehStateBmpObj.Data.fpucBitmap = rgHeatGrip16x16;
+    }
+
     /* show the selected bmp */
     ObjBmpShow( &VehStateBmpObj );
 }
@@ -1269,73 +1272,55 @@ void MainDev_Show_Monitor(BOOL fComplete)
  *  FUNCTION:       MainDev_Show_Heatgrip
  *  DESCRIPTION:    Special subfunction to show heat-grip part only
  *                  by calling Show-Fct. of all relevant objects
- *  PARAMETER:      fComplete   TRUE  = show all objects,
+ *  PARAMETER:      fInitial    TRUE  = show all objects,
  *                              FALSE = show only dynamic stuff
  *  RETURN:         -
  *  COMMENT:        Assumes to be called for MD_HEATGRIP state only!
+ *
  *                  Uses a SINGLE heat bargraph bmp object to
- *                  generate a complete 5-part bar:
+ *                  generate a COMPLETE 5-part bar:
  *                      - changes the referenced bitmap to 'full'/'empty' if needed
  *                      - changes the origin x-pos to show first bar-part
  *                      - adapts to bmp-obj width to increment x-pos
  *                        of 4 further bar-parts
+ *
+ *                  Coolride internally can handle 10% PWM steps for ambiant
+ *                  temperature compensation, but LEDs (and our display here)
+ *                  always show 5 bars = 20% steps!
  *********************************************************************** */
-void MainDev_Show_Heatgrip(BOOL fComplete)
+void MainDev_Show_Heatgrip(BOOL fInitial)
 {
-    /* ================================================= */
-    /* show complete or refresh dynamic only? */
-    if (fComplete == TRUE)
-    {
-        /* YES, show ALL objects for initial state */
-        ObjBmpShow(  &HeatGripIconBmpObj );
+    UINT8               i;
+    BMPOBJECT           objBmp    = HeatBarBmpObj;  // we use a copy of that object to manipulate!
+    UINT8               ucPwmCurr = 0;              // current PWM value
+    UINT8               ucPwmCmp  = 5;              // comparison value to select emty/full bmp
 
-        /* show 5 initial empty bar-parts at initial time
-           NOTE: - uses initial bmp object xpos at start value
-                 - uses bmp object width for offset value for further displayed objects */
-        {
-            UINT8       i;
-            BMPOBJECT   objBmp = HeatBarBmpObj;     // use a copy of that object!
-            for (i=0; i<MD_HEATBARPARTS; i++)
-            {
-                /* show this bmp object */
-                ObjBmpShow( &objBmp );
+    /* get a fresh PWM value */
+    ucPwmCurr       = DigInDrv_GPI_GetMeas(eGPI0_Int2)->ucPWM;
 
-                /* adapt to next position */
-                objBmp.Org.wXPos += objBmp.Data.wWidth + 1;
-            }
-        }
+    /* update leftside icon only at initial state */
+    if (fInitial == TRUE)
+    {   ObjBmpShow(  &HeatGripIconBmpObj );
     }
-    else
-    /* ================================================= */
+
+    /* loop to generate all 5 bar parts (full/empty) */
+    for (i=0; i<MD_HEATBARPARTS; i++)
     {
-        /* No, repaint only changed stuff */
-        UINT8               i;
-        BMPOBJECT           objBmp    = HeatBarBmpObj;  // we use a copy of that object to manipulate!
-        UINT8               ucPwmCurr = 0;              // current PWM value
-        UINT8               ucPwmCmp  = 10;             // comparison value to select emty/full bmp
+        /* check: use full/empty bitmap?
+           Note: ucPwmCmp level always 5% higher to
+                 assure 10% detection accuracy */
+        if ( ucPwmCurr > ucPwmCmp )
+             objBmp.Data.fpucBitmap = rgHeatBarFull19x8;
+        else objBmp.Data.fpucBitmap = rgHeatBarEmpty19x8;
 
-        /* get a fresh PWM value */
-        ucPwmCurr       = DigInDrv_GPI_GetMeas(eGPI0_Int2)->ucPWM;
+        /* show the modified bmp object */
+        ObjBmpShow( &objBmp );
 
-        /* loop to generate all 5 bar parts (full/empty) */
-        for (i=0; i<MD_HEATBARPARTS; i++)
-        {
-            /* check: use full/empty bitmap?
-               Note: ucPwmCmp level always 10% higher to
-                     assure 20% detection accuracy */
-            if ( ucPwmCurr > ucPwmCmp )
-                 objBmp.Data.fpucBitmap = rgHeatBarFull19x8;
-            else objBmp.Data.fpucBitmap = rgHeatBarEmpty19x8;
+        /* adapt to next position */
+        objBmp.Org.wXPos += objBmp.Data.wWidth + 1;
 
-            /* show the modified bmp object */
-            ObjBmpShow( &objBmp );
-
-            /* adapt to next position */
-            objBmp.Org.wXPos += objBmp.Data.wWidth + 1;
-
-            /* increase PWM comparison value for next loop */
-            ucPwmCmp += 100 / MD_HEATBARPARTS;
-        }
+        /* increase PWM comparison value for next loop */
+        ucPwmCmp += 100 / MD_HEATBARPARTS;
     }
 }
 
@@ -1637,21 +1622,29 @@ ERRCODE MainDev_MsgEntry_VehState(MESSAGE Msg)
     /* [OK] pressed+released shortly'? -> ITS FOR US! -> show 'Vehicle State' instead of TimeDate! */
     if (  ( MsgId == MSG_KEY_OK                          )      /* OK key?  */
         &&( MSG_KEY_TRANSITION(Msg) == KEYTRANS_RELEASED )      /* right now released* */
-        &&( MSG_KEY_DURATION(Msg) < KEYTM_PRESSED_VLONG              ) )    /* has just shortly been pressed? */
+        &&( MSG_KEY_DURATION(Msg) < KEYTM_PRESSED_VLONG  ) )    /* has just shortly been pressed? */
     {
-        /* send message to our self to SHOW vehicle state */
-        MSG_BUILD_UINT8(NewMsg, MSG_VEHSTATE_SHOW, 0, 0, 0);
-        MsgQPostMsg(NewMsg, MSGQ_PRIO_LOW);
+        /* SPECIAL USE CASE: KEY-handling for Coolride-Extension: */
+        /* Coolride-Extension: If available & in MD_HEATGRIP state: stimulate Coolride Input! */
+        if ( MDObj.wDevState == MD_HEATGRIP )
+        {
+            GPO_SignalCoolRide();       // generate Coolride key input
+            LED_SignalAck();             // LED acknowledge for user
+            Beep_SignalAck();            // Beeper acknowledge for user (if not disabled by user)
+            //GPO_SetNewState( eGPO_1,  COOLRIDE_KEYPRESSED );  // JUST FOR TESTs: additionally activate other GPO
+        }
+        else
+        {   /* COMMON USE CASE: */
+            /* send message to our self to SHOW vehicle state */
+            MSG_BUILD_UINT8(NewMsg, MSG_VEHSTATE_SHOW, 0, 0, 0);
+            MsgQPostMsg(NewMsg, MSGQ_PRIO_LOW);
 
-        // TEST: activate PIN_GPO0 as Coolride Input!
-        GPO_SignalCoolRide();   // ==> Coolride key input
-        GPO_SetNewState( eGPO_1,  COOLRIDE_KEYPRESSED );  // ==> just to view at simulator
-
-        /* prepare delayed message to our self to HIDE vehicle state after 3 seconds */
-        MSG_BUILD_UINT8(NewMsg, MSG_VEHSTATE_HIDE, 0, 0, 0);
-        SetTimerMsg(NewMsg, SEC2TICKS(3));          /* send delayed message */
-        ODS( DBG_SYS, DBG_INFO, "MainDev: [OK] short pressed!");
-        RValue = ERR_MSG_PROCESSED;                 /* processed! */
+            /* prepare delayed message to our self to HIDE vehicle state after 3 seconds */
+            MSG_BUILD_UINT8(NewMsg, MSG_VEHSTATE_HIDE, 0, 0, 0);
+            SetTimerMsg(NewMsg, SEC2TICKS(3));          /* send delayed message */
+            ODS( DBG_SYS, DBG_INFO, "MainDev: [OK] short pressed!");
+            RValue = ERR_MSG_PROCESSED;                 /* processed! */
+        }
     }
 
     /* Received special Message to SHOW Vehicle state? */
