@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.7  2012/02/11 09:12:33  tuberkel
+ * New: LED_SignalAck()
+ *
  * Revision 3.6  2012/02/05 11:17:08  tuberkel
  * DigOuts completely reviewed:
  * - central PWM-Out handled via DigOutDriver for ALL DigOuts!
@@ -204,8 +207,7 @@ BOOL LED_GetState( LED_ENUM eLed )
 
 /***********************************************************************
  *  FUNCTION:       LED_SignalOk
- *  DESCRIPTION:    let the info led be an acknowledge:
- *                  600 ms permanent ON
+ *  DESCRIPTION:    let the info led be a definit: OK! (600 ms ON)
  *  PARAMETER:      -
  *  RETURN:         -
  *  COMMENT:        If LED already on: do not start OK-Signal!
@@ -217,6 +219,24 @@ void LED_SignalOk(void)
     {
         /* set Info-LED ON now! (and later off) */
         LED_SetNewState( eLED_INFO, 1, 0, 600 );
+    }
+}
+
+
+/***********************************************************************
+ *  FUNCTION:       LED_SignalAck
+ *  DESCRIPTION:    let the info led be an short acknowledge (300 ms ON)!
+ *  PARAMETER:      -
+ *  RETURN:         -
+ *  COMMENT:        If LED already on: do not start OK-Signal!
+ *********************************************************************** */
+void LED_SignalAck(void)
+{
+    /* prevent usage, if INFO led already on! */
+    if ( FALSE == LED_GetState( eLED_INFO ) )
+    {
+        /* set Info-LED ON now! (and later off) */
+        LED_SetNewState( eLED_INFO, 1, 0, 300 );
     }
 }
 

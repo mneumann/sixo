@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.5  2012/02/11 09:12:40  tuberkel
+ * New: LED_SignalAck()
+ *
  * Revision 3.4  2012/02/05 11:17:08  tuberkel
  * DigOuts completely reviewed:
  * - central PWM-Out handled via DigOutDriver for ALL DigOuts!
@@ -108,6 +111,7 @@ BOOL    LED_GetState        ( LED_ENUM eLed );
 ERRCODE LED_SetNewState     ( LED_ENUM eLed, UINT16 wOn_ms, UINT16 wOff_ms, UINT16 wDur_ms );
 ERRCODE LED_SetBrightness   ( unsigned char bBrightness);
 void    LED_SignalOk        ( void );
+void    LED_SignalAck       ( void );
 void    LED_SignalEsc       ( void );
 
 
