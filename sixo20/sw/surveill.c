@@ -70,6 +70,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.9  2012/02/11 12:21:45  tuberkel
+ * dedicated COOLRIDE macros prepared & used
+ *
  * Revision 3.8  2012/02/11 09:16:14  tuberkel
  * Disabled HeatGrip as 'VehState'
  *
@@ -787,7 +790,7 @@ void Surv_CheckDevice(void)
 {
     /* User Info: heatgrips active? */
     #if 0   /* disabled - should not be handled as 'Info' */
-    if ( DigInDrv_GPI_GetMeas(eGPI0_Int2)->ucPWM > 0 )
+    if ( DigInDrv_GPI_GetMeas(COOLR_PWMIN_PORT)->ucPWM > 0 )
          Surv_ListSetParamState(eSURVID_HEATGRIP, eSURVST_INFO);
     else Surv_ListSetParamState(eSURVID_HEATGRIP, eSURVST_OK);
     #endif

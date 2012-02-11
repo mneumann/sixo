@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.10  2012/02/11 12:21:45  tuberkel
+ * dedicated COOLRIDE macros prepared & used
+ *
  * Revision 3.9  2012/02/10 23:45:22  tuberkel
  * - Survelannce HeatGrip <Info> - if active
  * - Surveillance-API reviewed
@@ -169,6 +172,16 @@
  *
  ************************************************************************ */
 
+
+
+/* =================================================================
+
+    HOW TO INSERT A NEW SETUP SCREEN:
+    ---------------------------------
+
+    1.
+
+  ================================================================== */
 
 // include
 #include <stdio.h>

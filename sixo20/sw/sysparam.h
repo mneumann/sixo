@@ -69,6 +69,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.5  2012/02/11 12:21:45  tuberkel
+ * dedicated COOLRIDE macros prepared & used
+ *
  * Revision 3.4  2012/02/05 11:22:43  tuberkel
  * V3.0.3
  *
@@ -259,7 +262,7 @@ typedef union
 
 
 /* ----------------------------------------------------------------------------- */
-/* bike type - used to indicate kind of special bike adaption
+/* BIKE TYPE - USED TO INDICATE KIND OF SPECIAL BIKE ADAPTION
    NOTE: This list must be identical to ressource text list RESTXT_SET_BIKE_xxx !*/
 typedef enum
 {
@@ -270,13 +273,37 @@ typedef enum
     eBIKE_F650,          // BMW F650 version
     eBIKE_INVALID        // invalid bike type
 } BIKE_TYPE;
-
-/* NOTE: For bike LOGOs - please use LOGO_TYPE from bitmaps.h */
+/* NOTE: For bike-LOGO(!) - please use LOGO_TYPE instead of BIKE_TYPE! */
 
 
 
 /* ----------------------------------------------------------------------------- */
-/* Compass setup flags */
+/* COOLRIDE - HEATGRIP SETTINGS
+    KEY-OUTPUT:
+        - SIxO controls Coolride keyInput by shortening CR-Key to SIxO GPO0-Gnd
+        - Coolride needs at least Key-pressed 100 ms and 380 ms Intervall to next Press
+        - we currently reserve GPO_0 as Coolride Control
+        - we here adjust 100 ms GPO-ON-Time and 280 ms DURATION
+    PWM-INPUT
+        - SIxO measures Coolride Heatgrip PWM  via GPI0
+        - Coolride uses ~720 ms PWM cycle, so we set timout to 1000 ms
+        - Coolride generates PWM in 10% steps (ambient temperatur compensation)
+        - but user ca setup PWM in 20% steps only
+        - for display, SIXO uses 5x 10% bar */
+
+#define COOLR_KEYOUT_PORT       eGPO_0      // GPO to stimulate coolride key input
+#define COOLR_KEYOUT_SIGNAL     100, 0, 280 // GPO PWM signal for coolride key input
+#define COOLR_PWMIN_PORT        eGPI0_Int2  // GPI to be used for PWM input
+#define COOLR_PWMIN_LOGIC       TRUE        // GPI PWM logic: high active
+#define COOLR_PWMIN_TO          1000        // Timeout in ms to detect missing transitions
+
+
+
+
+
+
+/* ----------------------------------------------------------------------------- */
+/* COMPASS SETUP FLAGS */
 typedef union
 {
     UINT8           byte;

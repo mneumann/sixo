@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.24  2012/02/11 12:21:45  tuberkel
+ * dedicated COOLRIDE macros prepared & used
+ *
  * Revision 3.23  2012/02/11 09:15:26  tuberkel
  * Coolride HeatGrip now usable
  * - icon shon in right way/time
@@ -1147,7 +1150,7 @@ void MainDev_Show_Icon(void)
        Note: Only if not already shown in MD_HEATGRIP state */
     if (  ( VehStateBmpObj.Data.fpucBitmap          == rgEmptySymbol16x16 )     // no other icon used?
         &&( MDObj.wDevState                         != MD_HEATGRIP        )     // not already shown below?
-        &&( DigInDrv_GPI_GetMeas(eGPI0_Int2)->ucPWM > 0                   ) )   // PWM is active?
+        &&( DigInDrv_GPI_GetMeas(COOLR_PWMIN_PORT)->ucPWM > 0                   ) )   // PWM is active?
     {   VehStateBmpObj.Data.fpucBitmap = rgHeatGrip16x16;
     }
 
@@ -1296,7 +1299,7 @@ void MainDev_Show_Heatgrip(BOOL fInitial)
     UINT8               ucPwmCmp  = 5;              // comparison value to select emty/full bmp
 
     /* get a fresh PWM value */
-    ucPwmCurr       = DigInDrv_GPI_GetMeas(eGPI0_Int2)->ucPWM;
+    ucPwmCurr       = DigInDrv_GPI_GetMeas(COOLR_PWMIN_PORT)->ucPWM;
 
     /* update leftside icon only at initial state */
     if (fInitial == TRUE)
@@ -1631,7 +1634,7 @@ ERRCODE MainDev_MsgEntry_VehState(MESSAGE Msg)
             GPO_SignalCoolRide();       // generate Coolride key input
             LED_SignalAck();             // LED acknowledge for user
             Beep_SignalAck();            // Beeper acknowledge for user (if not disabled by user)
-            //GPO_SetNewState( eGPO_1,  COOLRIDE_KEYPRESSED );  // JUST FOR TESTs: additionally activate other GPO
+            //GPO_SetNewState( eGPO_1,  COOLR_KEYOUT_SIGNAL );  // JUST FOR TESTs: additionally activate other GPO
         }
         else
         {   /* COMMON USE CASE: */

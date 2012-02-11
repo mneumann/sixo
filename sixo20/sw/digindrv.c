@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.12  2012/02/11 12:21:45  tuberkel
+ * dedicated COOLRIDE macros prepared & used
+ *
  * Revision 3.11  2012/02/10 23:45:22  tuberkel
  * - Survelannce HeatGrip <Info> - if active
  * - Surveillance-API reviewed
@@ -240,7 +243,7 @@ ERRCODE DigInDrv_Init(void)
     DigInDrv_FilterInit();
 
     /* Setup Coolride GPI Measurement (GPI0, High-active, 1 sec timeout) */
-    DigInDrv_GPI_SetupMeas( eGPI0_Int2, TRUE, 1000 );
+    DigInDrv_GPI_SetupMeas( COOLR_PWMIN_PORT, COOLR_PWMIN_LOGIC, COOLR_PWMIN_TO );
 
     INT_GLOB_ENABLE;             /* enable all ISRs */
 

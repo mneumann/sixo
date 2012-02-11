@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 1.6  2012/02/11 12:21:45  tuberkel
+ * dedicated COOLRIDE macros prepared & used
+ *
  * Revision 1.5  2012/02/05 11:58:01  tuberkel
  * Coolride Makros adapted
  *
@@ -94,15 +97,6 @@
 /* Mapping LED API to DigOutDrv API  */
 #define GPO_ON      DIGOUT_PERM_ON
 #define GPO_OFF     DIGOUT_PERM_OFF
-
-
-/* Coolride Heat Control
-    - SIxO controls Coolride keyInput by shortening CR-Key to SIxO GPO0-Gnd
-    - Coolride needs at least Key-pressed 100 ms and 380 ms Intervall to next Press
-    - we currently reserve GPO_0 as Coolride Control
-    - we here adjust 100 ms GPO-ON-Time and 280 ms DURATION */
-#define COOLRIDE_KEYPRESSED 100, 0, 280
-#define COOLRIDE_GPO        eGPO_0
 
 
 /* mapping GPO ports to DigOutDriver */

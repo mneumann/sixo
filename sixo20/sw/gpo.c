@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 1.7  2012/02/11 12:21:45  tuberkel
+ * dedicated COOLRIDE macros prepared & used
+ *
  * Revision 1.6  2012/02/05 11:58:01  tuberkel
  * Coolride Makros adapted
  *
@@ -98,6 +101,7 @@
 #include "digoutdr.h"
 #include "gpo.h"
 #include "debug.h"
+#include "sysparam.h"
 
 
 /* global symbols */
@@ -198,7 +202,7 @@ BOOL GPO_GetState( GPO_ENUM eGpo )
 ERRCODE GPO_SignalCoolRide( void )
 {
     ERRCODE RValue;
-    RValue = DigOutDrv_SetNewState( COOLRIDE_GPO, COOLRIDE_KEYPRESSED );
+    RValue = DigOutDrv_SetNewState( COOLR_KEYOUT_PORT, COOLR_KEYOUT_SIGNAL );
     return (RValue);
 }
 
