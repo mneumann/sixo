@@ -68,6 +68,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.7  2012/02/11 09:12:06  tuberkel
+ * BugFix: Beeper use donly if enbaled by user
+ * New: Beep_SignalAck()
+ *
  * Revision 3.6  2012/02/05 11:17:08  tuberkel
  * DigOuts completely reviewed:
  * - central PWM-Out handled via DigOutDriver for ALL DigOuts!
@@ -136,7 +140,7 @@
 /* global symbols */
 
 /* external symbols */
-
+extern DEVFLAGS2_TYPE   gDeviceFlags2;  // device parameters
 
 
 
@@ -174,10 +178,14 @@ ERRCODE Beep_Init(void)
  *********************************************************************** */
 ERRCODE Beep_SetNewState(UINT16 wOn_ms, UINT16 wOff_ms, UINT16 wDur_ms )
 {
-    ERRCODE RValue;
+    ERRCODE RValue = ERR_OK;
 
-    /* ok - now map to the driver function */
-    RValue = DigOutDrv_SetNewState( eDIGOUT_BEEP, wOn_ms, wOff_ms, wDur_ms );
+    /* Beeper enabled by user */
+    if ( gDeviceFlags2.flags.BeeperAvail == TRUE )
+    {
+        /* ok - now map to the driver function */
+        RValue = DigOutDrv_SetNewState( eDIGOUT_BEEP, wOn_ms, wOff_ms, wDur_ms );
+    }
     return (RValue);
 }
 
@@ -204,15 +212,37 @@ BOOL Beep_GetState( void )
 
 /***********************************************************************
  *  FUNCTION:       Beep_SignalOk
- *  DESCRIPTION:    creates an 'OK'-Beep: 600 ms permanent ON
+ *  DESCRIPTION:    creates an 'OK'-Beep: 600 ms ON
  *  PARAMETER:      -
  *  RETURN:         -
  *  COMMENT:        -
  *********************************************************************** */
 void Beep_SignalOk(void)
 {
-    /* set Beeper ON now! */
-    Beep_SetNewState(1, 0, 600 );
+    /* Beeper enabled by user */
+    if ( gDeviceFlags2.flags.BeeperAvail == TRUE )
+    {
+        /* setup Beeper PWM! */
+        Beep_SetNewState(1, 0, 600 );
+    }
+}
+
+
+/***********************************************************************
+ *  FUNCTION:       Beep_SignalAck
+ *  DESCRIPTION:    creates a short 'Ack'-Beep: 300 ms ON
+ *  PARAMETER:      -
+ *  RETURN:         -
+ *  COMMENT:        -
+ *********************************************************************** */
+void Beep_SignalAck(void)
+{
+    /* Beeper enabled by user */
+    if ( gDeviceFlags2.flags.BeeperAvail == TRUE )
+    {
+        /* setup Beeper PWM! */
+        Beep_SetNewState(1, 0, 300 );
+    }
 }
 
 
@@ -227,8 +257,12 @@ void Beep_SignalOk(void)
  *********************************************************************** */
 void Beep_SignalEsc(void)
 {
-    /* pulse Beeper now! */
-    Beep_SetNewState( 50, 50, 1000 );
+    /* Beeper enabled by user */
+    if ( gDeviceFlags2.flags.BeeperAvail == TRUE )
+    {
+        /* setup Beeper PWM! */
+        Beep_SetNewState( 50, 50, 1000 );
+    }
 }
 
 

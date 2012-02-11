@@ -68,6 +68,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.4  2012/02/11 09:12:06  tuberkel
+ * BugFix: Beeper use donly if enbaled by user
+ * New: Beep_SignalAck()
+ *
  * Revision 3.3  2012/02/05 11:17:08  tuberkel
  * DigOuts completely reviewed:
  * - central PWM-Out handled via DigOutDriver for ALL DigOuts!
@@ -97,10 +101,11 @@
 
 
 /* prototypes */
-ERRCODE Beep_Init(void);
-void    Beep_SignalOk(void);
-void    Beep_SignalEsc(void);
-void    Beep_SignalClick(void);
+ERRCODE Beep_Init       ( void );
+void    Beep_SignalOk   ( void );
+void    Beep_SignalAck  ( void );
+void    Beep_SignalEsc  ( void );
+void    Beep_SignalClick( void );
 
 
 /* special test defines (default: off)*/
