@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.6  2012/02/11 00:06:42  tuberkel
+ * - HeatGrip Icon shown in upper area
+ *
  * Revision 3.5  2012/02/10 23:45:22  tuberkel
  * - Survelannce HeatGrip <Info> - if active
  * - Surveillance-API reviewed
@@ -179,7 +182,7 @@
 #define RESTXT_STATE_DLS_SUMMER   "Sommerzeit aktiv!"       //
 #define RESTXT_STATE_DLS_WINTER   "Winterzeit aktiv!"       //
 #define RESTXT_STATE_RTC_BATT     "RTC-Batt. defekt?"       //
-#define RESTXT_STATE_COOLRIDE     "   Heizgriffe!   "       //
+#define RESTXT_STATE_COOLRIDE     "Heizgriffe aktiv!"       //
 #define RESTXT_STATE_SIMULATION   "Simulation aktiv!"       //
 #define RESTXT_STATE_HARDCOPY     " Hardcopy aktiv! "       //
 

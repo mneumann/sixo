@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.22  2012/02/11 00:06:42  tuberkel
+ * - HeatGrip Icon shown in upper area
+ *
  * Revision 3.21  2012/02/10 23:45:22  tuberkel
  * - Survelannce HeatGrip <Info> - if active
  * - Surveillance-API reviewed
@@ -438,6 +441,7 @@ void    MainDev_UpdTimeDate             (void);
 void    MainDev_UpdMeasVal              (void);
 void    MainDev_ObjListInit             (void);
 void    MainDev_ShowHorLine             (void);
+void    MainDev_Show_Icon               (void);
 
 
 
@@ -982,19 +986,8 @@ void MainDev_Show(BOOL fShow)
             else MainDev_UpdTimeDate(); // initial display only!
 
             /* ---------------------------------------------------- */
-            /* Info/Warning/Error Icon
-               (Most important icon is dominant),
-               just switch the Bitmap raw data to the adequate ressource */
-            // default: empty symbol
-            VehStateBmpObj.Data.fpucBitmap = rgEmptySymbol16x16;
-            if      ( Surv_ListGetCount( eSURVST_ERROR   ) )
-                VehStateBmpObj.Data.fpucBitmap = rgErrorSymbol16x16;
-            else if ( Surv_ListGetCount( eSURVST_WARNING ) )
-                VehStateBmpObj.Data.fpucBitmap = rgWarningSymbol16x16;
-            else if ( Surv_ListGetCount( eSURVST_INFO    ) )
-                VehStateBmpObj.Data.fpucBitmap = rgInfoSymbol16x16;
-            // show selected symbol
-            ObjBmpShow( &VehStateBmpObj );
+            /* Show Info/Warning/Error Icon */
+            MainDev_Show_Icon();
 
             /* ---------------------------------------------------- */
             // selected gear */
@@ -1060,17 +1053,9 @@ void MainDev_Show(BOOL fShow)
                  ObjTextShow( &SurvVehStateTxtObj );
             // else MainDev_UpdTimeDate(); // NO UPDATE HERE, will be done by special update messages only!
 
-            /* which icon has to be used: Info / Warning / Error ?
-               (Most important icon is dominant),
-               just switch the Bitmap raw data to the adequate ressource */
-            VehStateBmpObj.Data.fpucBitmap = rgEmptySymbol16x16;    // default: no/empty icon
-            if      ( Surv_ListGetCount( eSURVST_ERROR ) )
-                VehStateBmpObj.Data.fpucBitmap = rgErrorSymbol16x16;
-            else if ( Surv_ListGetCount( eSURVST_WARNING) )
-                VehStateBmpObj.Data.fpucBitmap = rgWarningSymbol16x16;
-            else if ( Surv_ListGetCount( eSURVST_INFO  ) )
-                VehStateBmpObj.Data.fpucBitmap = rgInfoSymbol16x16;
-            ObjBmpShow( &VehStateBmpObj );
+            /* ---------------------------------------------------- */
+            /* Show Info/Warning/Error Icon */
+            MainDev_Show_Icon();
 
             // SIMULATION ONLY: selected gear - show all gears every second */
             #if(GEARBOX==1)
@@ -1130,6 +1115,42 @@ void MainDev_Show(BOOL fShow)
     }
 }
 
+
+
+/***********************************************************************
+ *  FUNCTION:       MainDev_Show_Icon
+ *  DESCRIPTION:    Shows the most relevant icon (if any)
+ *  PARAMETER:      -
+ *  RETURN:         -
+ *  COMMENT:        Just switches the Bitmap raw data to the adequate ressource
+ *********************************************************************** */
+void MainDev_Show_Icon(void)
+{
+    /* default: no/empty icon */
+    VehStateBmpObj.Data.fpucBitmap = rgEmptySymbol16x16;
+
+
+    /* which icon has to be used: Info / Warning / Error ? */
+    if      ( Surv_ListGetCount( eSURVST_ERROR ) )
+        VehStateBmpObj.Data.fpucBitmap = rgErrorSymbol16x16;
+    else if ( Surv_ListGetCount( eSURVST_WARNING) )
+        VehStateBmpObj.Data.fpucBitmap = rgWarningSymbol16x16;
+    else if ( Surv_ListGetCount( eSURVST_INFO  ) )
+    {
+        /* Check: heatgrip Info is most top? */
+        if (  ( 0           == Surv_ListGetIndex( eSURVID_HEATGRIP ) )
+            &&( MD_HEATGRIP != MDObj.wDevState                       ) )
+        {   /* show special heatgrip icon (only if not already shown in lower area) */
+            VehStateBmpObj.Data.fpucBitmap = rgHeatGrip16x16;
+        }
+        else
+        {   /* show default info icon */
+            VehStateBmpObj.Data.fpucBitmap = rgInfoSymbol16x16;
+        }
+    }
+    /* show the selected bmp */
+    ObjBmpShow( &VehStateBmpObj );
+}
 
 
 /***********************************************************************
