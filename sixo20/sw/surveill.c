@@ -70,6 +70,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.8  2012/02/11 09:16:14  tuberkel
+ * Disabled HeatGrip as 'VehState'
+ *
  * Revision 3.7  2012/02/10 23:45:22  tuberkel
  * - Survelannce HeatGrip <Info> - if active
  * - Surveillance-API reviewed
@@ -783,9 +786,11 @@ void Surv_CheckAnalogPorts(void)
 void Surv_CheckDevice(void)
 {
     /* User Info: heatgrips active? */
+    #if 0   /* disabled - should not be handled as 'Info' */
     if ( DigInDrv_GPI_GetMeas(eGPI0_Int2)->ucPWM > 0 )
          Surv_ListSetParamState(eSURVID_HEATGRIP, eSURVST_INFO);
     else Surv_ListSetParamState(eSURVID_HEATGRIP, eSURVST_OK);
+    #endif
 
     /* User Info: do not drive with vehicle simulation on! */
     if (gDeviceFlags2.flags.VehicSimul == TRUE)
