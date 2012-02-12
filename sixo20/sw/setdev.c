@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.12  2012/02/12 12:44:34  tuberkel
+ * New: small manual to add new screens/objects
+ *
  * Revision 3.11  2012/02/12 12:17:38  tuberkel
  * partial COMPASS CompilerFix
  *
@@ -179,10 +182,20 @@
 
 /* =================================================================
 
-    HOW TO INSERT A NEW SETUP SCREEN:
+    HOW TO INSERT A NEW SETUP SUB SCREEN:
     ---------------------------------
 
-    1.
+    1. Add new SetDevice state in SETDEV_STATE enum list
+    2. Add new defintions of display objects (text/bool/select) in objects definition part
+    3. Add new external data objects (e.g. SystemParameter) if needed
+    4. Add new Screen Headline TEXTOBJECT   TextObj_HL_xxx;
+    5. Add new Ressource text string constants in 'resource_xx.h'
+    6. Add new initial object data in static object array (e.g. TextObj[], /bool/select)
+    7. Add new defintion ObjectList_xxx,  for all the above objects part of that screen (e.g. ObjectList_Compass[])
+    8. Add this ObjectList_xxx to function SetDev_ObjListInit()
+    9. Add new handler functions for these objects to SetDev_ValuesChanges()
+   10. Add new handler functions for these objects to SetDev_ValuesUpdate()
+   11. Add new handler functions for these objects to SetDev_ValuesInit(void)
 
   ================================================================== */
 
@@ -225,6 +238,7 @@ typedef enum
     SD_VEHIC,       //   vehicle setup
     SD_DEVICE,      //   device setup
     SD_OUT,         //   LED/LCD setup
+    SD_EXT,         //   extensions setup
     #if(COMPASS==1)
     SD_COMP,        //   compass setup
     #endif
@@ -380,35 +394,6 @@ static EDITNUMBEROBJECT EditLogoDelayObj;               // complete logo delay o
 
 
 // ----------------------------------------------------------------
-// Compass Display Mode Object:
-static SELECTOBJECT     SelectCompDplObj;               // compass calibration state object
-extern UINT8            gCompDplMode;                   // Eeprom value
-static const STRING     pszSelectCompD[RESTXT_SET_COMPD_CNT] =
-                        {   RESTXT_SET_COMPD_NA  ,
-                            RESTXT_SET_COMPD_HD  ,
-                            RESTXT_SET_COMPD_GR  ,
-                            RESTXT_SET_COMPD_HDGR
-                        };
-
-
-// ----------------------------------------------------------------
-// Compass Calibration State Object (temporary while calibration mode is active):
-static SELECTOBJECT     SelectCompCalStObj;             // compass display mode object
-static UINT8            bCmpCalState;                   // to detect user pressed buttons/activity
-static const STRING     pszSelectCompC[RESTXT_SET_COMPC_CNT] =
-                        {   RESTXT_SET_COMPC_NA   ,
-                            RESTXT_SET_COMPC_WORK ,
-                            RESTXT_SET_COMPC_HHOLD,
-                            RESTXT_SET_COMPC_HTURN,
-                            RESTXT_SET_COMPC_HSAVE,
-                            RESTXT_SET_COMPC_VHOLD,
-                            RESTXT_SET_COMPC_VTURN,
-                            RESTXT_SET_COMPC_VSAVE
-                        };
-
-
-
-// ----------------------------------------------------------------
 // Language Selection Object
 static SELECTOBJECT     SelectLangObj;                  // Language Selection Object
 extern UINT8            gLanguage;                      // eeprom value
@@ -503,9 +488,43 @@ static EDITBOOLOBJECT   EditBoolEeprRstObj;             // complete boolean Eepr
 static EDITBOOLOBJECT   EditBoolBeepCtrlObj;            // complete boolean Beeper control Object
        BOOL             gfBeepCtrl;                     // local value
 
+
+// ----------------------------------------------------------------
+// EXTENSIONS Settings objects
+
+// ----------------------------------------------------------------
+// Compass Display Mode Object:
+static SELECTOBJECT     SelectCompDplObj;               // compass calibration state object
+extern UINT8            gCompDplMode;                   // Eeprom value
+static const STRING     pszSelectCompD[RESTXT_SET_COMPD_CNT] =
+                        {   RESTXT_SET_COMPD_NA  ,
+                            RESTXT_SET_COMPD_HD  ,
+                            RESTXT_SET_COMPD_GR  ,
+                            RESTXT_SET_COMPD_HDGR
+                        };
+
+
+// ----------------------------------------------------------------
+// Compass Calibration State Object (temporary while calibration mode is active):
+static SELECTOBJECT     SelectCompCalStObj;             // compass display mode object
+static UINT8            bCmpCalState;                   // to detect user pressed buttons/activity
+static const STRING     pszSelectCompC[RESTXT_SET_COMPC_CNT] =
+                        {   RESTXT_SET_COMPC_NA   ,
+                            RESTXT_SET_COMPC_WORK ,
+                            RESTXT_SET_COMPC_HHOLD,
+                            RESTXT_SET_COMPC_HTURN,
+                            RESTXT_SET_COMPC_HSAVE,
+                            RESTXT_SET_COMPC_VHOLD,
+                            RESTXT_SET_COMPC_VTURN,
+                            RESTXT_SET_COMPC_VSAVE
+                        };
+
 // Compass Available Control
 static EDITBOOLOBJECT   EditBoolCompAvailObj;           // complete boolean Compass main switch Object
        BOOL             gfCompAvail;                    // local value
+
+
+
 
 
 // ----------------------------------------------------------------
