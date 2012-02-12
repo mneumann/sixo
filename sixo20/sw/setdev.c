@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.11  2012/02/12 12:17:38  tuberkel
+ * partial COMPASS CompilerFix
+ *
  * Revision 3.10  2012/02/11 12:21:45  tuberkel
  * dedicated COOLRIDE macros prepared & used
  *
@@ -1150,9 +1153,9 @@ void SetDev_ValuesChanges( void )
 
 #if (COMPASS==1)
     // CompassCalib State in edit mode? -----------------
-    if (EditCompassCalibObj.State.bits.fEditActive == TRUE )    // edit mode active?
+    if (SelectCompDplObj.State.bits.fEditActive == TRUE )    // edit mode active?
     {
-        if(bEditBuffer < bCurrentCmpCalState)           // decr. state NOT allowed! -> fix old value!
+        if(bEditBuffer  < bCurrentCmpCalState)           // decr. state NOT allowed! -> fix old value!
         {   bEditBuffer = bCurrentCmpCalState;
         }
         else if(bEditBuffer > bCurrentCmpCalState+1)    // incr. >1 NOT allowed! -> limit new value!
