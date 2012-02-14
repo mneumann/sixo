@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.14  2012/02/14 22:36:22  tuberkel
+ * Functions reviewed
+ *
  * Revision 3.13  2012/02/14 21:08:03  tuberkel
  * - #define COMPASS ==> COMPDRV
  * - Compass SystemParam moved from devFlags2 -> 3
@@ -199,7 +202,7 @@
     6. Add new initial object data in static object array (e.g. TextObj[], /bool/select)
     7. Add new defintion ObjectList_xxx,  for all the above objects part of that screen (e.g. ObjectList_Extension1[])
     8. Add this ObjectList_xxx to function SetDev_ObjListInit()
-    9. Add new handler functions for these objects to SetDev_ValuesChanges()
+    9. Add new handler functions for these objects to SetDev_CheckChanges()
    10. Add new handler functions for these objects to SetDev_ValuesUpdate()
    11. Add new handler functions for these objects to SetDev_ValuesInit(void)
 
@@ -780,7 +783,7 @@ static const void far * ObjectList_Extension1[] =
 // non public prototypes
 void    SetDev_Show           (BOOL fShow);
 ERRCODE SetDev_TryObjects     (MESSAGE GivenMsg);
-void    SetDev_ValuesChanges   (void);
+void    SetDev_CheckChanges   (void);
 void    SetDev_ValuesUpdate   (void);
 void    SetDev_ValuesInit     (void);
 void    SetDev_CheckState    (MESSAGE GivenMsg);
@@ -1005,7 +1008,7 @@ ERRCODE SetDev_MsgEntry(MESSAGE GivenMsg)
                                         GivenMsg);
                     /* Any change? check & execute & show it! */
                     if( RValue == ERR_MSG_PROCESSED )
-                    {   SetDev_ValuesChanges();
+                    {   SetDev_CheckChanges();
                         SetDev_Show(TRUE);
                     }
                 }
@@ -1058,44 +1061,72 @@ ERRCODE SetDev_MsgEntry(MESSAGE GivenMsg)
 
 
 
-
 /***********************************************************************
- *  FUNCTION:       SetDev_ValuesChanges
- *  DESCRIPTION:    Gets called, after OK button pressed:
- *                  Compares all screen object data for any change.
- *                  If any, the global data sources will be updated too
- *                  and the changed value will be executed immedeatly.
+ *  FUNCTION:       SetDev_CheckChanges_Vehicle
+ *  DESCRIPTION:    Subfunction of SetDev_CheckChanges() (see for details)
  *  PARAMETER:      -
  *  RETURN:         -
  *  COMMENT:        WE HERE HANDLE ONLY THOSE DATA, WHICH CAN _NOT_DIRECTLY_
  *                  BE ACCESSED BY THE EDIT OBJECT VIA AN ADDRESS!
- *
- *                  Special handling: Some changed values will be executed
- *                  while edit mode is STILL ACTIVE (like Contrast Level),
- *                  in order to give the user the chance to 'view' what he
- *                  is doing!
- *
- *                  Note that file-local-copies of global data (e.g.
- *                  local 'CCFNom' of 'CCF.nibble.nom' are changed by
- *                  edit object only if 'Save' button was pressed! So,
- *                  while edit process is still active, these local values
- *                  won't change!
- *
- *                  BUT: If you like to track the current(!) edit value
- *                  while edit mode is active, you should use the EDIT
- *                  BUFFER value instead! (e.g. DisplayContrast)
  *********************************************************************** */
-void SetDev_ValuesChanges( void )
+void SetDev_CheckChanges_Vehicle( void )
 {
-    // Wheel Size changed? -------------------------
-    // no check necessary, we directly access global data when editor finishes!
+    // ============================================================
+    // VEHICLE SETTINGS
+    // ============================================================
+
+    // Bike TYPE changed? ------------------
+    if ( gBikeType != LocalBikeType )
+    {    gBikeType  = LocalBikeType;                // save that new value
+        // essential: reset all vehicle states to 'all right' too! */
+        Surv_ResetAllParameters();
+        // essential: adapt vehicle specific digital filter settings too! */
+        DigInDrv_FilterInit();
+    }
 
     // CCF value was changed? ----------------------
     if (  (CCF.nibble.nom   != CCFNom  )
         ||(CCF.nibble.denom != CCFDenom) )
-    {   CCF.nibble.nom   = CCFNom;                              // save global -> auto eeprom update!
+    {   CCF.nibble.nom   = CCFNom;              // save global -> auto eeprom update!
         CCF.nibble.denom = CCFDenom;
     }
+
+    // Service km changed? -------------------
+    if( gNextServKm.km != dwServKm )
+    {   gNextServKm.km  = dwServKm;             // give back km into dkm structure
+    }
+
+    // Vehicle Distance changed? -------------------
+    if( VehicDist.km != dwVehicDist )
+    {   VehicDist.km = dwVehicDist * 100L;          // give back km into dkm structure
+        MeasSetVehicDist( &VehicDist );             // save into system variable -> auto eeprom update!
+    }
+
+    // RPM flash setting changed? ------------------
+    // no check necessary, we directly access global data when editor finishes!
+
+    // WHEEL SIZE setting changed? ------------------
+    // no check necessary, we directly access global data when editor finishes!
+
+    // Bike LOGO changed? ------------------
+    // no check necessary, we directly access global data
+}
+
+
+
+/***********************************************************************
+ *  FUNCTION:       SetDev_CheckChanges_Device
+ *  DESCRIPTION:    Subfunction of SetDev_CheckChanges() (see for details)
+ *  PARAMETER:      -
+ *  RETURN:         -
+ *  COMMENT:        WE HERE HANDLE ONLY THOSE DATA, WHICH CAN _NOT_DIRECTLY_
+ *                  BE ACCESSED BY THE EDIT OBJECT VIA AN ADDRESS!
+ *********************************************************************** */
+void SetDev_CheckChanges_Device( void )
+{
+    // ============================================================
+    // DEVICE SETTINGS
+    // ============================================================
 
     // Eeprom Reset required by user? -----------------
     if( gfEepromReset == 1 )        // saved with changes?
@@ -1132,86 +1163,6 @@ void SetDev_ValuesChanges( void )
     {   gDeviceFlags2.flags.Hardcopy   = gfHardcopy;            // save global -> auto eeprom update!
     }
 
-    // Backlight on/off and Level ------------------
-    if( gDisplayFlags.flags.BacklOnLevel != bBacklOnLevel )     // saved with changes?
-    {   gDisplayFlags.flags.BacklOnLevel = bBacklOnLevel;       // save global -> auto eeprom update!
-    }
-
-    // BacklightLevel was changed? -----------------
-    if( gDisplayFlags.flags.BacklLev != bBacklLev )             // saved with changes?
-    {   gDisplayFlags.flags.BacklLev = bBacklLev;               // save global -> auto eeprom update!
-    }
-
-    // NOTE: As BacklightSwitch and -Level are to be set in one
-    //       API function, they are to be handled together here!
-    // BacklightSwitch in edit mode? -----------
-    if( EditBacklObj.State.bits.fEditActive == TRUE )               // edit mode active?
-    {   LCDDrvSetBacklightLevel( DisplBacklightCheckOn(bEditBuffer),  // use CURRENT EDIT VALUE of BacklightOnlevel!!!
-                                 gDisplayFlags.flags.BacklLev );
-    }
-    else
-    {  // BacklightLevel in edit mode? -----------
-       if( EditBacklLevObj.State.bits.fEditActive == TRUE )         // NO: edit mode level active?
-       {    LCDDrvSetBacklightLevel(  DisplBacklightCheckOn(gDisplayFlags.flags.BacklOnLevel),
-                                      bEditBuffer );                // use CURRENT EDIT VALUE of BacklightLevel!!!
-       }
-       else
-       {    // ELSE: Set current Backlight-Switch-Level with current backlight level
-            LCDDrvSetBacklightLevel(  DisplBacklightCheckOn(gDisplayFlags.flags.BacklOnLevel),
-                                      gDisplayFlags.flags.BacklLev ); //set global values
-       }
-    }
-
-    // Service km changed? -------------------
-    if( gNextServKm.km != dwServKm )
-    {    gNextServKm.km = dwServKm;                       // give back km into dkm structure
-    }
-
-    // CompassCalib State in edit mode? -----------------
-    if (SelectCompDplObj.State.bits.fEditActive == TRUE )    // edit mode active?
-    {
-        if(bEditBuffer  < bCmpCalState)           // decr. state NOT allowed! -> fix old value!
-        {   bEditBuffer = bCmpCalState;
-        }
-        else if(bEditBuffer > bCmpCalState+1)    // incr. >1 NOT allowed! -> limit new value!
-        {   bEditBuffer = bCmpCalState+1;
-        }
-        else if (bEditBuffer != bCmpCalState)    // still a user activity detected?
-        {
-            bCmpCalState++;                      // should indicate the real compass driver calibration state
-            switch(bCmpCalState)
-            {   case 0: ODS( DBG_SYS, DBG_INFO, "Waiting for Compass Calibration start.."); break;
-                case 1: ODS( DBG_SYS, DBG_INFO, "Step 1: Hold compass horizontal and keep still!"); break;
-                case 2: ODS( DBG_SYS, DBG_INFO, "Step 2: Multiple rotate compass horizontal!"); break;
-                case 3: ODS( DBG_SYS, DBG_INFO, "Step 3: Save horizontal measurement!"); break;
-                case 4: ODS( DBG_SYS, DBG_INFO, "Step 4: Hold compass vertical and keep still!"); break;
-                case 5: ODS( DBG_SYS, DBG_INFO, "Step 5: Multiple rotate compass vertical!"); break;
-                case 6: ODS( DBG_SYS, DBG_INFO, "Step 6: Save vertical measurement!"); break;
-            }
-            CompDrv_Cmd_IncCalState();                    // ==> activate next calibration step!
-        }
-        else
-        {   // nothing changed ==> nothing to do!
-        }
-    }
-    else    // currently not (no longer) in edit mode
-    {   // check for changed value after editing finished with ESC / OK
-        if (bCmpCalState == 0)                      // user pressed ESC ?
-        {   ODS( DBG_SYS, DBG_INFO, "Calibration aborted => Reset Calibration Mode!");
-            CompDrv_Cmd_Reset();                      // ==> reset calibration process!
-        }
-        if (bCmpCalState < 6)                      // user OK before end 'state 6'?
-        {   ODS( DBG_SYS, DBG_INFO, "Calibration not completed => Reset Calibration Mode!");
-            CompDrv_Cmd_Reset();                      // ==> reset calibration process!
-        }
-        else
-        {   // success finished calibration state!
-            ODS( DBG_SYS, DBG_INFO, "Calibration successfully completed!");
-        }
-        bCmpCalState   = 0;                         // reset to default state
-        bCmpCalState = 0;
-    }
-
     // TripCntFlag was changed? -----------------
     if( gDeviceFlags2.flags.TripCLongDistUp != fTripCntLongUp )     // compare bits only
     {   gDeviceFlags2.flags.TripCLongDistUp  = fTripCntLongUp;      // save global -> auto eeprom update!
@@ -1221,47 +1172,23 @@ void SetDev_ValuesChanges( void )
     if( gDeviceFlags2.flags.Metric != fMetric )                     // compare bits only
     {   gDeviceFlags2.flags.Metric  = fMetric;                      // save global -> auto eeprom update!
     }
-
-    // LED Warning Mode was changed? -----------------
-    if( gDeviceFlags2.flags.LedWarnMode != fLedWarnMode )           // compare bits only
-    {   gDeviceFlags2.flags.LedWarnMode  = fLedWarnMode;            // save global -> auto eeprom update!
-    }
-
-    // Vehicle Distance changed? -------------------
-    if( VehicDist.km != dwVehicDist )
-    {   VehicDist.km = dwVehicDist * 100L;          // give back km into dkm structure
-        MeasSetVehicDist( &VehicDist );             // save into system variable -> auto eeprom update!
-    }
-
-    // RPM flash setting changed? ------------------
-    // no check necessary, we directly access global data when editor finishes!
-
-    // Bike TYPE changed? ------------------
-    if ( gBikeType != LocalBikeType )
-    {    gBikeType  = LocalBikeType;                // save that new value
-        // essential: reset all vehicle states to 'all right' too! */
-        Surv_ResetAllParameters();
-        // essential: adapt vehicle specific digital filter settings too! */
-        DigInDrv_FilterInit();
-    }
-
-    // Bike LOGO changed? ------------------
-    // no check necessary, we directly access global data
-    // 'gLogoSelection' when editor finishes and auto eeprom update!
+}
 
 
-    // Display Contrast changed? --------------------
-    if( gDisplayFlags.flags.ContrLev != bContrLev ){            // saved with changes?
-        gDisplayFlags.flags.ContrLev = bContrLev;               // save global -> auto eeprom update!
-    }
 
-    // Display Contrast in edit mode? --------------
-    if( EditContrLevObj.State.bits.fEditActive == FALSE ){      // edit mode NOT active?
-        LCDDrvSetContrastLevel( gDisplayFlags.flags.ContrLev ); // set global contrast value
-    }
-    else{
-        LCDDrvSetContrastLevel(bEditBuffer);                    // execute changes immediatly!
-    }
+/***********************************************************************
+ *  FUNCTION:       SetDev_CheckChanges_TimeDate
+ *  DESCRIPTION:    Subfunction of SetDev_CheckChanges() (see for details)
+ *  PARAMETER:      -
+ *  RETURN:         -
+ *  COMMENT:        WE HERE HANDLE ONLY THOSE DATA, WHICH CAN _NOT_DIRECTLY_
+ *                  BE ACCESSED BY THE EDIT OBJECT VIA AN ADDRESS!
+ *********************************************************************** */
+void SetDev_CheckChanges_TimeDate( void )
+{
+    // ============================================================
+    // TIME/DATE SETTINGS
+    // ============================================================
 
     // Any Date changed? -------------------------------
     //
@@ -1344,6 +1271,170 @@ void SetDev_ValuesChanges( void )
 
 
 
+/***********************************************************************
+ *  FUNCTION:       SetDev_CheckChanges_LCDLED
+ *  DESCRIPTION:    Subfunction of SetDev_CheckChanges() (see for details)
+ *  PARAMETER:      -
+ *  RETURN:         -
+ *  COMMENT:        WE HERE HANDLE ONLY THOSE DATA, WHICH CAN _NOT_DIRECTLY_
+ *                  BE ACCESSED BY THE EDIT OBJECT VIA AN ADDRESS!
+ *********************************************************************** */
+void SetDev_CheckChanges_LCDLED( void )
+{
+    // ============================================================
+    // LCD/LED SETTINGS
+    // ============================================================
+
+    // Backlight on/off and Level ------------------
+    if( gDisplayFlags.flags.BacklOnLevel != bBacklOnLevel )     // saved with changes?
+    {   gDisplayFlags.flags.BacklOnLevel = bBacklOnLevel;       // save global -> auto eeprom update!
+    }
+
+    // BacklightLevel was changed? -----------------
+    if( gDisplayFlags.flags.BacklLev != bBacklLev )             // saved with changes?
+    {   gDisplayFlags.flags.BacklLev = bBacklLev;               // save global -> auto eeprom update!
+    }
+
+    // NOTE: As BacklightSwitch and -Level are to be set in one
+    //       API function, they are to be handled together here!
+    // BacklightSwitch in edit mode? -----------
+    if( EditBacklObj.State.bits.fEditActive == TRUE )               // edit mode active?
+    {   LCDDrvSetBacklightLevel( DisplBacklightCheckOn(bEditBuffer),  // use CURRENT EDIT VALUE of BacklightOnlevel!!!
+                                 gDisplayFlags.flags.BacklLev );
+    }
+    else
+    {  // BacklightLevel in edit mode? -----------
+       if( EditBacklLevObj.State.bits.fEditActive == TRUE )         // NO: edit mode level active?
+       {    LCDDrvSetBacklightLevel(  DisplBacklightCheckOn(gDisplayFlags.flags.BacklOnLevel),
+                                      bEditBuffer );                // use CURRENT EDIT VALUE of BacklightLevel!!!
+       }
+       else
+       {    // ELSE: Set current Backlight-Switch-Level with current backlight level
+            LCDDrvSetBacklightLevel(  DisplBacklightCheckOn(gDisplayFlags.flags.BacklOnLevel),
+                                      gDisplayFlags.flags.BacklLev ); //set global values
+       }
+    }
+
+    // LED Warning Mode was changed? -----------------
+    if( gDeviceFlags2.flags.LedWarnMode != fLedWarnMode )           // compare bits only
+    {   gDeviceFlags2.flags.LedWarnMode  = fLedWarnMode;            // save global -> auto eeprom update!
+    }
+
+    // Display Contrast changed? --------------------
+    if( gDisplayFlags.flags.ContrLev != bContrLev ){            // saved with changes?
+        gDisplayFlags.flags.ContrLev = bContrLev;               // save global -> auto eeprom update!
+    }
+
+    // Display Contrast in edit mode? --------------
+    if( EditContrLevObj.State.bits.fEditActive == FALSE ){      // edit mode NOT active?
+        LCDDrvSetContrastLevel( gDisplayFlags.flags.ContrLev ); // set global contrast value
+    }
+    else{
+        LCDDrvSetContrastLevel(bEditBuffer);                    // execute changes immediatly!
+    }
+}
+
+
+
+/***********************************************************************
+ *  FUNCTION:       SetDev_CheckChanges_Extension
+ *  DESCRIPTION:    Subfunction of SetDev_CheckChanges() (see for details)
+ *  PARAMETER:      -
+ *  RETURN:         -
+ *  COMMENT:        WE HERE HANDLE ONLY THOSE DATA, WHICH CAN _NOT_DIRECTLY_
+ *                  BE ACCESSED BY THE EDIT OBJECT VIA AN ADDRESS!
+ *********************************************************************** */
+void SetDev_CheckChanges_Extension( void )
+{
+    // ============================================================
+    // EXTENSIONS SETTINGS
+    // ============================================================
+
+    // CompassCalib State in edit mode? -----------------
+    if (SelectCompDplObj.State.bits.fEditActive == TRUE )    // edit mode active?
+    {
+        if(bEditBuffer  < bCmpCalState)           // decr. state NOT allowed! -> fix old value!
+        {   bEditBuffer = bCmpCalState;
+        }
+        else if(bEditBuffer > bCmpCalState+1)    // incr. >1 NOT allowed! -> limit new value!
+        {   bEditBuffer = bCmpCalState+1;
+        }
+        else if (bEditBuffer != bCmpCalState)    // still a user activity detected?
+        {
+            bCmpCalState++;                      // should indicate the real compass driver calibration state
+            switch(bCmpCalState)
+            {   case 0: ODS( DBG_SYS, DBG_INFO, "Waiting for Compass Calibration start.."); break;
+                case 1: ODS( DBG_SYS, DBG_INFO, "Step 1: Hold compass horizontal and keep still!"); break;
+                case 2: ODS( DBG_SYS, DBG_INFO, "Step 2: Multiple rotate compass horizontal!"); break;
+                case 3: ODS( DBG_SYS, DBG_INFO, "Step 3: Save horizontal measurement!"); break;
+                case 4: ODS( DBG_SYS, DBG_INFO, "Step 4: Hold compass vertical and keep still!"); break;
+                case 5: ODS( DBG_SYS, DBG_INFO, "Step 5: Multiple rotate compass vertical!"); break;
+                case 6: ODS( DBG_SYS, DBG_INFO, "Step 6: Save vertical measurement!"); break;
+            }
+            CompDrv_Cmd_IncCalState();                    // ==> activate next calibration step!
+        }
+        else
+        {   // nothing changed ==> nothing to do!
+        }
+    }
+    else    // currently not (no longer) in edit mode
+    {   // check for changed value after editing finished with ESC / OK
+        if (bCmpCalState == 0)                      // user pressed ESC ?
+        {   ODS( DBG_SYS, DBG_INFO, "Calibration aborted => Reset Calibration Mode!");
+            CompDrv_Cmd_Reset();                      // ==> reset calibration process!
+        }
+        if (bCmpCalState < 6)                      // user OK before end 'state 6'?
+        {   ODS( DBG_SYS, DBG_INFO, "Calibration not completed => Reset Calibration Mode!");
+            CompDrv_Cmd_Reset();                      // ==> reset calibration process!
+        }
+        else
+        {   // success finished calibration state!
+            ODS( DBG_SYS, DBG_INFO, "Calibration successfully completed!");
+        }
+        bCmpCalState = 0;                         // reset to default state
+    }
+}
+
+
+
+/***********************************************************************
+ *  FUNCTION:       SetDev_CheckChanges
+ *  DESCRIPTION:    Gets called, after OK button pressed:
+ *                  Compares all screen object data for any change.
+ *                  If any, the global data sources will be updated too
+ *                  and the changed value will be executed immedeatly.
+ *  PARAMETER:      -
+ *  RETURN:         -
+ *  COMMENT:        WE HERE HANDLE ONLY THOSE DATA, WHICH CAN _NOT_DIRECTLY_
+ *                  BE ACCESSED BY THE EDIT OBJECT VIA AN ADDRESS!
+ *
+ *                  Special handling: Some changed values will be executed
+ *                  while edit mode is STILL ACTIVE (like Contrast Level),
+ *                  in order to give the user the chance to 'view' what he
+ *                  is doing!
+ *
+ *                  Note that file-local-copies of global data (e.g.
+ *                  local 'CCFNom' of 'CCF.nibble.nom' are changed by
+ *                  edit object only if 'Save' button was pressed! So,
+ *                  while edit process is still active, these local values
+ *                  won't change!
+ *
+ *                  BUT: If you like to track the current(!) edit value
+ *                  while edit mode is active, you should use the EDIT
+ *                  BUFFER value instead! (e.g. DisplayContrast)
+ *
+ *********************************************************************** */
+void SetDev_CheckChanges( void )
+{
+    SetDev_CheckChanges_Vehicle();          // VEHICLE SETTINGS
+    SetDev_CheckChanges_Device();           // DEVICE SETTINGS
+    SetDev_CheckChanges_TimeDate();         // TIME/DATE SETTINGS
+    SetDev_CheckChanges_LCDLED();           // LCD/LED SETTINGS
+    SetDev_CheckChanges_Extension();        // EXTENSIONS SETTINGS
+}
+
+
+
 
 /***********************************************************************
  *  FUNCTION:       SetDev_ValuesUpdate
@@ -1374,6 +1465,16 @@ void SetDev_ValuesUpdate(void)
 
     // REFRESH ALL DYNAMIC VALUES - ONLY IF NOT IN EDIT MODE
 
+    // ============================================================
+    // VEHICLE SETTINGS
+    // ============================================================
+
+    // Cylinder Correctur Factor
+    if (EditCCFNomObj.State.bits.fEditActive == FALSE)
+        CCFNom = CCF.nibble.nom;
+    if (EditCCFDenomObj.State.bits.fEditActive == FALSE)
+        CCFDenom = CCF.nibble.denom;
+
     // vehicle km
     if (EditVehicDistObj.State.bits.fEditActive == FALSE)
     {   VehicDist = MeasGetVehicDist(MR_KM);            // get fresh value
@@ -1385,12 +1486,9 @@ void SetDev_ValuesUpdate(void)
     {   dwServKm = gNextServKm.km;                      // get km only
     }
 
-    // compass state
-    if (SelectCompCalStObj.State.bits.fEditActive == FALSE)
-    {   COMPDRV_HEADINFO *ptHeadingInfo;
-        ptHeadingInfo = CompassGetHeadingInfo();
-        bCmpCalState  = ptHeadingInfo->ucCalState;      // get current driver state
-    }
+    // ============================================================
+    // DEVICE SETTINGS
+    // ============================================================
 
     // tripcounter state
     if (SelectTripObj.State.bits.fEditActive == FALSE)
@@ -1401,47 +1499,6 @@ void SetDev_ValuesUpdate(void)
     if (SelectMetricObj.State.bits.fEditActive == FALSE)
     {   fMetric = gDeviceFlags2.flags.Metric;
     }
-
-    // Led Warning Mode state
-    if (SelectLedWMObj.State.bits.fEditActive == FALSE)
-    {   fLedWarnMode = gDeviceFlags2.flags.LedWarnMode;
-    }
-
-    // Cylinder Correctur Factor
-    if (EditCCFNomObj.State.bits.fEditActive == FALSE)
-        CCFNom = CCF.nibble.nom;
-    if (EditCCFDenomObj.State.bits.fEditActive == FALSE)
-        CCFDenom = CCF.nibble.denom;
-
-    // backlight level
-    if (EditBacklObj.State.bits.fEditActive == FALSE)
-        bBacklOnLevel = gDisplayFlags.flags.BacklOnLevel;
-    if (EditBacklLevObj.State.bits.fEditActive == FALSE)
-        bBacklLev = gDisplayFlags.flags.BacklLev;
-    if (EditContrLevObj.State.bits.fEditActive == FALSE)
-        bContrLev   = gDisplayFlags.flags.ContrLev;
-
-    // date
-    TimeDate_GetDate( &RTCDateCopy );       // get current date
-    if (EditDayObj.State.bits.fEditActive == FALSE)
-        bDate = RTCDateCopy.bDate;
-    if (EditMonthObj.State.bits.fEditActive == FALSE)
-        bMonth = RTCDateCopy.bMonth;
-    if (EditYearObj.State.bits.fEditActive == FALSE)
-        bYear = RTCDateCopy.bYear;
-
-    // time
-    TimeDate_GetTime( &RTCTimeCopy );       // get current date
-    if (EditHourObj.State.bits.fEditActive == FALSE)
-        bHour = RTCTimeCopy.bHour;
-    if (EditMinObj.State.bits.fEditActive == FALSE)
-        bMin = RTCTimeCopy.bMin;
-    if (EditSecObj.State.bits.fEditActive == FALSE)
-        bSec = RTCTimeCopy.bSec;
-
-    // RTC calibration value
-    if (EditClkCalibObj.State.bits.fEditActive == FALSE)
-        TimeDate_GetCalibDirect( &bClkCalib );  // get calibration value
 
     // BeeperUsage
     if( EditBoolBeepCtrlObj.State.bits.fEditActive == FALSE)
@@ -1461,6 +1518,60 @@ void SetDev_ValuesUpdate(void)
     // Hardcopy Usage
     if( EditBoolScrDmpObj.State.bits.fEditActive == FALSE)
     {   gfHardcopy = gDeviceFlags2.flags.Hardcopy;
+    }
+
+    // ============================================================
+    // TIME/DATE SETTINGS
+    // ============================================================
+
+    // date
+    TimeDate_GetDate( &RTCDateCopy );
+    if (EditDayObj.State.bits.fEditActive == FALSE)
+        bDate = RTCDateCopy.bDate;
+    if (EditMonthObj.State.bits.fEditActive == FALSE)
+        bMonth = RTCDateCopy.bMonth;
+    if (EditYearObj.State.bits.fEditActive == FALSE)
+        bYear = RTCDateCopy.bYear;
+
+    // time
+    TimeDate_GetTime( &RTCTimeCopy );
+    if (EditHourObj.State.bits.fEditActive == FALSE)
+        bHour = RTCTimeCopy.bHour;
+    if (EditMinObj.State.bits.fEditActive == FALSE)
+        bMin = RTCTimeCopy.bMin;
+    if (EditSecObj.State.bits.fEditActive == FALSE)
+        bSec = RTCTimeCopy.bSec;
+
+    // RTC calibration value
+    if (EditClkCalibObj.State.bits.fEditActive == FALSE)
+        TimeDate_GetCalibDirect( &bClkCalib );
+
+    // ============================================================
+    // LED/LCD SETTINGS
+    // ============================================================
+
+    // Led Warning Mode state
+    if (SelectLedWMObj.State.bits.fEditActive == FALSE)
+    {   fLedWarnMode = gDeviceFlags2.flags.LedWarnMode;
+    }
+
+    // Backlight Level
+    if (EditBacklObj.State.bits.fEditActive == FALSE)
+        bBacklOnLevel = gDisplayFlags.flags.BacklOnLevel;
+    if (EditBacklLevObj.State.bits.fEditActive == FALSE)
+        bBacklLev = gDisplayFlags.flags.BacklLev;
+    if (EditContrLevObj.State.bits.fEditActive == FALSE)
+        bContrLev   = gDisplayFlags.flags.ContrLev;
+
+    // ============================================================
+    // EXTENSIONS SETTINGS
+    // ============================================================
+
+    // compass state
+    if (SelectCompCalStObj.State.bits.fEditActive == FALSE)
+    {   COMPDRV_HEADINFO *ptHeadingInfo;
+        ptHeadingInfo = CompassGetHeadingInfo();
+        bCmpCalState  = ptHeadingInfo->ucCalState;
     }
 
 }
