@@ -68,11 +68,17 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.13  2012/02/14 21:08:03  tuberkel
+ * - #define COMPASS ==> COMPDRV
+ * - Compass SystemParam moved from devFlags2 -> 3
+ * - Settings 'Compass' ==> 'Extensions'
+ * - all Compass-Display modules enabled by default
+ *
  * Revision 3.12  2012/02/12 12:44:34  tuberkel
  * New: small manual to add new screens/objects
  *
  * Revision 3.11  2012/02/12 12:17:38  tuberkel
- * partial COMPASS CompilerFix
+ * partial COMPASSDRV CompilerFix
  *
  * Revision 3.10  2012/02/11 12:21:45  tuberkel
  * dedicated COOLRIDE macros prepared & used
@@ -135,7 +141,7 @@
  * - see 'Project Editor' for details
  *
  * Revision 2.8  2009/06/24 21:12:27  tuberkel
- * CompilerFix: correct use of #define COMPASS
+ * CompilerFix: correct use of #define COMPASSDRV
  *
  * Revision 2.7  2009/06/21 21:23:18  tuberkel
  * Changes by AN and SCHW:
@@ -143,9 +149,9 @@
  * - can be disabled via user settings 'Tripcounter/upperlower:
  * Bitcoded:
  * - bit0: LongDistance:     1=upside (like roadbook), 0=downside
- * - bit1: ShowCompassValue: 1=show, 0=off
- * - bit2: ShowCompassBar:   1=show, 0=off
- * CompassValue ist shown in footer line
+ * - bit1: CompassShowHead: 1=show, 0=off
+ * - bit2: CompassShowBar:   1=show, 0=off
+ * CompassHeading ist shown in footer line
  * CompassCompassBar as graphic
  *
  * Revision 2.6  2009/04/20 18:26:04  tuberkel
@@ -183,7 +189,7 @@
 /* =================================================================
 
     HOW TO INSERT A NEW SETUP SUB SCREEN:
-    ---------------------------------
+    -------------------------------------
 
     1. Add new SetDevice state in SETDEV_STATE enum list
     2. Add new defintions of display objects (text/bool/select) in objects definition part
@@ -191,7 +197,7 @@
     4. Add new Screen Headline TEXTOBJECT   TextObj_HL_xxx;
     5. Add new Ressource text string constants in 'resource_xx.h'
     6. Add new initial object data in static object array (e.g. TextObj[], /bool/select)
-    7. Add new defintion ObjectList_xxx,  for all the above objects part of that screen (e.g. ObjectList_Compass[])
+    7. Add new defintion ObjectList_xxx,  for all the above objects part of that screen (e.g. ObjectList_Extension1[])
     8. Add this ObjectList_xxx to function SetDev_ObjListInit()
     9. Add new handler functions for these objects to SetDev_ValuesChanges()
    10. Add new handler functions for these objects to SetDev_ValuesUpdate()
@@ -238,14 +244,7 @@ typedef enum
     SD_VEHIC,       //   vehicle setup
     SD_DEVICE,      //   device setup
     SD_OUT,         //   LED/LCD setup
-    SD_EXT,         //   extensions setup
-    #if(COMPASS==1)
-    SD_COMP,        //   compass setup
-    #endif
-
-  //SD_PORTS,       //   general input/output setup
-  //SD_WARN,        //   warning setup
-  //SD_DEVLIST,     //   device list setup
+    SD_EXT1,        //   Extensions1 setup
 
     SD_LAST         // INVALID LAST STATE!
 } SETDEV_STATE;
@@ -529,7 +528,7 @@ static EDITBOOLOBJECT   EditBoolCompAvailObj;           // complete boolean Comp
 
 // ----------------------------------------------------------------
 // other external symbols
-extern UINT16           wMilliSecCounter;               // valid values: 0h .. ffffh
+extern UINT16       wMilliSecCounter;               // valid values: 0h .. ffffh
 
 
 
@@ -541,9 +540,7 @@ extern UINT16           wMilliSecCounter;               // valid values: 0h .. f
 static TEXTOBJECT   TextObj_HL_Vehicle;
 static TEXTOBJECT   TextObj_HL_Device;
 static TEXTOBJECT   TextObj_HL_Out;
-static TEXTOBJECT   TextObj_HL_Compass;
-//static TEXTOBJECT   TextObj_HL_IOPorts;
-//static TEXTOBJECT   TextObj_HL_Warnings;
+static TEXTOBJECT   TextObj_HL_Extension1;
 
 static TEXTOBJECT   TextObj_Comp_Calib;
 static TEXTOBJECT   TextObj_Comp_Error;
@@ -563,7 +560,7 @@ static const TEXTOBJECT_INITTYPE TextObj[] =
     {&TextObj_HL_Vehicle,   C01, R1, DPLFONT_6X8, 1, 21,    TXT_CENTER, TXT_INVERS, RESTXT_SET_HL_VEHICLE, OC_DISPL},
     {&TextObj_HL_Device,    C01, R1, DPLFONT_6X8, 1, 21,    TXT_CENTER, TXT_INVERS, RESTXT_SET_HL_DEVICE,  OC_DISPL},
     {&TextObj_HL_Out,       C01, R1, DPLFONT_6X8, 1, 21,    TXT_CENTER, TXT_INVERS, RESTXT_SET_HL_DISPLAY, OC_DISPL},
-    {&TextObj_HL_Compass,   C01, R1, DPLFONT_6X8, 1, 21,    TXT_CENTER, TXT_INVERS, RESTXT_SET_HL_COMPASS, OC_DISPL},
+    {&TextObj_HL_Extension1,   C01, R1, DPLFONT_6X8, 1, 21,    TXT_CENTER, TXT_INVERS, RESTXT_SET_HL_COMPASS, OC_DISPL},
   //{&TextObj_HL_IOPorts,   C01, R1, DPLFONT_6X8, 1, 21,    TXT_CENTER, TXT_INVERS, RESTXT_SET_HL_IOPORTS, OC_DISPL},
   //{&TextObj_HL_Warnings,  C01, R1, DPLFONT_6X8, 1, 21,    TXT_CENTER, TXT_INVERS, RESTXT_SET_HL_WARNINGS,OC_DISPL},
 
@@ -763,16 +760,16 @@ static const void far * ObjectList_Out[] =
 
 // -------------------------------------------------------------------------
 // Compass Screen Tab order
-static const void far * ObjectList_Compass[] =
+static const void far * ObjectList_Extension1[] =
 {
-    (void far *) &TextObj_HL_Compass,   // 1
+    (void far *) &TextObj_HL_Extension1,   // 1
     (void far *) &EditBoolCompAvailObj, // 2
     (void far *) &SelectCompDplObj,     // 3
     (void far *) &TextObj_Comp_Calib,   // 4
     (void far *) &SelectCompCalStObj,   // 5
     (void far *) &TextObj_Comp_Error,   // 6
 };
-#define OBJLIST_CMP_CNT (sizeof(ObjectList_Compass)/sizeof(OBJSTATE)/sizeof(void far *))
+#define OBJLIST_EXT1_CNT (sizeof(ObjectList_Extension1)/sizeof(OBJSTATE)/sizeof(void far *))
 
 
 
@@ -1119,9 +1116,9 @@ void SetDev_ValuesChanges( void )
     // NOTE:    We do not change current time here! We interprete current time
     //          as being correct right now, independently of switching DLS on/off.
     //          BUT we update the USGAE of the CEST flag for further automatic checking.
-    if( gDeviceFlags2.flags.DaylightSaveAuto != gfDaylightSave )// saved with changes?
+    if( gDeviceFlags2.flags.DLS_Auto != gfDaylightSave )// saved with changes?
     {
-        gDeviceFlags2.flags.DaylightSaveAuto  = gfDaylightSave; // save global -> auto eeprom update!
+        gDeviceFlags2.flags.DLS_Auto  = gfDaylightSave; // save global -> auto eeprom update!
         TimeDate_UpdateCEST();                                  // update update CEST state here too!
     }
 
@@ -1170,20 +1167,19 @@ void SetDev_ValuesChanges( void )
     {    gNextServKm.km = dwServKm;                       // give back km into dkm structure
     }
 
-#if (COMPASS==1)
     // CompassCalib State in edit mode? -----------------
     if (SelectCompDplObj.State.bits.fEditActive == TRUE )    // edit mode active?
     {
-        if(bEditBuffer  < bCurrentCmpCalState)           // decr. state NOT allowed! -> fix old value!
-        {   bEditBuffer = bCurrentCmpCalState;
+        if(bEditBuffer  < bCmpCalState)           // decr. state NOT allowed! -> fix old value!
+        {   bEditBuffer = bCmpCalState;
         }
-        else if(bEditBuffer > bCurrentCmpCalState+1)    // incr. >1 NOT allowed! -> limit new value!
-        {   bEditBuffer = bCurrentCmpCalState+1;
+        else if(bEditBuffer > bCmpCalState+1)    // incr. >1 NOT allowed! -> limit new value!
+        {   bEditBuffer = bCmpCalState+1;
         }
-        else if (bEditBuffer != bCurrentCmpCalState)    // still a user activity detected?
+        else if (bEditBuffer != bCmpCalState)    // still a user activity detected?
         {
-            bCurrentCmpCalState++;                      // should indicate the real compass driver calibration state
-            switch(bCurrentCmpCalState)
+            bCmpCalState++;                      // should indicate the real compass driver calibration state
+            switch(bCmpCalState)
             {   case 0: ODS( DBG_SYS, DBG_INFO, "Waiting for Compass Calibration start.."); break;
                 case 1: ODS( DBG_SYS, DBG_INFO, "Step 1: Hold compass horizontal and keep still!"); break;
                 case 2: ODS( DBG_SYS, DBG_INFO, "Step 2: Multiple rotate compass horizontal!"); break;
@@ -1192,7 +1188,7 @@ void SetDev_ValuesChanges( void )
                 case 5: ODS( DBG_SYS, DBG_INFO, "Step 5: Multiple rotate compass vertical!"); break;
                 case 6: ODS( DBG_SYS, DBG_INFO, "Step 6: Save vertical measurement!"); break;
             }
-            CompassCmdIncCalState();                    // ==> activate next calibration step!
+            CompDrv_Cmd_IncCalState();                    // ==> activate next calibration step!
         }
         else
         {   // nothing changed ==> nothing to do!
@@ -1202,20 +1198,19 @@ void SetDev_ValuesChanges( void )
     {   // check for changed value after editing finished with ESC / OK
         if (bCmpCalState == 0)                      // user pressed ESC ?
         {   ODS( DBG_SYS, DBG_INFO, "Calibration aborted => Reset Calibration Mode!");
-            CompassCmdReset();                      // ==> reset calibration process!
+            CompDrv_Cmd_Reset();                      // ==> reset calibration process!
         }
         if (bCmpCalState < 6)                      // user OK before end 'state 6'?
         {   ODS( DBG_SYS, DBG_INFO, "Calibration not completed => Reset Calibration Mode!");
-            CompassCmdReset();                      // ==> reset calibration process!
+            CompDrv_Cmd_Reset();                      // ==> reset calibration process!
         }
         else
         {   // success finished calibration state!
             ODS( DBG_SYS, DBG_INFO, "Calibration successfully completed!");
         }
         bCmpCalState   = 0;                         // reset to default state
-        bCurrentCmpCalState = 0;
+        bCmpCalState = 0;
     }
-#endif // COMPASS
 
     // TripCntFlag was changed? -----------------
     if( gDeviceFlags2.flags.TripCLongDistUp != fTripCntLongUp )     // compare bits only
@@ -1223,13 +1218,13 @@ void SetDev_ValuesChanges( void )
     }
 
     // Metric was changed? -----------------
-    if( gDeviceFlags3.flags.Metric != fMetric )                     // compare bits only
-    {   gDeviceFlags3.flags.Metric  = fMetric;                      // save global -> auto eeprom update!
+    if( gDeviceFlags2.flags.Metric != fMetric )                     // compare bits only
+    {   gDeviceFlags2.flags.Metric  = fMetric;                      // save global -> auto eeprom update!
     }
 
     // LED Warning Mode was changed? -----------------
-    if( gDeviceFlags3.flags.LedWarnMode != fLedWarnMode )           // compare bits only
-    {   gDeviceFlags3.flags.LedWarnMode  = fLedWarnMode;            // save global -> auto eeprom update!
+    if( gDeviceFlags2.flags.LedWarnMode != fLedWarnMode )           // compare bits only
+    {   gDeviceFlags2.flags.LedWarnMode  = fLedWarnMode;            // save global -> auto eeprom update!
     }
 
     // Vehicle Distance changed? -------------------
@@ -1312,8 +1307,8 @@ void SetDev_ValuesChanges( void )
     {   RTCTimeCopy.bHour = bHour;                              // copy changes
         TimeDate_SetTime( &RTCTimeCopy );                       // save changes in RTC (and correct it)
         bHour = RTCTimeCopy.bHour;                              // read back (corrected) value
-        if( gDeviceFlags2.flags.DaylightSaveAuto == TRUE )      // DaylightSaving Automatic enabled?
-        {   gDeviceFlags2.flags.CESTActive = TimeDate_GetCEST();// set CEST state too
+        if( gDeviceFlags2.flags.DLS_Auto == TRUE )      // DaylightSaving Automatic enabled?
+        {   gDeviceFlags2.flags.DLS_Active = TimeDate_GetCEST();// set CEST state too
         }
     }
     else
@@ -1391,13 +1386,11 @@ void SetDev_ValuesUpdate(void)
     }
 
     // compass state
-#if (COMPASS==1)
-    if (EditCompassCalibObj.State.bits.fEditActive == FALSE)
-    {   tCompassHeadingInfo *ptHeadingInfo;
+    if (SelectCompCalStObj.State.bits.fEditActive == FALSE)
+    {   COMPDRV_HEADINFO *ptHeadingInfo;
         ptHeadingInfo = CompassGetHeadingInfo();
         bCmpCalState  = ptHeadingInfo->ucCalState;      // get current driver state
     }
-#endif //COMPASS
 
     // tripcounter state
     if (SelectTripObj.State.bits.fEditActive == FALSE)
@@ -1406,12 +1399,12 @@ void SetDev_ValuesUpdate(void)
 
     // metric state
     if (SelectMetricObj.State.bits.fEditActive == FALSE)
-    {   fMetric = gDeviceFlags3.flags.Metric;
+    {   fMetric = gDeviceFlags2.flags.Metric;
     }
 
     // Led Warning Mode state
     if (SelectLedWMObj.State.bits.fEditActive == FALSE)
-    {   fLedWarnMode = gDeviceFlags3.flags.LedWarnMode;
+    {   fLedWarnMode = gDeviceFlags2.flags.LedWarnMode;
     }
 
     // Cylinder Correctur Factor
@@ -1457,7 +1450,7 @@ void SetDev_ValuesUpdate(void)
 
     // DaylightSaving Usage
     if( EditBoolDLSaveObj.State.bits.fEditActive == FALSE)
-    {   gfDaylightSave = gDeviceFlags2.flags.DaylightSaveAuto;
+    {   gfDaylightSave = gDeviceFlags2.flags.DLS_Auto;
     }
 
     // Vehicle Simulation
@@ -1619,13 +1612,11 @@ void SetDev_ObjListInit(void)
     SDCntrl.List[SD_OUT].FirstSelObj     = DevObjGetFirstSelectable(&SDObj, ObjectList_Out, OBJLIST_OUT_CNT);
     SDCntrl.List[SD_OUT].LastSelObj      = DevObjGetLastSelectable (&SDObj, ObjectList_Out, OBJLIST_OUT_CNT);
 
-    // Setup 4th screen object list: Compass settings
-    #if(COMPASS==1)
-    SDCntrl.List[SD_COMP].ObjList        = ObjectList_Compass;
-    SDCntrl.List[SD_COMP].ObjCount       = OBJLIST_CMP_CNT;
-    SDCntrl.List[SD_COMP].FirstSelObj    = DevObjGetFirstSelectable(&SDObj, ObjectList_Compass, OBJLIST_CMP_CNT);
-    SDCntrl.List[SD_COMP].LastSelObj     = DevObjGetLastSelectable (&SDObj, ObjectList_Compass, OBJLIST_CMP_CNT);
-    #endif //(COMPASS==1)
+    // Setup 4th screen object list: Extensions settings
+    SDCntrl.List[SD_EXT1].ObjList        = ObjectList_Extension1;
+    SDCntrl.List[SD_EXT1].ObjCount       = OBJLIST_EXT1_CNT;
+    SDCntrl.List[SD_EXT1].FirstSelObj    = DevObjGetFirstSelectable(&SDObj, ObjectList_Extension1, OBJLIST_EXT1_CNT);
+    SDCntrl.List[SD_EXT1].LastSelObj     = DevObjGetLastSelectable (&SDObj, ObjectList_Extension1, OBJLIST_EXT1_CNT);
 
     // Default state: Show verhicle settings
     SDCntrl.eState = SD_VEHIC;

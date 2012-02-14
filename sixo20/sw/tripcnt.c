@@ -68,6 +68,12 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.5  2012/02/14 21:08:03  tuberkel
+ * - #define COMPASS ==> COMPDRV
+ * - Compass SystemParam moved from devFlags2 -> 3
+ * - Settings 'Compass' ==> 'Extensions'
+ * - all Compass-Display modules enabled by default
+ *
  * Revision 3.4  2012/02/08 03:55:24  tuberkel
  * KEY_TIMING parameter names reviewed/changed
  *
@@ -113,9 +119,9 @@
  * - can be disabled via user settings 'Tripcounter/upperlower:
  * Bitcoded:
  * - bit0: LongDistance:     1=upside (like roadbook), 0=downside
- * - bit1: ShowCompassValue: 1=show, 0=off
- * - bit2: ShowCompassBar:   1=show, 0=off
- * CompassValue ist shown in footer line
+ * - bit1: CompassShowHead: 1=show, 0=off
+ * - bit2: CompassShowBar:   1=show, 0=off
+ * CompassHeading ist shown in footer line
  * CompassCompassBar as graphic
  *
  * Revision 2.3  2007/03/30 09:58:22  tuberkel
@@ -204,8 +210,9 @@ static CHAR         szTime[10] = "--:--:--a";           /* buffer for time strin
 /* external symbols */
 extern UINT16           wMilliSecCounter;           /* valid values: 0h .. ffffh */
 extern STRING far       szDevName[];                /* device names */
-extern DEVFLAGS1_TYPE    gDeviceFlags1;               /* system parameters */
-extern DEVFLAGS2_TYPE    gDeviceFlags2;              /* tripcounter flags */
+extern DEVFLAGS1_TYPE   gDeviceFlags1;              /* device parameter set 1 */
+extern DEVFLAGS2_TYPE   gDeviceFlags2;              /* device parameter set 2 */
+extern DEVFLAGS3_TYPE   gDeviceFlags3;              /* device parameter set 3 */
 extern BIKE_TYPE        gBikeType;                  /* bike type selecetion */
 
 /* compass display mode */
@@ -345,7 +352,8 @@ void TripCDev_Show(BOOL fShow)
             /* yes, repaint complete screen */
 
             /* show BIGCOUNTER onyl if compass BARGRAGH disabled */
-            if (gDeviceFlags2.flags.ShowCompassBar == 0)
+            if (  ( gDeviceFlags3.flags.CompassAvail   == 0 )
+                ||( gDeviceFlags3.flags.CompassShowBar == 0 ) )
                 ObjTextShow( &BigTripCntObj);
             ObjTextShow( &SmallTripCntObj );
             ObjTextShow( &VehSpeedTxtObj );
@@ -354,15 +362,17 @@ void TripCDev_Show(BOOL fShow)
             // but refreshed with diccated message!
             TripCDev_UpdTimeDate();
 
-#if (COMPASS==1)
-            // show compass VALUE only if enabled
-            if (gDeviceFlags2.flags.ShowCompassValue == 1)
-                TripCDev_UpdCompassHead();
+            // show compass only if available
+            if ( gDeviceFlags3.flags.CompassAvail == 1 )
+            {
+                // show compass haeding only if enabled
+                if ( gDeviceFlags3.flags.CompassShowHead == 1 )
+                    TripCDev_UpdCompassHead();
 
-            // show compass BARGRAGH only if enabled
-            if (gDeviceFlags2.flags.ShowCompassBar == 1)
-                TripCDev_UpdCompassBargr();
-#endif //COMPASS
+                // show compass BARGRAGH only if enabled
+                if (gDeviceFlags3.flags.CompassShowBar == 1)
+                    TripCDev_UpdCompassBargr();
+            }
 
             /* horizontal line between big & small trip counter */
             /* to be removed to an 'LineObject' !!! */
@@ -375,7 +385,8 @@ void TripCDev_Show(BOOL fShow)
         {
             /* No, repaint only changed stuff */
             /* show BIGCOUNTER onyl if compass BARGRAGH disabled */
-            if (gDeviceFlags2.flags.ShowCompassBar == 0)
+            if (  ( gDeviceFlags3.flags.CompassAvail   == 0 )
+                ||( gDeviceFlags3.flags.CompassShowBar == 0 ) )
                 ObjTextShow( &BigTripCntObj);
             ObjTextShow( &SmallTripCntObj );
             ObjTextShow( &VehSpeedTxtObj );
@@ -526,19 +537,20 @@ ERRCODE TripCDev_MsgEntry(MESSAGE GivenMsg)
                 RValue = ERR_MSG_PROCESSED;
                 break;
 
-#if (COMPASS==1)
             /* got a fresh compass heading information */
             case MSG_COMPASS_RFRSH:
-                // show compass VALUE only if enabled
-                if (gDeviceFlags2.flags.ShowCompassValue == 1)
-                    TripCDev_UpdCompassHead();
-                // show compass BARGRAGH only if enabled
-                if (gDeviceFlags2.flags.ShowCompassBar == 1)
-                    TripCDev_UpdCompassBargr();
-                // msg processed anyway
-                RValue = ERR_MSG_PROCESSED;
+                // show compass if available
+                if (  gDeviceFlags3.flags.CompassAvail == 1 )
+                {   // show compass HEADING only if enabled
+                    if (gDeviceFlags3.flags.CompassShowHead == 1)
+                        TripCDev_UpdCompassHead();
+                    // show compass BARGRAGH only if enabled
+                    if (gDeviceFlags3.flags.CompassShowBar == 1)
+                        TripCDev_UpdCompassBargr();
+                    // msg processed anyway
+                    RValue = ERR_MSG_PROCESSED;
+                }
                 break;
-#endif // COMPASS
 
             case MSG_DPL_FLASH_ON:
             case MSG_DPL_FLASH_OFF:
@@ -686,10 +698,9 @@ void TripCDev_UpdTimeDate(void)
  *  RETURN:         -
  *  COMMENT:        -
  *********************************************************************** */
-#if (COMPASS==1)
 void TripCDev_UpdCompassHead(void)
 {
-    tCompassHeadingInfo *ptHeadingInfo;
+    COMPDRV_HEADINFO *ptHeadingInfo;
     static usOldHeading = 0xffff;
 
     // check conditions to display timedate */
@@ -710,7 +721,7 @@ void TripCDev_UpdCompassHead(void)
         }
     }
 }
-#endif //COMPASS
+
 
 
 /***********************************************************************
@@ -724,7 +735,6 @@ void TripCDev_UpdCompassHead(void)
  *                  big tripcounter value, so only one of them
  *                  can be enabled!
  *********************************************************************** */
-#if (COMPASS==1)
 void TripCDev_UpdCompassBargr(void)
 {
     UINT16 usHeading;
@@ -737,7 +747,7 @@ void TripCDev_UpdCompassBargr(void)
     BITMAP  tBitmap;
     DISPLXY tPixelCoord;
 
-    tCompassHeadingInfo *ptHeadingInfo;
+    COMPDRV_HEADINFO *ptHeadingInfo;
     static usOldHeading = 0xffff;
 
     tBitmap.wWidth  = 128;
@@ -824,6 +834,6 @@ void TripCDev_UpdCompassBargr(void)
     sprintf( szText, "%03d", usHeading );
     DisplPrintAString( szText, &tPixelCoord, DPLFONT_14X16, DPLNORM );
 }
-#endif //COMPASS
+
 
 

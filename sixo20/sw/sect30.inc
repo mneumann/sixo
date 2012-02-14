@@ -75,6 +75,12 @@
 ;  changes to CVC ('Log message'):
 ;
 ; $Log$
+; Revision 3.4  2012/02/14 21:08:03  tuberkel
+; - #define COMPASS ==> COMPDRV
+; - Compass SystemParam moved from devFlags2 -> 3
+; - Settings 'Compass' ==> 'Extensions'
+; - all Compass-Display modules enabled by default
+;
 ; Revision 3.3  2012/02/08 03:41:30  tuberkel
 ; renamed #define MINIEMU ==> KD30_USED
 ;
@@ -375,7 +381,7 @@ switch_table_top:
         .lword        _dummy_int         ; uart2 transmit(for user)(vector 15)
         .lword        _dummy_int         ; uart2 receive(for user)(vector 16)
         .lword        _dummy_int         ; uart0 transmit(for user)(vector 17)
-.if        COMPASS==1
+.if        COMPASSDRV==1
         .lword        _CompassRxIsr      ; uart0 receive for compass, note that
 .else                                    ; there is no transmit ISR
         .lword        _dummy_int         ; uart0 receive(for user)(vector 18)

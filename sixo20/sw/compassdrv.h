@@ -60,6 +60,21 @@
  *  merchantability, fitness for a particular purpose, and
  *  non-infringement.
  *
+ *  --------------------------------------------------------------------
+ *
+ *  CVS History
+ *
+ *  This information is automatically added while 'commiting' the
+ *  changes to CVC ('Log message'):
+ *
+ * $Log$
+ * Revision 3.2  2012/02/14 21:08:03  tuberkel
+ * - #define COMPASS ==> COMPDRV
+ * - Compass SystemParam moved from devFlags2 -> 3
+ * - Settings 'Compass' ==> 'Extensions'
+ * - all Compass-Display modules enabled by default
+ *
+ *
  ************************************************************************ */
 
 #ifndef _COMPASSDRV_H
@@ -83,48 +98,49 @@ typedef struct
    UINT8 ucProtoMinor;
    UINT8 ucSwPatch;
    BOOL  bValid;
-} tCompassVersionInfo;
+} COMPDRV_VERSINFO;
 
 typedef struct
 {
    UINT16 usHeading;
    UINT8  ucCalState;
    BOOL   bValid;
-} tCompassHeadingInfo;
+} COMPDRV_HEADINFO;
 
 
-//The upper layers may:
-//- Read the version info (note 1).
-//- Read the heading and calibration state (note 1).
-//- Read the error count (note 2).
-//- Issue a CompassCmdReset (resets compass AND driver, note 4).
-//- Issue a CompassCmdIncCalState (note 4).
+// The upper layers may:
+// - Read the version info (note 1).
+// - Read the heading and calibration state (note 1).
+// - Read the error count (note 2).
+// - Issue a CompDrv_Cmd_Reset (resets compass AND driver, note 4).
+// - Issue a CompDrv_Cmd_IncCalState (note 4).
 //
-//All changes of version info, heading, calibration state and error is notified
-//to the upper layers with a MSG_COMPASS_RFRSH message.
+// All changes of version info, heading, calibration state and error is notified
+// to the upper layers with a MSG_COMPASS_RFRSH message.
 //
-//See also the COMPASS_INVALIDATE_ON_ERROR switch above.
+// See also the COMPASS_INVALIDATE_ON_ERROR switch above.
 //
-//note 1: Not valid until about 2 seconds after reset/init (check .bValid).
-//note 2: The error count simply increases on every error. Intended to be implemen-
-//        ted as turning wheel "-\|/".
-//note 4: If this is called multiple times in a short sequence (or, what is very
-//        unlikely, interferes with another command sent to the compass), the compass
-//        just does'nt react. So these functions may be called simply as a reaction
-//        on the key pressed by the user, disregarding all timing. The user has to
-//        observe compass reaction.
+// note 1: Not valid until about 2 seconds after reset/init (check .bValid).
+// note 2: The error count simply increases on every error. Intended to be implemen-
+//         ted as turning wheel "-\|/".
+// note 4: If this is called multiple times in a short sequence (or, what is very
+//         unlikely, interferes with another command sent to the compass), the compass
+//         just does'nt react. So these functions may be called simply as a reaction
+//         on the key pressed by the user, disregarding all timing. The user has to
+//         observe compass reaction.
 
-//public prototypes
+
+// public prototypes
 void    CompassRxIsr( void );   //called by interrupt
-ERRCODE CompassInit( void );    //called once by main()
-void    Compass( void );        //called cyclic by main()
+ERRCODE CompDrv_Init( void );   //called once by main()
+void    CompDrv_Task( void );   //called cyclic by main()
 
-tCompassVersionInfo *CompassGetVersionInfo( void );
-tCompassHeadingInfo *CompassGetHeadingInfo( void ); //not recommended, see above
+COMPDRV_VERSINFO *CompassGetVersionInfo( void );
+COMPDRV_HEADINFO *CompassGetHeadingInfo( void ); //not recommended, see above
 
-UINT8 CompassGetError( void );
-void  CompassCmdReset( void );
-void  CompassCmdIncCalState( void );
+UINT8 CompDrv_GetError( void );
+void  CompDrv_Cmd_Reset( void );
+void  CompDrv_Cmd_IncCalState( void );
 
 
 #endif //_COMPASSDRV_H

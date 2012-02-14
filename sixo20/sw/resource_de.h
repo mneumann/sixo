@@ -68,6 +68,12 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.7  2012/02/14 21:08:03  tuberkel
+ * - #define COMPASS ==> COMPDRV
+ * - Compass SystemParam moved from devFlags2 -> 3
+ * - Settings 'Compass' ==> 'Extensions'
+ * - all Compass-Display modules enabled by default
+ *
  * Revision 3.6  2012/02/11 00:06:42  tuberkel
  * - HeatGrip Icon shown in upper area
  *
@@ -197,12 +203,8 @@
 // headline strings                  ....!....!....!....!.
 #define RESTXT_SET_HL_VEHICLE       ">> FAHRZEUG         \x8c"          // Arrow down
 #define RESTXT_SET_HL_DEVICE        ">> GER\xc4T           \x8c\x8b"    // Arrow down/up
-#if(COMPASS==1)
 #define RESTXT_SET_HL_DISPLAY       ">> LCD/LED         \x8c\x8b"       // Arrow down/up
-#else
-#define RESTXT_SET_HL_DISPLAY       ">> LCD/LED          \x8b"          // Arrow up only
-#endif
-#define RESTXT_SET_HL_COMPASS       ">> KOMPASS          \x8b"          // Arrow up
+#define RESTXT_SET_HL_COMPASS       ">> ERWEITERUNG      \x8b"          // Arrow up
 #define RESTXT_SET_HL_IOPORTS       ">> ANSCHL\xdcSSE        "          // Arrow up
 #define RESTXT_SET_HL_WARNINGS      ">> WARNUNGEN         "
 

@@ -68,6 +68,12 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.9  2012/02/14 21:08:03  tuberkel
+ * - #define COMPASS ==> COMPDRV
+ * - Compass SystemParam moved from devFlags2 -> 3
+ * - Settings 'Compass' ==> 'Extensions'
+ * - all Compass-Display modules enabled by default
+ *
  * Revision 3.8  2012/02/08 23:05:47  tuberkel
  * - GPI PWM calculations improved
  * - renamed DigIn GPI Functions
@@ -122,7 +128,7 @@
  *
  * Revision 2.2  2009/06/21 17:49:50  tuberkel
  * Changes done by AN:
- * HW-Tests / Uart not enabled if COMPASS defined
+ * HW-Tests / Uart not enabled if COMPASSDRV defined
  *
  * Revision 2.1  2009/04/14 21:17:55  tuberkel
  * Changes done by Arnold:
@@ -872,7 +878,7 @@ void HWTDev_UpdStimErr( void )
          StatObj_GPI3.szText = szOk;
     else StatObj_GPI3.szText = szErr;
 
-#if (KD30_USED==1) || (DEBUG==1) || (COMPASS==1)
+#if (KD30_USED==1) || (DEBUG==1) || (COMPASSDRV==1)
     // do not use uart-loopback-test in this case
     // error status remains 'unknown'
 #else
@@ -1160,7 +1166,7 @@ void HWTDev_LowInit ( void )
     // enable uart loopback test, if tester present
     // Note: we don't use uarts, we only check digital port reaction
     // Note: can not be used if DEBUG or MiniEmulator uses Uarts
-#if (KD30_USED==1) || (DEBUG==1) || (COMPASS==1)
+#if (KD30_USED==1) || (DEBUG==1) || (COMPASSDRV==1)
     // do not use uart-loopback-test in this case
 #else
     if (fEOLTester_present == TRUE)

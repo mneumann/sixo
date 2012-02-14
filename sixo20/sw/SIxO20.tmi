@@ -38,10 +38,10 @@ Section5== 0..n (def:0)
 Mail5=selects language of firmware (german as default)
 TEL5=0=DE, 1=EN-UK, 2=NL
 ETC5=
-Name6=A+C-FLAG: COMPASS
+Name6=A+C-FLAG: COMPASSDRV
 Section6== 0 / 1 (def:0)   ==> SEE NOTES!!!
-Mail6=if 1, enables use of COMPASS attached to Uart0
-TEL6=only two of COMPASS, DEBUG, KD30_USED can be defined
+Mail6=if 1, enables use of COMPASSDRV attached to Uart0
+TEL6=only two of COMPASSDRV, DEBUG, KD30_USED can be defined
 ETC6=Set both - A-FLAGS & C-FLAGS !!!
 Name7=C-FLAG: TESTSCREEN
 Section7== 0..n (def:0)
@@ -58,7 +58,7 @@ Section9== 0..n (def:0)
 Mail9=if 1, enables a special GUI test screen
 TEL9=for development purpose only
 ETC9=
-Name10=A+C-FLAG: COMPASS
+Name10=A+C-FLAG: COMPASSDRV
 Section10=0 / 1 NOTE: Set both A-FLAGS & C-FLAGS !!!
 Mail10=if defined, enables use of compass attached to UART0
 TEL10=only two of COMPASS, DEBUG, KD30_USED can be defined
@@ -88,7 +88,7 @@ Section15=- / def
 Mail15=if defined, enables use of oil temperature sensor
 TEL15=only VDO standard sensor is available
 ETC15=
-Name16=A+C-FLAG: COMPASS
+Name16=A+C-FLAG: COMPASSDRV
 Section16=0 / 1 NOTE: Set both A-FLAGS & C-FLAGS !!!
 Mail16=if defined, enables use of compass attached to UART0
 TEL16=only two of COMPASS, DEBUG, KD30_USED can be defined

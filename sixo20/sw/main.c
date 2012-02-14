@@ -68,6 +68,12 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.11  2012/02/14 21:08:03  tuberkel
+ * - #define COMPASS ==> COMPDRV
+ * - Compass SystemParam moved from devFlags2 -> 3
+ * - Settings 'Compass' ==> 'Extensions'
+ * - all Compass-Display modules enabled by default
+ *
  * Revision 3.10  2012/02/10 23:45:22  tuberkel
  * - Survelannce HeatGrip <Info> - if active
  * - Surveillance-API reviewed
@@ -279,9 +285,9 @@ int main()
     Error = MeasDrvInit();          /* measurement init stuff (ta2, ta3, ta4, tb2, int1, int0) */
     Error = AnaInInit();            /* A/D converter for all measurements  */
     Error = Surv_Init();             /* vehicle surveillance */
-#if (COMPASS==1)
-    Error = CompassInit();          /* inits UART0 and its receive interrupt for compass use */
-#endif // COMPASS
+#if (COMPASSDRV==1)
+    Error = CompDrv_Init();          /* inits UART0 and its receive interrupt for compass use */
+#endif // COMPASSDRV
 
     /* check: hw self diagnostic test ---------------- */
     /* (all keys pressed together at startup) */
@@ -393,8 +399,8 @@ int main()
             Hardcopy();
 
         /* if defined: Compass support */
-        #if (COMPASS==1)
-        Compass();
+        #if (COMPASSDRV==1)
+        CompDrv_Task();
         #endif
     }
     return 0;

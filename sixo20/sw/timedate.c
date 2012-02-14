@@ -72,6 +72,12 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.2  2012/02/14 21:08:03  tuberkel
+ * - #define COMPASS ==> COMPDRV
+ * - Compass SystemParam moved from devFlags2 -> 3
+ * - Settings 'Compass' ==> 'Extensions'
+ * - all Compass-Display modules enabled by default
+ *
  * Revision 3.1  2012/01/14 08:28:42  tuberkel
  * Message-IDs shortened / reviewed
  *
@@ -647,9 +653,9 @@ ERRCODE TimeDate_SetCalib( INT32 lDuration, INT32 lDeviation )
 void TimeDate_UpdateCEST( void )
 {
     // if DaylightSave automatic enabled, update CEST state here too!
-    if( gDeviceFlags2.flags.DaylightSaveAuto == TRUE )
-    {   gDeviceFlags2.flags.CESTActive = TimeDate_GetCEST();// update CEST state too
-        ODS1(DBG_SYS,DBG_INFO,"CEST: %s", (gDeviceFlags2.flags.CESTActive == TRUE)?"ON":"off");
+    if( gDeviceFlags2.flags.DLS_Auto == TRUE )
+    {   gDeviceFlags2.flags.DLS_Active = TimeDate_GetCEST();// update CEST state too
+        ODS1(DBG_SYS,DBG_INFO,"CEST: %s", (gDeviceFlags2.flags.DLS_Active == TRUE)?"ON":"off");
     }
 }
 
@@ -734,17 +740,17 @@ BOOL TimeDate_GetCEST( void )
 ERRCODE TimeDate_CheckDaylightSaving( void )
 {
     // check: Daylight Saving Automatic enabled by user?
-    if (gDeviceFlags2.flags.DaylightSaveAuto == TRUE)
+    if (gDeviceFlags2.flags.DLS_Auto == TRUE)
     {
         // check: Change CET => CEST detected?
-        if(  gDeviceFlags2.flags.CESTActive == FALSE )
+        if(  gDeviceFlags2.flags.DLS_Active == FALSE )
         {
             if ( TimeDate_GetCEST() == TRUE  )
             {   ODS(DBG_SYS,DBG_INFO,"Summertime CEST detected -> set Hour++!");
                 fCESTChanged = TRUE;                        // set for surveillance module
                 RTCTime.bHour++;                            // incr. 1 hour
                 TimeDate_SetTime( &RTCTime );               // setup new time
-                gDeviceFlags2.flags.CESTActive = TRUE;      // save new DaylightSaving State
+                gDeviceFlags2.flags.DLS_Active = TRUE;      // save new DaylightSaving State
             }
             else
             {   // CEST active and valid -> nothing tbd.
@@ -757,7 +763,7 @@ ERRCODE TimeDate_CheckDaylightSaving( void )
                 fCESTChanged = TRUE;                        // set for surveillance module
                 RTCTime.bHour--;                            // decr. 1 hour
                 TimeDate_SetTime( &RTCTime );               // setup new time
-                gDeviceFlags2.flags.CESTActive = FALSE;     // save new DaylightSaving State
+                gDeviceFlags2.flags.DLS_Active = FALSE;     // save new DaylightSaving State
             }
             else
             {   // CET active and valid -> nothing tbd.

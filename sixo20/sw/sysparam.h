@@ -69,6 +69,12 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.6  2012/02/14 21:08:03  tuberkel
+ * - #define COMPASS ==> COMPDRV
+ * - Compass SystemParam moved from devFlags2 -> 3
+ * - Settings 'Compass' ==> 'Extensions'
+ * - all Compass-Display modules enabled by default
+ *
  * Revision 3.5  2012/02/11 12:21:45  tuberkel
  * dedicated COOLRIDE macros prepared & used
  *
@@ -151,7 +157,7 @@
 /* software version number e.q. '2.1.1' */
 #define DEF_SWID_APL   3  // APL = (0..15) main aplication number (changed with new main application features)
 #define DEF_SWID_SWV   0  // SWV = (0..15) sw version number (changed with additional features)
-#define DEF_SWID_BLD   3  // BLD = (0..15) build number (changed with bugfixes)
+#define DEF_SWID_BLD   4  // BLD = (0..15) build number (changed with bugfixes)
 
 
 /* hardware specific version number */
@@ -219,7 +225,7 @@ typedef union
     UINT8           byte;
     struct
     {
-        unsigned char   ActDevNr:4;         /* Active device nibble, saves last used device (valid: DEVID_MAIN..DEVID_SET) */
+        unsigned char   ActDevNr    :4;     /* Active device nibble, saves last used device (valid: DEVID_MAIN..DEVID_SET) */
         unsigned char   MainDevState:4;     /* State of Main Device (scrollable sub area) */
     } flags;
 } DEVFLAGS1_TYPE;
@@ -233,17 +239,17 @@ typedef union
     UINT8           byte;
     struct
     {
-        unsigned char   TripCLongDistUp:1;  /* TripCounterLongDist: 1=upside (like roadbook), 0=downside */
-        unsigned char   BeeperAvail:1;      /* Beeper:              1=available, 0=not available */
-        unsigned char   DaylightSaveAuto:1; /* DaylightSavingAuto:  1=on (automatic on), 0=Off */
-        unsigned char   CESTActive:1;       /* DaylightSaving CEST: 1=on (summertime active), 0=Off */
-        unsigned char   ShowCompassValue:1; /* CompassValue:        1=show, 0=off */
-        unsigned char   ShowCompassBar:1;   /* CompassBargragh:     1=show, 0=off */
-        unsigned char   VehicSimul:1;       /* vehicle Simulation:  1=on, 0=off */
-        unsigned char   Hardcopy:1;         /* Hardcopy via Uart:   1=available, 0=off (via Highbeam switch) */
+        unsigned char   TripCLongDistUp :1;     /* TripCounterLongDist: 1=upside (like roadbook), 0=downside */
+        unsigned char   BeeperAvail     :1;     /* Beeper:              1=available, 0=not available */
+        unsigned char   DLS_Auto        :1;     /* DaylightSavingAuto:  1=on (automatic on), 0=Off */
+        unsigned char   DLS_Active      :1;     /* DaylightSavingActive: 1=CEST active (CentralEurpSummerTime active), 0=Off */
+        unsigned char   Metric          :1;     /* Metric:              0=km, 1=miles */
+        unsigned char   LedWarnMode     :1;     /* LedWarningMode:      0=Sixo-like, 1=common (Warning lamps ON at ignition like in cars) */
+        unsigned char   VehicSimul      :1;     /* vehicle Simulation:  1=on, 0=off */
+        unsigned char   Hardcopy        :1;     /* Hardcopy via Uart:   1=available, 0=off (via Highbeam switch) */
     } flags;
 } DEVFLAGS2_TYPE;
-#define DEF_DEVFLAGS2 (0x03 )  /* default: LongDistUp=on, BeeperAvail=1 */
+#define DEF_DEVFLAGS2 (0x03 )  /* default: LongDistUp=on, BeeperAvail=1, */
 
 
 /* ----------------------------------------------------------------------------- */
@@ -253,9 +259,10 @@ typedef union
     UINT8           byte;
     struct
     {
-        unsigned char   Metric:1;           /* Metric:              0=km, 1=miles */
-        unsigned char   LedWarnMode:1;      /* LedWarningMode:      0=Sixo-like, 1=common (Warning lamps ON at ignition like in cars) */
-        unsigned char   res6:6;             /* reserved */
+        unsigned char   CompassAvail    :1;     /* CompassAvailable:    1=available, 0=n.a. */
+        unsigned char   CompassShowHead :1;     /* CompassHeading:      1=show, 0=off */
+        unsigned char   CompassShowBar  :1;     /* CompassBargragh:     1=show, 0=off */
+        unsigned char   res5            :5;     /* reserved */
     } flags;
 } DEVFLAGS3_TYPE;
 #define DEF_DEVFLAGS3 (0x00 )  /* default: Metric:Meter, WarnStd:SIxO */
@@ -303,15 +310,15 @@ typedef enum
 
 
 /* ----------------------------------------------------------------------------- */
-/* COMPASS SETUP FLAGS */
+/* COMPASSDRV SETUP FLAGS */
 typedef union
 {
     UINT8           byte;
     struct
     {
         unsigned char   CompassAvail:1;     /* Compass available: 1=driver active, 0: driver inactive */
-        unsigned char   ShowCompassValue:1; /* Show Compass Heading in TripCounter: 1=show, 0=off */
-        unsigned char   ShowCompassBar:1;   /* Show Compass Bargraph in TripCounter: 1=show, 0=off */
+        unsigned char   CompassShowHead:1; /* Show Compass Heading in TripCounter: 1=show, 0=off */
+        unsigned char   CompassShowBar:1;   /* Show Compass Bargraph in TripCounter: 1=show, 0=off */
         unsigned char   reserved:5;         /* reserved */
     } flags;
 } COMPASSCNTFL_TYPE;

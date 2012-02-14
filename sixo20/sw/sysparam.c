@@ -78,6 +78,12 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.5  2012/02/14 21:08:03  tuberkel
+ * - #define COMPASS ==> COMPDRV
+ * - Compass SystemParam moved from devFlags2 -> 3
+ * - Settings 'Compass' ==> 'Extensions'
+ * - all Compass-Display modules enabled by default
+ *
  * Revision 3.4  2012/02/10 23:45:22  tuberkel
  * - Survelannce HeatGrip <Info> - if active
  * - Surveillance-API reviewed
@@ -893,7 +899,7 @@ void ParSetupSWVersionStr( void )
     #if(KD30_USED==1)
         strcat ( szSWVersion, RESTXT_SWVER_MINIEMU);
     #endif
-    #if(COMPASS==1)
+    #if(COMPASSDRV==1)
         strcat ( szSWVersion, RESTXT_SWVER_COMPASS);
     #endif
 
@@ -936,10 +942,10 @@ void ParDebugOutParameter( const PARAM_ID_TYPE PID )
         case PID_DEVFLAGS2:     ODS8(DBG_SYS,DBG_INFO, "- EE DevFlags2:  TC:%u B:%u DL:%u DA:%u CV:%u CB:%u VS:%u HC:%u",
                                                                                             gDeviceFlags2.flags.TripCLongDistUp,
                                                                                             gDeviceFlags2.flags.BeeperAvail,
-                                                                                            gDeviceFlags2.flags.DaylightSaveAuto,
-                                                                                            gDeviceFlags2.flags.CESTActive,
-                                                                                            gDeviceFlags2.flags.ShowCompassValue,
-                                                                                            gDeviceFlags2.flags.ShowCompassBar,
+                                                                                            gDeviceFlags2.flags.DLS_Auto,
+                                                                                            gDeviceFlags2.flags.DLS_Active,
+                                                                                            gDeviceFlags2.flags.CompassShowHead,
+                                                                                            gDeviceFlags2.flags.CompassShowBar,
                                                                                             gDeviceFlags2.flags.VehicSimul,
                                                                                             gDeviceFlags2.flags.Hardcopy   ) ; break;
         case PID_DPLFL:         ODS4(DBG_SYS,DBG_INFO, "- EE DplFlags:   C:%u BLL:%u BLOL:%u Inv:%u",

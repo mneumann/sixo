@@ -81,7 +81,23 @@
  *  merchantability, fitness for a particular purpose, and
  *  non-infringement.
  *
+ *  --------------------------------------------------------------------
+ *
+ *  CVS History
+ *
+ *  This information is automatically added while 'commiting' the
+ *  changes to CVC ('Log message'):
+ *
+ * $Log$
+ * Revision 3.3  2012/02/14 21:08:03  tuberkel
+ * - #define COMPASS ==> COMPDRV
+ * - Compass SystemParam moved from devFlags2 -> 3
+ * - Settings 'Compass' ==> 'Extensions'
+ * - all Compass-Display modules enabled by default
+ *
+ *
  ************************************************************************ */
+
 
 
 #include "standard.h"
@@ -89,11 +105,11 @@
 
 
 /* main switch for this module */
-#if (COMPASS==1)
+#if (COMPASSDRV==1)
 
 
 #if (DEBUG==1) && (KD30_USED==1)
-    #error "ERROR: Use only two of DEBUG, KD30_USED and COMPASS!"
+    #error "ERROR: Use only two of DEBUG, KD30_USED and COMPASSDRV!"
 #endif
 
 
@@ -105,9 +121,9 @@
 
 
 //buffer size must be a multiple of 3, the largest 'D' packet is 93 bytes big
-#define COMPASS_RXD_BUFFER_LEN (3*31)
+#define COMPDRV_RXD_BUFFLEN (3*31)
 
-//All CompassTxByte() calls may be replaced by this macro. Tradeoff between
+//All CompDrv_TxByte() calls may be replaced by this macro. Tradeoff between
 //execution time (CPU performance nedded) and code size. (Compiler is not very
 //clever, code size could be further reduced by implementing this in assembler.)
 //#define COMPASS_TX_BYTE( ucChar ) while( !(u0c1 & 0x02) ); u0tb = ucChar
@@ -117,23 +133,23 @@ typedef struct
 {
    UINT8  ucDigital[2];
    UINT16 usAnalog[32];
-} tCompassOutput;
+} CMPDRV_OUTPUT;
 
-#ifdef COMPASS_DEBUG
+#ifdef COMPDRV_DEBUG
 typedef struct
 {
    UINT8  ucRxIsrState;
    UINT8  ucCompassState;
    UINT8  ucCompassError;
    UINT16 usCurrentTime;
-} tCompassDebug;
+} COMPDRV_DBGDATA;
 #endif
 
 
 extern  UINT16  wMilliSecCounter; //system timer of the module timer.c
 
 UINT8 gucRxIsrState = 0;
-UINT8 gaucRxdBuffer[COMPASS_RXD_BUFFER_LEN];
+UINT8 gaucRxdBuffer[COMPDRV_RXD_BUFFLEN];
 UINT8 gucRxdBufferPtr = 0;
 
 UINT8  gucCompassState  = 0;
@@ -142,19 +158,23 @@ UINT16 gusDelayStart    = 0;
 UINT16 gusDelayTime     = 0;
 UINT16 gusSequenceStart = 0;
 
-tCompassVersionInfo gtCompassVersionInfo;
-tCompassHeadingInfo gtCompassHeadingInfo;
+COMPDRV_VERSINFO gtCompassVersionInfo;
+COMPDRV_HEADINFO gtCompassHeadingInfo;
 
 MESSAGE gtCompassMessage = {0, 0, 0, MSG_COMPASS_RFRSH};
 
 
-void CompassResetDriverState( void );
-void CompassTxByte( UINT8 ucChar );
-void CompassCmdSetInterval0( void );
-void CompassCmdSetInterval500( void );
-void CompassCmdGetVersionInfo( void );
-BOOL CompassCheckSumValid( void );
-void CompassDecodePacket( void );
+/* non public API */
+void CompDrv_Reset              ( void );
+void CompDrv_TxByte             ( UINT8 ucChar );
+void CompDrv_Cmd_SetInterv0     ( void );
+void CompDrv_Cmd_SetInterv500   ( void );
+void CompDrv_Cmd_GetVersInfo    ( void );
+BOOL CompDrv_CheckSumValid      ( void );
+void CompDrv_DecodePacket       ( void );
+
+
+
 
 
 /***********************************************************************
@@ -185,7 +205,7 @@ void CompassRxIsr( void )
       case 2:
          //collect chars into buffer
          //overflow simply stops reception, leads to checksum error later on
-         if( (gucRxdBufferPtr >= COMPASS_RXD_BUFFER_LEN) || (ucChar == '\r') ) gucRxIsrState = 0;
+         if( (gucRxdBufferPtr >= COMPDRV_RXD_BUFFLEN) || (ucChar == '\r') ) gucRxIsrState = 0;
          gaucRxdBuffer[gucRxdBufferPtr++] = ucChar;
          return;
       default:
@@ -197,22 +217,22 @@ void CompassRxIsr( void )
 
 
 /***********************************************************************
- *  FUNCTION:       CompassResetDriverState
+ *  FUNCTION:       CompDrv_Reset
  *  DESCRIPTION:    resets the internal states of ISR and sequence control
  *  PARAMETER:      none
  *  RETURN:         none
  *  COMMENT:        Called during initialisation, after resetting the
  *                  compass with CommandReset() or on error.
  *********************************************************************** */
-void CompassResetDriverState( void )
+void CompDrv_Reset( void )
 {
    gucRxIsrState   = 0;
    gucCompassState = 0;
 
-   memset( &gtCompassVersionInfo, 0, sizeof(tCompassVersionInfo) );
+   memset( &gtCompassVersionInfo, 0, sizeof(COMPDRV_VERSINFO) );
    gtCompassVersionInfo.bValid = FALSE;
 
-   memset( &gtCompassHeadingInfo, 0, sizeof(tCompassHeadingInfo) );
+   memset( &gtCompassHeadingInfo, 0, sizeof(COMPDRV_HEADINFO) );
    gtCompassHeadingInfo.bValid = FALSE;
 
    MsgQPostMsg( gtCompassMessage, MSGQ_PRIO_LOW );
@@ -224,14 +244,14 @@ void CompassResetDriverState( void )
 
 
 /***********************************************************************
- *  FUNCTION:       CompassTxByte
+ *  FUNCTION:       CompDrv_TxByte
  *  DESCRIPTION:    transmits the given char via UART0
  *  PARAMETER:      char to transmit
  *  RETURN:         none
- *  COMMENT:        Transmission has already been enabled in CompassInit().
+ *  COMMENT:        Transmission has already been enabled in CompDrv_Init().
  *                  So u0c1 |= 0x01, present in sput(), has been omitted.
  *********************************************************************** */
-void CompassTxByte( UINT8 ucChar )
+void CompDrv_TxByte( UINT8 ucChar )
 {
     while ( !(u0c1 & 0x02) );
     u0tb = ucChar;
@@ -239,7 +259,7 @@ void CompassTxByte( UINT8 ucChar )
 
 
 /***********************************************************************
- *  FUNCTION:       CompassCmdSetInterval0
+ *  FUNCTION:       CompDrv_Cmd_SetInterv0
  *  DESCRIPTION:    stops automatic sending of heading and other infor-
  *                  mation
  *  PARAMETER:      none
@@ -247,70 +267,70 @@ void CompassTxByte( UINT8 ucChar )
  *  COMMENT:        Used to simplify communication. Usually called before
  *                  a request for other data is sent to the compass.
  *********************************************************************** */
-void CompassCmdSetInterval0( void )
+void CompDrv_Cmd_SetInterv0( void )
 {
-   CompassTxByte( 0x23 ); //# sync
-   CompassTxByte( 0x63 ); //c address 2
-   CompassTxByte( 0x64 ); //d command
-   CompassTxByte( 0x3d ); //= 1 byte data of value 0, stuffed to 3 bytes with two additional 0's,
-   CompassTxByte( 0x3d ); //=        encoded to 4 bytes with offset 0x3d
-   CompassTxByte( 0x3d ); //=
-   CompassTxByte( 0x3d ); //=
-   CompassTxByte( 0x44 ); //D checksum first byte
-   CompassTxByte( 0x5b ); //[ checksum second byte
-   CompassTxByte( 0x0d ); //termination
+   CompDrv_TxByte( 0x23 ); //# sync
+   CompDrv_TxByte( 0x63 ); //c address 2
+   CompDrv_TxByte( 0x64 ); //d command
+   CompDrv_TxByte( 0x3d ); //= 1 byte data of value 0, stuffed to 3 bytes with two additional 0's,
+   CompDrv_TxByte( 0x3d ); //=        encoded to 4 bytes with offset 0x3d
+   CompDrv_TxByte( 0x3d ); //=
+   CompDrv_TxByte( 0x3d ); //=
+   CompDrv_TxByte( 0x44 ); //D checksum first byte
+   CompDrv_TxByte( 0x5b ); //[ checksum second byte
+   CompDrv_TxByte( 0x0d ); //termination
 }
 
 
 /***********************************************************************
- *  FUNCTION:       CompassCmdSetInterval500
+ *  FUNCTION:       CompDrv_Cmd_SetInterv500
  *  DESCRIPTION:    sends interval to compass, heading and other infor-
  *                  mation will be sent automatically every 500 ms
  *  PARAMETER:      none
  *  RETURN:         none
  *  COMMENT:
  *********************************************************************** */
-void CompassCmdSetInterval500( none )
+void CompDrv_Cmd_SetInterv500( none )
 {
-   CompassTxByte( 0x23 ); //# sync
-   CompassTxByte( 0x63 ); //c address 2
-   CompassTxByte( 0x64 ); //d command
-   CompassTxByte( 0x49 ); //I 1 byte data of value 50, stuffed to 3 bytes with two additional 0's,
-   CompassTxByte( 0x5d ); //]        encoded to 4 bytes with offset 0x3d
-   CompassTxByte( 0x3d ); //=
-   CompassTxByte( 0x3d ); //=
-   CompassTxByte( 0x45 ); //E checksum first byte
-   CompassTxByte( 0x47 ); //G checksum second byte
-   CompassTxByte( 0x0d ); //termination
+   CompDrv_TxByte( 0x23 ); //# sync
+   CompDrv_TxByte( 0x63 ); //c address 2
+   CompDrv_TxByte( 0x64 ); //d command
+   CompDrv_TxByte( 0x49 ); //I 1 byte data of value 50, stuffed to 3 bytes with two additional 0's,
+   CompDrv_TxByte( 0x5d ); //]        encoded to 4 bytes with offset 0x3d
+   CompDrv_TxByte( 0x3d ); //=
+   CompDrv_TxByte( 0x3d ); //=
+   CompDrv_TxByte( 0x45 ); //E checksum first byte
+   CompDrv_TxByte( 0x47 ); //G checksum second byte
+   CompDrv_TxByte( 0x0d ); //termination
 }
 
 
 /***********************************************************************
- *  FUNCTION:       CompassCmdGetVersionInfo
+ *  FUNCTION:       CompDrv_Cmd_GetVersInfo
  *  DESCRIPTION:    sends requests for version information to the compass
  *  PARAMETER:      none
  *  RETURN:         none
  *  COMMENT:
  *********************************************************************** */
-void CompassCmdGetVersionInfo( void )
+void CompDrv_Cmd_GetVersInfo( void )
 {
-   CompassTxByte( 0x23 ); //# sync
-   CompassTxByte( 0x63 ); //c address 2
-   CompassTxByte( 0x76 ); //v command
-   CompassTxByte( 0x40 ); //@ checksum first byte
-   CompassTxByte( 0x79 ); //y checksum second byte
-   CompassTxByte( 0x0d ); //termination
+   CompDrv_TxByte( 0x23 ); //# sync
+   CompDrv_TxByte( 0x63 ); //c address 2
+   CompDrv_TxByte( 0x76 ); //v command
+   CompDrv_TxByte( 0x40 ); //@ checksum first byte
+   CompDrv_TxByte( 0x79 ); //y checksum second byte
+   CompDrv_TxByte( 0x0d ); //termination
 }
 
 
 /***********************************************************************
- *  FUNCTION:       CompassCheckSumValid
+ *  FUNCTION:       CompDrv_CheckSumValid
  *  DESCRIPTION:    computes checksum and compares with checksum in packet
  *  PARAMETER:      none
  *  RETURN:         TRUE if checksum is valid
  *  COMMENT:
  *********************************************************************** */
-BOOL CompassCheckSumValid( void )
+BOOL CompDrv_CheckSumValid( void )
 {
    UINT8  ucIdx      = 0;
    UINT8  ucIdxEnd   = gucRxdBufferPtr - 3; //gucRxdBufferPtr points to byte behind termination
@@ -335,13 +355,13 @@ BOOL CompassCheckSumValid( void )
 
 
 /***********************************************************************
- *  FUNCTION:       CompassDecodePacket
+ *  FUNCTION:       CompDrv_DecodePacket
  *  DESCRIPTION:    revertes the encoding applied by the compass
  *  PARAMETER:      none
  *  RETURN:         none
  *  COMMENT:
  *********************************************************************** */
-void CompassDecodePacket( void )
+void CompDrv_DecodePacket( void )
 {
    UINT8  ucA,ucB,ucC,ucD;
    UINT8  ucX,ucY,ucZ;
@@ -369,16 +389,16 @@ void CompassDecodePacket( void )
 
 
 /***********************************************************************
- *  FUNCTION:       CompassInit
+ *  FUNCTION:       CompDrv_Init
  *  DESCRIPTION:    inits UART0 and its receive interrupt
  *  PARAMETER:      none
  *  RETURN:         ERRCODE   ERR_OK
  *  COMMENT:
  *********************************************************************** */
-ERRCODE CompassInit( void )
+ERRCODE CompDrv_Init( void )
 {
    //reset driver
-   CompassResetDriverState();
+   CompDrv_Reset();
 
    //57600 Baud 8N1, enable reception
    u0mr  = 0x85; //reversed polarity since compass TxD/RxD has no inverters
@@ -412,7 +432,7 @@ ERRCODE CompassInit( void )
  *                  An MSG_COMPASS_RFRSH is sent if the version info
  *                  changes.
  *********************************************************************** */
-tCompassVersionInfo *CompassGetVersionInfo( void )
+COMPDRV_VERSINFO *CompassGetVersionInfo( void )
 {
    return &gtCompassVersionInfo;
 }
@@ -428,14 +448,14 @@ tCompassVersionInfo *CompassGetVersionInfo( void )
  *                  An MSG_COMPASS_RFRSH is sent if the heading or
  *                  calibration state changes.
  *********************************************************************** */
-tCompassHeadingInfo *CompassGetHeadingInfo( void )
+COMPDRV_HEADINFO *CompassGetHeadingInfo( void )
 {
    return &gtCompassHeadingInfo;
 }
 
 
 /***********************************************************************
- *  FUNCTION:       CompassGetError
+ *  FUNCTION:       CompDrv_GetError
  *  DESCRIPTION:    returns the compass error count
  *  PARAMETER:      none
  *  RETURN:         error count
@@ -444,14 +464,14 @@ tCompassHeadingInfo *CompassGetHeadingInfo( void )
  *                  An MSG_COMPASS_RFRSH is sent if the error count
  *                  changes.
  *********************************************************************** */
-UINT8 CompassGetError( void )
+UINT8 CompDrv_GetError( void )
 {
    return gucCompassError;
 }
 
 
 /***********************************************************************
- *  FUNCTION:       CompassCmdReset
+ *  FUNCTION:       CompDrv_Cmd_Reset
  *  DESCRIPTION:    sends a reset packet to the compass and resets the
  *                  driver
  *  PARAMETER:      none
@@ -459,53 +479,53 @@ UINT8 CompassGetError( void )
  *  COMMENT:        Not necessary at startup. Intended to break an
  *                  already started calibration sequence by the user.
  *********************************************************************** */
-void CompassCmdReset( void )
+void CompDrv_Cmd_Reset( void )
 {
-   CompassResetDriverState();
+   CompDrv_Reset();
 
-   CompassTxByte( 0x23 ); //# sync
-   CompassTxByte( 0x63 ); //c address 2
-   CompassTxByte( 0x52 ); //R command
-   CompassTxByte( 0x40 ); //@ checksum first byte
-   CompassTxByte( 0x55 ); //U checksum second byte
-   CompassTxByte( 0x0d ); //termination
+   CompDrv_TxByte( 0x23 ); //# sync
+   CompDrv_TxByte( 0x63 ); //c address 2
+   CompDrv_TxByte( 0x52 ); //R command
+   CompDrv_TxByte( 0x40 ); //@ checksum first byte
+   CompDrv_TxByte( 0x55 ); //U checksum second byte
+   CompDrv_TxByte( 0x0d ); //termination
 }
 
 
 /***********************************************************************
- *  FUNCTION:       CompassCmdIncCalState
+ *  FUNCTION:       CompDrv_Cmd_IncCalState
  *  DESCRIPTION:    increments the calibration state by 1, the sequence
  *                  is 0,1,2,3,4,5,0,1...
  *  PARAMETER:      none
  *  RETURN:         none
  *  COMMENT:        The sequence may only be interrupted by powering off
- *                  the compass or calling CompassCmdReset().
+ *                  the compass or calling CompDrv_Cmd_Reset().
  *********************************************************************** */
-void CompassCmdIncCalState( void )
+void CompDrv_Cmd_IncCalState( void )
 {
    UINT8 ucCnt = 0;
 
-   CompassTxByte( 0x23 );    //# sync
-   CompassTxByte( 0x63 );    //c address 2
-   CompassTxByte( 0x62 );    //b command
-   CompassTxByte( 0x3d );    //= 11 bytes data, stuffed to 12 bytes with an additional 0,
-   CompassTxByte( 0x3d );    //=        encoded to 16 bytes with offset 0x3d.
-   CompassTxByte( 0x3d );    //= All but RemoteButtons = 2 and Frame = 0 is used. Frame is
-   CompassTxByte( 0x3f );    //? set to 0, so no confirmation is sent back.
+   CompDrv_TxByte( 0x23 );    //# sync
+   CompDrv_TxByte( 0x63 );    //c address 2
+   CompDrv_TxByte( 0x62 );    //b command
+   CompDrv_TxByte( 0x3d );    //= 11 bytes data, stuffed to 12 bytes with an additional 0,
+   CompDrv_TxByte( 0x3d );    //=        encoded to 16 bytes with offset 0x3d.
+   CompDrv_TxByte( 0x3d );    //= All but RemoteButtons = 2 and Frame = 0 is used. Frame is
+   CompDrv_TxByte( 0x3f );    //? set to 0, so no confirmation is sent back.
 
    do{
-      CompassTxByte( 0x3d ); //=
+      CompDrv_TxByte( 0x3d ); //=
       ucCnt++;
    }while( ucCnt < 12 );
 
-   CompassTxByte( 0x4f );    //O checksum first byte
-   CompassTxByte( 0x77 );    //W checksum second byte
-   CompassTxByte( 0x0d );    //termination
+   CompDrv_TxByte( 0x4f );    //O checksum first byte
+   CompDrv_TxByte( 0x77 );    //W checksum second byte
+   CompDrv_TxByte( 0x0d );    //termination
 }
 
 
 /***********************************************************************
- *  FUNCTION:       Compass
+ *  FUNCTION:       CompDrv_Task
  *  DESCRIPTION:    compass sequence control, cyclic called
  *                  by the main loop
  *  PARAMETER:      none
@@ -526,22 +546,22 @@ void CompassCmdIncCalState( void )
  *                  been about 10 ms, with it about 13 ms. During calibration
  *                  9 ms have been measured.
  *********************************************************************** */
-void Compass( void )
+void CompDrv_Task( void )
 {
-   #ifdef COMPASS_DEBUG
+   #ifdef COMPDRV_DEBUG
       #define DLEN 100
-      static tCompassDebug atD[DLEN];
+      static COMPDRV_DBGDATA atD[DLEN];
       static UINT8 ucDx = 0;
    #endif
 
    UINT16  usCurrentTime  = 0;
    BOOL    bCheckSumValid = FALSE;
-   tCompassOutput *ptCompassOutput = (tCompassOutput *)(&(gaucRxdBuffer[2]));
+   CMPDRV_OUTPUT *ptCompassOutput = (CMPDRV_OUTPUT *)(&(gaucRxdBuffer[2]));
 
    switch( gucCompassState ){
       case 0:
          //delay after compass power on, CommandReset() or version info error
-         #ifdef COMPASS_DEBUG
+         #ifdef COMPDRV_DEBUG
             if(ucDx < DLEN){atD[ucDx].ucRxIsrState = gucRxIsrState; atD[ucDx].ucCompassState = gucCompassState; atD[ucDx].ucCompassError = gucCompassError; TimerGetSys_msec(atD[ucDx].usCurrentTime); ucDx++;}
          #endif
          TimerGetSys_msec( usCurrentTime );
@@ -549,7 +569,7 @@ void Compass( void )
          return;
       case 1:
          //stop automatic sending of packets
-         #ifdef COMPASS_DEBUG
+         #ifdef COMPDRV_DEBUG
             if(ucDx < DLEN){atD[ucDx].ucRxIsrState = gucRxIsrState; atD[ucDx].ucCompassState = gucCompassState; atD[ucDx].ucCompassError = gucCompassError; TimerGetSys_msec(atD[ucDx].usCurrentTime); ucDx++;}
          #endif
          //We give away processing time after each state. Currently we loose control for about 25..90 ms each time. The time
@@ -557,17 +577,17 @@ void Compass( void )
          //compass. The ISR has to be retriggered for each packet. Thus we can only handle the reception of ONE PACKET AT A TIME.
          //The compass may send us two packets in one of its cycles. One packet answering our request and one of the automatically
          //packets sent out. So before requesting information the sending of automatic packets is turned off.
-         CompassTxByte( 0x0d );    //reset receive ISR of compass, leads to wrong checksum, ISR is ready for exception immediately (especially this 0x0d is needed after reset of SIxO, PORT/UART init process puts compass ISR in blocking state)
-         CompassCmdSetInterval0();
+         CompDrv_TxByte( 0x0d );    //reset receive ISR of compass, leads to wrong checksum, ISR is ready for exception immediately (especially this 0x0d is needed after reset of SIxO, PORT/UART init process puts compass ISR in blocking state)
+         CompDrv_Cmd_SetInterv0();
          TimerGetSys_msec( gusDelayStart );
          gusDelayTime = 32;        //32 ms delay needed to allow compass to finish a possibly ongoing transmission
          gucCompassState++;
          return;
       case 2:
-         //delay after CompassCmdSetInterval0()
+         //delay after CompDrv_Cmd_SetInterv0()
          TimerGetSys_msec( usCurrentTime );
          if( (usCurrentTime - gusDelayStart) >= gusDelayTime ){
-            #ifdef COMPASS_DEBUG
+            #ifdef COMPDRV_DEBUG
                if(ucDx < DLEN){atD[ucDx].ucRxIsrState = gucRxIsrState; atD[ucDx].ucCompassState = gucCompassState; atD[ucDx].ucCompassError = gucCompassError; TimerGetSys_msec(atD[ucDx].usCurrentTime); ucDx++;}
             #endif
             gucCompassState++;
@@ -575,11 +595,11 @@ void Compass( void )
          return;
       case 3:
          //request version info
-         #ifdef COMPASS_DEBUG
+         #ifdef COMPDRV_DEBUG
             if(ucDx < DLEN){atD[ucDx].ucRxIsrState = gucRxIsrState; atD[ucDx].ucCompassState = gucCompassState; atD[ucDx].ucCompassError = gucCompassError; TimerGetSys_msec(atD[ucDx].usCurrentTime); ucDx++;}
          #endif
          gucRxIsrState = 1;        //start packet reception
-         CompassCmdGetVersionInfo();
+         CompDrv_Cmd_GetVersInfo();
          TimerGetSys_msec( gusDelayStart );
          gusDelayTime = 200;       //200 ms timeout
          gucCompassState++;
@@ -587,12 +607,12 @@ void Compass( void )
       case 4:
          //receive version info
          if( gucRxIsrState == 0 ){ //packet received
-            #ifdef COMPASS_DEBUG
+            #ifdef COMPDRV_DEBUG
                if(ucDx < DLEN){atD[ucDx].ucRxIsrState = gucRxIsrState; atD[ucDx].ucCompassState = gucCompassState; atD[ucDx].ucCompassError = gucCompassError; TimerGetSys_msec(atD[ucDx].usCurrentTime); ucDx++;}
             #endif
-            if( (gaucRxdBuffer[1] == 'V') && CompassCheckSumValid() ){
+            if( (gaucRxdBuffer[1] == 'V') && CompDrv_CheckSumValid() ){
                //version info received
-               CompassDecodePacket();
+               CompDrv_DecodePacket();
                memcpy( &gtCompassVersionInfo, &(gaucRxdBuffer[2]), 5 );
                gtCompassVersionInfo.bValid = TRUE;
                MsgQPostMsg( gtCompassMessage, MSGQ_PRIO_LOW );
@@ -623,11 +643,11 @@ void Compass( void )
          return;
       case 5:
          //start automatic sending of packets
-         #ifdef COMPASS_DEBUG
+         #ifdef COMPDRV_DEBUG
             if(ucDx < DLEN){atD[ucDx].ucRxIsrState = gucRxIsrState; atD[ucDx].ucCompassState = gucCompassState; atD[ucDx].ucCompassError = gucCompassError; TimerGetSys_msec(atD[ucDx].usCurrentTime); ucDx++;}
          #endif
          gucRxIsrState = 1;        //start packet reception
-         CompassCmdSetInterval500();
+         CompDrv_Cmd_SetInterv500();
          TimerGetSys_msec( gusDelayStart );
          gusSequenceStart = gusDelayStart;
          gusDelayTime = 200;       //200 ms timeout
@@ -636,12 +656,12 @@ void Compass( void )
       case 6:
          //receive heading and calibration state
          if( gucRxIsrState == 0 ){ //packet received
-            #ifdef COMPASS_DEBUG
+            #ifdef COMPDRV_DEBUG
                if(ucDx < DLEN){atD[ucDx].ucRxIsrState = gucRxIsrState; atD[ucDx].ucCompassState = gucCompassState; atD[ucDx].ucCompassError = gucCompassError; TimerGetSys_msec(atD[ucDx].usCurrentTime); ucDx++;}
             #endif
-            if( (gaucRxdBuffer[1] == 'D') && CompassCheckSumValid() ){
+            if( (gaucRxdBuffer[1] == 'D') && CompDrv_CheckSumValid() ){
                //heading and calibration state received
-               CompassDecodePacket();
+               CompDrv_DecodePacket();
                gtCompassHeadingInfo.ucCalState = ptCompassOutput->usAnalog[14];
                gtCompassHeadingInfo.usHeading  = ptCompassOutput->usAnalog[15] + 45; //sensors are mounted +45 degrees rotated on the PCB
                if( gtCompassHeadingInfo.usHeading > 359 ) gtCompassHeadingInfo.usHeading -= 360;
@@ -685,10 +705,10 @@ void Compass( void )
          }
          return;
       default:
-         CompassResetDriverState(); //should never happen
+         CompDrv_Reset(); //should never happen
    }
 }
 
 
 
-#endif //COMPASS
+#endif //COMPASSDRV

@@ -70,6 +70,12 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.10  2012/02/14 21:08:03  tuberkel
+ * - #define COMPASS ==> COMPDRV
+ * - Compass SystemParam moved from devFlags2 -> 3
+ * - Settings 'Compass' ==> 'Extensions'
+ * - all Compass-Display modules enabled by default
+ *
  * Revision 3.9  2012/02/11 12:21:45  tuberkel
  * dedicated COOLRIDE macros prepared & used
  *
@@ -738,7 +744,7 @@ void Surv_CheckAnalogPorts(void)
             }
         }
         // check: if not using Sixo-Warnmode, setup LED directly here
-        if ( gDeviceFlags3.flags.LedWarnMode == SURV_LWM_STD )
+        if ( gDeviceFlags2.flags.LedWarnMode == SURV_LWM_STD )
         {
             if ( vstatelvl != eSURVST_OK )
                  LED_SetNewState(eLED_WARN, LED_ON );
@@ -806,7 +812,7 @@ void Surv_CheckDevice(void)
     else Surv_ListSetParamState(eSURVID_HARDCOPY, eSURVST_OK);
 
     /* User Warning: Automatic RTC Clock change because of summer/winter time? */
-    if (  ( gDeviceFlags2.flags.DaylightSaveAuto == TRUE )
+    if (  ( gDeviceFlags2.flags.DLS_Auto == TRUE )
         &&( fCESTChanged                         == TRUE ) )
     {
         fCESTChanged = FALSE;               // reset for next change detection
@@ -861,7 +867,7 @@ void Surv_CheckDigitalPorts(void)
                  Surv_ListSetParamState(eSURVID_ABS, eSURVST_ERROR);
             else Surv_ListSetParamState(eSURVID_ABS, eSURVST_OK);
             // check: if not using Sixo-Warnmode, setup Error-LED directly here
-            if ( gDeviceFlags3.flags.LedWarnMode == SURV_LWM_STD )
+            if ( gDeviceFlags2.flags.LedWarnMode == SURV_LWM_STD )
             {   if ( DF_ABS_Warn_F650 == 0 )
                      LED_SetNewState(eLED_WARN, LED_ON );
                 else LED_SetNewState(eLED_WARN, LED_OFF);
@@ -873,7 +879,7 @@ void Surv_CheckDigitalPorts(void)
                  Surv_ListSetParamState(eSURVID_WATTEMPSW, eSURVST_ERROR);
             else Surv_ListSetParamState(eSURVID_WATTEMPSW, eSURVST_OK);
             // check: if not using Sixo-Warnmode, setup LED directly here
-            if ( gDeviceFlags3.flags.LedWarnMode == SURV_LWM_STD )
+            if ( gDeviceFlags2.flags.LedWarnMode == SURV_LWM_STD )
             {   if ( DF_ABS_Warn_F650 == 0 )
                      LED_SetNewState(eLED_ERROR, LED_ON );
                 else LED_SetNewState(eLED_ERROR, LED_OFF);
@@ -896,7 +902,7 @@ void Surv_CheckDigitalPorts(void)
                  Surv_ListSetParamState(eSURVID_OILSWDEF, eSURVST_WARNING);
             else Surv_ListSetParamState(eSURVID_OILSWDEF, eSURVST_OK);
             // check: if not using Sixo-Warnmode, setup LED directly here
-            if ( gDeviceFlags3.flags.LedWarnMode == SURV_LWM_STD )
+            if ( gDeviceFlags2.flags.LedWarnMode == SURV_LWM_STD )
             {   if ( DF_Fuel_4l_AT == 0 )      // low active
                      LED_SetNewState(eLED_WARN, LED_ON );
                 else LED_SetNewState(eLED_WARN, LED_OFF );
@@ -909,7 +915,7 @@ void Surv_CheckDigitalPorts(void)
                  Surv_ListSetParamState(eSURVID_OILPRESS, eSURVST_ERROR);
             else Surv_ListSetParamState(eSURVID_OILPRESS, eSURVST_OK);
             // check: if not using Sixo-Warnmode, setup LED directly here
-            if ( gDeviceFlags3.flags.LedWarnMode == SURV_LWM_STD )
+            if ( gDeviceFlags2.flags.LedWarnMode == SURV_LWM_STD )
             {   if ( DF_OILSW == 0 )      // low active
                      LED_SetNewState(eLED_ERROR, LED_ON );
                 else LED_SetNewState(eLED_ERROR, LED_OFF );
@@ -933,7 +939,7 @@ void Surv_CheckDigitalPorts(void)
                  Surv_ListSetParamState(eSURVID_WATTEMPSW, eSURVST_ERROR);
             else Surv_ListSetParamState(eSURVID_WATTEMPSW, eSURVST_OK);
             // check: if not using Sixo-Warnmode, setup LED directly here
-            if ( gDeviceFlags3.flags.LedWarnMode == SURV_LWM_STD )
+            if ( gDeviceFlags2.flags.LedWarnMode == SURV_LWM_STD )
             {   if ( DF_Temp_Warn_BAGHIRA == 1)          // high active
                      LED_SetNewState(eLED_ERROR, LED_ON );
                 else LED_SetNewState(eLED_ERROR, LED_OFF );
@@ -958,7 +964,7 @@ void Surv_CheckDigitalPorts(void)
                  Surv_ListSetParamState(eSURVID_OILPRESS, eSURVST_ERROR);
             else Surv_ListSetParamState(eSURVID_OILPRESS, eSURVST_OK);
             // check: if not using Sixo-Warnmode, setup LED directly here
-            if ( gDeviceFlags3.flags.LedWarnMode == SURV_LWM_STD )
+            if ( gDeviceFlags2.flags.LedWarnMode == SURV_LWM_STD )
             {   if ( DF_OILSW == 0 )      // low active
                      LED_SetNewState(eLED_ERROR, LED_ON );
                 else LED_SetNewState(eLED_ERROR, LED_OFF );
@@ -1348,7 +1354,7 @@ void Surv_SetLEDState( void )
     MESSAGE msg;            // for LED event message
 
     /* main switch: Use special SIxO warning Mode? */
-    if ( gDeviceFlags3.flags.LedWarnMode == SURV_LWM_SIXO )
+    if ( gDeviceFlags2.flags.LedWarnMode == SURV_LWM_SIXO )
     {
         /* INFO-LED --------------------------------------  */
         if (  ( Surv_ListGetCount(eSURVST_INFO) >  0     )

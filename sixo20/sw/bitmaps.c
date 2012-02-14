@@ -76,6 +76,12 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.6  2012/02/14 21:08:03  tuberkel
+ * - #define COMPASS ==> COMPDRV
+ * - Compass SystemParam moved from devFlags2 -> 3
+ * - Settings 'Compass' ==> 'Extensions'
+ * - all Compass-Display modules enabled by default
+ *
  * Revision 3.5  2012/02/06 20:02:12  tuberkel
  * BugFix: rgHeatGrip16x16
  *
@@ -2029,7 +2035,6 @@ const unsigned char rg7Seg_9_16x16[] = {
 
 
 // ---------------------------------------------------
-#if (COMPASS==1)
 /* compass degree bars */
 const unsigned char rgCompassTop144x8[] = {
   0x1f, 0x01, 0x01, 0x01, 0xff, 0x01, 0x01, 0x01,
@@ -2072,5 +2077,5 @@ const unsigned char rgCompassBot144x8[] = {
   0xf8, 0x80, 0x80, 0x80, 0xf8, 0x80, 0x80, 0x80,
   0xf8, 0x80, 0x80, 0x80, 0xf8, 0x80, 0x80, 0x80
 };
-#endif //COMPASS
+
 
