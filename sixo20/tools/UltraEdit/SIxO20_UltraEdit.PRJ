@@ -7,13 +7,13 @@ Use Relative Directory=1
 Relative to Project File=1
 Project Wordfile=
 [Open Files]
-Open File0=s:\CVS\sixo\sixo20\sw\setdev.c
+Open File0=
 Open File Pos0=2801
 Open File Line0=1944
 Active File Index=11
 Open File Window Pos0=0,1,-1,-1,-4,-30,0,0,779,543
 Open File1=s:\CVS\sixo\sixo20\sw\maindev.c
-Active File Display Mode=3
+Active File Display Mode=-1
 Open File Pos1=19148
 Open File Line1=17871
 Open File Window Pos1=0,1,-1,-1,-4,-30,22,29,682,576
