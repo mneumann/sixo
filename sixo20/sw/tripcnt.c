@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.6  2012/02/15 07:32:43  tuberkel
+ * Objects-API reviewed (no functional changes)
+ *
  * Revision 3.5  2012/02/14 21:08:03  tuberkel
  * - #define COMPASS ==> COMPDRV
  * - Compass SystemParam moved from devFlags2 -> 3
@@ -191,19 +194,19 @@
 /* device static objects */
 static DEVDATA      TripCntDev;
 
-static TEXTOBJECT   BigTripCntObj;                      /* contains the bigger trip counter object data */
-static TEXTOBJECT   SmallTripCntObj;                    /* contains the smaller trip counter object data */
+static OBJ_TEXTST   BigTripCntObj;                      /* contains the bigger trip counter object data */
+static OBJ_TEXTST   SmallTripCntObj;                    /* contains the smaller trip counter object data */
 
 static CHAR         BigTripCntTxt[BUFFER_STRSIZE]   = {' ', ' ', '0', RESTXT_DEC_SEPARATOR, '0', '0'};  /* buffer for big trip counter string */
 static CHAR         SmallTripCntTxt[BUFFER_STRSIZE] = {' ', ' ', ' ', ' ', ' ', '0', RESTXT_DEC_SEPARATOR, '0', '0'};  /* buffer for samll trip counter string */
 
-static TEXTOBJECT   VehSpeedTxtObj;                     /* stateline speed object */
+static OBJ_TEXTST   VehSpeedTxtObj;                     /* stateline speed object */
 static CHAR         szVehSpeed[8] = "---km/h";          /* buffer for speed string */
 
-static TEXTOBJECT   CompassTxtObj;                      /* stateline compass object */
+static OBJ_TEXTST   CompassTxtObj;                      /* stateline compass object */
 static CHAR         szCompass[5] = "---°";              /* buffer for time string */
 
-static TEXTOBJECT   TimeTxtObj;                         /* stateline time object */
+static OBJ_TEXTST   TimeTxtObj;                         /* stateline time object */
 static CHAR         szTime[10] = "--:--:--a";           /* buffer for time string (add. am/pm in engl. version!)*/
 
 
@@ -231,7 +234,7 @@ void    TripCDev_UpdCompassHead(void);
 void    TripCDev_UpdCompassBargr(void);
 
 /* text object table */
-static const TEXTOBJECT_INITTYPE TextObjInit[] =
+static const OBJ_TEXTST_INIT TextObjInit[] =
 {
     /*pObject                   X    Y  Font            H  Width  Align     Format    string ptr        State      */
     /* ----------------------- ---- --- -------------- --- ----- --------- ---------- ----------------- ---------- */
@@ -241,7 +244,7 @@ static const TEXTOBJECT_INITTYPE TextObjInit[] =
     { &CompassTxtObj,           52, 56, DPLFONT_6X8,    1,  4, TXT_CENTER, TXT_NORM, szCompass,         OC_DISPL | OC_DYN },
     { &TimeTxtObj,              45, 56, DPLFONT_6X8,    1, 14, TXT_RIGHT,  TXT_NORM, szTime,            OC_DISPL | OC_DYN }
 };
-#define TEXTOBJECTLISTSIZE   (sizeof(TextObjInit)/sizeof(TEXTOBJECT_INITTYPE))
+#define TEXTOBJECTLISTSIZE   (sizeof(TextObjInit)/sizeof(OBJ_TEXTST_INIT))
 
 
 /* this devices object focus handling - list of all objects */
@@ -255,7 +258,7 @@ static const void far * ObjectList[] =
     (void far *) &CompassTxtObj,
     (void far *) &TimeTxtObj,
 };
-#define OBJECTLIST_SIZE   (sizeof(ObjectList)/sizeof(OBJSTATE)/sizeof(void far *))
+#define OBJECTLIST_SIZE   (sizeof(ObjectList)/sizeof(OBJ_STATE)/sizeof(void far *))
 
 
 
@@ -354,9 +357,9 @@ void TripCDev_Show(BOOL fShow)
             /* show BIGCOUNTER onyl if compass BARGRAGH disabled */
             if (  ( gDeviceFlags3.flags.CompassAvail   == 0 )
                 ||( gDeviceFlags3.flags.CompassShowBar == 0 ) )
-                ObjTextShow( &BigTripCntObj);
-            ObjTextShow( &SmallTripCntObj );
-            ObjTextShow( &VehSpeedTxtObj );
+                Obj_TextSt_Show( &BigTripCntObj);
+            Obj_TextSt_Show( &SmallTripCntObj );
+            Obj_TextSt_Show( &VehSpeedTxtObj );
 
             // the following should be initialized ONCE,
             // but refreshed with diccated message!
@@ -387,10 +390,10 @@ void TripCDev_Show(BOOL fShow)
             /* show BIGCOUNTER onyl if compass BARGRAGH disabled */
             if (  ( gDeviceFlags3.flags.CompassAvail   == 0 )
                 ||( gDeviceFlags3.flags.CompassShowBar == 0 ) )
-                ObjTextShow( &BigTripCntObj);
-            ObjTextShow( &SmallTripCntObj );
-            ObjTextShow( &VehSpeedTxtObj );
-            //ObjTextShow( &TimeTxtObj ); will be refreshed by special message only
+                Obj_TextSt_Show( &BigTripCntObj);
+            Obj_TextSt_Show( &SmallTripCntObj );
+            Obj_TextSt_Show( &VehSpeedTxtObj );
+            //Obj_TextSt_Show( &TimeTxtObj ); will be refreshed by special message only
         }
     }
     else
@@ -685,7 +688,7 @@ void TripCDev_UpdTimeDate(void)
     {
         /* update time for lower state line '13:15:24p' */
         TimeDate_GetString( RESENUM_HHMMSS,  szTime );
-        ObjTextShow( &TimeTxtObj );
+        Obj_TextSt_Show( &TimeTxtObj );
     }
 }
 
@@ -714,7 +717,7 @@ void TripCDev_UpdCompassHead(void)
         {
             sprintf( szCompass, "%3d°", ptHeadingInfo->usHeading );
             usOldHeading = ptHeadingInfo->usHeading;
-            ObjTextShow( &CompassTxtObj );
+            Obj_TextSt_Show( &CompassTxtObj );
         }
         else
         {   // nothing worth to be displayed

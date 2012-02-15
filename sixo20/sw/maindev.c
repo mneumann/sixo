@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.25  2012/02/15 07:32:43  tuberkel
+ * Objects-API reviewed (no functional changes)
+ *
  * Revision 3.24  2012/02/11 12:21:45  tuberkel
  * dedicated COOLRIDE macros prepared & used
  *
@@ -318,9 +321,9 @@ extern unsigned char far rgHeatBarFull19x8[];
 /* upper area: speed display */
 /* =================================================== */
 
-static TEXTOBJECT   SpeedTxtObj;                /* speed text '000' object */
-static TEXTOBJECT   SpeedDescATxtObj;           /* speed descriptor 'km' (or 'mi' for EN) text object */
-static TEXTOBJECT   SpeedDescBTxtObj;           /* speed descriptor 'h' text object */
+static OBJ_TEXTST   SpeedTxtObj;                /* speed text '000' object */
+static OBJ_TEXTST   SpeedDescATxtObj;           /* speed descriptor 'km' (or 'mi' for EN) text object */
+static OBJ_TEXTST   SpeedDescBTxtObj;           /* speed descriptor 'h' text object */
 static CHAR         szSpeed[4] = "0";           /* buffer for current speed, max. string '999' */
 
 
@@ -329,59 +332,59 @@ static CHAR         szSpeed[4] = "0";           /* buffer for current speed, max
 /* =================================================== */
 
 /* lower area mode 1: Rounds Per Minute */
-static TEXTOBJECT   RPMTxtObj;                  /* rpm text '00000' object */
-static TEXTOBJECT   RPMDescTxtObj;              /* rpm descriptor 'U/Min' (or RPM for DE) text object */
+static OBJ_TEXTST   RPMTxtObj;                  /* rpm text '00000' object */
+static OBJ_TEXTST   RPMDescTxtObj;              /* rpm descriptor 'U/Min' (or RPM for DE) text object */
 static CHAR         szRPM[6] = "0";             /* buffer current eng speed, max. string '13500' */
-static BMPOBJECT    RPMBmpObj;                  /* symbol to indicate RPM */
+static OBJ_BMP    RPMBmpObj;                  /* symbol to indicate RPM */
 
 /* lower area mode 2: Fuel Distance */
-static TEXTOBJECT   FuelDistTxtObj;             /* fuel distance text object */
+static OBJ_TEXTST   FuelDistTxtObj;             /* fuel distance text object */
 static CHAR         szFuelDist[10] = "0,0";     /* buffer to contain fuel distance, max. string '9999999,9' */
-static BMPOBJECT    FuelDistBmpObj;             /* symbol to indicate fuel distance display mode */
+static OBJ_BMP    FuelDistBmpObj;             /* symbol to indicate fuel distance display mode */
 
 /* lower area mode 3: Vehicle Distance */
-static TEXTOBJECT   VehDistTxtObj;              /* vehicle distance text object */
+static OBJ_TEXTST   VehDistTxtObj;              /* vehicle distance text object */
 static CHAR         szVehDist[10] = "0,0";      /* buffer to contain fuel distance, max. string '9999999,9' */
-static BMPOBJECT    VehDistBmpObj;              /* symbol to indicate vehicle distance display mode */
+static OBJ_BMP    VehDistBmpObj;              /* symbol to indicate vehicle distance display mode */
 
 /* lower area mode 4: TripCounter 1 Distance */
-static TEXTOBJECT   Trip1DescTxtObj;            /* tripcounter1 descriptor text object 'T1' */
-static TEXTOBJECT   Trip1DistTxtObj;            /* tripcounter1 distance text object */
+static OBJ_TEXTST   Trip1DescTxtObj;            /* tripcounter1 descriptor text object 'T1' */
+static OBJ_TEXTST   Trip1DistTxtObj;            /* tripcounter1 distance text object */
 static CHAR         szTrip1Dist[10] = "0,0";    /* buffer to contain tripcounter1 distance, max. string '9999,9' */
 
 /* lower area mode 5: TripCounter 2 Distance */
-static TEXTOBJECT   Trip2DescTxtObj;            /* tripcounter1 descriptor text object 'T2' */
-static TEXTOBJECT   Trip2DistTxtObj;            /* tripcounter2 distance text object */
+static OBJ_TEXTST   Trip2DescTxtObj;            /* tripcounter1 descriptor text object 'T2' */
+static OBJ_TEXTST   Trip2DistTxtObj;            /* tripcounter2 distance text object */
 static CHAR         szTrip2Dist[10] = "0,0";    /* buffer to contain tripcounter2 distance, max. string '9999,9' */
 
 /* lower area mode 2..5: common distance descriptor */
-static TEXTOBJECT   DistDescTxtObj;             /* COMMON vehicle & fuel distance decriptor for 'km' or 'mi' */
+static OBJ_TEXTST   DistDescTxtObj;             /* COMMON vehicle & fuel distance decriptor for 'km' or 'mi' */
 
 /* lower area mode 6: Max Speed */
-static TEXTOBJECT   SpeedMaxDescTxtObj;         /* SpeedMax descriptor text object for 'v(max)' */
-static TEXTOBJECT   SpeedMaxUnitTxtObj;         /* speed max desciptor text object 'km/h' or 'mi/h' */
-static TEXTOBJECT   SpeedMaxTxtObj;             /* SpeedMax descriptor text object for '110.0' */
+static OBJ_TEXTST   SpeedMaxDescTxtObj;         /* SpeedMax descriptor text object for 'v(max)' */
+static OBJ_TEXTST   SpeedMaxUnitTxtObj;         /* speed max desciptor text object 'km/h' or 'mi/h' */
+static OBJ_TEXTST   SpeedMaxTxtObj;             /* SpeedMax descriptor text object for '110.0' */
 static CHAR         szSpeedMax[4] = "  0";      /* buffer to contain SpeedMax, max. string '999' km/h*/
 extern SPEED_TYPE   Speed_Max;                  /* prepared value */
 
 /* lower area mode 7: Coolride Heat Control */
-static BMPOBJECT    HeatGripIconBmpObj;         /* symbol to indicate heat at handgrip */
-static BMPOBJECT    HeatBarBmpObj;              /* empty/full bar icon - for multiple use */
+static OBJ_BMP    HeatGripIconBmpObj;         /* symbol to indicate heat at handgrip */
+static OBJ_BMP    HeatBarBmpObj;              /* empty/full bar icon - for multiple use */
 #define MD_HEATBARPARTS 5                       /* number of bargrapgh parts */
 
 /* lower area: Date & Time Display */
-static TEXTOBJECT   TimeDateTxtObj;             /* time & date output opbject */
+static OBJ_TEXTST   TimeDateTxtObj;             /* time & date output opbject */
 static CHAR         szTimeDate[22] = "Mo 01.01.01  00:00:00";   /* buffer for timedate string */
 
 
 /* --------------------------------------------- */
 /* upper area bitmap objects & vehicle state */
-static BMPOBJECT    VehStateBmpObj;             /* symbol for current vehicle state */
+static OBJ_BMP    VehStateBmpObj;             /* symbol for current vehicle state */
 
 
 /* --------------------------------------------- */
 /* lower area vehicle state objects */
-static TEXTOBJECT   SurvVehStateTxtObj;         /* Vehicle State detected by MonDev_ */
+static OBJ_TEXTST   SurvVehStateTxtObj;         /* Vehicle State detected by MonDev_ */
 extern INT8         SurvParamListCount;         /* number of states currently not ok */
 static INT8         SurvShowVehState = 0;       /* != 0 if vehicle state is to be displayed */
 
@@ -389,7 +392,7 @@ static INT8         SurvShowVehState = 0;       /* != 0 if vehicle state is to b
 /* --------------------------------------------- */
 /* upper area gearbox state */
 #if(GEARBOX==1)
-static BMPOBJECT    GearSymbolBmpObj;           /* selected gear indicator */
+static OBJ_BMP    GearSymbolBmpObj;           /* selected gear indicator */
 #endif
 
 
@@ -399,41 +402,41 @@ static BMPOBJECT    GearSymbolBmpObj;           /* selected gear indicator */
 /* =================================================== */
 
 /* measure data vertical devider */
-static BMPOBJECT    MonVertLineBmpObj;
+static OBJ_BMP    MonVertLineBmpObj;
 
 /* measure data 1: temperature from external air / internal NTC sensor */
-static BMPOBJECT    MonAmbientTempBmpObj;
-static TEXTOBJECT   MonAmbientTempTxtObj;
-static TEXTOBJECT   MonAmbientTempDescTxtObj;
+static OBJ_BMP    MonAmbientTempBmpObj;
+static OBJ_TEXTST   MonAmbientTempTxtObj;
+static OBJ_TEXTST   MonAmbientTempDescTxtObj;
 static CHAR         szTemp[5];
 
 /* measure data 2: battery voltage */
-static BMPOBJECT    MonVoltageBmpObj;
-static TEXTOBJECT   MonVoltageTxtObj;
-static TEXTOBJECT   MonVoltageDescTxtObj;
+static OBJ_BMP    MonVoltageBmpObj;
+static OBJ_TEXTST   MonVoltageTxtObj;
+static OBJ_TEXTST   MonVoltageDescTxtObj;
 static CHAR         szVoltage[5];
 
 /* measure data 3: motor oil temperature */
-static TEXTOBJECT   MonOilTempTxtObj;
-static TEXTOBJECT   MonOilTempDescTxtObj;
-static BMPOBJECT    MonOilTempBmpObj;
+static OBJ_TEXTST   MonOilTempTxtObj;
+static OBJ_TEXTST   MonOilTempDescTxtObj;
+static OBJ_BMP    MonOilTempBmpObj;
 static CHAR         szOilTemp[5];
 
 /* measure data 4: motor RPM (used, if no oil temp sensor connected) */
-static TEXTOBJECT   MonRPMTxtObj;
-static TEXTOBJECT   MonRPMDescTxtObj;
-static BMPOBJECT    MonRPMBmpObj;
+static OBJ_TEXTST   MonRPMTxtObj;
+static OBJ_TEXTST   MonRPMDescTxtObj;
+static OBJ_BMP    MonRPMBmpObj;
 
 /* measure data 5: water temperature */
-static TEXTOBJECT   MonWaterTempTxtObj;
-static TEXTOBJECT   MonWaterTempDescTxtObj;
+static OBJ_TEXTST   MonWaterTempTxtObj;
+static OBJ_TEXTST   MonWaterTempDescTxtObj;
 static CHAR         szWaterTemp[5];
-static BMPOBJECT    MonWaterTempBmpObj;
+static OBJ_BMP    MonWaterTempBmpObj;
 
 /* measure data 5: fuel distance (used, if water temp sensor not available) */
-static TEXTOBJECT   MonFuelTxtObj;
-static TEXTOBJECT   MonFuelDescTxtObj;
-static BMPOBJECT    MonFuelBmpObj;
+static OBJ_TEXTST   MonFuelTxtObj;
+static OBJ_TEXTST   MonFuelDescTxtObj;
+static OBJ_BMP    MonFuelBmpObj;
 
 
 
@@ -455,7 +458,7 @@ void    MainDev_Show_Icon               (void);
 
 /* ============================================================= */
 /* bitmap object table of this device */
-static const BMPOBJECT_INITTYPE BmpObjInit[] =
+static const OBJ_BMP_INIT BmpObjInit[] =
 {
     /*                              x   y  w   h   raw data              mode     state */
     /* --------------------------- -- --- --- --- --------------------- -------- ----- */
@@ -492,12 +495,12 @@ static const BMPOBJECT_INITTYPE BmpObjInit[] =
     { &MonVertLineBmpObj,          64, 36,  2, 24, rgVertLine_2x20,      DPLNORM, FALSE }
     /* --------------------------- -- --- --- --- --------------------- -------- ----- */
 };
-#define BMPOBJECTLISTSIZE   (sizeof(BmpObjInit)/sizeof(BMPOBJECT_INITTYPE))
+#define BMPOBJECTLISTSIZE   (sizeof(BmpObjInit)/sizeof(OBJ_BMP_INIT))
 
 
 /* ============================================================= */
 /* text object table */
-static const TEXTOBJECT_INITTYPE TextObjInit[] =
+static const OBJ_TEXTST_INIT TextObjInit[] =
 {
     /* BIG Vehicle Speed + Unit */
     /* pObject                  X    Y  Font            H  Width  Align     Format    string ptr            State      */
@@ -546,7 +549,7 @@ static const TEXTOBJECT_INITTYPE TextObjInit[] =
     { &SurvVehStateTxtObj,       2, 56, DPLFONT_6X8,    1, 21, TXT_CENTER, TXT_NORM, szSurvGlobalState,     OC_DISPL | OC_DYN   },
     /*------------------------ ---- --- -------------- --- ----- --------- ---------- -----------------     ---------           */
 };
-#define TEXTOBJECTLISTSIZE   (sizeof(TextObjInit)/sizeof(TEXTOBJECT_INITTYPE))
+#define TEXTOBJECTLISTSIZE   (sizeof(TextObjInit)/sizeof(OBJ_TEXTST_INIT))
 
 
 
@@ -590,7 +593,7 @@ static const void far * ObjectList_Mon[] =
     (void far *) &MonRPMBmpObj,
     (void far *) &MonVertLineBmpObj
 };
-#define OBJLIST_MON_CNT (sizeof(ObjectList_Mon)/sizeof(OBJSTATE)/sizeof(void far *))
+#define OBJLIST_MON_CNT (sizeof(ObjectList_Mon)/sizeof(OBJ_STATE)/sizeof(void far *))
 
 
 // ---------------------------------------------------------------------
@@ -613,7 +616,7 @@ static const void far * ObjectList_Rpm[] =
     (void far *) &RPMDescTxtObj,
     (void far *) &RPMBmpObj
 };
-#define OBJLIST_RPM_CNT (sizeof(ObjectList_Rpm)/sizeof(OBJSTATE)/sizeof(void far *))
+#define OBJLIST_RPM_CNT (sizeof(ObjectList_Rpm)/sizeof(OBJ_STATE)/sizeof(void far *))
 
 
 // ---------------------------------------------------------------------
@@ -636,7 +639,7 @@ static const void far * ObjectList_Fuel[] =
     (void far *) &FuelDistBmpObj,
     (void far *) &DistDescTxtObj        // common for Veh/Fuel/Trip1/Trip2
 };
-#define OBJLIST_FUEL_CNT (sizeof(ObjectList_Fuel)/sizeof(OBJSTATE)/sizeof(void far *))
+#define OBJLIST_FUEL_CNT (sizeof(ObjectList_Fuel)/sizeof(OBJ_STATE)/sizeof(void far *))
 
 
 // ---------------------------------------------------------------------
@@ -660,7 +663,7 @@ static const void far * ObjectList_Trip1[] =
     (void far *) &DistDescTxtObj        // common for Veh/Fuel/Trip1/Trip2
 
 };
-#define OBJLIST_TRIP1_CNT (sizeof(ObjectList_Trip1)/sizeof(OBJSTATE)/sizeof(void far *))
+#define OBJLIST_TRIP1_CNT (sizeof(ObjectList_Trip1)/sizeof(OBJ_STATE)/sizeof(void far *))
 
 
 // ---------------------------------------------------------------------
@@ -683,7 +686,7 @@ static const void far * ObjectList_Trip2[] =
     (void far *) &Trip2DistTxtObj,
     (void far *) &DistDescTxtObj        // common for Veh/Fuel/Trip1/Trip2
 };
-#define OBJLIST_TRIP2_CNT (sizeof(ObjectList_Trip2)/sizeof(OBJSTATE)/sizeof(void far *))
+#define OBJLIST_TRIP2_CNT (sizeof(ObjectList_Trip2)/sizeof(OBJ_STATE)/sizeof(void far *))
 
 
 // ---------------------------------------------------------------------
@@ -706,7 +709,7 @@ static const void far * ObjectList_VehDist[] =
     (void far *) &VehDistBmpObj,
     (void far *) &DistDescTxtObj        // common for Veh/Fuel/Trip1/Trip2
 };
-#define OBJLIST_VEHDIST_CNT (sizeof(ObjectList_VehDist)/sizeof(OBJSTATE)/sizeof(void far *))
+#define OBJLIST_VEHDIST_CNT (sizeof(ObjectList_VehDist)/sizeof(OBJ_STATE)/sizeof(void far *))
 
 
 
@@ -730,7 +733,7 @@ static const void far * ObjectList_SpeedMax[] =
     (void far *) &SpeedMaxUnitTxtObj,
     (void far *) &SpeedMaxTxtObj
 };
-#define OBJLIST_SPEEDMAX_CNT (sizeof(ObjectList_SpeedMax)/sizeof(OBJSTATE)/sizeof(void far *))
+#define OBJLIST_SPEEDMAX_CNT (sizeof(ObjectList_SpeedMax)/sizeof(OBJ_STATE)/sizeof(void far *))
 
 
 // ---------------------------------------------------------------------
@@ -752,7 +755,7 @@ static const void far * ObjectList_HeatGrip[] =
     (void far *) &HeatGripIconBmpObj,   // HeatGrip icon
     (void far *) &HeatBarBmpObj,   // Empty Bar Icon - will be moved & multiplied
 };
-#define OBJLIST_HEATGRIP_CNT (sizeof(ObjectList_HeatGrip)/sizeof(OBJSTATE)/sizeof(void far *))
+#define OBJLIST_HEATGRIP_CNT (sizeof(ObjectList_HeatGrip)/sizeof(OBJ_STATE)/sizeof(void far *))
 
 
 
@@ -829,7 +832,7 @@ static const void far * ObjectList[] =
     (void far *) &HeatGripIconBmpObj,
     (void far *) &HeatBarBmpObj,
 };
-#define OBJECTLIST_SIZE   (sizeof(ObjectList)/sizeof(OBJSTATE)/sizeof(void far *))
+#define OBJECTLIST_SIZE   (sizeof(ObjectList)/sizeof(OBJ_STATE)/sizeof(void far *))
 
 
 
@@ -984,13 +987,13 @@ void MainDev_Show(BOOL fShow)
             MainDev_ShowHorLine();
 
             /* always show vehicle speed in upper display part */
-            ObjTextShow( &SpeedTxtObj );
-            ObjTextShow( &SpeedDescATxtObj );
-            ObjTextShow( &SpeedDescBTxtObj );
+            Obj_TextSt_Show( &SpeedTxtObj );
+            Obj_TextSt_Show( &SpeedDescATxtObj );
+            Obj_TextSt_Show( &SpeedDescBTxtObj );
 
             /* show lowest display line 'VehicleState' or 'TimeDate' */
             if (SurvShowVehState)
-                 ObjTextShow( &SurvVehStateTxtObj );
+                 Obj_TextSt_Show( &SurvVehStateTxtObj );
             else MainDev_UpdTimeDate(); // initial display only!
 
             /* ---------------------------------------------------- */
@@ -1000,7 +1003,7 @@ void MainDev_Show(BOOL fShow)
             /* ---------------------------------------------------- */
             // selected gear */
             #if(GEARBOX==1)
-            ObjBmpShow( &GearSymbolBmpObj );
+            Obj_Bmp_Show( &GearSymbolBmpObj );
             #endif
 
             /* ---------------------------------------------------- */
@@ -1008,34 +1011,34 @@ void MainDev_Show(BOOL fShow)
             switch (MDObj.wDevState)
             {
                 case MD_RPM:
-                    ObjTextShow( &RPMTxtObj );
-                    ObjTextShow( &RPMDescTxtObj );
-                    ObjBmpShow( &RPMBmpObj );
+                    Obj_TextSt_Show( &RPMTxtObj );
+                    Obj_TextSt_Show( &RPMDescTxtObj );
+                    Obj_Bmp_Show( &RPMBmpObj );
                     break;
                 case MD_FUEL:
-                    ObjTextShow( &FuelDistTxtObj );
-                    ObjTextShow( &DistDescTxtObj );
-                    ObjBmpShow( &FuelDistBmpObj );
+                    Obj_TextSt_Show( &FuelDistTxtObj );
+                    Obj_TextSt_Show( &DistDescTxtObj );
+                    Obj_Bmp_Show( &FuelDistBmpObj );
                     break;
                 case MD_VEHDIST:
-                    ObjTextShow( &VehDistTxtObj );
-                    ObjTextShow( &DistDescTxtObj );
-                    ObjBmpShow( &VehDistBmpObj );
+                    Obj_TextSt_Show( &VehDistTxtObj );
+                    Obj_TextSt_Show( &DistDescTxtObj );
+                    Obj_Bmp_Show( &VehDistBmpObj );
                     break;
                 case MD_TRIP1:
-                    ObjTextShow( &Trip1DescTxtObj );
-                    ObjTextShow( &Trip1DistTxtObj );
-                    ObjTextShow( &DistDescTxtObj );
+                    Obj_TextSt_Show( &Trip1DescTxtObj );
+                    Obj_TextSt_Show( &Trip1DistTxtObj );
+                    Obj_TextSt_Show( &DistDescTxtObj );
                     break;
                 case MD_TRIP2:
-                    ObjTextShow( &Trip2DescTxtObj );
-                    ObjTextShow( &Trip2DistTxtObj );
-                    ObjTextShow( &DistDescTxtObj );
+                    Obj_TextSt_Show( &Trip2DescTxtObj );
+                    Obj_TextSt_Show( &Trip2DistTxtObj );
+                    Obj_TextSt_Show( &DistDescTxtObj );
                     break;
                 case MD_SPEEDMAX:
-                    ObjTextShow( &SpeedMaxDescTxtObj );
-                    ObjTextShow( &SpeedMaxTxtObj );
-                    ObjTextShow( &SpeedMaxUnitTxtObj );
+                    Obj_TextSt_Show( &SpeedMaxDescTxtObj );
+                    Obj_TextSt_Show( &SpeedMaxTxtObj );
+                    Obj_TextSt_Show( &SpeedMaxUnitTxtObj );
                     break;
                 case MD_HEATGRIP:
                     MainDev_Show_Heatgrip(TRUE);
@@ -1054,11 +1057,11 @@ void MainDev_Show(BOOL fShow)
             /* No, repaint only changed stuff */
 
             /* show vehicle speed */
-            ObjTextShow( &SpeedTxtObj );
+            Obj_TextSt_Show( &SpeedTxtObj );
 
             /* show lowest display line 'VehicleState' or 'TimeDate' */
             if (SurvShowVehState)
-                 ObjTextShow( &SurvVehStateTxtObj );
+                 Obj_TextSt_Show( &SurvVehStateTxtObj );
             // else MainDev_UpdTimeDate(); // NO UPDATE HERE, will be done by special update messages only!
 
             /* ---------------------------------------------------- */
@@ -1079,19 +1082,19 @@ void MainDev_Show(BOOL fShow)
                 case 8: GearSymbolBmpObj.Data.fpucBitmap = rg7Seg_8_16x16; break;
                 case 9: GearSymbolBmpObj.Data.fpucBitmap = rg7Seg_9_16x16; break;
             }
-            ObjBmpShow( &GearSymbolBmpObj );
+            Obj_Bmp_Show( &GearSymbolBmpObj );
             #endif
 
             /* which data to be shown below speed? */
             switch (MDObj.wDevState)
             {
                 // show bigger parts
-                case MD_RPM:        ObjTextShow( &RPMTxtObj );          break;
-                case MD_FUEL:       ObjTextShow( &FuelDistTxtObj );     break;
-                case MD_TRIP1:      ObjTextShow( &Trip1DistTxtObj );    break;
-                case MD_TRIP2:      ObjTextShow( &Trip2DistTxtObj );    break;
-                case MD_VEHDIST:    ObjTextShow( &VehDistTxtObj );      break;
-                case MD_SPEEDMAX:   ObjTextShow( &SpeedMaxTxtObj );     break;
+                case MD_RPM:        Obj_TextSt_Show( &RPMTxtObj );          break;
+                case MD_FUEL:       Obj_TextSt_Show( &FuelDistTxtObj );     break;
+                case MD_TRIP1:      Obj_TextSt_Show( &Trip1DistTxtObj );    break;
+                case MD_TRIP2:      Obj_TextSt_Show( &Trip2DistTxtObj );    break;
+                case MD_VEHDIST:    Obj_TextSt_Show( &VehDistTxtObj );      break;
+                case MD_SPEEDMAX:   Obj_TextSt_Show( &SpeedMaxTxtObj );     break;
                 case MD_HEATGRIP:
                     MainDev_Show_Heatgrip(FALSE);
                     break;
@@ -1155,7 +1158,7 @@ void MainDev_Show_Icon(void)
     }
 
     /* show the selected bmp */
-    ObjBmpShow( &VehStateBmpObj );
+    Obj_Bmp_Show( &VehStateBmpObj );
 }
 
 
@@ -1176,19 +1179,19 @@ void MainDev_Show_Monitor(BOOL fComplete)
     {
         /* ---------------------------------------------------- */
         // vertical divider line */
-        ObjBmpShow( &MonVertLineBmpObj );
+        Obj_Bmp_Show( &MonVertLineBmpObj );
 
         /* ---------------------------------------------------- */
         // show internal/external temperature
-        ObjBmpShow ( &MonAmbientTempBmpObj );
-        ObjTextShow( &MonAmbientTempTxtObj );
-        ObjTextShow( &MonAmbientTempDescTxtObj );
+        Obj_Bmp_Show ( &MonAmbientTempBmpObj );
+        Obj_TextSt_Show( &MonAmbientTempTxtObj );
+        Obj_TextSt_Show( &MonAmbientTempDescTxtObj );
 
         /* ---------------------------------------------------- */
         // show supply voltage
-        ObjBmpShow ( &MonVoltageBmpObj );
-        ObjTextShow( &MonVoltageTxtObj );
-        ObjTextShow( &MonVoltageDescTxtObj );
+        Obj_Bmp_Show ( &MonVoltageBmpObj );
+        Obj_TextSt_Show( &MonVoltageTxtObj );
+        Obj_TextSt_Show( &MonVoltageDescTxtObj );
 
         /* ---------------------------------------------------- */
         // Automatic Display Switch between WaterTemp / FuelDistance
@@ -1196,14 +1199,14 @@ void MainDev_Show_Monitor(BOOL fComplete)
         //      use this so called 'Arnoldschen Elfenbeinturm' here! ;-)
         // Water temp available?
         if ( AnaInGetWatTemperature() > ANAIN_TEMP_SENSORDETECT )
-        {   ObjBmpShow ( &MonWaterTempBmpObj     );
-            ObjTextShow( &MonWaterTempTxtObj     );
-            ObjTextShow( &MonWaterTempDescTxtObj );
+        {   Obj_Bmp_Show ( &MonWaterTempBmpObj     );
+            Obj_TextSt_Show( &MonWaterTempTxtObj     );
+            Obj_TextSt_Show( &MonWaterTempDescTxtObj );
         }
         else /* display fuel distance if no water temp sensor connected */
-        {   ObjTextShow( &MonFuelTxtObj     );
-            ObjTextShow( &MonFuelDescTxtObj );
-            ObjBmpShow ( &MonFuelBmpObj     );
+        {   Obj_TextSt_Show( &MonFuelTxtObj     );
+            Obj_TextSt_Show( &MonFuelDescTxtObj );
+            Obj_Bmp_Show ( &MonFuelBmpObj     );
         }
 
         /* ---------------------------------------------------- */
@@ -1212,14 +1215,14 @@ void MainDev_Show_Monitor(BOOL fComplete)
         //      use this so called 'Arnoldschen Elfenbeinturm' here! ;-)
         // Oil temp available?
         if ( AnaInGetOilTemperature() > ANAIN_TEMP_SENSORDETECT )
-        {   ObjBmpShow ( &MonOilTempBmpObj );
-            ObjTextShow( &MonOilTempTxtObj );
-            ObjTextShow( &MonOilTempDescTxtObj );
+        {   Obj_Bmp_Show ( &MonOilTempBmpObj );
+            Obj_TextSt_Show( &MonOilTempTxtObj );
+            Obj_TextSt_Show( &MonOilTempDescTxtObj );
         }
         else /* display RPM if no oil temp sensor connected */
-        {   ObjBmpShow ( &MonRPMBmpObj );
-            ObjTextShow( &MonRPMTxtObj );
-            ObjTextShow( &MonRPMDescTxtObj );
+        {   Obj_Bmp_Show ( &MonRPMBmpObj );
+            Obj_TextSt_Show( &MonRPMTxtObj );
+            Obj_TextSt_Show( &MonRPMDescTxtObj );
         }
     }
     else
@@ -1228,10 +1231,10 @@ void MainDev_Show_Monitor(BOOL fComplete)
         /* No, repaint only changed stuff */
 
         // show external air temp (if n.a.: internal device temp)
-        ObjTextShow( &MonAmbientTempTxtObj );
+        Obj_TextSt_Show( &MonAmbientTempTxtObj );
 
         // show battery supply voltage
-        ObjTextShow( &MonVoltageTxtObj );
+        Obj_TextSt_Show( &MonVoltageTxtObj );
 
         // Automatic Display Switch between WaterTemp / FuelDistance
         // TBD: Will later be done via Settings, but at the moment we
@@ -1239,15 +1242,15 @@ void MainDev_Show_Monitor(BOOL fComplete)
         // Water temp available?
         if ( AnaInGetWatTemperature() > ANAIN_TEMP_SENSORDETECT )
         {   /* might have been changed! */
-            ObjBmpShow ( &MonWaterTempBmpObj     );
-            ObjTextShow( &MonWaterTempTxtObj     );
-            ObjTextShow( &MonWaterTempDescTxtObj );
+            Obj_Bmp_Show ( &MonWaterTempBmpObj     );
+            Obj_TextSt_Show( &MonWaterTempTxtObj     );
+            Obj_TextSt_Show( &MonWaterTempDescTxtObj );
         }
         else
         {   /* might have been changed! */
-            ObjTextShow( &MonFuelTxtObj     );
-            ObjTextShow( &MonFuelDescTxtObj );
-            ObjBmpShow ( &MonFuelBmpObj     );
+            Obj_TextSt_Show( &MonFuelTxtObj     );
+            Obj_TextSt_Show( &MonFuelDescTxtObj );
+            Obj_Bmp_Show ( &MonFuelBmpObj     );
         }
 
         // Automatic Display Switch between OilTemp / RPM
@@ -1256,15 +1259,15 @@ void MainDev_Show_Monitor(BOOL fComplete)
         // Oil temp available?
         if ( AnaInGetOilTemperature() > ANAIN_TEMP_SENSORDETECT )
         {   /* might have been changed! */
-            ObjBmpShow ( &MonOilTempBmpObj     );
-            ObjTextShow( &MonOilTempTxtObj     );
-            ObjTextShow( &MonOilTempDescTxtObj );
+            Obj_Bmp_Show ( &MonOilTempBmpObj     );
+            Obj_TextSt_Show( &MonOilTempTxtObj     );
+            Obj_TextSt_Show( &MonOilTempDescTxtObj );
         }
         else
         {   /* might have been changed! */
-            ObjBmpShow ( &MonRPMBmpObj );
-            ObjTextShow( &MonRPMTxtObj );
-            ObjTextShow( &MonRPMDescTxtObj );
+            Obj_Bmp_Show ( &MonRPMBmpObj );
+            Obj_TextSt_Show( &MonRPMTxtObj );
+            Obj_TextSt_Show( &MonRPMDescTxtObj );
         }
     }
 }
@@ -1294,7 +1297,7 @@ void MainDev_Show_Monitor(BOOL fComplete)
 void MainDev_Show_Heatgrip(BOOL fInitial)
 {
     UINT8               i;
-    BMPOBJECT           objBmp    = HeatBarBmpObj;  // we use a copy of that object to manipulate!
+    OBJ_BMP           objBmp    = HeatBarBmpObj;  // we use a copy of that object to manipulate!
     UINT8               ucPwmCurr = 0;              // current PWM value
     UINT8               ucPwmCmp  = 5;              // comparison value to select emty/full bmp
 
@@ -1303,7 +1306,7 @@ void MainDev_Show_Heatgrip(BOOL fInitial)
 
     /* update leftside icon only at initial state */
     if (fInitial == TRUE)
-    {   ObjBmpShow(  &HeatGripIconBmpObj );
+    {   Obj_Bmp_Show(  &HeatGripIconBmpObj );
     }
 
     /* loop to generate all 5 bar parts (full/empty) */
@@ -1317,7 +1320,7 @@ void MainDev_Show_Heatgrip(BOOL fInitial)
         else objBmp.Data.fpucBitmap = rgHeatBarEmpty19x8;
 
         /* show the modified bmp object */
-        ObjBmpShow( &objBmp );
+        Obj_Bmp_Show( &objBmp );
 
         /* adapt to next position */
         objBmp.Org.wXPos += objBmp.Data.wWidth + 1;
@@ -1730,7 +1733,7 @@ void MainDev_UpdTimeDate(void)
         strcat(szTimeDate, " ");
         TimeDate_GetString( RESENUM_HHMMSS,  szBuffer );  // returns 7! chars!!!
         strcat(szTimeDate, szBuffer);
-        ObjTextShow( &TimeDateTxtObj );
+        Obj_TextSt_Show( &TimeDateTxtObj );
     }
 }
 

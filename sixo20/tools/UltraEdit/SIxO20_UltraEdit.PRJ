@@ -7,17 +7,17 @@ Use Relative Directory=1
 Relative to Project File=1
 Project Wordfile=
 [Open Files]
-Open File0=
-Open File Pos0=2801
-Open File Line0=1944
-Active File Index=11
-Open File Window Pos0=0,1,-1,-1,-4,-30,0,0,779,543
-Open File1=s:\CVS\sixo\sixo20\sw\maindev.c
-Active File Display Mode=-1
-Open File Pos1=19148
-Open File Line1=17871
-Open File Window Pos1=0,1,-1,-1,-4,-30,22,29,682,576
-Open File2=S:\CVS\SIXO\SIXO20\SW\digindrv.c
+Open File0=S:\CVS\SIXO\SIXO20\SW\objects.h
+Open File Pos0=27133
+Open File Line0=25004
+Active File Index=1
+Open File Window Pos0=0,1,-1,-1,-4,-30,66,87,726,634
+Open File1=s:\CVS\sixo\sixo20\sw\objects.c
+Active File Display Mode=3
+Open File Pos1=113827
+Open File Line1=112639
+Open File Window Pos1=2,3,-1,-1,-4,-30,198,261,858,808
+Open File2=
 Open File Pos2=8271
 Open File Line2=7172
 Open File Window Pos2=0,1,-1,-1,-4,-30,44,58,704,605
@@ -112,7 +112,7 @@ Open File Window Pos24=2,3,-1,-1,-4,-30,66,87,755,443
 Open File25=
 
 [File View]
-Current Select=Offene Dateien\
+Current Select=Projektdateien\Resources\objects.c
 
 [Files - Test]
 

@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.7  2012/02/15 07:32:43  tuberkel
+ * Objects-API reviewed (no functional changes)
+ *
  * Revision 3.6  2012/02/10 23:45:22  tuberkel
  * - Survelannce HeatGrip <Info> - if active
  * - Surveillance-API reviewed
@@ -232,23 +235,23 @@ extern TIME_TYPE_LD  EngRunTime_All;
 /* device static objects */
 static DEVDATA      MonitorScreenDev;       /* this device */
 
-static TEXTOBJECT   BattObj;
+static OBJ_TEXTST   BattObj;
 static char         szBatt[STAT_TXT_LEN];
-static TEXTOBJECT   DevTempObj;
+static OBJ_TEXTST   DevTempObj;
 static char         szDevTemp[STAT_TXT_LEN];
-static TEXTOBJECT   AirTempObj;
+static OBJ_TEXTST   AirTempObj;
 static char         szAirTemp[STAT_TXT_LEN];
-static TEXTOBJECT   OilTempObj;
+static OBJ_TEXTST   OilTempObj;
 static char         szOilTemp[STAT_TXT_LEN];
-static TEXTOBJECT   WatTempObj;
+static OBJ_TEXTST   WatTempObj;
 static char         szWatTemp[STAT_TXT_LEN];
-static TEXTOBJECT   RPMmaxObj;
+static OBJ_TEXTST   RPMmaxObj;
 static char         szRPMmax[STAT_TXT_LEN];
-static TEXTOBJECT   VmaxObj;
+static OBJ_TEXTST   VmaxObj;
 static char         szVmax[STAT_TXT_LEN];
-static TEXTOBJECT   RunTimeObj;
+static OBJ_TEXTST   RunTimeObj;
 static char         szRunTime[STAT_TXT_LEN];
-static TEXTOBJECT   StatusObj;
+static OBJ_TEXTST   StatusObj;
 
 extern char         szSurvGlobalState[VEHSTATE_TXT_LEN];    /* vehicle state string */
 
@@ -258,7 +261,7 @@ extern char         szSurvGlobalState[VEHSTATE_TXT_LEN];    /* vehicle state str
 
 
 
-static TEXTOBJECT_INITTYPE TextObjInit[] =
+static OBJ_TEXTST_INIT TextObjInit[] =
 {
 
 #if(BIKE_MOTOBAU==1)
@@ -291,7 +294,7 @@ static TEXTOBJECT_INITTYPE TextObjInit[] =
 
 #endif // BIKE_MOTOBAU
 };
-#define TEXTOBJECTLISTSIZE   (sizeof(TextObjInit)/sizeof(TEXTOBJECT_INITTYPE))
+#define TEXTOBJECTLISTSIZE   (sizeof(TextObjInit)/sizeof(OBJ_TEXTST_INIT))
 
 
 /* this devices object focus handling - list of all objects */
@@ -322,7 +325,7 @@ static const void far * ObjectList[] =
 
 #endif // BIKE_MOTOBAU
 };
-#define OBJECTLIST_SIZE   (sizeof(ObjectList)/sizeof(OBJSTATE)/sizeof(void far *))
+#define OBJECTLIST_SIZE   (sizeof(ObjectList)/sizeof(OBJ_STATE)/sizeof(void far *))
 
 
 /* internal prototypes */

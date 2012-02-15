@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.1  2012/02/15 07:32:43  tuberkel
+ * Objects-API reviewed (no functional changes)
+ *
  * Revision 3.0  2010/11/07 13:25:12  tuberkel
  * V30 Preparations:
  * - Object Handling reviewed
@@ -81,7 +84,7 @@
  *
  * Revision 2.4  2009/07/19 12:40:28  tuberkel
  * - ObjectInit reviewed
- * - bugfix in SELECT_INITTYPE
+ * - bugfix in OBJ_SELECT_INIT
  * - Object Flag 'Init' renamed into 'dynamic'
  * - 'dynamic' for later optimization in static/dynamic text object behaviour
  *
@@ -111,12 +114,11 @@
 /* ------------------------------------------- */
 /* general defines */
 #define TXTHEX          "0x"       /* for hex formated output */
-
 #define TXTTEMPBUFF     34         /* text temp buffer - MUST BE GREATER THAN LONGEST DISPLAY TEXT LINE */
 
 /* flashing cursor */
-#define MSG_FLASH_ON(msg)    MSG_BUILD_UINT8(msg,MSG_DPL_FLASH_ON,0xff,0xff,0xff)
-#define MSG_FLASH_OFF(msg)   MSG_BUILD_UINT8(msg,MSG_DPL_FLASH_OFF,0xff,0xff,0xff)
+#define OBJ_MSG_FLASH_ON(msg)    MSG_BUILD_UINT8(msg,MSG_DPL_FLASH_ON,0xff,0xff,0xff)
+#define OBJ_MSG_FLASH_OFF(msg)   MSG_BUILD_UINT8(msg,MSG_DPL_FLASH_OFF,0xff,0xff,0xff)
 #define FLASH_ON_TIME        MS2TICKS(500)    /* cursor blink ON time in ms */
 #define FLASH_OFF_TIME       MS2TICKS(300)    /* cursor blink ON time in ms */
 
@@ -143,7 +145,7 @@ typedef enum
     OBJT_ENUM,       // edit number object
     OBJT_EBOOL,      // edit boolean object
     OBJT_SLCT        // select object
-} OBJTYPE;
+} OBJ_TYPE;
 
 
 
@@ -169,10 +171,10 @@ typedef struct
     char fSelected   :1;    /* state:      currently focused */
     char fEditActive :1;    /* state:      edit mode is currently active */
     char fCursorOn   :1;    /* state:      currently shows cursor (used to blink cursor) */
-} OBJSTATEBF;
+} OBJ_STATE_BF;
 
 
-/* defines for byte access level (same as OBJSTATEBF type) */
+/* defines for byte access level (same as OBJ_STATE_BF type) */
 #define OC_DISPL    0x01    /* capability: able to be shown in display */
 #define OC_SELECT   0x02    /* capability: able to be focused */
 #define OC_EDIT     0x04    /* capability: able to be edited */
@@ -186,9 +188,9 @@ typedef struct
    NOTE: MUST BE THE FIRST data in every object for focus handling */
 typedef union
 {
-    OBJSTATEBF  bits;       /* to acces state bits seperatly */
-    UINT8       byte;       /* to access all states in one step */
-} OBJSTATE;
+    OBJ_STATE_BF    bits;       /* to acces state bits seperatly */
+    UINT8           byte;       /* to access all states in one step */
+} OBJ_STATE;
 
 
 
@@ -199,7 +201,7 @@ typedef struct
 {
     UINT8   bWidth;     /* text window width in char units */
     UINT8   bHeight;    /* text window height in char units */
-} TXTWINDIM;
+} OBJ_TWIND;
 
 
 /* alignment to output text in text window on screen */
@@ -208,7 +210,7 @@ typedef enum
     TXT_LEFT,       /* object is left aligned in window */
     TXT_RIGHT,      /* object is right aligned in window */
     TXT_CENTER      /* object is centered in window */
-} TXTALIGN;
+} OBJ_TALIGN;
 
 
 /* format to output text on screen */
@@ -217,7 +219,7 @@ typedef enum
     TXT_NORM,       /* show normal characters */
     TXT_UNDERL,     /* show characters with underline */
     TXT_INVERS      /* show characters inversed */
-} TXTFORMAT;
+} OBJ_TFORMAT;
 
 
 
@@ -234,9 +236,9 @@ typedef enum
    ================================================ */
 typedef struct
 {
-    OBJSTATE    State;      /* MUST BE THE 1st: bitfields to handle display state */
-    OBJTYPE     eType;      /* MUST BE THE 2nd: object type indicator (always OBJ_BMP */
-} DUMMYOBJECT;
+    OBJ_STATE    State;      /* MUST BE THE 1st: bitfields to handle display state */
+    OBJ_TYPE     eType;      /* MUST BE THE 2nd: object type indicator (always OBJ_BMP */
+} OBJ_DUMMY;
 
 
 
@@ -255,17 +257,17 @@ typedef struct
    ================================================ */
 typedef struct
 {
-    OBJSTATE    State;      /* MUST BE THE 1st: bitfields to handle display state */
-    OBJTYPE     eType;      /* MUST BE THE 2nd: object type indicator (always OBJ_BMP */
+    OBJ_STATE   State;      /* MUST BE THE 1st: bitfields to handle display state */
+    OBJ_TYPE    eType;      /* MUST BE THE 2nd: object type indicator (always OBJ_BMP */
     DISPLXY     Org;        /* bitmaps origin coordinates (0,0 = upper left corner ) */
     BITMAP      Data;       /* bitmap height, width, addr raw data */
     UINT8       bMode;      /* display mode (f.e. DPLNORM, DPLXOR, .. ) */
-} BMPOBJECT;
+} OBJ_BMP;
 
 /* BMP init data */
 typedef struct
 {
-    BMPOBJECT far *     fpObject;               /* bitmap object to be intialized */
+    OBJ_BMP far *       fpObject;               /* bitmap object to be intialized */
     UINT16              wOrgPosX;               /* x-pos origin in pixel */
     UINT16              wOrgPosY;               /* y-pos origin in pixel */
     UINT16              wWidth;                 /* bitmap width in pixel */
@@ -273,22 +275,23 @@ typedef struct
     const unsigned char far * rgBMPRawData;     /* bitmap raw data */
     UINT8               bMode;                  /* display mode */
     UINT8               bState;                 /* object state */
-} BMPOBJECT_INITTYPE;
+} OBJ_BMP_INIT;
 
 
 /* text object prototypes */
-ERRCODE ObjBmpShow( BMPOBJECT far * fpObject);
-ERRCODE ObjBmpInit( BMPOBJECT_INITTYPE far * fpInitData );
+ERRCODE Obj_Bmp_Show( OBJ_BMP far * fpObject);
+ERRCODE Obj_Bmp_Init( OBJ_BMP_INIT far * fpInitData );
 
 
 
 
 
 /* ====================================================== */
-/* TEXT OBJECT - text object data in a text window
+/* STATIC TEXT OBJECT - text object data in a text window
 
-    text object features:
+    static text object features:
 
+        - NOT EDITABLE
         - external string pointer for edit purpose
         - free font use
         - 2 dimensional window (width & height)
@@ -308,36 +311,36 @@ ERRCODE ObjBmpInit( BMPOBJECT_INITTYPE far * fpInitData );
    ======================================================= */
 typedef struct
 {
-    OBJSTATE    State;      /* MUST BE THE FIRST: bitfields to handle display state */
-    OBJTYPE     eType;      /* MUST BE THE 2nd: object type indicator (always OBJ_TXT) */
+    OBJ_STATE   State;      /* MUST BE THE FIRST: bitfields to handle display state */
+    OBJ_TYPE    eType;      /* MUST BE THE 2nd: object type indicator (always OBJ_TXT) */
     DISPLXY     Org;        /* origin in pixel coord. (0,0 = upper left) */
-    TXTWINDIM   Window;     /* text windows dimension (in char units) */
+    OBJ_TWIND   Window;     /* text windows dimension (in char units) */
     DPLFONT     eFont;      /* used font */
     STRING      szText;     /* address of string to be displayed */
-    TXTALIGN    eAlign;     /* alignment of text in text window (left, right,..) */
-    TXTFORMAT   eFormat;    /* format of text in text window (normal, invers,..) */
-} TEXTOBJECT;
+    OBJ_TALIGN  eAlign;     /* alignment of text in text window (left, right,..) */
+    OBJ_TFORMAT eFormat;    /* format of text in text window (normal, invers,..) */
+} OBJ_TEXTST;
 
 /* TextObject init data */
 typedef struct
 {
-    TEXTOBJECT far * fpObject;
+    OBJ_TEXTST far * fpObject;
     UINT16      wOrgPosX;
     UINT16      wOrgPosY;
     DPLFONT     eFont;
     UINT8       bWindHeight;
     UINT8       bWindWidth;
-    TXTALIGN    eAlign;
-    TXTFORMAT   eFormat;
+    OBJ_TALIGN  eAlign;
+    OBJ_TFORMAT eFormat;
     STRING      szText;
     UINT8       bState;
-} TEXTOBJECT_INITTYPE;
+} OBJ_TEXTST_INIT;
 
 
 
 /* text object prototypes */
-ERRCODE ObjTextShow( TEXTOBJECT far *           fpObject);
-ERRCODE ObjTextInit( TEXTOBJECT_INITTYPE far *  fpInitData);
+ERRCODE Obj_TextSt_Show( OBJ_TEXTST far * fpObject);
+ERRCODE Obj_TextSt_Init( OBJ_TEXTST_INIT far *  fpInitData);
 
 
 
@@ -373,10 +376,10 @@ ERRCODE ObjTextInit( TEXTOBJECT_INITTYPE far *  fpInitData);
 
 typedef struct
 {
-    OBJSTATE    State;          /* MUST BE THE FIRST: bitfields to handle display state */
-    OBJTYPE     eType;          /* MUST BE THE 2nd: object type indicator (always OBJ_ETXT) */
+    OBJ_STATE   State;          /* MUST BE THE FIRST: bitfields to handle display state */
+    OBJ_TYPE    eType;          /* MUST BE THE 2nd: object type indicator (always OBJ_ETXT) */
     DISPLXY     Org;            /* origin in pixel coord. (0,0 = upper left) */
-    TXTWINDIM   Window;         /* text windows dimension (in chars units) */
+    OBJ_TWIND   Window;         /* text windows dimension (in chars units) */
     DPLFONT     eFont;          /* used font */
     STRING      szText;         /* address of string to be edited */
     STRING      szDescr;        /* address of description string (left aligned) */
@@ -384,11 +387,11 @@ typedef struct
     UINT8       bLength;        /* length of edit field in chars */
     UINT8       bCharList;      /* bitcoded list of chars to be used to edit */
     UINT8       bCursorPos;     /* position of current cursor in edit text (0..bLength) */
-} EDITTEXTOBJECT;
+} OBJ_TEXT;
 
 
 typedef struct
-{   EDITTEXTOBJECT far * fpObject;  /* ptr to object to be initialized */
+{   OBJ_TEXT far * fpObject;  /* ptr to object to be initialized */
     UINT16  wOrgPosX;               /* x origin pos in pixel */
     UINT16  wOrgPosY;               /* x origin pos in pixel */
     DPLFONT eFont;                  /* selected font */
@@ -399,7 +402,7 @@ typedef struct
     UINT8   bLength;                /* editited field length string */
     UINT8   bCharList;              /* list of characters to be used for editing */
     UINT8   bState;                 /* initial state of object */
-} EDITTEXT_INITTYPE;
+} OBJ_TEXT_INIT;
 
 
 /* edit text choice (bitcoded) */
@@ -411,11 +414,11 @@ typedef struct
 
 
 /* edit text object prototypes */
-ERRCODE ObjEditTextMsgEntry     ( EDITTEXTOBJECT far * pObject, MESSAGE msg );
-ERRCODE ObjEditTextShow         ( EDITTEXTOBJECT far * pObject, UINT8 bUpdateMode );
-ERRCODE ObjEditTextToggleChar   ( EDITTEXTOBJECT far * pObject, MESSAGE_ID MsgID);
-ERRCODE ObjEditTextGetCharList  ( STRING szCharList, UINT8  bCharLists);
-ERRCODE ObjEditTextInit         ( EDITTEXT_INITTYPE far * fpInitData );
+ERRCODE Obj_Text_MsgEntry     ( OBJ_TEXT far * pObject, MESSAGE msg );
+ERRCODE Obj_Text_Show         ( OBJ_TEXT far * pObject, UINT8 bUpdateMode );
+ERRCODE Obj_Text_ToggleChar   ( OBJ_TEXT far * pObject, MESSAGE_ID MsgID);
+ERRCODE Obj_Text_GetCharList  ( STRING szCharList, UINT8  bCharLists);
+ERRCODE Obj_Text_Init         ( OBJ_TEXT_INIT far * fpInitData );
 
 
 
@@ -474,23 +477,23 @@ typedef enum
     eCHAR,      /*   signed  8 bit value */
     eINT,       /*   signed 16 bit value */
     eLONG       /*   signed 32 bit value */
-} NUMTYPE;
+} OBJ_NUM_TYPE;
 
 /* edit mode */
 typedef enum
 {
     eColumn,    /* edit in columns at cursor position */
     eStep       /* edit in steps of 'stepsize' at complete number */
-} NUMMODETYPE;
+} OBJ_NUM_EMODE;
 
 
-/* enum to define display type of number */
+/* display mode */
 typedef enum
 {
     eBin,       /* display in binary format ( f.e. '0010.0110' as a byte) */
     eDez,       /* display in dez. format (f.e. '123.4' as word) */
     eHex        /* display in Hex-format (f.e. '0xff12.ac4f' as double word) */
-} NUMDPLTYPE;
+} OBJ_NUM_DMODE;
 
 
 /* edit number limits (signed!, to be used for all types) */
@@ -499,22 +502,22 @@ typedef struct
     INT32  lMin;        /* lower limit (including) */
     INT32  lMax;        /* upper limit (including) */
     INT32  lStep;       /* inkr/decr. stepsize */
-} EDTNUMLIMITS;
+} OBJ_NUM_LIMIT;
 
 
 /* object structure */
 typedef struct
 {
-    OBJSTATE        State;              /* MUST BE THE FIRST: bitfields to handle display state */
-    OBJTYPE         eType;              /* MUST BE THE 2nd: object type indicator (always OBJ_ENUM) */
+    OBJ_STATE       State;              /* MUST BE THE FIRST: bitfields to handle display state */
+    OBJ_TYPE        eType;              /* MUST BE THE 2nd: object type indicator (always OBJ_ENUM) */
     DISPLXY         Org;                /* origin in pixel coord. (0,0 = upper left) */
-    TXTWINDIM       Window;             /* text windows dimension (in chars units) */
+    OBJ_TWIND       Window;             /* text windows dimension (in chars units) */
     DPLFONT         eFont;              /* used font */
-    NUMTYPE         eNumType;           /* bit size and signed type of edit number */
-    NUMDPLTYPE      eDplType;           /* used display format (bin/dez/hex) */
-    NUMMODETYPE     eMode;              /* used edit mode (eColumn/eStep) */
+    OBJ_NUM_TYPE    eNumType;           /* bit size and signed type of edit number */
+    OBJ_NUM_DMODE   eDplType;           /* used display format (bin/dez/hex) */
+    OBJ_NUM_EMODE   eMode;              /* used edit mode (eColumn/eStep) */
     UINT8           bComma;             /* displays '.' as a seperator at given position (f.e.: 0='1234'; 1='123.4'; 2='12.34' */
-    EDTNUMLIMITS    Limits;             /* struct to contain value limits and incr. steps */
+    OBJ_NUM_LIMIT   Limits;             /* struct to contain value limits and incr. steps */
     void far *      fpNumber;           /* address of original number */
     STRING          szDescr;            /* address of description string (left aligned) */
     STRING          szUnit;             /* address of units string (right aligned) */
@@ -522,43 +525,43 @@ typedef struct
     UINT8           bCursorPos;         /* position of current cursor in edit string (valid: 0..bLength) */
     void far *      fpWorkNumber;       /* address of buffer for edit work
                                            (original number remains unchanged until [OK]) */
-} EDITNUMBEROBJECT;
+} OBJ_NUM;
 
 
 /* init object structure */
 typedef struct
 {
-    EDITNUMBEROBJECT far *  fpObject;
-    UINT16                  wOrgPosX;
-    UINT16                  wOrgPosY;
-    DPLFONT                 eFont;
-    UINT8                   bWindWidth;
-    void far *              fpNumber;
-    void far *              fpWorkNumber;
-    NUMTYPE                 eNumType;
-    INT32                   lMin;
-    INT32                   lMax;
-    INT32                   lStepSize;
-    NUMDPLTYPE              eDplType;
-    NUMMODETYPE             eMode;
-    UINT8                   bComma;
-    STRING                  szDescr;
-    STRING                  szUnit;
-    UINT8                   bLength;
-    UINT8                   bState;
-} EDITNUMBER_INITTYPE;
+    OBJ_NUM far *   fpObject;
+    UINT16          wOrgPosX;
+    UINT16          wOrgPosY;
+    DPLFONT         eFont;
+    UINT8           bWindWidth;
+    void far *      fpNumber;
+    void far *      fpWorkNumber;
+    OBJ_NUM_TYPE    eNumType;
+    INT32           lMin;
+    INT32           lMax;
+    INT32           lStepSize;
+    OBJ_NUM_DMODE   eDplType;
+    OBJ_NUM_EMODE   eMode;
+    UINT8           bComma;
+    STRING          szDescr;
+    STRING          szUnit;
+    UINT8           bLength;
+    UINT8           bState;
+} OBJ_NUM_INIT;
 
 
 
 /* edit number object prototypes */
-ERRCODE ObjEditNumMsgEntry  ( EDITNUMBEROBJECT far *    fpObject, MESSAGE msg );
-ERRCODE ObjEditNumShow      ( EDITNUMBEROBJECT far *    fpObject, UINT8 bUpdateMode );
-ERRCODE ObjEditNumInit      ( EDITNUMBER_INITTYPE far * fpInitData );
-ERRCODE ObjEditNumCopy      ( EDITNUMBEROBJECT far *    fpObject, BOOL fCopy);
-STRING  ObjEditNum2String   ( EDITNUMBEROBJECT far *    fpObject, STRING szTargetBuffer );
-ERRCODE ObjEditNumToggleNum ( EDITNUMBEROBJECT far *    fpObject, MESSAGE_ID MsgID);
-UINT32  dwYExpX             ( UINT8 bBase, UINT8 bExp);
-UINT8   bCharToByte         ( CHAR cChar);
+ERRCODE Obj_Num_MsgEntry  ( OBJ_NUM far *    fpObject, MESSAGE msg );
+ERRCODE Obj_Num_Show      ( OBJ_NUM far *    fpObject, UINT8 bUpdateMode );
+ERRCODE Obj_Num_Init      ( OBJ_NUM_INIT far * fpInitData );
+ERRCODE Obj_Num_Copy      ( OBJ_NUM far *    fpObject, BOOL fCopy);
+STRING  Obj_Num_2String   ( OBJ_NUM far *    fpObject, STRING szTargetBuffer );
+ERRCODE Obj_Num_ToggleNum ( OBJ_NUM far *    fpObject, MESSAGE_ID MsgID);
+UINT32  Obj_Num_YExpX     ( UINT8 bBase, UINT8 bExp);
+UINT8   Obj_Num_Char2Byte ( CHAR cChar);
 
 
 
@@ -587,7 +590,7 @@ UINT8   bCharToByte         ( CHAR cChar);
     boolean object examples (border is 'text window'):
 
         +------------------------+
-        |decriptor:           [x]|
+        |DescrL:   [x]DescrR     |
         +------------------------+
 
    ================================================ */
@@ -602,44 +605,46 @@ UINT8   bCharToByte         ( CHAR cChar);
 /* object structure */
 typedef struct
 {
-    OBJSTATE        State;          /* MUST BE THE FIRST: bitfields to handle display state */
-    OBJTYPE         eType;          /* MUST BE THE 2nd: object type indicator (always OBJ_EBOOL) */
+    OBJ_STATE       State;          /* MUST BE THE FIRST: bitfields to handle display state */
+    OBJ_TYPE        eType;          /* MUST BE THE 2nd: object type indicator (always OBJ_EBOOL) */
     DISPLXY         Org;            /* origin in pixel coord. (0,0 = upper left) */
-    TXTWINDIM       Window;         /* text windows dimension (in chars units) */
+    OBJ_TWIND       Window;         /* text windows dimension (in chars units) */
     DPLFONT         eFont;          /* used font */
     BOOL far *      fpValue;        /* address of original boolean value */
-    STRING          szDescr;        /* address of description string (left aligned) */
+    STRING          szDescrL;       /* address of description string (left aligned) */
+    STRING          szDescrR;       /* address of description string (left aligned) */
     BOOL far *      fpWorkValue;    /* address of buffer for edit work
                                        (original number remains unchanged until [OK]) */
-} EDITBOOLOBJECT;
+} OBJ_BOOL;
 
 
 /* init object structure */
 typedef struct
 {
-    EDITBOOLOBJECT far *    fpObject;
-    UINT16                  wOrgPosX;
-    UINT16                  wOrgPosY;
-    DPLFONT                 eFont;
-    UINT8                   bWindWidth;
-    BOOL far *              fpValue;
-    BOOL far *              fpWorkValue;
-    STRING                  szDescr;
-    UINT8                   bState;
-} EDITBOOL_INITTYPE;
+    OBJ_BOOL far *  fpObject;       // see above for details
+    UINT16          wOrgPosX;
+    UINT16          wOrgPosY;
+    DPLFONT         eFont;
+    UINT8           bWindWidth;
+    BOOL far *      fpValue;
+    BOOL far *      fpWorkValue;
+    STRING          szDescrL;
+    STRING          szDescrR;
+    UINT8           bState;
+} OBJ_BOOL_INIT;
 
 
 
 /* edit bool object prototypes */
-ERRCODE ObjEditBoolMsgEntry(EDITBOOLOBJECT      far * fpObject, MESSAGE msg );
-ERRCODE ObjEditBoolShow(    EDITBOOLOBJECT      far * fpObject, UINT8 bUpdateMode );
-ERRCODE ObjEditBoolInit(    EDITBOOL_INITTYPE   far * fpInitData );
+ERRCODE Obj_Bool_MsgEntry(OBJ_BOOL      far * fpObject, MESSAGE msg );
+ERRCODE Obj_Bool_Show(    OBJ_BOOL      far * fpObject, UINT8 bUpdateMode );
+ERRCODE Obj_Bool_Init(    OBJ_BOOL_INIT   far * fpInitData );
 
-#define EDITBOOL_TEXT_WIDTH  2          // length of true/false indicator text in chars
-//#define EDITBOOL_TEXT_TRUE   "\x83\x84"   // state TRUE indicator dez 131+132 = CHAR_HOOK_L + R
-//#define EDITBOOL_TEXT_FALSE  "\x85\x86"   // state FALSE indicator
-#define EDITBOOL_TEXT_FALSE  "\x7f\x80"     // state TRUE indicator dez 127+128 = CHAR_HOOK_L + R
-#define EDITBOOL_TEXT_TRUE   "\x81\x82"     // state FALSE indicator dez 129+130 = CHAR_HOOK_L + R
+#define OBJ_BOOL_TWIDTH  2          // length of true/false indicator text in chars
+//#define OBJ_BOOL_TTRUE   "\x83\x84"   // state TRUE indicator dez 131+132 = CHAR_HOOK_L + R
+//#define OBJ_BOOL_TFALSE  "\x85\x86"   // state FALSE indicator
+#define OBJ_BOOL_TFALSE  "\x7f\x80"     // state TRUE indicator dez 127+128 = CHAR_HOOK_L + R
+#define OBJ_BOOL_TTRUE   "\x81\x82"     // state FALSE indicator dez 129+130 = CHAR_HOOK_L + R
 
 
 
@@ -687,10 +692,10 @@ ERRCODE ObjEditBoolInit(    EDITBOOL_INITTYPE   far * fpInitData );
 /* object structure */
 typedef struct
 {
-    OBJSTATE        State;              /* MUST BE THE FIRST: bitfields to handle display state */
-    OBJTYPE         eType;              /* MUST BE THE 2nd: object type indicator (always OBJ_SLCT) */
+    OBJ_STATE       State;              /* MUST BE THE FIRST: bitfields to handle display state */
+    OBJ_TYPE        eType;              /* MUST BE THE 2nd: object type indicator (always OBJ_SLCT) */
     DISPLXY         Org;                /* origin in pixel coord. (0,0 = upper left) */
-    TXTWINDIM       Window;             /* text windows dimension (in chars units) */
+    OBJ_TWIND       Window;             /* text windows dimension (in chars units) */
     DPLFONT         eFont;              /* used font */
     UINT8 far *     fpValue;            /* address of original enum value */
     UINT8           u8Max;              /* max. edit value (0..u8Max) */
@@ -699,35 +704,35 @@ typedef struct
     UINT8           bSelectWidth;       /* field size of select text */
     UINT8 far *     fpWorkValue;        /* address of buffer for edit work
                                            (original number remains unchanged until [OK]) */
-} SELECTOBJECT;
+} OBJ_SELECT;
 
 
 /* init object structure */
 typedef struct
 {
-    SELECTOBJECT far *      fpObject;
-    UINT16                  wOrgPosX;
-    UINT16                  wOrgPosY;
-    DPLFONT                 eFont;
-    UINT8                   bWindWidth;
-    UINT8 far *             fpValue;
-    UINT8                   u8Max;
-    UINT8 far *             fpWorkValue;
-    STRING                  szDescr;
-    const STRING far *      pszSlctTxtList;
-    UINT8                   bSelectWidth;
-    UINT8                   bState;
-} SELECT_INITTYPE;
+    OBJ_SELECT far *    fpObject;
+    UINT16              wOrgPosX;
+    UINT16              wOrgPosY;
+    DPLFONT             eFont;
+    UINT8               bWindWidth;
+    UINT8 far *         fpValue;
+    UINT8               u8Max;
+    UINT8 far *         fpWorkValue;
+    STRING              szDescr;
+    const STRING far *  pszSlctTxtList;
+    UINT8               bSelectWidth;
+    UINT8               bState;
+} OBJ_SELECT_INIT;
 
 
 
 /* select object prototypes */
-ERRCODE ObjSelectMsgEntry   ( SELECTOBJECT    far * fpObject, MESSAGE msg );
-ERRCODE ObjSelectShow       ( SELECTOBJECT    far * fpObject, UINT8 bUpdateMode );
-ERRCODE ObjSelectInit       ( SELECT_INITTYPE far * fpInitData );
+ERRCODE Obj_Select_MsgEntry   ( OBJ_SELECT    far * fpObject, MESSAGE msg );
+ERRCODE Obj_Select_Show       ( OBJ_SELECT    far * fpObject, UINT8 bUpdateMode );
+ERRCODE Obj_Select_Init       ( OBJ_SELECT_INIT far * fpInitData );
 
 
-#define SELECT_TEXTWIDTH    20
+#define OBJ_SELECT_TWIDTH    20
 
 #endif /* _OBJECTS_H */
 

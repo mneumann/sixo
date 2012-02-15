@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.15  2012/02/15 07:32:43  tuberkel
+ * Objects-API reviewed (no functional changes)
+ *
  * Revision 3.14  2012/02/14 22:36:22  tuberkel
  * Functions reviewed
  *
@@ -197,7 +200,7 @@
     1. Add new SetDevice state in SETDEV_STATE enum list
     2. Add new defintions of display objects (text/bool/select) in objects definition part
     3. Add new external data objects (e.g. SystemParameter) if needed
-    4. Add new Screen Headline TEXTOBJECT   TextObj_HL_xxx;
+    4. Add new Screen Headline OBJ_TEXTST   TextObj_HL_xxx;
     5. Add new Ressource text string constants in 'resource_xx.h'
     6. Add new initial object data in static object array (e.g. TextObj[], /bool/select)
     7. Add new defintion ObjectList_xxx,  for all the above objects part of that screen (e.g. ObjectList_Extension1[])
@@ -284,17 +287,17 @@ static UINT32   dwEditBuffer;               // 32 bit edit buffer
 // ----------------------------------------------------------------
 // wheel size / impulse objects
 extern UINT16           wWheelSize;                     // original wheel size from eeprom in mm
-static EDITNUMBEROBJECT EditWheelSizeObj;               // complete wheel size object
+static OBJ_NUM EditWheelSizeObj;               // complete wheel size object
 extern UINT8            gbWheelImpulse;                 // original wheel impulse from eeprom
-static EDITNUMBEROBJECT EditWheelImpulseObj;            // complete wheel impulse object
+static OBJ_NUM EditWheelImpulseObj;            // complete wheel impulse object
 
 
 
 // ----------------------------------------------------------------
 // cylinder correcture factor:
 extern CCF_TYPE         CCF;                            // original CCF value (with Nom/Denom nibbles) from eeprom
-static EDITNUMBEROBJECT EditCCFNomObj;                  // complete nominator number object
-static EDITNUMBEROBJECT EditCCFDenomObj;                // complete denominator number object
+static OBJ_NUM EditCCFNomObj;                  // complete nominator number object
+static OBJ_NUM EditCCFDenomObj;                // complete denominator number object
 static UINT8            CCFNom;                         // copy of CCF.Nom as reference
 static UINT8            CCFDenom;                       // copy of CCF.Denom as reference
 
@@ -303,26 +306,26 @@ static UINT8            CCFDenom;                       // copy of CCF.Denom as 
 // EngineRunTime objects:
 extern TIME_TYPE_LD     EngRunTime_Srv;                 // original values from NVRAM, 4 bytes, engine runtime since last service
 extern TIME_TYPE_LD     EngRunTime_All;                 // original values from NVRAM, 4 bytes, engine runtime overall
-static EDITNUMBEROBJECT EditEngRunSrvObj;               // complete EnginRunTime Service object
-static EDITNUMBEROBJECT EditEngRunAllObj;               // complete EnginRunTime All object
+static OBJ_NUM EditEngRunSrvObj;               // complete EnginRunTime Service object
+static OBJ_NUM EditEngRunAllObj;               // complete EnginRunTime All object
 
 
 // ----------------------------------------------------------------
 // vehicle / service km objects:
 extern DIST_TYPE        gNextServKm;                    // to get/set original value
 static UINT32           dwServKm;                       // original vehicle distance in km only
-static EDITNUMBEROBJECT EditServKmObj;                  // complete number object
+static OBJ_NUM EditServKmObj;                  // complete number object
 static DIST_TYPE        VehicDist;                      // to get/set original value
 static UINT32           dwVehicDist;                    // original vehicle distance in km only
-static EDITNUMBEROBJECT EditVehicDistObj;               // complete number object
+static OBJ_NUM EditVehicDistObj;               // complete number object
 
 
 // ----------------------------------------------------------------
 // tank capacity / fuel consumption objects:
 extern UINT16           gwFuelCap;                      // to get/set original value, in 1/10 liters
-static EDITNUMBEROBJECT EditTankCapObj;                 // complete number object
+static OBJ_NUM EditTankCapObj;                 // complete number object
 extern UINT8            gbFuelCons;                     // to get/set original value, in 1/10 l/100 km
-static EDITNUMBEROBJECT EditFuelConsObj;                // complete number object
+static OBJ_NUM EditFuelConsObj;                // complete number object
 
 
 // ----------------------------------------------------------------
@@ -330,35 +333,35 @@ static EDITNUMBEROBJECT EditFuelConsObj;                // complete number objec
 extern DPLFLAGS_TYPE    gDisplayFlags;                  // orginal display values
 
 // BacklightOnLevel: 'an/aus/auto: 0..63'
-static EDITNUMBEROBJECT EditBacklObj;                   // complete backlight object
+static OBJ_NUM EditBacklObj;                   // complete backlight object
 static UINT8            bBacklOnLevel;                  // copy of gDisplayFlags.flags.BacklOnLevel as reference
 
 // Backlight Level: 'Helligkeit: 63'
-static EDITNUMBEROBJECT EditBacklLevObj;                // complete backlight level object
+static OBJ_NUM EditBacklLevObj;                // complete backlight level object
 static UINT8            bBacklLev;                      // copy of gDisplayFlags.flags.BacklLev as reference
 
 // Display Contrast:
-static EDITNUMBEROBJECT EditContrLevObj;                // complete contrast level object
+static OBJ_NUM EditContrLevObj;                // complete contrast level object
 static UINT8            bContrLev;                      // copy of gDisplayFlags.flags.ContLev as reference
 
 // LEDs Control
-static EDITNUMBEROBJECT EditLedDimmObj;                 // complete LED dimmer object
+static OBJ_NUM EditLedDimmObj;                 // complete LED dimmer object
 static UINT8            bLEDDimmLev;                    // copy of gDisplayFlags.flags.BacklLev as reference
 
 // Display Contrast:
-static EDITNUMBEROBJECT EditDbgOutObj;                  // complete DebugOut control object (level & module)
+static OBJ_NUM EditDbgOutObj;                  // complete DebugOut control object (level & module)
 extern DBGFILT_TYPE     gDebugFilter;                   // original value
 
 
 // ----------------------------------------------------------------
 // RPM Flash Light:
 extern RPM_TYPE         RPM_Flash;                      // original values from EEPROM, engine speed to enable flash lamp,   1 RPM/bit
-static EDITNUMBEROBJECT EditRPMFlashObj;                // complete RPM Flashlight object
+static OBJ_NUM EditRPMFlashObj;                // complete RPM Flashlight object
 
 
 // ----------------------------------------------------------------
 // BikeType:
-static SELECTOBJECT     SelectBikeObj;                  // complete bike type object
+static OBJ_SELECT     SelectBikeObj;                  // complete bike type object
 extern BIKE_TYPE        gBikeType;                      // EEprom value
 static BIKE_TYPE        LocalBikeType;                  // local edit buffer
 static const STRING     pszSelectBike[RESTXT_SET_BIKE_CNT] =
@@ -372,7 +375,7 @@ static const STRING     pszSelectBike[RESTXT_SET_BIKE_CNT] =
 // ----------------------------------------------------------------
 // BikeLogo
 /* NOTE: All entries derived from 'LOGO_TYPE' */
-static SELECTOBJECT     SelectLogoObj;                  // complete logo type object
+static OBJ_SELECT     SelectLogoObj;                  // complete logo type object
 extern UINT8            gLogoSelection;                 // Eeprom value
 static const STRING     pszSelectLogo[RESTXT_SET_LOGO_CNT] =
                         {   RESTXT_SET_LOGO_NKDEV     ,
@@ -390,14 +393,14 @@ static const STRING     pszSelectLogo[RESTXT_SET_LOGO_CNT] =
                             RESTXT_SET_LOGO_TENERISTI ,
                             RESTXT_SET_LOGO_COOLRIDE
                         };
-static EDITNUMBEROBJECT EditLogoDelayObj;               // complete logo delay object
+static OBJ_NUM EditLogoDelayObj;               // complete logo delay object
        UINT8            gbLogoDelay;                    // Eeprom value;
 
 
 
 // ----------------------------------------------------------------
 // Language Selection Object
-static SELECTOBJECT     SelectLangObj;                  // Language Selection Object
+static OBJ_SELECT     SelectLangObj;                  // Language Selection Object
 extern UINT8            gLanguage;                      // eeprom value
 static const STRING     pszSelectLang[RESTXT_SET_LANG_CNT] =
                         {   RESTXT_SET_LANG_DE,
@@ -410,7 +413,7 @@ static const STRING     pszSelectLang[RESTXT_SET_LANG_CNT] =
 // Device Flags 2:
 extern DEVFLAGS2_TYPE   gDeviceFlags2;
 
-static SELECTOBJECT     SelectTripObj;                // trip counter flag object (taken from gDeviceFlags2 )
+static OBJ_SELECT     SelectTripObj;                // trip counter flag object (taken from gDeviceFlags2 )
 static const STRING     pszSelectTrip[RESTXT_SET_TRIP_CNT] =
                         {   RESTXT_SET_TRIP_VST,
                             RESTXT_SET_TRIP_VSB
@@ -423,14 +426,14 @@ static BOOL             fTripCntLongUp;               // copy of trip counter fl
 // Device Flags 3:
 extern DEVFLAGS3_TYPE   gDeviceFlags3;
 
-static SELECTOBJECT     SelectMetricObj;              // Metric selection: METER/INCH (taken from gDeviceFlags3 )
+static OBJ_SELECT     SelectMetricObj;              // Metric selection: METER/INCH (taken from gDeviceFlags3 )
 static const STRING     pszSelectMetric[RESTXT_SET_METRIC_CNT] =
                         {   RESTXT_SET_METRIC_KM,
                             RESTXT_SET_METRIC_MILES
                         };
 static BOOL             fMetric;                        // copy of Metric flag as reference
 
-static SELECTOBJECT     SelectLedWMObj;           // Led Warning Mode Selection: SIxO-like / common mode (leds on at ignition), taken from gDeviceFlags3 )
+static OBJ_SELECT     SelectLedWMObj;           // Led Warning Mode Selection: SIxO-like / common mode (leds on at ignition), taken from gDeviceFlags3 )
 static const STRING     pszSelectLedWM[RESTXT_SET_LEDWM_CNT] =
                         {   RESTXT_SET_LEDWM_SIXO,
                             RESTXT_SET_LEDWM_STD
@@ -442,32 +445,32 @@ static BOOL             fLedWarnMode;                   // copy of Metric flag a
 // ----------------------------------------------------------------
 // Date field objects
 static DATE_TYPE        RTCDateCopy;                    // buffer to get current RTC data
-static EDITNUMBEROBJECT EditDayObj;                     // complete day object
+static OBJ_NUM EditDayObj;                     // complete day object
 static UINT8            bDate;                          // copy of RTC day as reference
-static EDITNUMBEROBJECT EditMonthObj;                   // complete month object
+static OBJ_NUM EditMonthObj;                   // complete month object
 static UINT8            bMonth;                         // copy of RTC day as reference
-static EDITNUMBEROBJECT EditYearObj;                    // complete year object
+static OBJ_NUM EditYearObj;                    // complete year object
 static UINT8            bYear;                          // copy of RTC day as reference
 
 // ----------------------------------------------------------------
 // time field objects
 static TIME_TYPE        RTCTimeCopy;                    // buffer to get current RTC data
-static EDITNUMBEROBJECT EditHourObj;                    // complete hour object
+static OBJ_NUM EditHourObj;                    // complete hour object
 static UINT8            bHour;                          // copy of RTC hour as reference
-static EDITNUMBEROBJECT EditMinObj;                     // complete minute object
+static OBJ_NUM EditMinObj;                     // complete minute object
 static UINT8            bMin;                           // copy of RTC minute as reference
-static EDITNUMBEROBJECT EditSecObj;                     // complete seconds object
+static OBJ_NUM EditSecObj;                     // complete seconds object
 static UINT8            bSec;                           // copy of RTC second as reference
 
 // ----------------------------------------------------------------
 // clock driver calibration value '±168'
-static EDITNUMBEROBJECT EditClkCalibObj;                // complete calibration object
+static OBJ_NUM EditClkCalibObj;                // complete calibration object
 static UINT8            bRTCCalib;                      // buffer to get current RTC value
 static UINT8            bClkCalib;                      // copy of RTC clock calibration as reference
 
 // ----------------------------------------------------------------
 // daylight saving value (on/off, from eeprom)
-static EDITBOOLOBJECT   EditBoolDLSaveObj;              // complete boolean DaylightSavingseconds object
+static OBJ_BOOL   EditBoolDLSaveObj;              // complete boolean DaylightSavingseconds object
        BOOL             gfDaylightSave;                 // original value from eeprom
 
 
@@ -475,19 +478,19 @@ static EDITBOOLOBJECT   EditBoolDLSaveObj;              // complete boolean Dayl
 // Device Settings objects
 
 // Vehicle simulation object (on/off, from eeprom)
-static EDITBOOLOBJECT   EditBoolVehSimObj;              // complete boolean VehicleSimualtion edit Object
+static OBJ_BOOL   EditBoolVehSimObj;              // complete boolean VehicleSimualtion edit Object
        BOOL             gfVehicSimulation;              // original value from eeprom
 
 // BMP-Hardcopy via UART and HIGH_BEAM available object (on/off, from eeprom)
-static EDITBOOLOBJECT   EditBoolScrDmpObj;              // complete boolean Hardcopy edit Object
+static OBJ_BOOL   EditBoolScrDmpObj;              // complete boolean Hardcopy edit Object
        BOOL             gfHardcopy;                   // original value from eeprom
 
 // Eeprom Reset object (on = reset)
-static EDITBOOLOBJECT   EditBoolEeprRstObj;             // complete boolean Eeprom reset Object
+static OBJ_BOOL   EditBoolEeprRstObj;             // complete boolean Eeprom reset Object
        BOOL             gfEepromReset;                  // local value to start reset
 
 // Beeper Control (taken from gDeviceFlags2 )
-static EDITBOOLOBJECT   EditBoolBeepCtrlObj;            // complete boolean Beeper control Object
+static OBJ_BOOL   EditBoolBeepCtrlObj;            // complete boolean Beeper control Object
        BOOL             gfBeepCtrl;                     // local value
 
 
@@ -496,7 +499,7 @@ static EDITBOOLOBJECT   EditBoolBeepCtrlObj;            // complete boolean Beep
 
 // ----------------------------------------------------------------
 // Compass Display Mode Object:
-static SELECTOBJECT     SelectCompDplObj;               // compass calibration state object
+static OBJ_SELECT     SelectCompDplObj;               // compass calibration state object
 extern UINT8            gCompDplMode;                   // Eeprom value
 static const STRING     pszSelectCompD[RESTXT_SET_COMPD_CNT] =
                         {   RESTXT_SET_COMPD_NA  ,
@@ -508,7 +511,7 @@ static const STRING     pszSelectCompD[RESTXT_SET_COMPD_CNT] =
 
 // ----------------------------------------------------------------
 // Compass Calibration State Object (temporary while calibration mode is active):
-static SELECTOBJECT     SelectCompCalStObj;             // compass display mode object
+static OBJ_SELECT     SelectCompCalStObj;             // compass display mode object
 static UINT8            bCmpCalState;                   // to detect user pressed buttons/activity
 static const STRING     pszSelectCompC[RESTXT_SET_COMPC_CNT] =
                         {   RESTXT_SET_COMPC_NA   ,
@@ -522,7 +525,7 @@ static const STRING     pszSelectCompC[RESTXT_SET_COMPC_CNT] =
                         };
 
 // Compass Available Control
-static EDITBOOLOBJECT   EditBoolCompAvailObj;           // complete boolean Compass main switch Object
+static OBJ_BOOL   EditBoolCompAvailObj;           // complete boolean Compass main switch Object
        BOOL             gfCompAvail;                    // local value
 
 
@@ -540,22 +543,22 @@ extern UINT16       wMilliSecCounter;               // valid values: 0h .. ffffh
 /* ----------------------------------------------------------- */
 /* STATIC HEADLINE & OTHER TEXT OBJECTS */
 /* ----------------------------------------------------------- */
-static TEXTOBJECT   TextObj_HL_Vehicle;
-static TEXTOBJECT   TextObj_HL_Device;
-static TEXTOBJECT   TextObj_HL_Out;
-static TEXTOBJECT   TextObj_HL_Extension1;
+static OBJ_TEXTST   TextObj_HL_Vehicle;
+static OBJ_TEXTST   TextObj_HL_Device;
+static OBJ_TEXTST   TextObj_HL_Out;
+static OBJ_TEXTST   TextObj_HL_Extension1;
 
-static TEXTOBJECT   TextObj_Comp_Calib;
-static TEXTOBJECT   TextObj_Comp_Error;
+static OBJ_TEXTST   TextObj_Comp_Calib;
+static OBJ_TEXTST   TextObj_Comp_Error;
 
-static TEXTOBJECT   TextObj_Led_Desc;
-static TEXTOBJECT   TextObj_Lcd_Desc;
+static OBJ_TEXTST   TextObj_Led_Desc;
+static OBJ_TEXTST   TextObj_Lcd_Desc;
 
-//static TEXTOBJECT   TextObj_Dev_SWVers;
-//static TEXTOBJECT   TextObj_Dev_SWVersDsc;
+//static OBJ_TEXTST   TextObj_Dev_SWVers;
+//static OBJ_TEXTST   TextObj_Dev_SWVersDsc;
 
 
-static const TEXTOBJECT_INITTYPE TextObj[] =
+static const OBJ_TEXTST_INIT TextObj[] =
 {
     /* Headline Objects for all Screens: */
     /*pObject                X   Y   Font         H  Width  Align       Format      string ptr             State  */
@@ -586,7 +589,7 @@ static const TEXTOBJECT_INITTYPE TextObj[] =
     {&TextObj_Lcd_Desc,     C01, R5, DPLFONT_6X8, 1, 4,     TXT_LEFT,   TXT_NORM,   RESTXT_SET_LED,        OC_DISPL},
     /*--------------------- ---- --- ------------ -- -----  ----------- ----------- ---------------------- --------- */
 };
-#define TEXTOBJECTLISTSIZE   (sizeof(TextObj)/sizeof(TEXTOBJECT_INITTYPE))
+#define TEXTOBJECTLISTSIZE   (sizeof(TextObj)/sizeof(OBJ_TEXTST_INIT))
 
 
 
@@ -601,19 +604,19 @@ static const TEXTOBJECT_INITTYPE TextObj[] =
     #define OC_SCREENDUMP_OPT  OC_DISPL
 #endif
 
-static const EDITBOOL_INITTYPE EditBoolObj[] =
-{   /*pObject                X    Y  Font         Width  Data                 EditBuffer    Descriptor              State      */
-    /*-------------------- ---- ---- ------------ -----  -------------------- ------------- ----------------------- --------------------------------- */
-    {&EditBoolDLSaveObj,   C16,  R3, DPLFONT_6X8,    6,  &gfDaylightSave,     &fEditBuffer, RESTXT_SET_RTC_DLS,     OC_DISPL | OC_SELECT | OC_EDIT },
-    {&EditBoolBeepCtrlObj, C16,  R4, DPLFONT_6X8,    6,  &gfBeepCtrl,         &fEditBuffer, RESTXT_SET_BEEP_ON,     OC_DISPL | OC_SELECT | OC_EDIT },
-    {&EditBoolVehSimObj,   C16,  R5, DPLFONT_6X8,    6,  &gfVehicSimulation,  &fEditBuffer, RESTXT_SET_VEHICSIM,    OC_DISPL | OC_SELECT | OC_EDIT },
-    {&EditBoolScrDmpObj,   C16,  R6, DPLFONT_6X8,    6,  &gfHardcopy,         &fEditBuffer, RESTXT_SET_HARDCOPY,    OC_SCREENDUMP_OPT              },
-    {&EditBoolEeprRstObj,  C16,  R7, DPLFONT_6X8,    6,  &gfEepromReset,      &fEditBuffer, RESTXT_SET_RESETEEPROM, OC_DISPL | OC_SELECT | OC_EDIT },
-    /*-------------------- ---- ---- ------------ -----  -------------------- ------------- ----------------------- --------------------------------- */
-    {&EditBoolCompAvailObj,C01,  R2, DPLFONT_6X8,   21,  &gfCompAvail,        &fEditBuffer, RESTXT_SET_COMPASS,     OC_DISPL | OC_SELECT | OC_EDIT },
-    /*-------------------- ---- ---- ------------ -----  -------------------- ------------- ----------------------- --------------------------------- */
+static const OBJ_BOOL_INIT EditBoolObj[] =
+{   /*pObject                X    Y  Font         Width  Data                 EditBuffer    DescriptorL             DescriptorR              State      */
+    /*-------------------- ---- ---- ------------ -----  -------------------- ------------- ----------------------- -----------------------  --------------------------------- */
+    {&EditBoolDLSaveObj,   C16,  R3, DPLFONT_6X8,    6,  &gfDaylightSave,     &fEditBuffer, RESTXT_SET_RTC_DLS,     RESTXT_EMPTY_TXT,        OC_DISPL | OC_SELECT | OC_EDIT },
+    {&EditBoolBeepCtrlObj, C16,  R4, DPLFONT_6X8,    6,  &gfBeepCtrl,         &fEditBuffer, RESTXT_SET_BEEP_ON,     RESTXT_EMPTY_TXT,        OC_DISPL | OC_SELECT | OC_EDIT },
+    {&EditBoolVehSimObj,   C16,  R5, DPLFONT_6X8,    6,  &gfVehicSimulation,  &fEditBuffer, RESTXT_SET_VEHICSIM,    RESTXT_EMPTY_TXT,        OC_DISPL | OC_SELECT | OC_EDIT },
+    {&EditBoolScrDmpObj,   C16,  R6, DPLFONT_6X8,    6,  &gfHardcopy,         &fEditBuffer, RESTXT_SET_HARDCOPY,    RESTXT_EMPTY_TXT,        OC_SCREENDUMP_OPT              },
+    {&EditBoolEeprRstObj,  C16,  R7, DPLFONT_6X8,    6,  &gfEepromReset,      &fEditBuffer, RESTXT_SET_RESETEEPROM, RESTXT_EMPTY_TXT,        OC_DISPL | OC_SELECT | OC_EDIT },
+    /*-------------------- ---- ---- ------------ -----  -------------------- ------------- ----------------------- -----------------------  --------------------------------- */
+    {&EditBoolCompAvailObj,C01,  R2, DPLFONT_6X8,   21,  &gfCompAvail,        &fEditBuffer, RESTXT_SET_COMPASS,     RESTXT_EMPTY_TXT,        OC_DISPL | OC_SELECT | OC_EDIT },
+    /*-------------------- ---- ---- ------------ -----  -------------------- ------------- ----------------------- -----------------------  --------------------------------- */
 };
-#define EDITBOOLOBJECTLISTSIZE   (sizeof(EditBoolObj)/sizeof(EDITBOOL_INITTYPE))
+#define EDITBOOLOBJECTLISTSIZE   (sizeof(EditBoolObj)/sizeof(OBJ_BOOL_INIT))
 
 
 
@@ -621,7 +624,7 @@ static const EDITBOOL_INITTYPE EditBoolObj[] =
 /* ----------------------------------------------------------- */
 /* SELECT OBJECTS INIT TABLE */
 /* ----------------------------------------------------------- */
-static const SELECT_INITTYPE SelectObj[] =
+static const OBJ_SELECT_INIT SelectObj[] =
 {
     /* fpObject           OrgX    OrgY  Font         Width pValue                        Max                    WorkValue       szDescr                      SelectTxtList     SelectTxtWidth           State*/
     /* ------------------ ------ ------ ------------ ----- ----------------------------- ------------------     --------------- ---------------------------- ----------------  ------------------------ --------------------------------- */
@@ -640,26 +643,26 @@ static const SELECT_INITTYPE SelectObj[] =
     /* ------------------ ------ ------ ------------ ----- ----------------------------- ------------------     --------------- ---------------------------- ----------------  ------------------------ --------------------------------- */
 
 };
-#define SELECTOBJECTLISTSIZE   (sizeof(SelectObj)/sizeof(SELECT_INITTYPE))
+#define SELECTOBJECTLISTSIZE   (sizeof(SelectObj)/sizeof(OBJ_SELECT_INIT))
 
 
 
 /* ----------------------------------------------------------- */
 /* EDIT NUMBER INIT TABLE */
 /* ----------------------------------------------------------- */
-static const EDITNUMBER_INITTYPE EditNumObj[] =
+static const OBJ_NUM_INIT EditNumObj[] =
 {
     /* VEHICLE SETTINGS */
     /* fpObject           OrgX    OrgY  Font         Width  pNumber                 pWorkNumber     Type   Min  Max    Step DplType  Mode     C  zDescr                      zUnit                       L   State                              */
     /* ------------------ ------ ------ ------------ ----- -----------------------  --------------- ------ ---- ------- --- -------  -------- - ---------------------------- --------------------------- -- ----------------------------------- */
     { &EditCCFNomObj,       C15,   R2,  DPLFONT_6X8,     6, &CCFNom,                &bEditBuffer,   eUCHAR, 1L,     9L,  0L, eDez,   eColumn, 0, RESTXT_SET_CCFNOM_DESC,     RESTXT_SET_CCFNOM_UNIT,     1,  OC_DISPL | OC_SELECT | OC_EDIT   },
-    { &EditCCFDenomObj,     C21,   R2,  DPLFONT_6X8,     1, &CCFDenom,              &bEditBuffer,   eUCHAR, 1L,     9L,  0L, eDez,   eColumn, 0, "",                         "",                         1,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &EditCCFDenomObj,     C21,   R2,  DPLFONT_6X8,     1, &CCFDenom,              &bEditBuffer,   eUCHAR, 1L,     9L,  0L, eDez,   eColumn, 0, RESTXT_EMPTY_TXT,           RESTXT_EMPTY_TXT,           1,  OC_DISPL | OC_SELECT | OC_EDIT   },
     { &EditWheelSizeObj,    C01,   R3,  DPLFONT_6X8,    12, &wWheelSize,            &wEditBuffer,   eUINT,  0L,  9999L,  0L, eDez,   eColumn, 0, RESTXT_SET_WHEELSIZE_DESC,  RESTXT_SET_WHEELSIZE_UNIT,  4,  OC_DISPL | OC_SELECT | OC_EDIT   },
-    { &EditWheelImpulseObj, C16,   R3,  DPLFONT_6X8,     6, &gbWheelImpulse,        &wEditBuffer,   eUCHAR, 1L,    99L,  0L, eDez,   eColumn, 0, RESTXT_SET_WHEELIMP_DESC,   "",                         2,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &EditWheelImpulseObj, C16,   R3,  DPLFONT_6X8,     6, &gbWheelImpulse,        &wEditBuffer,   eUCHAR, 1L,    99L,  0L, eDez,   eColumn, 0, RESTXT_SET_WHEELIMP_DESC,   RESTXT_EMPTY_TXT,           2,  OC_DISPL | OC_SELECT | OC_EDIT   },
     { &EditVehicDistObj,    C01,   R4,  DPLFONT_6X8,    12, &dwVehicDist,           &dwEditBuffer,  eULONG, 0L,999999L,  0L, eDez,   eColumn, 0, RESTXT_SET_VEHICKM_DESC,    RESTXT_SET_VEHICKM_UNIT,    6,  OC_DISPL | OC_SELECT | OC_EDIT   },
-    { &EditEngRunAllObj,    C16,   R4,  DPLFONT_6X8,     6, &EngRunTime_All.wHour,  &wEditBuffer,   eUINT,  0L, 65535L,  0L, eDez,   eColumn, 0, "",                         RESTXT_SET_ERT_UNIT,        5,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &EditEngRunAllObj,    C16,   R4,  DPLFONT_6X8,     6, &EngRunTime_All.wHour,  &wEditBuffer,   eUINT,  0L, 65535L,  0L, eDez,   eColumn, 0, RESTXT_EMPTY_TXT,           RESTXT_SET_ERT_UNIT,        5,  OC_DISPL | OC_SELECT | OC_EDIT   },
     { &EditServKmObj,       C01,   R5,  DPLFONT_6X8,    12, &dwServKm,              &dwEditBuffer,  eULONG, 0L,999999L,  0L, eDez,   eColumn, 0, RESTXT_SET_SERVKM_DESC,     RESTXT_SET_VEHICKM_UNIT,    6,  OC_DISPL | OC_SELECT | OC_EDIT   },
-    { &EditEngRunSrvObj,    C16,   R5,  DPLFONT_6X8,     6, &EngRunTime_Srv.wHour,  &wEditBuffer,   eUINT,  0L, 65535L,  0L, eDez,   eColumn, 0, "",                         RESTXT_SET_ERT_UNIT,        5,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &EditEngRunSrvObj,    C16,   R5,  DPLFONT_6X8,     6, &EngRunTime_Srv.wHour,  &wEditBuffer,   eUINT,  0L, 65535L,  0L, eDez,   eColumn, 0, RESTXT_EMPTY_TXT,           RESTXT_SET_ERT_UNIT,        5,  OC_DISPL | OC_SELECT | OC_EDIT   },
     { &EditTankCapObj,      C01,   R6,  DPLFONT_6X8,    12, &gwFuelCap,             &dwEditBuffer,  eUINT,  0L,   999L,  0L, eDez,   eColumn, 1, RESTXT_SET_TANKCAP_DESC,    RESTXT_SET_TANKCAP_UNIT,    4,  OC_DISPL                         },
     { &EditFuelConsObj,     C15,   R6,  DPLFONT_6X8,     7, &gbFuelCons,            &bEditBuffer,   eUCHAR, 0L,   255L,  0L, eDez,   eColumn, 1, RESTXT_SET_FUELCONS_DESC,   RESTXT_SET_FUELCONS_UNIT,   4,  OC_DISPL                         },
     { &EditLogoDelayObj,    C18,   R7,  DPLFONT_6X8,     4, &gbLogoDelay,           &bEditBuffer,   eUCHAR, 0L,    99L,  0L, eDez,   eColumn, 1, "",                         RESTXT_SET_LOGODELAY_UNIT,  3,  OC_DISPL | OC_SELECT | OC_EDIT   },
@@ -667,27 +670,27 @@ static const EDITNUMBER_INITTYPE EditNumObj[] =
     /* DEVICE SETTINGS */
     /* fpObject           OrgX    OrgY  Font         Width  pNumber                 pWorkNumber     Type   Min  Max    Step DplType  Mode     C  zDescr                      zUnit                       L   State                              */
     /* ------------------ ------ ------ ------------ ----- -----------------------  --------------- ------ ---- ------- --- -------  -------- - ---------------------------- --------------------------- -- ----------------------------------- */
-    { &EditHourObj,         C01,   R2,  DPLFONT_6X8,     8, &bHour,                 &bEditBuffer,   eUCHAR, 0L,    23L,  0L, eDez,   eColumn, 0, RESTXT_SET_RTC_TIME,        "",                         2,  OC_DISPL | OC_SELECT | OC_EDIT   },
-    { &EditMinObj,          C09,   R2,  DPLFONT_6X8,     3, &bMin,                  &bEditBuffer,   eUCHAR, 0L,    59L,  0L, eDez,   eColumn, 0, RESTXT_TIMESEPERATOR,       "",                         2,  OC_DISPL | OC_SELECT | OC_EDIT   },
-    { &EditSecObj,          C12,   R2,  DPLFONT_6X8,     3, &bSec,                  &bEditBuffer,   eUCHAR, 0L,    59L,  0L, eDez,   eColumn, 0, RESTXT_TIMESEPERATOR,       "",                         2,  OC_DISPL | OC_SELECT | OC_EDIT   },
-    { &EditClkCalibObj,     C16,   R2,  DPLFONT_6X8,     6, &bClkCalib,             &bEditBuffer,   eUCHAR, 0L,   255L,  0L, eDez,   eColumn, 0, RESTXT_SET_RTC_CALIB,       "",                         3,  OC_DISPL | OC_SELECT | OC_EDIT   },
-    { &EditDayObj,          C01,   R3,  DPLFONT_6X8,     8, &bDate,                 &bEditBuffer,   eUCHAR, 1L,    31L,  0L, eDez,   eColumn, 0, RESTXT_SET_RTC_DATE,        "",                         2,  OC_DISPL | OC_SELECT | OC_EDIT   },
-    { &EditMonthObj,        C09,   R3,  DPLFONT_6X8,     3, &bMonth,                &bEditBuffer,   eUCHAR, 1L,    12L,  0L, eDez,   eColumn, 0, RESTXT_DAYSEPERATOR,        "",                         2,  OC_DISPL | OC_SELECT | OC_EDIT   },
-    { &EditYearObj,         C12,   R3,  DPLFONT_6X8,     3, &bYear,                 &bEditBuffer,   eUCHAR, 0L,    99L,  0L, eDez,   eColumn, 0, RESTXT_DAYSEPERATOR,        "",                         2,  OC_DISPL | OC_SELECT | OC_EDIT   },
-    { &EditDbgOutObj,       C01,   R7,  DPLFONT_6X8,    12, &gDebugFilter,          &bEditBuffer,   eUCHAR, 0L,   255L,  0L, eHex,   eColumn, 0, RESTXT_DBGOUTDESCR,         "",                         2,  OC_DISPL                         },
+    { &EditHourObj,         C01,   R2,  DPLFONT_6X8,     8, &bHour,                 &bEditBuffer,   eUCHAR, 0L,    23L,  0L, eDez,   eColumn, 0, RESTXT_SET_RTC_TIME,        RESTXT_EMPTY_TXT,           2,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &EditMinObj,          C09,   R2,  DPLFONT_6X8,     3, &bMin,                  &bEditBuffer,   eUCHAR, 0L,    59L,  0L, eDez,   eColumn, 0, RESTXT_TIMESEPERATOR,       RESTXT_EMPTY_TXT,           2,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &EditSecObj,          C12,   R2,  DPLFONT_6X8,     3, &bSec,                  &bEditBuffer,   eUCHAR, 0L,    59L,  0L, eDez,   eColumn, 0, RESTXT_TIMESEPERATOR,       RESTXT_EMPTY_TXT,           2,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &EditClkCalibObj,     C16,   R2,  DPLFONT_6X8,     6, &bClkCalib,             &bEditBuffer,   eUCHAR, 0L,   255L,  0L, eDez,   eColumn, 0, RESTXT_SET_RTC_CALIB,       RESTXT_EMPTY_TXT,           3,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &EditDayObj,          C01,   R3,  DPLFONT_6X8,     8, &bDate,                 &bEditBuffer,   eUCHAR, 1L,    31L,  0L, eDez,   eColumn, 0, RESTXT_SET_RTC_DATE,        RESTXT_EMPTY_TXT,           2,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &EditMonthObj,        C09,   R3,  DPLFONT_6X8,     3, &bMonth,                &bEditBuffer,   eUCHAR, 1L,    12L,  0L, eDez,   eColumn, 0, RESTXT_DAYSEPERATOR,        RESTXT_EMPTY_TXT,           2,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &EditYearObj,         C12,   R3,  DPLFONT_6X8,     3, &bYear,                 &bEditBuffer,   eUCHAR, 0L,    99L,  0L, eDez,   eColumn, 0, RESTXT_DAYSEPERATOR,        RESTXT_EMPTY_TXT,           2,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &EditDbgOutObj,       C01,   R7,  DPLFONT_6X8,    12, &gDebugFilter,          &bEditBuffer,   eUCHAR, 0L,   255L,  0L, eHex,   eColumn, 0, RESTXT_DBGOUTDESCR,         RESTXT_EMPTY_TXT,           2,  OC_DISPL                         },
 
     /* LED/LCD SETTINGS */
     /* fpObject           OrgX    OrgY  Font         Width  pNumber                 pWorkNumber     Type   Min  Max    Step DplType  Mode     C  zDescr                      zUnit                       L   State                              */
     /* ------------------ ------ ------ ------------ ----- -----------------------  --------------- ------ ---- ------- --- -------  -------- - ---------------------------- --------------------------- -- ----------------------------------- */
-    { &EditBacklObj,        C05,   R2,  DPLFONT_6X8,    17, &bBacklOnLevel,         &bEditBuffer,   eUCHAR, 0L,     7L,  0L, eDez,   eColumn, 0, RESTXT_SET_LCD_BL_DESC,     "",                         1,  OC_DISPL | OC_SELECT | OC_EDIT   },
-    { &EditBacklLevObj,     C05,   R3,  DPLFONT_6X8,    17, &bBacklLev,             &bEditBuffer,   eUCHAR, 0L,    63L,  1L, eDez,   eStep,   0, RESTXT_SET_LCD_BR_DESC,     "",                         2,  OC_DISPL | OC_SELECT | OC_EDIT   },
-    { &EditContrLevObj,     C05,   R4,  DPLFONT_6X8,    17, &bContrLev,             &bEditBuffer,   eUCHAR, 0L,    63L,  1L, eDez,   eStep,   0, RESTXT_SET_LCD_CNT_DESC,    "",                         2,  OC_DISPL | OC_SELECT | OC_EDIT   },
-    { &EditLedDimmObj,      C05,   R5,  DPLFONT_6X8,    17, &bLEDDimmLev,           &bEditBuffer,   eUCHAR, 0L,     7L,  1L, eDez,   eStep,   0, RESTXT_SET_LED_DIM_DESC,    "",                         1,  OC_DISPL | OC_SELECT             },
-    { &EditRPMFlashObj,     C05,   R7,  DPLFONT_6X8,    17, &RPM_Flash,             &wEditBuffer,   eUINT,  0L, 30000L,  0L, eDez,   eColumn, 0, RESTXT_SET_RPMFL_DESC,      "",                         5,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &EditBacklObj,        C05,   R2,  DPLFONT_6X8,    17, &bBacklOnLevel,         &bEditBuffer,   eUCHAR, 0L,     7L,  0L, eDez,   eColumn, 0, RESTXT_SET_LCD_BL_DESC,     RESTXT_EMPTY_TXT,           1,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &EditBacklLevObj,     C05,   R3,  DPLFONT_6X8,    17, &bBacklLev,             &bEditBuffer,   eUCHAR, 0L,    63L,  1L, eDez,   eStep,   0, RESTXT_SET_LCD_BR_DESC,     RESTXT_EMPTY_TXT,           2,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &EditContrLevObj,     C05,   R4,  DPLFONT_6X8,    17, &bContrLev,             &bEditBuffer,   eUCHAR, 0L,    63L,  1L, eDez,   eStep,   0, RESTXT_SET_LCD_CNT_DESC,    RESTXT_EMPTY_TXT,           2,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &EditLedDimmObj,      C05,   R5,  DPLFONT_6X8,    17, &bLEDDimmLev,           &bEditBuffer,   eUCHAR, 0L,     7L,  1L, eDez,   eStep,   0, RESTXT_SET_LED_DIM_DESC,    RESTXT_EMPTY_TXT,           1,  OC_DISPL | OC_SELECT             },
+    { &EditRPMFlashObj,     C05,   R7,  DPLFONT_6X8,    17, &RPM_Flash,             &wEditBuffer,   eUINT,  0L, 30000L,  0L, eDez,   eColumn, 0, RESTXT_SET_RPMFL_DESC,      RESTXT_EMPTY_TXT,           5,  OC_DISPL | OC_SELECT | OC_EDIT   },
 
     /* ------------------ ------ ------ ------------ ----- -----------------------  --------------- ------ ---- ------- --- ------- -------- - ------------------------ ----------------------- -- -------------------------------------------- */
 };
-#define EDITNUMOBJECTLISTSIZE   (sizeof(EditNumObj)/sizeof(EDITNUMBER_INITTYPE))
+#define EDITNUMOBJECTLISTSIZE   (sizeof(EditNumObj)/sizeof(OBJ_NUM_INIT))
 
 
 
@@ -716,7 +719,7 @@ static const void far * ObjectList_Veh[] =
     (void far *) &EditLogoDelayObj      // 13
 
 };
-#define OBJLIST_VEH_CNT (sizeof(ObjectList_Veh)/sizeof(OBJSTATE)/sizeof(void far *))
+#define OBJLIST_VEH_CNT (sizeof(ObjectList_Veh)/sizeof(OBJ_STATE)/sizeof(void far *))
 
 
 // -------------------------------------------------------------------------
@@ -741,7 +744,7 @@ static const void far * ObjectList_Dev[] =
     (void far *) &EditDbgOutObj,        // 15
     (void far *) &EditBoolEeprRstObj,   // 16
 };
-#define OBJLIST_DEV_CNT (sizeof(ObjectList_Dev)/sizeof(OBJSTATE)/sizeof(void far *))
+#define OBJLIST_DEV_CNT (sizeof(ObjectList_Dev)/sizeof(OBJ_STATE)/sizeof(void far *))
 
 
 // -------------------------------------------------------------------------
@@ -758,7 +761,7 @@ static const void far * ObjectList_Out[] =
     (void far *) &SelectLedWMObj,       // 7
     (void far *) &EditRPMFlashObj,      // 8
 };
-#define OBJLIST_OUT_CNT   (sizeof(ObjectList_Out)/sizeof(OBJSTATE)/sizeof(void far *))
+#define OBJLIST_OUT_CNT   (sizeof(ObjectList_Out)/sizeof(OBJ_STATE)/sizeof(void far *))
 
 
 // -------------------------------------------------------------------------
@@ -772,7 +775,7 @@ static const void far * ObjectList_Extension1[] =
     (void far *) &SelectCompCalStObj,   // 5
     (void far *) &TextObj_Comp_Error,   // 6
 };
-#define OBJLIST_EXT1_CNT (sizeof(ObjectList_Extension1)/sizeof(OBJSTATE)/sizeof(void far *))
+#define OBJLIST_EXT1_CNT (sizeof(ObjectList_Extension1)/sizeof(OBJ_STATE)/sizeof(void far *))
 
 
 
@@ -1631,7 +1634,7 @@ void SetDev_CheckState(MESSAGE GivenMsg)
 {
     ERRCODE                 RValue = ERR_MSG_NOT_PROCESSED;
     MESSAGE_ID              MsgId;
-    DUMMYOBJECT far *       DummyObj;
+    OBJ_DUMMY far *       DummyObj;
     void far * far *        ObjList;
     DEVOBJLIST far *        ListCntrl;
     BOOL                    fChanged = FALSE;
@@ -1680,7 +1683,7 @@ void SetDev_CheckState(MESSAGE GivenMsg)
         // activate focus of new selected object
         ListCntrl   = &(SDCntrl.List[SDCntrl.eState]);
         ObjList     = ListCntrl->ObjList;
-        DummyObj    = (DUMMYOBJECT far *)ObjList[SDObj.bFocusObj];
+        DummyObj    = (OBJ_DUMMY far *)ObjList[SDObj.bFocusObj];
         DummyObj->State.bits.fSelected = TRUE;
 
         // reset screen state

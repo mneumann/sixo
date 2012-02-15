@@ -69,6 +69,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.4  2012/02/15 07:32:43  tuberkel
+ * Objects-API reviewed (no functional changes)
+ *
  * Revision 3.3  2012/02/08 03:55:24  tuberkel
  * KEY_TIMING parameter names reviewed/changed
  *
@@ -165,28 +168,28 @@ extern unsigned char    szSWVersion[];      /* formated sw version */
 static DEVDATA      IntroScreenDev;         /* this device */
 
 /* text objects */
-static TEXTOBJECT   SWVersionTxtObj;        /* version text object */
+static OBJ_TEXTST   SWVersionTxtObj;        /* version text object */
 
 
 /* text object table of this device */
-static const TEXTOBJECT_INITTYPE TextObjInit[] =
+static const OBJ_TEXTST_INIT TextObjInit[] =
 {   /*pObject           X  Y   Font         H  Width  Align     Format    string ptr   State  */
     { &SWVersionTxtObj, 0, 57, DPLFONT_6X8, 1, 21,    TXT_LEFT, TXT_NORM, szSWVersion, OC_DISPL }
 };
-#define TEXTOBJECTLISTSIZE   (sizeof(TextObjInit)/sizeof(TEXTOBJECT_INITTYPE))
+#define TEXTOBJECTLISTSIZE   (sizeof(TextObjInit)/sizeof(OBJ_TEXTST_INIT))
 
 
 /* bitmap object */
 extern const unsigned char far *    fpBikeLogos[];
-static BMPOBJECT                    SixoLogoBmpObj;         /* logo object */
+static OBJ_BMP                    SixoLogoBmpObj;         /* logo object */
 
 
 /* bitmap object table of this device */
-static const BMPOBJECT_INITTYPE     BmpObjInit[] =          /* init data */
+static const OBJ_BMP_INIT     BmpObjInit[] =          /* init data */
 {   /* object         x  y  w    h   raw data   mode     state */
     {&SixoLogoBmpObj, 0, 0, 128, 56, NULL,      DPLNORM, FALSE  }
 };
-#define BMPOBJECTLISTSIZE   (sizeof(BmpObjInit)/sizeof(BMPOBJECT_INITTYPE))
+#define BMPOBJECTLISTSIZE   (sizeof(BmpObjInit)/sizeof(OBJ_BMP_INIT))
 
 
 /* this devices object focus handling - list of all objects */
@@ -199,7 +202,7 @@ static const void far * ObjectList[] =
     // all text objects
     (void far *) &SWVersionTxtObj,
 };
-#define OBJECTLIST_SIZE   (sizeof(ObjectList)/sizeof(OBJSTATE)/sizeof(void far *))
+#define OBJECTLIST_SIZE   (sizeof(ObjectList)/sizeof(OBJ_STATE)/sizeof(void far *))
 
 
 
@@ -283,14 +286,14 @@ void IntroDev_Show(BOOL fShow)
         /* do we have to repaint all? */
         if (IntroScreenDev.fScreenInit == FALSE)
         {
-            error = ObjBmpShow ( &SixoLogoBmpObj );
-            error = ObjTextShow( &SWVersionTxtObj );
+            error = Obj_Bmp_Show ( &SixoLogoBmpObj );
+            error = Obj_TextSt_Show( &SWVersionTxtObj );
             IntroScreenDev.fScreenInit  = TRUE;
         }
         else
         {
             //bitmap could have been changed!
-            error = ObjBmpShow( &SixoLogoBmpObj );
+            error = Obj_Bmp_Show( &SixoLogoBmpObj );
         }
     }
     else

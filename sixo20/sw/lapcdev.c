@@ -76,6 +76,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.5  2012/02/15 07:32:43  tuberkel
+ * Objects-API reviewed (no functional changes)
+ *
  * Revision 3.4  2012/02/08 03:55:24  tuberkel
  * KEY_TIMING parameter names reviewed/changed
  *
@@ -177,17 +180,17 @@ ERRCODE LCDev_StartStop(MESSAGE Msg);
 // lap timer text objects
 #define LAP_TXTLEN  10                                      // we use 9 bytes for '#16 99:59' (+ NULL char)
 
-static TEXTOBJECT   LapCntTxtObj[LAPS_MAX];                 // 16 lap objects
+static OBJ_TEXTST   LapCntTxtObj[LAPS_MAX];                 // 16 lap objects
 static CHAR         szLapCntText[LAPS_MAX][LAP_TXTLEN];     // 16 text buffers a 10 bytes
 
 TIME_TYPE_LL LapCntTime[LAPS_MAX];                   // original values from EEPROM
 LCSTATE_TYPE LapCounterState;                        // LapCounter state
 
-static TEXTOBJECT   TestObject;
+static OBJ_TEXTST   TestObject;
 static CHAR         szTest;
 
 /* text object table */
-static const TEXTOBJECT_INITTYPE TextObjInit[] =
+static const OBJ_TEXTST_INIT TextObjInit[] =
 {
     /*object              X   Y  Font            H   W  align       format    string                 state    */
     /*----------------    -   -  -------------  --- --- ----------- --------- -------------------    -------- */
@@ -210,7 +213,7 @@ static const TEXTOBJECT_INITTYPE TextObjInit[] =
     { &LapCntTxtObj[15], 72, 56, DPLFONT_6X8,    1,  9, TXT_LEFT,  TXT_NORM, &szLapCntText[15][0], OC_DISPL | OC_DYN }
 
 };
-#define TEXTOBJECTLISTSIZE   (sizeof(TextObjInit)/sizeof(TEXTOBJECT_INITTYPE))
+#define TEXTOBJECTLISTSIZE   (sizeof(TextObjInit)/sizeof(OBJ_TEXTST_INIT))
 
 
 /* this devices object focus handling - list of all objects */
@@ -234,7 +237,7 @@ static const void far * ObjectList[] =
     (void far *) &LapCntTxtObj[14],
     (void far *) &LapCntTxtObj[15],
 };
-#define OBJECTLIST_SIZE   (sizeof(ObjectList)/sizeof(OBJSTATE)/sizeof(void far *))
+#define OBJECTLIST_SIZE   (sizeof(ObjectList)/sizeof(OBJ_STATE)/sizeof(void far *))
 
 
 

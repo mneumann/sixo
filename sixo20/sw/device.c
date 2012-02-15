@@ -73,6 +73,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.3  2012/02/15 07:32:43  tuberkel
+ * Objects-API reviewed (no functional changes)
+ *
  * Revision 3.2  2012/01/14 08:28:42  tuberkel
  * Message-IDs shortened / reviewed
  *
@@ -221,7 +224,7 @@ ERRCODE DevObjFocusSet( DEVDATA far *       fpDevData,
                         UINT8               ListSize,
                         MESSAGE             Msg)
 {
-    DUMMYOBJECT far * far * ObjList;  // dummy object list to handle common object properties
+    OBJ_DUMMY far * far * ObjList;  // dummy object list to handle common object properties
     ERRCODE                 RValue = ERR_MSG_NOT_PROCESSED;
     MESSAGE_ID              MsgId;
     BOOL                    fFound = FALSE;
@@ -235,7 +238,7 @@ ERRCODE DevObjFocusSet( DEVDATA far *       fpDevData,
            ||(MSG_KEY_TRANSITION(Msg) == KEYTRANS_ON      ) ) ) // or key repitition active?
     {
         /* convert the given list into an array of dummy objects to get access to it */
-        ObjList = (DUMMYOBJECT far * far *) GivenList;
+        ObjList = (OBJ_DUMMY far * far *) GivenList;
 
         /* clear focus of all objects per default */
         for (i = 0; i < ListSize; i++)
@@ -333,12 +336,12 @@ ERRCODE DevObjFocusReset(   DEVDATA far *       fpDevData,
                             void far * far *    GivenList,
                             UINT8               FocusListSize )
 {
-    DUMMYOBJECT far * far * ObjList;  // dummy object list to handle common object properties
+    OBJ_DUMMY far * far * ObjList;  // dummy object list to handle common object properties
     BOOL                    fFound = FALSE;
     UINT8                   i;
 
     /* convert the given list into an array of dummy objects to get access to it */
-    ObjList = (DUMMYOBJECT far * far *) GivenList;
+    ObjList = (OBJ_DUMMY far * far *) GivenList;
 
     /* clear focus of all objects per default */
     for (i = 0; i < FocusListSize; i++)
@@ -382,12 +385,12 @@ UINT8 DevObjGetFirstSelectable( DEVDATA far *       fpDevData,
                                 void far * far *    GivenList,
                                 UINT8               ListSize   )
 {
-    DUMMYOBJECT far * far * ObjList;  // dummy object list to handle common object properties
+    OBJ_DUMMY far * far * ObjList;  // dummy object list to handle common object properties
     BOOL                    fFound = FALSE;
     UINT8                   i;
 
     /* convert the given list into an array of dummy objects to get access to it */
-    ObjList = (DUMMYOBJECT far * far *) GivenList;
+    ObjList = (OBJ_DUMMY far * far *) GivenList;
 
     /* check 'Selectable' capability of all objects - until first found */
     for (i = 0; i < ListSize; i++)
@@ -414,12 +417,12 @@ UINT8 DevObjGetLastSelectable(  DEVDATA far *       fpDevData,
                                 void far * far *    GivenList,
                                 UINT8               ListSize   )
 {
-    DUMMYOBJECT far * far * ObjList;  // dummy object list to handle common object properties
+    OBJ_DUMMY far * far * ObjList;  // dummy object list to handle common object properties
     BOOL                    fFound = FALSE;
     UINT8                   i;
 
     /* convert the given list into an array of dummy objects to get access to it */
-    ObjList = (DUMMYOBJECT far * far *) GivenList;
+    ObjList = (OBJ_DUMMY far * far *) GivenList;
 
     /* check 'Selectable' capability of all objects - reverse, until last found */
     for (i = ListSize; i > 0; i--)
@@ -449,11 +452,11 @@ ERRCODE DevObjShow( DEVDATA far *       fpDevData,
                     UINT8               ListSize,
                     UINT8               UpdateMode )
 {
-    DUMMYOBJECT far * far * ObjList;  // dummy object list to handle common object properties
+    OBJ_DUMMY far * far * ObjList;  // dummy object list to handle common object properties
     UINT8           i;
 
     /* convert the given list into an array of dummy objects to get access to it */
-    ObjList = (DUMMYOBJECT far * far *) GivenList;
+    ObjList = (OBJ_DUMMY far * far *) GivenList;
 
     /* process all objects of list */
     for (i = 0; i < ListSize; i++)
@@ -461,12 +464,12 @@ ERRCODE DevObjShow( DEVDATA far *       fpDevData,
         /* select correct kind of method */
         switch (ObjList[i]->eType)
         {
-            case OBJT_BMP:   ObjBmpShow      ( (BMPOBJECT far *)        (ObjList[i]) ); break;
-            case OBJT_TXT:   ObjTextShow     ( (TEXTOBJECT far *)       (ObjList[i]) ); break;
-            case OBJT_ETXT:  ObjEditTextShow ( (EDITTEXTOBJECT far *)   (ObjList[i]), UpdateMode ); break;
-            case OBJT_ENUM:  ObjEditNumShow  ( (EDITNUMBEROBJECT far *) (ObjList[i]), UpdateMode ); break;
-            case OBJT_EBOOL: ObjEditBoolShow ( (EDITBOOLOBJECT far *)   (ObjList[i]), UpdateMode ); break;
-            case OBJT_SLCT:  ObjSelectShow   ( (SELECTOBJECT far *)     (ObjList[i]), UpdateMode ); break;
+            case OBJT_BMP:   Obj_Bmp_Show      ( (OBJ_BMP far *)        (ObjList[i]) ); break;
+            case OBJT_TXT:   Obj_TextSt_Show     ( (OBJ_TEXTST far *)       (ObjList[i]) ); break;
+            case OBJT_ETXT:  Obj_Text_Show ( (OBJ_TEXT far *)   (ObjList[i]), UpdateMode ); break;
+            case OBJT_ENUM:  Obj_Num_Show  ( (OBJ_NUM far *) (ObjList[i]), UpdateMode ); break;
+            case OBJT_EBOOL: Obj_Bool_Show ( (OBJ_BOOL far *)   (ObjList[i]), UpdateMode ); break;
+            case OBJT_SLCT:  Obj_Select_Show   ( (OBJ_SELECT far *)     (ObjList[i]), UpdateMode ); break;
             default: ODS1( DBG_SYS, DBG_WARNING, "DevObjShow(): Unknown ObjType %u!", ObjList[i]->eType); break;
         }
     }
@@ -476,12 +479,12 @@ ERRCODE DevObjShow( DEVDATA far *       fpDevData,
 
 /***********************************************************************
  *  FUNCTION:       DevObjSetState
- *  DESCRIPTION:    Universal function to INSERT one of the OBJSTATE
+ *  DESCRIPTION:    Universal function to INSERT one of the OBJ_STATE
  *                  bits into all objects insde the list
  *  PARAMETER:      fpDevData       device to support focus
  *                  GivenList       list of objects of the device
  *                  ListSize        number of objects inside the list
- *                  OBJSTATE        state to be set
+ *                  OBJ_STATE        state to be set
  *  RETURN:         ERR_OK          always
  *  COMMENT:        -
  *********************************************************************** */
@@ -490,11 +493,11 @@ ERRCODE DevObjSetState( DEVDATA far *       fpDevData,
                         UINT8               ListSize,
                         UINT8               GivenState )
 {
-    DUMMYOBJECT far * far * ObjList;  // dummy object list to handle common object properties
+    OBJ_DUMMY far * far * ObjList;  // dummy object list to handle common object properties
     UINT8           i;
 
     /* convert the given list into an array of dummy objects to get access to it */
-    ObjList = (DUMMYOBJECT far * far *) GivenList;
+    ObjList = (OBJ_DUMMY far * far *) GivenList;
 
     /* process all objects of list */
     for (i = 0; i < ListSize; i++)
@@ -507,12 +510,12 @@ ERRCODE DevObjSetState( DEVDATA far *       fpDevData,
 
 /***********************************************************************
  *  FUNCTION:       DevObjClearState
- *  DESCRIPTION:    Universal function to CLEAR one of the OBJSTATE
+ *  DESCRIPTION:    Universal function to CLEAR one of the OBJ_STATE
  *                  bits into all objects off the list
  *  PARAMETER:      fpDevData       device to support focus
  *                  GivenList       list of objects of the device
  *                  ListSize        number of objects inside the list
- *                  OBJSTATE        state to be set
+ *                  OBJ_STATE        state to be set
  *  RETURN:         ERR_OK          always
  *  COMMENT:        -
  *********************************************************************** */
@@ -521,11 +524,11 @@ ERRCODE DevObjClearState(   DEVDATA far *       fpDevData,
                             UINT8               ListSize,
                             UINT8               GivenState )
 {
-    DUMMYOBJECT far * far * ObjList;  // dummy object list to handle common object properties
+    OBJ_DUMMY far * far * ObjList;  // dummy object list to handle common object properties
     UINT8           i;
 
     /* convert the given list into an array of dummy objects to get access to it */
-    ObjList = (DUMMYOBJECT far * far *) GivenList;
+    ObjList = (OBJ_DUMMY far * far *) GivenList;
 
     /* process all objects of list */
     for (i = 0; i < ListSize; i++)
@@ -558,14 +561,14 @@ ERRCODE DevObjInit( DEVDATA far *       fpDevData,
     for (i = 0; i < ListSize; i++)
     {
         /* select correct kind of method */
-        switch ((OBJTYPE) eType)
+        switch ((OBJ_TYPE) eType)
         {
-            case OBJT_TXT:   ObjTextInit     ( &((TEXTOBJECT_INITTYPE far *)ObjList)[i]); break;
-            case OBJT_BMP:   ObjBmpInit      ( &((BMPOBJECT_INITTYPE far *) ObjList)[i]); break;
-            case OBJT_ETXT:  ObjEditTextInit ( &((EDITTEXT_INITTYPE far *)  ObjList)[i]); break;
-            case OBJT_ENUM:  ObjEditNumInit  ( &((EDITNUMBER_INITTYPE far *)ObjList)[i]); break;
-            case OBJT_EBOOL: ObjEditBoolInit ( &((EDITBOOL_INITTYPE far *)  ObjList)[i]); break;
-            case OBJT_SLCT:  ObjSelectInit   ( &((SELECT_INITTYPE far *)    ObjList)[i]); break;
+            case OBJT_TXT:   Obj_TextSt_Init     ( &((OBJ_TEXTST_INIT far *)ObjList)[i]); break;
+            case OBJT_BMP:   Obj_Bmp_Init      ( &((OBJ_BMP_INIT far *) ObjList)[i]); break;
+            case OBJT_ETXT:  Obj_Text_Init ( &((OBJ_TEXT_INIT far *)  ObjList)[i]); break;
+            case OBJT_ENUM:  Obj_Num_Init  ( &((OBJ_NUM_INIT far *)ObjList)[i]); break;
+            case OBJT_EBOOL: Obj_Bool_Init ( &((OBJ_BOOL_INIT far *)  ObjList)[i]); break;
+            case OBJT_SLCT:  Obj_Select_Init   ( &((OBJ_SELECT_INIT far *)    ObjList)[i]); break;
             default: ODS1( DBG_SYS, DBG_WARNING, "DevObjInit(): Unknown ObjType %u!", eType); break;
         }
     }
@@ -589,12 +592,12 @@ ERRCODE DevObjMsg(  DEVDATA far *       fpDevData,
                     MESSAGE             GivenMsg )
 
 {
-    DUMMYOBJECT far * far * ObjList;    // dummy object list to handle common object properties
+    OBJ_DUMMY far * far * ObjList;    // dummy object list to handle common object properties
     ERRCODE                 RValue = ERR_MSG_NOT_PROCESSED;
     UINT8                   i;
 
     /* convert the given list into an array of dummy objects to get access to it */
-    ObjList = (DUMMYOBJECT far * far *) GivenList;
+    ObjList = (OBJ_DUMMY far * far *) GivenList;
 
     /* process all objects of list */
     for (i = 0; i < ListSize; i++)
@@ -604,10 +607,10 @@ ERRCODE DevObjMsg(  DEVDATA far *       fpDevData,
         {
             case OBJT_BMP:   break; // does not have a msg entry fct.
             case OBJT_TXT:   break; // does not have a msg entry fct.
-            case OBJT_ETXT:  RValue = ObjEditTextMsgEntry ( (EDITTEXTOBJECT far *)   (ObjList[i]), GivenMsg ); break;
-            case OBJT_ENUM:  RValue = ObjEditNumMsgEntry  ( (EDITNUMBEROBJECT far *) (ObjList[i]), GivenMsg ); break;
-            case OBJT_EBOOL: RValue = ObjEditBoolMsgEntry ( (EDITBOOLOBJECT far *)   (ObjList[i]), GivenMsg ); break;
-            case OBJT_SLCT:  RValue = ObjSelectMsgEntry   ( (SELECTOBJECT far *)     (ObjList[i]), GivenMsg ); break;
+            case OBJT_ETXT:  RValue = Obj_Text_MsgEntry ( (OBJ_TEXT far *)   (ObjList[i]), GivenMsg ); break;
+            case OBJT_ENUM:  RValue = Obj_Num_MsgEntry  ( (OBJ_NUM far *) (ObjList[i]), GivenMsg ); break;
+            case OBJT_EBOOL: RValue = Obj_Bool_MsgEntry ( (OBJ_BOOL far *)   (ObjList[i]), GivenMsg ); break;
+            case OBJT_SLCT:  RValue = Obj_Select_MsgEntry   ( (OBJ_SELECT far *)     (ObjList[i]), GivenMsg ); break;
             default: ODS1( DBG_SYS, DBG_WARNING, "DevObjShow(): Unknown ObjType %u!", ObjList[i]->eType); break;
         }
 

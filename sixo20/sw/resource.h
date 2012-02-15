@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.5  2012/02/15 07:32:43  tuberkel
+ * Objects-API reviewed (no functional changes)
+ *
  * Revision 3.4  2012/01/21 19:52:49  tuberkel
  * Additional Logos for 'TeneristI and 'Coolride'
  *
@@ -178,7 +181,7 @@
 #define STAT_TXT_LEN        22      /* len of strings in statistic screen, incl. null terminator */
 #define VEHSTATE_TXT_LEN    22      /* len of vehicle status string, incl. null terminator */
 
-#define RESTXT_EMPTY_TXT          ""            /* max width of below strings in chars */
+#define RESTXT_EMPTY_TXT    ""      /* placeholder for unused descriptor texts */
 
 /* device bike version strings */
 /* NOTE: This list must be identical to 'BIKE_TYPE' !!! */

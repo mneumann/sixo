@@ -69,6 +69,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.4  2012/02/15 07:32:43  tuberkel
+ * Objects-API reviewed (no functional changes)
+ *
  * Revision 3.3  2012/02/08 03:55:24  tuberkel
  * KEY_TIMING parameter names reviewed/changed
  *
@@ -134,61 +137,61 @@ static DEVDATA      TestScreen_Dev;
 
 /* ----------------------------------------------------------- */
 /* static headline text object */
-static TEXTOBJECT   TextObj_Headline;
-static TEXTOBJECT   TextObj_SpecialChars;
+static OBJ_TEXTST   TextObj_Headline;
+static OBJ_TEXTST   TextObj_SpecialChars;
 unsigned char       szSpecialChar[60];
 
-static const TEXTOBJECT_INITTYPE TextObjInit[] =
+static const OBJ_TEXTST_INIT TextObjInit[] =
 {   /*pObject               X    Y   Font         H  Width  Align       Format      string ptr           State  */
     {&TextObj_Headline,     C01, R1, DPLFONT_6X8, 1, 21,    TXT_CENTER, TXT_INVERS, RESTXT_TEST_GUITEST, OC_DISPL},
     {&TextObj_SpecialChars, C01, R6, DPLFONT_6X8, 2, 21,    TXT_LEFT,   TXT_NORM,   szSpecialChar,       OC_DISPL}
 };
-#define TEXTOBJECTLISTSIZE   (sizeof(TextObjInit)/sizeof(TEXTOBJECT_INITTYPE))
+#define TEXTOBJECTLISTSIZE   (sizeof(TextObjInit)/sizeof(OBJ_TEXTST_INIT))
 
 
 /* ----------------------------------------------------------- */
 /* edit text object */
-static EDITTEXTOBJECT               EditTextObj_Test;
+static OBJ_TEXT               EditTextObj_Test;
 static CHAR                         szEditText[20] = "abcdefgh";
 static CHAR                         szEditBuffer[32];
-static const EDITTEXT_INITTYPE      EditTextInit[]=
+static const OBJ_TEXT_INIT      EditTextInit[]=
 {   // object            x    y    font         width value       decriptor           edit buffer   length char list    state
     { &EditTextObj_Test, C01, R2,  DPLFONT_6X8, 21,   szEditText, RESTXT_TEST_ET_DSC, szEditBuffer, 10,    CHARL_LOWER, OC_DISPL | OC_SELECT | OC_EDIT }
 };
-#define EDITTEXTOBJECTLISTSIZE   (sizeof(EditTextInit)/sizeof(TEXTOBJECT_INITTYPE))
+#define EDITTEXTOBJECTLISTSIZE   (sizeof(EditTextInit)/sizeof(OBJ_TEXTST_INIT))
 
 
 
 
 /* ----------------------------------------------------------- */
 /* edit number object */
-static EDITNUMBEROBJECT EditNumObj_Test;                 /* complete number object */
+static OBJ_NUM EditNumObj_Test;                 /* complete number object */
 static UINT32           dwEditNumValue = 99000;     /* object value */
 static UINT32           dwEditBuffer;
-static const EDITNUMBER_INITTYPE EditNumInit[] =
+static const OBJ_NUM_INIT EditNumInit[] =
 {   /* fpObject          OrgX OrgY  Font         Width  pNumber          pWorkNumber     Type   Min  Max    Step DplType Mode     C  zDescr                zUnit                L   State                                       */
     {&EditNumObj_Test,   C01, R3,   DPLFONT_6X8, 21,    &dwEditNumValue, &dwEditBuffer,  eULONG,0L,999999L, 0L,  eDez,   eColumn, 0, RESTXT_TEST_EN_DSC,   RESTXT_TEST_EN_UNIT, 6,  OC_DISPL | OC_SELECT | OC_EDIT }
 };
-#define EDITNUMOBJECTLISTSIZE   (sizeof(EditNumInit)/sizeof(EDITNUMBER_INITTYPE))
+#define EDITNUMOBJECTLISTSIZE   (sizeof(EditNumInit)/sizeof(OBJ_NUM_INIT))
 
 
 
 /* ----------------------------------------------------------- */
 /* edit bool object */
-static EDITBOOLOBJECT   EditBoolObj_Test;                /* complete boolean object */
+static OBJ_BOOL   EditBoolObj_Test;                /* complete boolean object */
 static BOOL             bEditBoolValue = FALSE;     /* object value */
 static BOOL             bEditBoolBuffer;            /* common edit buffer */
-static const EDITBOOL_INITTYPE EditBoolInit[] =
+static const OBJ_BOOL_INIT EditBoolInit[] =
 {   /*pObject           X    Y   Font            Width  Data             EditBuffer        Descriptor            State      */
     {&EditBoolObj_Test, C01, R4, DPLFONT_6X8,    21,    &bEditBoolValue, &bEditBoolBuffer, RESTXT_TEST_EB_DSC,   OC_DISPL | OC_SELECT | OC_EDIT },
 };
-#define EDITBOOLOBJECTLISTSIZE   (sizeof(EditBoolInit)/sizeof(EDITBOOL_INITTYPE))
+#define EDITBOOLOBJECTLISTSIZE   (sizeof(EditBoolInit)/sizeof(OBJ_BOOL_INIT))
 
 
 
 /* ----------------------------------------------------------- */
 /* select object */
-static SELECTOBJECT     SelectObj_Test;                              /* complete select object */
+static OBJ_SELECT     SelectObj_Test;                              /* complete select object */
 static UINT8            u8SelectValue = 0;                      /* object value */
 static UINT8            u8EditBuffer;                           /* common edit buffer */
 static const STRING     pszSelectList[RESTXT_TEST_SLCT_MAX] =   /* list if choice strings representing the value */
@@ -197,11 +200,11 @@ static const STRING     pszSelectList[RESTXT_TEST_SLCT_MAX] =   /* list if choic
                             RESTXT_TEST_SLCT_C,
                             RESTXT_TEST_SLCT_D,
                             RESTXT_TEST_SLCT_E };
-static const SELECT_INITTYPE SelectObjInit[] =
+static const OBJ_SELECT_INIT SelectObjInit[] =
 {   /*pObject          X    Y   Font            Width   Data            ListSize                EditBuffer      Descriptor              List of choice strings String field width       State   */
     {&SelectObj_Test,  C01, R5, DPLFONT_6X8,    21,     &u8SelectValue, RESTXT_TEST_SLCT_MAX,   &u8EditBuffer,  RESTXT_TEST_SLCT_DSC,   pszSelectList,         RESTXT_TEST_SLCT_WIDTH,  OC_DISPL | OC_SELECT | OC_EDIT  }
 };
-#define SELECTOBJECTLISTSIZE   (sizeof(SelectObjInit)/sizeof(SELECT_INITTYPE))
+#define SELECTOBJECTLISTSIZE   (sizeof(SelectObjInit)/sizeof(OBJ_SELECT_INIT))
 
 
 
@@ -223,7 +226,7 @@ static const void far * ObjectList[] =
     (void far *) &SelectObj_Test,
     (void far *) &TextObj_SpecialChars
 };
-#define OBJECTLIST_SIZE   (sizeof(ObjectList)/sizeof(OBJSTATE)/sizeof(void far *))
+#define OBJECTLIST_SIZE   (sizeof(ObjectList)/sizeof(OBJ_STATE)/sizeof(void far *))
 
 
 
