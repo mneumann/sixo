@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.13  2012/02/15 22:19:03  tuberkel
+ * KD30_GUI reviewed & new prepared for GPI
+ *
  * Revision 3.12  2012/02/11 12:21:45  tuberkel
  * dedicated COOLRIDE macros prepared & used
  *
@@ -175,12 +178,18 @@ DIGINTMEAS DigIntMeas[eGPI_MAX];
 
 
 
-/* KD30 support: These values can set via KD30-GUI too! */
-#if(KD30_USED==1)
-unsigned char KD30_KEY_OK = 0;
-unsigned char KD30_KEY_UP = 0;
-unsigned char KD30_KEY_DOWN = 0;
-unsigned char KD30_KEY_UPDOWN = 0;
+/* KD30 support: These values can set via KD30-GUI too!
+   Note: The values will be set to n ONCE a GUI-key was pressed,
+         than the cpu will decrement the value down to low (eq. off) */
+#if(KD30_GUI_USED==1)
+unsigned char KD30_GUI_KEY_OK       = 0;
+unsigned char KD30_GUI_KEY_UP       = 0;
+unsigned char KD30_GUI_KEY_DOWN     = 0;
+unsigned char KD30_GUI_KEY_UPDOWN   = 0;
+unsigned char KD30_GUI_GPI0         = 0;
+unsigned char KD30_GUI_GPI1         = 0;
+unsigned char KD30_GUI_GPI2         = 0;
+unsigned char KD30_GUI_GPI3         = 0;
 #endif
 
 
@@ -271,23 +280,23 @@ UINT8 DigInDrv_Key_GetStates(void)
     if (KeyPort_Down == 0)
         RValue |= KEYFL_DOWN;
 
-#if(KD30_USED==1)
+#if(KD30_GUI_USED==1)
     /* check value given by KD30 */
-    if (KD30_KEY_OK)
+    if (KD30_GUI_KEY_OK)
         RValue |= KEYFL_OK;
-    if ((KD30_KEY_UP) || (KD30_KEY_UPDOWN))
+    if ((KD30_GUI_KEY_UP) || (KD30_GUI_KEY_UPDOWN))
         RValue |= KEYFL_UP;
-    if ((KD30_KEY_DOWN) || (KD30_KEY_UPDOWN))
+    if ((KD30_GUI_KEY_DOWN) || (KD30_GUI_KEY_UPDOWN))
         RValue |= KEYFL_DOWN;
     /* make a 'longer press' by decr. until 0 reached */
-    if (KD30_KEY_OK)
-        KD30_KEY_OK--;
-    if (KD30_KEY_UP)
-        KD30_KEY_UP--;
-    if (KD30_KEY_DOWN)
-        KD30_KEY_DOWN--;
-    if (KD30_KEY_UPDOWN)
-        KD30_KEY_UPDOWN--;
+    if (KD30_GUI_KEY_OK)
+        KD30_GUI_KEY_OK--;
+    if (KD30_GUI_KEY_UP)
+        KD30_GUI_KEY_UP--;
+    if (KD30_GUI_KEY_DOWN)
+        KD30_GUI_KEY_DOWN--;
+    if (KD30_GUI_KEY_UPDOWN)
+        KD30_GUI_KEY_UPDOWN--;
 #endif
 
 
@@ -779,6 +788,27 @@ void DigInDrv_GPI_UpdateMeas(void)
         case eGPI3_Int5: fCurrState = DigIn_GPI_3; break;
         default:         fCurrState = DIGIN_LOW;   break;
     }
+
+#if(KD30_GUI_USED==1)
+    /* insert values given by KD30 */
+    switch(eGpi)
+    {   case eGPI0_Int2: fCurrState = (KD30_GUI_GPI0) ? TRUE : FALSE; break;
+        case eGPI1_Int3: fCurrState = (KD30_GUI_GPI1) ? TRUE : FALSE; break;
+        case eGPI2_Int4: fCurrState = (KD30_GUI_GPI2) ? TRUE : FALSE; break;
+        case eGPI3_Int5: fCurrState = (KD30_GUI_GPI3) ? TRUE : FALSE; break;
+        default:         fCurrState = DIGIN_LOW;   break;
+    }
+    /* make a 'longer press' by decr. until 0 reached */
+    if (KD30_GUI_GPI0)
+        KD30_GUI_GPI0--;
+    if (KD30_GUI_GPI1)
+        KD30_GUI_GPI1--;
+    if (KD30_GUI_GPI2)
+        KD30_GUI_GPI2--;
+    if (KD30_GUI_GPI3)
+        KD30_GUI_GPI3--;
+#endif
+
 
     /* calculate values */
     dwPulseWidth = (DigIntMeas[eGpi].fHighActive == TRUE) ? dwHighWidth : dwLowWidth;
