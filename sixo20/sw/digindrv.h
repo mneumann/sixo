@@ -232,7 +232,7 @@ typedef enum
             - an input value must remain at least n msec to be detected
             - asymmetric handling of transistion L->H and H->L implemented
 
-   Note:    - digital inputs are mapped to UINT8 variabel
+   Note:    - digital inputs are mapped to UINT8 variable
             - any HIGH value incr. filter value with SLOW/FAST_INR
             - any LOW  value decr. filter value with SLOW/FAST_DECR
             - filter value is interpreted as

@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.14  2012/02/18 16:46:48  tuberkel
+ * KD30-GUI Simulator GUI improved
+ *
  * Revision 3.13  2012/02/15 22:19:03  tuberkel
  * KD30_GUI reviewed & new prepared for GPI
  *
@@ -178,19 +181,45 @@ DIGINTMEAS DigIntMeas[eGPI_MAX];
 
 
 
-/* KD30 support: These values can set via KD30-GUI too!
+/* KD30 support: These values will be set via KD30-GUI!
    Note: The values will be set to n ONCE a GUI-key was pressed,
          than the cpu will decrement the value down to low (eq. off) */
 #if(KD30_GUI_USED==1)
+
+/* These KEY values will be set by GUI to e.g. '10' and
+   than decremented to '0'. This simulates a key-pressed-time. */
 unsigned char KD30_GUI_KEY_OK       = 0;
 unsigned char KD30_GUI_KEY_UP       = 0;
 unsigned char KD30_GUI_KEY_DOWN     = 0;
 unsigned char KD30_GUI_KEY_UPDOWN   = 0;
-unsigned char KD30_GUI_GPI0         = 0;
-unsigned char KD30_GUI_GPI1         = 0;
-unsigned char KD30_GUI_GPI2         = 0;
-unsigned char KD30_GUI_GPI3         = 0;
-#endif
+
+/* These INTERRUPT events will be simulated by SW-INT calls */
+unsigned char KD30_GUI_WHEEL    = 0;
+unsigned char KD30_GUI_RPM      = 0;
+
+/* These INPUT values will be set 'tri-state' by GUI,
+   to pass or dominate the real values by simulated ones. */
+unsigned char KD30_GUI_TURNL    = 0;
+unsigned char KD30_GUI_TURNR    = 0;
+unsigned char KD30_GUI_OILSW    = 0;
+unsigned char KD30_GUI_NEUTRAL  = 1;    // low active
+unsigned char KD30_GUI_HBEAM    = 0;
+unsigned char KD30_GUI_GPI0     = 1;    // mostly low active
+unsigned char KD30_GUI_GPI1     = 1;    // mostly low active
+unsigned char KD30_GUI_GPI2     = 0;
+unsigned char KD30_GUI_GPI3     = 0;
+
+/* These ANALOGE values will be set 'tri-state' by GUI,
+   to pass or dominate the real values by simulated ones. */
+unsigned short KD30_GUI_TDEV    = 0;    // mapped to ANAIN_TEMP - internal temperature sensor on the pcb
+unsigned short KD30_GUI_LUMI    = 0;    // mapped to ANAIN_LUMI - internal luminance sensor near LEDs
+unsigned short KD30_GUI_VOLT    = 0;    // mapped to ANAIN_VOLT - supply voltage (connected internally)
+unsigned short KD30_GUI_ALTW    = 0;    // mapped to ANAIN_ALTW - voltage at alternator side of regulator (external connection)
+unsigned short KD30_GUI_TAIR    = 0;    // mapped to ANAIN_TAIR - external air temperature sensor
+unsigned short KD30_GUI_TOIL    = 0;    // mapped to ANAIN_TWAT - external water temperature sensor
+unsigned short KD30_GUI_TWAT    = 0;    // mapped to ANAIN_TOIL - external oil temperature sensor
+
+#endif  // KD30_GUI_USED
 
 
 
@@ -589,10 +618,10 @@ void DigInDrv_Filter(void)
     DIGFILTELEMENT elem;
     UINT8          input;
 
-    // loop over all digital inpus
-    for (elem = eDF_TURNL; elem<eDF_GPI_3; elem++)
+    /* loop over all digital inputs */
+    for (elem = eDF_TURNL; elem < eDF_GPI_3; elem++)
     {
-        // get current input value
+        /* get current input value */
         switch (elem)
         {   case eDF_TURNL: input = DigIn_TurnL  ; break;
             case eDF_TURNR: input = DigIn_TurnR  ; break;
@@ -605,6 +634,23 @@ void DigInDrv_Filter(void)
             case eDF_GPI_3: input = DigIn_GPI_3  ; break;
             default: input = 0; break;
         }
+
+        /* insert values given by KD30-GUI-Input-Window (always dominant, if KD30_GUI_USED)
+           Note: KD30_GUI_GPIx values will be set/cleared by 'KD30 GUI Input Window' */
+        #if(KD30_GUI_USED==1)
+        switch(elem)
+        {   case eDF_TURNL:  input = (KD30_GUI_TURNL  ) ? TRUE : FALSE; break;
+            case eDF_TURNR:  input = (KD30_GUI_TURNR  ) ? TRUE : FALSE; break;
+            case eDF_OILSW:  input = (KD30_GUI_OILSW  ) ? TRUE : FALSE; break;
+            case eDF_NEUTR:  input = (KD30_GUI_NEUTRAL) ? TRUE : FALSE; break;
+            case eDF_HBEAM:  input = (KD30_GUI_HBEAM  ) ? TRUE : FALSE; break;
+            case eDF_GPI_0:  input = (KD30_GUI_GPI0)    ? TRUE : FALSE; break;
+            case eDF_GPI_1:  input = (KD30_GUI_GPI1)    ? TRUE : FALSE; break;
+            case eDF_GPI_2:  input = (KD30_GUI_GPI2)    ? TRUE : FALSE; break;
+            case eDF_GPI_3:  input = (KD30_GUI_GPI3)    ? TRUE : FALSE; break;
+            default:         input = DIGIN_LOW;   break;
+        }
+        #endif
 
         // check current input value: count up/down?
         if ( input == 1 )             // current input: HIGH?
@@ -788,27 +834,6 @@ void DigInDrv_GPI_UpdateMeas(void)
         case eGPI3_Int5: fCurrState = DigIn_GPI_3; break;
         default:         fCurrState = DIGIN_LOW;   break;
     }
-
-#if(KD30_GUI_USED==1)
-    /* insert values given by KD30 */
-    switch(eGpi)
-    {   case eGPI0_Int2: fCurrState = (KD30_GUI_GPI0) ? TRUE : FALSE; break;
-        case eGPI1_Int3: fCurrState = (KD30_GUI_GPI1) ? TRUE : FALSE; break;
-        case eGPI2_Int4: fCurrState = (KD30_GUI_GPI2) ? TRUE : FALSE; break;
-        case eGPI3_Int5: fCurrState = (KD30_GUI_GPI3) ? TRUE : FALSE; break;
-        default:         fCurrState = DIGIN_LOW;   break;
-    }
-    /* make a 'longer press' by decr. until 0 reached */
-    if (KD30_GUI_GPI0)
-        KD30_GUI_GPI0--;
-    if (KD30_GUI_GPI1)
-        KD30_GUI_GPI1--;
-    if (KD30_GUI_GPI2)
-        KD30_GUI_GPI2--;
-    if (KD30_GUI_GPI3)
-        KD30_GUI_GPI3--;
-#endif
-
 
     /* calculate values */
     dwPulseWidth = (DigIntMeas[eGpi].fHighActive == TRUE) ? dwHighWidth : dwLowWidth;
