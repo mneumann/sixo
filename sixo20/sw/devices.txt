@@ -68,6 +68,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 1.4  2012/02/19 21:04:51  tuberkel
+ * - Extensions-Screen reviewed
+ * - Compass-Settings-Strings reduced
+ *
  * Revision 1.3  2012/01/02 20:54:42  tuberkel
  * Updated design of screens
  *
@@ -126,15 +130,15 @@
 
 
 // >= V3.0.x
-// +----.----.----.----.-+  +----.----.----.----.-+  +----.----.----.----.-+
-// |>> FAHRZEUG         v|  |>> GERÄT           v^|  |>> LCD/LED         v^|
-// |Typ:  R100GS  ZKF:1/1|  |Zeit: 13:24:25 K:±200|  |LCD:Lichtschwelle:  7|
-// |Rad:  2200mm   I/U:01|  |Datum:24.12.04 Smz:[]|  |    Helligkeit:    64|
-// |Fzg:112500km   _1024h|  |TripC-kurz:^   Sum:[]|  |    Kontrast:      36|
-// |Srv:120000km   _1000h|  |Sprache:  DE   Sim:[]|  |LED:Helligkeit:     4|
-// |Benzin:24,5l  10,2l/h|  |Metrik:Miles   Bmp:[]|  |    WarnModus:   SIxO|
-// |Logo:____BMW     5.5s|  |DbgOut: 0xff   Fct:[]|  |    Schaltbl.:  10200|
-// +----.----.----.----.-+  +----.----.----.----.-+  +----.----.----.----.-+
+// +----.----.----.----.-+  +----.----.----.----.-+  +----.----.----.----.-+  +----.----.----.----.-+
+// |>> FAHRZEUG         v|  |>> GERÄT           v^|  |>> LCD/LED         v^|  |>> ERWEITERUNGEN    ^|
+// |Typ:  R100GS  ZKF:1/1|  |Zeit: 13:24:25 K:±200|  |LCD:Lichtschwelle:  7|  |[]Kompass A:K+G K:V-S|
+// |Rad:  2200mm   I/U:01|  |Datum:24.12.04 Smz:[]|  |    Helligkeit:    64|  |[]Coolride In:0 Out:1|
+// |Fzg:112500km   _1024h|  |TripC-kurz:^   Sum:[]|  |    Kontrast:      36|  |[]Tanksensor 1000 I/l|
+// |Srv:120000km   _1000h|  |Sprache:  DE   Sim:[]|  |LED:Helligkeit:     4|  |[]Ganganzeige        |
+// |Benzin:24,5l  10,2l/h|  |Metrik:   mi   Bmp:[]|  |    WarnModus:   SIxO|  |[]GPS-Maus           |
+// |Logo:____BMW     5.5s|  |DbgOut: 0xff   Def:[]|  |    Schaltbl.:  10200|  |[]Kettenöl 100 km 1 s|
+// +----.----.----.----.-+  +----.----.----.----.-+  +----.----.----.----.-+  +----.----.----.----.-+
 
 // +----.----.----.----.-+  +----.----.----.----.-+  +----.----.----.----.-+
 // |>> KOMPASS          ^|  |>> INSTRUMENTE     <^|  |>> GANGANZEIGE     v^|
