@@ -69,6 +69,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.6  2012/02/19 09:01:54  tuberkel
+ * NEW: Bool-Object now able to display [x] on left side
+ *
  * Revision 3.5  2012/02/15 07:32:43  tuberkel
  * Objects-API reviewed (no functional changes)
  *
@@ -1657,18 +1660,22 @@ UINT8 Obj_Num_Char2Byte(CHAR cChar)
  *  PARAMETER:      fpObject         ptr edit num object
  *                  bUpdateMode      to show single parts only
  *  RETURN:         ERR_OK
- *  COMMENT:        uses the form "descriptor:   [bool]"
- *                  NOTE:   This function only works with FIXED font sizes
- *                          over all characters (non proportional!)
+ *  COMMENT:        This function only works with FIXED font sizes
+ *                  over all characters (non proportional!)
  *
- *                  EXAMPLE:  +------------------------+
- *                            |decriptor:           [x]|
- *                            +------------------------+
+ *                  Uses one of the forms below:
+ *
+ *                  +-------------+  or +-------------+
+ *                  |DescrL:   [x]|     |[x]DescrR    |
+ *                  +-------------+     +-------------+
+ *                  (if DescrL!="")     (if DescrL=="")
  *
  *********************************************************************** */
 ERRCODE Obj_Bool_Show( OBJ_BOOL far * fpObject, UINT8 bUpdateMode )
 {
-    DISPLXY     PixelCoord;                 /* coord of text parts (lines) */
+    //DISPLXY     PixelCoord;                 /* coord of text parts (lines) */
+    DISPLXY     PixelCoord_Desc;            /* coord of descriptor parts */
+    DISPLXY     PixelCoord_Bool;            /* coord of bool parts */
     UINT8       bMode;                      /* selected display modes */
     CHAR        rgTextBuffer[TXTTEMPBUFF];  /* textbuffer for output purpose */
     STRING      szOutText;                  /* pointer to output string */
@@ -1681,24 +1688,42 @@ ERRCODE Obj_Bool_Show( OBJ_BOOL far * fpObject, UINT8 bUpdateMode )
     if ( fpObject->State.bits.fDisplayable == 0 )
         return ERR_OK;
 
+    /* ------------------------------------- */
     /* init stuff */
-    szOutText = &rgTextBuffer[0];                   /* set target buffer ptr */
-    bCharWidth = GetFontWidth(fpObject->eFont);     /* for offset calculations */
-    PixelCoord.wYPos = fpObject->Org.wYPos;         /* static y pos */
+    szOutText       = &rgTextBuffer[0];                 /* set target buffer ptr */
+    bCharWidth      = GetFontWidth(fpObject->eFont);    /* for offset calculations */
+    PixelCoord_Desc = fpObject->Org;                    /* start value: descr is on left side */
+    PixelCoord_Bool = fpObject->Org;                    /* start value: bool is on left side too */
 
     /* ------------------------------------- */
-    /* show descriptor & units */
+    /* select display mode: descriptor left/right side */
+    if ( strlen(fpObject->szDescrL) > 0 )
+    {
+        /* left side display mode (desc remains unchanged, bool is moved to right side) */
+        PixelCoord_Bool.wXPos = fpObject->Org.wXPos
+                                + (bCharWidth * ( fpObject->Window.bWidth - OBJ_BOOL_TWIDTH ));
+    }
+    else
+    {   /* right side display mode (bool remains unchanged, desc is moved to right side) */
+        PixelCoord_Desc.wXPos = fpObject->Org.wXPos
+                                + (bCharWidth * ( fpObject->Window.bWidth - strlen(fpObject->szDescrR) ));
+    }
+
+
+    /* ------------------------------------- */
+    /* show left/right descriptor */
     if (bUpdateMode & SHOW_DESCR)
     {
         /* handling output mode */
         bMode = DPLNORM;                                                    /* always show normal */
 
         /* --------------------------- */
-        /* decriptor stuff: */
+        /* left decriptor stuff: */
         memset( rgTextBuffer, 0x0, TXTTEMPBUFF);                            /* clear buffer to spaces */
-        strncpy(szOutText, fpObject->szDescrL, strlen(fpObject->szDescrL)); /* get descriptor string */
-        PixelCoord.wXPos = fpObject->Org.wXPos;                             /* show descriptor at left side */
-        DisplPrintAString( szOutText, &PixelCoord, fpObject->eFont, bMode );/* print out text */
+        if ( strlen(fpObject->szDescrL) > 0 )
+             strncpy(szOutText, fpObject->szDescrL, strlen(fpObject->szDescrL)); /* get left descriptor */
+        else strncpy(szOutText, fpObject->szDescrR, strlen(fpObject->szDescrR)); /* get right descriptor */
+        DisplPrintAString( szOutText, &PixelCoord_Desc, fpObject->eFont, bMode );/* print out text */
     }
 
     /* ------------------------------------- */
@@ -1717,12 +1742,8 @@ ERRCODE Obj_Bool_Show( OBJ_BOOL far * fpObject, UINT8 bUpdateMode )
              { strcpy(szOutText, OBJ_BOOL_TTRUE);  }
         else { strcpy(szOutText, OBJ_BOOL_TFALSE); }
 
-        /* set pixel coordinates: begin of bool icon */
-        PixelCoord.wXPos =    fpObject->Org.wXPos
-                            + (bCharWidth * ( fpObject->Window.bWidth - OBJ_BOOL_TWIDTH ));
-
         /* show bool value */
-        DisplPrintAString( szOutText, &PixelCoord, fpObject->eFont, bMode );
+        DisplPrintAString( szOutText, &PixelCoord_Bool, fpObject->eFont, bMode );
     }
 
     /* ------------------------------------- */
@@ -1744,12 +1765,8 @@ ERRCODE Obj_Bool_Show( OBJ_BOOL far * fpObject, UINT8 bUpdateMode )
                     bMode = DPLINVERS;                              /* ON = invers */
             else    bMode = DPLNORM;                                /* OFF = normal mode (repaint to clear inversed old cursor) */
 
-            /* set pixel coordinates: begin of bool icon */
-            PixelCoord.wXPos =   fpObject->Org.wXPos
-                                + ( bCharWidth * ( fpObject->Window.bWidth - OBJ_BOOL_TWIDTH ) );
-
             /* show cursor */
-            DisplPrintAString( szOutText, &PixelCoord, fpObject->eFont, bMode );
+            DisplPrintAString( szOutText, &PixelCoord_Bool, fpObject->eFont, bMode );
         }
     }
     /* else: nothing to do... */
@@ -1787,6 +1804,7 @@ ERRCODE Obj_Bool_Init(OBJ_BOOL_INIT far * fpInitData )
     fpInitData->fpObject->fpValue       = fpInitData->fpValue;      /* original value to be edited */
     fpInitData->fpObject->fpWorkValue   = fpInitData->fpWorkValue;  /* value copy to be edited */
     fpInitData->fpObject->szDescrL      = fpInitData->szDescrL;     /* address of description string */
+    fpInitData->fpObject->szDescrR      = fpInitData->szDescrR;     /* address of description string */
     fpInitData->fpObject->State.byte    = fpInitData->bState;       /* prepared caps & states */
 
     /* default values */

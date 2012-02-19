@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.2  2012/02/19 09:01:54  tuberkel
+ * NEW: Bool-Object now able to display [x] on left side
+ *
  * Revision 3.1  2012/02/15 07:32:43  tuberkel
  * Objects-API reviewed (no functional changes)
  *
@@ -589,9 +592,10 @@ UINT8   Obj_Num_Char2Byte ( CHAR cChar);
 
     boolean object examples (border is 'text window'):
 
-        +------------------------+
-        |DescrL:   [x]DescrR     |
-        +------------------------+
+        +-------------+  or +-------------+
+        |DescrL:   [x]|     |[x]DescrR    |
+        +-------------+     +-------------+
+        (if DescrL!="")     (if DescrL=="")
 
    ================================================ */
 

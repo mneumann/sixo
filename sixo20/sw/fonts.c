@@ -69,6 +69,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.2  2012/02/19 09:01:54  tuberkel
+ * NEW: Bool-Object now able to display [x] on left side
+ *
  * Revision 3.1  2012/01/16 05:10:35  tuberkel
  * New: Vertical divider line for Maindevice:Measurement columns
  *
@@ -309,10 +312,10 @@ const unsigned char rgFont6x8[]={
 /* --- free defined characters (#127..#160) ------------------------- */
 
                                     /* character, which use 2x parts with 6x8 bmps: */
-0x00,0x00,0x00,0xFF,0x81,0x81,      /* 127 Unselected (left half) */
-0x81,0x81,0x81,0x81,0xFF,0x00,      /* 128 Unselected (right half) */
-0x00,0x00,0x00,0xFF,0xB1,0xE1,      /* 129 Selected (left half) */
-0xE1,0xB1,0x99,0x8D,0xFF,0x00,      /* 130 Selected (right half) */
+0x00,0x00,0xFF,0x81,0x81,0x81,      /* 127 Unselected (left half) */
+0x81,0x81,0x81,0xFF,0x00,0x00,      /* 128 Unselected (right half) */
+0x00,0x00,0xFF,0xB1,0xE1,0xE1,      /* 129 Selected (left half) */
+0xB1,0x99,0x8D,0xFF,0x00,0x00,      /* 130 Selected (right half) */
 0x00,0x10,0x38,0x70,0xe0,0x70,      /* 131 OK/Selected-Hook icon (left half) */
 0x18,0x0c,0x06,0x03,0x01,0x00,      /* 132 OK/Selected-Hook icon (right half) */
 0x00,0x00,0x08,0x08,0x08,0x08,      /* 133 Not-OK/Unselected (Minus) icon (left half) */
