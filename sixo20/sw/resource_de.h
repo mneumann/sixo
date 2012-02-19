@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.8  2012/02/19 11:23:13  tuberkel
+ * BugFix BOOL Obj - R-mode-Left aligned
+ *
  * Revision 3.7  2012/02/14 21:08:03  tuberkel
  * - #define COMPASS ==> COMPDRV
  * - Compass SystemParam moved from devFlags2 -> 3
@@ -263,9 +266,12 @@
 
 
 // ---------------------------------------------------
-// Setup Compass Screen              ....!....!....!....!.
-#define RESTXT_SET_COMPASS          "Modul verf\xdcgbar:"
+// Extensions 1 Screen              ....!....!....!....!.
+#define RESTXT_SET_COMPASS          " Kompass-Modul"
 
+
+// ---------------------------------------------------
+// Compass objects                   ....!....!....!....!.
 #define RESTXT_SET_COMPD_DESC       "Anzeige:"          // COMPD: Compass Display
                                    /*....!....!...*/    // 13 chars, right aligned!
 #define RESTXT_SET_COMPD_NA         "        keine"

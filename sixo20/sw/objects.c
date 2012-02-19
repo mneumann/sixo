@@ -69,6 +69,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.7  2012/02/19 11:23:13  tuberkel
+ * BugFix BOOL Obj - R-mode-Left aligned
+ *
  * Revision 3.6  2012/02/19 09:01:54  tuberkel
  * NEW: Bool-Object now able to display [x] on left side
  *
@@ -1699,14 +1702,16 @@ ERRCODE Obj_Bool_Show( OBJ_BOOL far * fpObject, UINT8 bUpdateMode )
     /* select display mode: descriptor left/right side */
     if ( strlen(fpObject->szDescrL) > 0 )
     {
-        /* left side display mode (desc remains unchanged, bool is moved to right side) */
-        PixelCoord_Bool.wXPos = fpObject->Org.wXPos
-                                + (bCharWidth * ( fpObject->Window.bWidth - OBJ_BOOL_TWIDTH ));
+        /* left side display mode
+            - desc remains unchanged
+            - bool is moved to right side */
+        PixelCoord_Bool.wXPos = fpObject->Org.wXPos + (bCharWidth * ( fpObject->Window.bWidth - OBJ_BOOL_TWIDTH ));
     }
     else
-    {   /* right side display mode (bool remains unchanged, desc is moved to right side) */
-        PixelCoord_Desc.wXPos = fpObject->Org.wXPos
-                                + (bCharWidth * ( fpObject->Window.bWidth - strlen(fpObject->szDescrR) ));
+    {   /* right side display mode (
+            - bool remains unchanged,
+            - desc is moved to right side */
+        PixelCoord_Desc.wXPos = fpObject->Org.wXPos + (bCharWidth * ( OBJ_BOOL_TWIDTH ));
     }
 
 

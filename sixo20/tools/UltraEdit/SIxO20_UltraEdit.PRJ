@@ -7,25 +7,25 @@ Use Relative Directory=1
 Relative to Project File=1
 Project Wordfile=
 [Open Files]
-Open File0=S:\CVS\SIXO\SIXO20\SW\objects.h
-Open File Pos0=27133
-Open File Line0=24944
+Open File0=s:\CVS\sixo\sixo20\sw\setdev.c
+Open File Pos0=26470
+Open File Line0=25882
 Active File Index=2
-Open File Window Pos0=0,1,-1,-1,-4,-30,66,87,726,634
-Open File1=s:\CVS\sixo\sixo20\sw\objects.c
+Open File Window Pos0=0,1,-1,-1,-4,-30,88,116,744,659
+Open File1=S:\CVS\SIXO\SIXO20\SW\resource_de.h
 Active File Display Mode=3
-Open File Pos1=113827
-Open File Line1=112561
-Open File Window Pos1=0,1,-1,-1,-4,-30,198,261,858,808
-Open File2=S:\CVS\sixo\sixo20\tools\KD30\KD30_SIxO_GUI_Input.btn
-Open File Pos2=853
-Open File Line2=0
-Open File Window Pos2=2,3,-1,-1,-4,-30,88,116,748,663
-Open File3=S:\CVS\SIXO\SIXO20\SW\digindrv.c
-Open File Pos3=6643
-Open File Line3=5978
-Open File Window Pos3=0,1,-1,-1,-4,-30,110,145,770,692
-Open File4=S:\CVS\sixo\sixo20\tools\KD30\KD30_SIxO_GUI_Output.gof
+Open File Pos1=10625
+Open File Line1=9902
+Open File Window Pos1=0,1,-1,-1,-4,-30,22,29,748,409
+Open File2=s:\CVS\sixo\sixo20\sw\objects.c
+Open File Pos2=82579
+Open File Line2=82386
+Open File Window Pos2=2,3,-1,-1,-4,-30,44,58,770,438
+Open File3=S:\CVS\SIXO\SIXO20\SW\display.h
+Open File Pos3=3915
+Open File Line3=4904
+Open File Window Pos3=0,1,-1,-1,-4,-30,66,87,792,467
+Open File4=
 Open File Pos4=0
 Open File Line4=0
 Open File Window Pos4=0,1,-1,-1,-4,-30,132,174,836,580
@@ -112,7 +112,7 @@ Open File Window Pos24=2,3,-1,-1,-4,-30,66,87,755,443
 Open File25=
 
 [File View]
-Current Select=Projektdateien\Output\SIxO20.map
+Current Select=Projektdateien\Resources\objects.c
 
 [Files - Test]
 

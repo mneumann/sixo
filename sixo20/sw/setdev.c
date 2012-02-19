@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.16  2012/02/19 11:23:13  tuberkel
+ * BugFix BOOL Obj - R-mode-Left aligned
+ *
  * Revision 3.15  2012/02/15 07:32:43  tuberkel
  * Objects-API reviewed (no functional changes)
  *
@@ -203,7 +206,7 @@
     4. Add new Screen Headline OBJ_TEXTST   TextObj_HL_xxx;
     5. Add new Ressource text string constants in 'resource_xx.h'
     6. Add new initial object data in static object array (e.g. TextObj[], /bool/select)
-    7. Add new defintion ObjectList_xxx,  for all the above objects part of that screen (e.g. ObjectList_Extension1[])
+    7. Add new defintion ObjectList_xxx,  for all the above objects part of that screen (e.g. ObjectList_Ext1[])
     8. Add this ObjectList_xxx to function SetDev_ObjListInit()
     9. Add new handler functions for these objects to SetDev_CheckChanges()
    10. Add new handler functions for these objects to SetDev_ValuesUpdate()
@@ -546,16 +549,10 @@ extern UINT16       wMilliSecCounter;               // valid values: 0h .. ffffh
 static OBJ_TEXTST   TextObj_HL_Vehicle;
 static OBJ_TEXTST   TextObj_HL_Device;
 static OBJ_TEXTST   TextObj_HL_Out;
-static OBJ_TEXTST   TextObj_HL_Extension1;
-
-static OBJ_TEXTST   TextObj_Comp_Calib;
-static OBJ_TEXTST   TextObj_Comp_Error;
+static OBJ_TEXTST   TextObj_HL_Ext1;
 
 static OBJ_TEXTST   TextObj_Led_Desc;
 static OBJ_TEXTST   TextObj_Lcd_Desc;
-
-//static OBJ_TEXTST   TextObj_Dev_SWVers;
-//static OBJ_TEXTST   TextObj_Dev_SWVersDsc;
 
 
 static const OBJ_TEXTST_INIT TextObj[] =
@@ -566,21 +563,9 @@ static const OBJ_TEXTST_INIT TextObj[] =
     {&TextObj_HL_Vehicle,   C01, R1, DPLFONT_6X8, 1, 21,    TXT_CENTER, TXT_INVERS, RESTXT_SET_HL_VEHICLE, OC_DISPL},
     {&TextObj_HL_Device,    C01, R1, DPLFONT_6X8, 1, 21,    TXT_CENTER, TXT_INVERS, RESTXT_SET_HL_DEVICE,  OC_DISPL},
     {&TextObj_HL_Out,       C01, R1, DPLFONT_6X8, 1, 21,    TXT_CENTER, TXT_INVERS, RESTXT_SET_HL_DISPLAY, OC_DISPL},
-    {&TextObj_HL_Extension1,   C01, R1, DPLFONT_6X8, 1, 21,    TXT_CENTER, TXT_INVERS, RESTXT_SET_HL_COMPASS, OC_DISPL},
+    {&TextObj_HL_Ext1,      C01, R1, DPLFONT_6X8, 1, 21,    TXT_CENTER, TXT_INVERS, RESTXT_SET_HL_COMPASS, OC_DISPL},
   //{&TextObj_HL_IOPorts,   C01, R1, DPLFONT_6X8, 1, 21,    TXT_CENTER, TXT_INVERS, RESTXT_SET_HL_IOPORTS, OC_DISPL},
   //{&TextObj_HL_Warnings,  C01, R1, DPLFONT_6X8, 1, 21,    TXT_CENTER, TXT_INVERS, RESTXT_SET_HL_WARNINGS,OC_DISPL},
-
-    /* Device Descriptors */
-    /*pObject                X   Y   Font         H  Width  Align       Format      string ptr             State  */
-    /*--------------------- ---- --- ------------ -- -----  ----------- ----------- ---------------------- --------- */
-  //{&TextObj_Dev_SWVersDsc,C01, R7, DPLFONT_6X8, 1,  3,    TXT_LEFT,   TXT_NORM,   RESTXT_SET_SW_VERS,    OC_DISPL},
-  //{&TextObj_Dev_SWVers,   C04, R7, DPLFONT_6X8, 1, 10,    TXT_LEFT,   TXT_NORM,   szSWVersion,           OC_DISPL},
-
-    /* Compass Descriptors */
-    /*pObject                X   Y   Font         H  Width  Align       Format      string ptr             State  */
-    /*--------------------- ---- --- ------------ -- -----  ----------- ----------- ---------------------- --------- */
-    {&TextObj_Comp_Calib,   C01, R4, DPLFONT_6X8, 1, 21,    TXT_LEFT,   TXT_NORM,   RESTXT_SET_COMPC_DESC, OC_DISPL},
-    {&TextObj_Comp_Error,   C01, R6, DPLFONT_6X8, 1, 21,    TXT_LEFT,   TXT_NORM,   RESTXT_SET_COMP_ERR,   OC_DISPL},
 
     /* Led/Lcd Descriptors */
     /*pObject                X   Y   Font         H  Width  Align       Format      string ptr             State  */
@@ -613,7 +598,7 @@ static const OBJ_BOOL_INIT EditBoolObj[] =
     {&EditBoolScrDmpObj,   C16,  R6, DPLFONT_6X8,    6,  &gfHardcopy,         &fEditBuffer, RESTXT_SET_HARDCOPY,    RESTXT_EMPTY_TXT,        OC_SCREENDUMP_OPT              },
     {&EditBoolEeprRstObj,  C16,  R7, DPLFONT_6X8,    6,  &gfEepromReset,      &fEditBuffer, RESTXT_SET_RESETEEPROM, RESTXT_EMPTY_TXT,        OC_DISPL | OC_SELECT | OC_EDIT },
     /*-------------------- ---- ---- ------------ -----  -------------------- ------------- ----------------------- -----------------------  --------------------------------- */
-    {&EditBoolCompAvailObj,C01,  R2, DPLFONT_6X8,   21,  &gfCompAvail,        &fEditBuffer, RESTXT_SET_COMPASS,     RESTXT_EMPTY_TXT,        OC_DISPL | OC_SELECT | OC_EDIT },
+    {&EditBoolCompAvailObj,C01,  R2, DPLFONT_6X8,   21,  &gfCompAvail,        &fEditBuffer, RESTXT_EMPTY_TXT,       RESTXT_SET_COMPASS,      OC_DISPL | OC_SELECT | OC_EDIT },
     /*-------------------- ---- ---- ------------ -----  -------------------- ------------- ----------------------- -----------------------  --------------------------------- */
 };
 #define EDITBOOLOBJECTLISTSIZE   (sizeof(EditBoolObj)/sizeof(OBJ_BOOL_INIT))
@@ -766,16 +751,14 @@ static const void far * ObjectList_Out[] =
 
 // -------------------------------------------------------------------------
 // Compass Screen Tab order
-static const void far * ObjectList_Extension1[] =
+static const void far * ObjectList_Ext1[] =
 {
-    (void far *) &TextObj_HL_Extension1,   // 1
+    (void far *) &TextObj_HL_Ext1,      // 1 (not selectable)
     (void far *) &EditBoolCompAvailObj, // 2
     (void far *) &SelectCompDplObj,     // 3
-    (void far *) &TextObj_Comp_Calib,   // 4
-    (void far *) &SelectCompCalStObj,   // 5
-    (void far *) &TextObj_Comp_Error,   // 6
+    (void far *) &SelectCompCalStObj,   // 4
 };
-#define OBJLIST_EXT1_CNT (sizeof(ObjectList_Extension1)/sizeof(OBJ_STATE)/sizeof(void far *))
+#define OBJLIST_EXT1_CNT (sizeof(ObjectList_Ext1)/sizeof(OBJ_STATE)/sizeof(void far *))
 
 
 
@@ -1727,10 +1710,10 @@ void SetDev_ObjListInit(void)
     SDCntrl.List[SD_OUT].LastSelObj      = DevObjGetLastSelectable (&SDObj, ObjectList_Out, OBJLIST_OUT_CNT);
 
     // Setup 4th screen object list: Extensions settings
-    SDCntrl.List[SD_EXT1].ObjList        = ObjectList_Extension1;
+    SDCntrl.List[SD_EXT1].ObjList        = ObjectList_Ext1;
     SDCntrl.List[SD_EXT1].ObjCount       = OBJLIST_EXT1_CNT;
-    SDCntrl.List[SD_EXT1].FirstSelObj    = DevObjGetFirstSelectable(&SDObj, ObjectList_Extension1, OBJLIST_EXT1_CNT);
-    SDCntrl.List[SD_EXT1].LastSelObj     = DevObjGetLastSelectable (&SDObj, ObjectList_Extension1, OBJLIST_EXT1_CNT);
+    SDCntrl.List[SD_EXT1].FirstSelObj    = DevObjGetFirstSelectable(&SDObj, ObjectList_Ext1, OBJLIST_EXT1_CNT);
+    SDCntrl.List[SD_EXT1].LastSelObj     = DevObjGetLastSelectable (&SDObj, ObjectList_Ext1, OBJLIST_EXT1_CNT);
 
     // Default state: Show verhicle settings
     SDCntrl.eState = SD_VEHIC;
