@@ -68,6 +68,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.6  2012/02/19 21:04:51  tuberkel
+ * - Extensions-Screen reviewed
+ * - Compass-Settings-Strings reduced
+ *
  * Revision 3.5  2012/02/15 07:32:43  tuberkel
  * Objects-API reviewed (no functional changes)
  *
@@ -244,11 +248,11 @@
 
 
 /* compass settings */
-#define RESTXT_SET_COMPD_WIDTH      13
-#define RESTXT_SET_COMPD_CNT        4
+#define RESTXT_SET_COMPD_WIDTH      3       // see RESTXT_SET_COMPD_NA.. for language strings
+#define RESTXT_SET_COMPD_CNT        4       // 4 steps: n.a./Heading/Graph/heading+Graph
 
-#define RESTXT_SET_COMPC_WIDTH      21
-#define RESTXT_SET_COMPC_CNT        8
+#define RESTXT_SET_COMPC_WIDTH      3       // see RESTXT_SET_COMPC_NA.. for language strings
+#define RESTXT_SET_COMPC_CNT        8       // 8 steps available
 
 
 /* analog input formating*/
