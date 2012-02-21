@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.7  2012/02/21 20:58:15  tuberkel
+ * all Setdevice ObjectNames reviewed
+ *
  * Revision 3.6  2012/02/15 07:32:43  tuberkel
  * Objects-API reviewed (no functional changes)
  *
@@ -194,19 +197,19 @@
 /* device static objects */
 static DEVDATA      TripCntDev;
 
-static OBJ_TEXTST   BigTripCntObj;                      /* contains the bigger trip counter object data */
-static OBJ_TEXTST   SmallTripCntObj;                    /* contains the smaller trip counter object data */
+static OBJ_STEXT   BigTripCntObj;                      /* contains the bigger trip counter object data */
+static OBJ_STEXT   SmallTripCntObj;                    /* contains the smaller trip counter object data */
 
 static CHAR         BigTripCntTxt[BUFFER_STRSIZE]   = {' ', ' ', '0', RESTXT_DEC_SEPARATOR, '0', '0'};  /* buffer for big trip counter string */
 static CHAR         SmallTripCntTxt[BUFFER_STRSIZE] = {' ', ' ', ' ', ' ', ' ', '0', RESTXT_DEC_SEPARATOR, '0', '0'};  /* buffer for samll trip counter string */
 
-static OBJ_TEXTST   VehSpeedTxtObj;                     /* stateline speed object */
+static OBJ_STEXT   VehSpeedTxtObj;                     /* stateline speed object */
 static CHAR         szVehSpeed[8] = "---km/h";          /* buffer for speed string */
 
-static OBJ_TEXTST   CompassTxtObj;                      /* stateline compass object */
+static OBJ_STEXT   CompassTxtObj;                      /* stateline compass object */
 static CHAR         szCompass[5] = "---°";              /* buffer for time string */
 
-static OBJ_TEXTST   TimeTxtObj;                         /* stateline time object */
+static OBJ_STEXT   TimeTxtObj;                         /* stateline time object */
 static CHAR         szTime[10] = "--:--:--a";           /* buffer for time string (add. am/pm in engl. version!)*/
 
 
@@ -234,7 +237,7 @@ void    TripCDev_UpdCompassHead(void);
 void    TripCDev_UpdCompassBargr(void);
 
 /* text object table */
-static const OBJ_TEXTST_INIT TextObjInit[] =
+static const OBJ_STEXT_INIT TextObjInit[] =
 {
     /*pObject                   X    Y  Font            H  Width  Align     Format    string ptr        State      */
     /* ----------------------- ---- --- -------------- --- ----- --------- ---------- ----------------- ---------- */
@@ -244,7 +247,7 @@ static const OBJ_TEXTST_INIT TextObjInit[] =
     { &CompassTxtObj,           52, 56, DPLFONT_6X8,    1,  4, TXT_CENTER, TXT_NORM, szCompass,         OC_DISPL | OC_DYN },
     { &TimeTxtObj,              45, 56, DPLFONT_6X8,    1, 14, TXT_RIGHT,  TXT_NORM, szTime,            OC_DISPL | OC_DYN }
 };
-#define TEXTOBJECTLISTSIZE   (sizeof(TextObjInit)/sizeof(OBJ_TEXTST_INIT))
+#define STEXTOBJ_INITLISTSIZE   (sizeof(TextObjInit)/sizeof(OBJ_STEXT_INIT))
 
 
 /* this devices object focus handling - list of all objects */
@@ -282,7 +285,7 @@ ERRCODE TripCDev_Init(void)
     TripCntDev.fScreenInit  = FALSE;
 
     /* initialize all objects of any type */
-    DevObjInit( &TripCntDev, (void far *)TextObjInit,   TEXTOBJECTLISTSIZE,     OBJT_TXT   );
+    DevObjInit( &TripCntDev, (void far *)TextObjInit,   STEXTOBJ_INITLISTSIZE,     OBJT_TXT   );
 
     // initialize this devices objects list
     TripCntDev.Objects.ObjList       = ObjectList;

@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.26  2012/02/21 20:58:15  tuberkel
+ * all Setdevice ObjectNames reviewed
+ *
  * Revision 3.25  2012/02/15 07:32:43  tuberkel
  * Objects-API reviewed (no functional changes)
  *
@@ -321,9 +324,9 @@ extern unsigned char far rgHeatBarFull19x8[];
 /* upper area: speed display */
 /* =================================================== */
 
-static OBJ_TEXTST   SpeedTxtObj;                /* speed text '000' object */
-static OBJ_TEXTST   SpeedDescATxtObj;           /* speed descriptor 'km' (or 'mi' for EN) text object */
-static OBJ_TEXTST   SpeedDescBTxtObj;           /* speed descriptor 'h' text object */
+static OBJ_STEXT   SpeedTxtObj;                /* speed text '000' object */
+static OBJ_STEXT   SpeedDescATxtObj;           /* speed descriptor 'km' (or 'mi' for EN) text object */
+static OBJ_STEXT   SpeedDescBTxtObj;           /* speed descriptor 'h' text object */
 static CHAR         szSpeed[4] = "0";           /* buffer for current speed, max. string '999' */
 
 
@@ -332,38 +335,38 @@ static CHAR         szSpeed[4] = "0";           /* buffer for current speed, max
 /* =================================================== */
 
 /* lower area mode 1: Rounds Per Minute */
-static OBJ_TEXTST   RPMTxtObj;                  /* rpm text '00000' object */
-static OBJ_TEXTST   RPMDescTxtObj;              /* rpm descriptor 'U/Min' (or RPM for DE) text object */
+static OBJ_STEXT   RPMTxtObj;                  /* rpm text '00000' object */
+static OBJ_STEXT   RPMDescTxtObj;              /* rpm descriptor 'U/Min' (or RPM for DE) text object */
 static CHAR         szRPM[6] = "0";             /* buffer current eng speed, max. string '13500' */
 static OBJ_BMP    RPMBmpObj;                  /* symbol to indicate RPM */
 
 /* lower area mode 2: Fuel Distance */
-static OBJ_TEXTST   FuelDistTxtObj;             /* fuel distance text object */
+static OBJ_STEXT   FuelDistTxtObj;             /* fuel distance text object */
 static CHAR         szFuelDist[10] = "0,0";     /* buffer to contain fuel distance, max. string '9999999,9' */
 static OBJ_BMP    FuelDistBmpObj;             /* symbol to indicate fuel distance display mode */
 
 /* lower area mode 3: Vehicle Distance */
-static OBJ_TEXTST   VehDistTxtObj;              /* vehicle distance text object */
+static OBJ_STEXT   VehDistTxtObj;              /* vehicle distance text object */
 static CHAR         szVehDist[10] = "0,0";      /* buffer to contain fuel distance, max. string '9999999,9' */
 static OBJ_BMP    VehDistBmpObj;              /* symbol to indicate vehicle distance display mode */
 
 /* lower area mode 4: TripCounter 1 Distance */
-static OBJ_TEXTST   Trip1DescTxtObj;            /* tripcounter1 descriptor text object 'T1' */
-static OBJ_TEXTST   Trip1DistTxtObj;            /* tripcounter1 distance text object */
+static OBJ_STEXT   Trip1DescTxtObj;            /* tripcounter1 descriptor text object 'T1' */
+static OBJ_STEXT   Trip1DistTxtObj;            /* tripcounter1 distance text object */
 static CHAR         szTrip1Dist[10] = "0,0";    /* buffer to contain tripcounter1 distance, max. string '9999,9' */
 
 /* lower area mode 5: TripCounter 2 Distance */
-static OBJ_TEXTST   Trip2DescTxtObj;            /* tripcounter1 descriptor text object 'T2' */
-static OBJ_TEXTST   Trip2DistTxtObj;            /* tripcounter2 distance text object */
+static OBJ_STEXT   Trip2DescTxtObj;            /* tripcounter1 descriptor text object 'T2' */
+static OBJ_STEXT   Trip2DistTxtObj;            /* tripcounter2 distance text object */
 static CHAR         szTrip2Dist[10] = "0,0";    /* buffer to contain tripcounter2 distance, max. string '9999,9' */
 
 /* lower area mode 2..5: common distance descriptor */
-static OBJ_TEXTST   DistDescTxtObj;             /* COMMON vehicle & fuel distance decriptor for 'km' or 'mi' */
+static OBJ_STEXT   DistDescTxtObj;             /* COMMON vehicle & fuel distance decriptor for 'km' or 'mi' */
 
 /* lower area mode 6: Max Speed */
-static OBJ_TEXTST   SpeedMaxDescTxtObj;         /* SpeedMax descriptor text object for 'v(max)' */
-static OBJ_TEXTST   SpeedMaxUnitTxtObj;         /* speed max desciptor text object 'km/h' or 'mi/h' */
-static OBJ_TEXTST   SpeedMaxTxtObj;             /* SpeedMax descriptor text object for '110.0' */
+static OBJ_STEXT   SpeedMaxDescTxtObj;         /* SpeedMax descriptor text object for 'v(max)' */
+static OBJ_STEXT   SpeedMaxUnitTxtObj;         /* speed max desciptor text object 'km/h' or 'mi/h' */
+static OBJ_STEXT   SpeedMaxTxtObj;             /* SpeedMax descriptor text object for '110.0' */
 static CHAR         szSpeedMax[4] = "  0";      /* buffer to contain SpeedMax, max. string '999' km/h*/
 extern SPEED_TYPE   Speed_Max;                  /* prepared value */
 
@@ -373,7 +376,7 @@ static OBJ_BMP    HeatBarBmpObj;              /* empty/full bar icon - for multi
 #define MD_HEATBARPARTS 5                       /* number of bargrapgh parts */
 
 /* lower area: Date & Time Display */
-static OBJ_TEXTST   TimeDateTxtObj;             /* time & date output opbject */
+static OBJ_STEXT   TimeDateTxtObj;             /* time & date output opbject */
 static CHAR         szTimeDate[22] = "Mo 01.01.01  00:00:00";   /* buffer for timedate string */
 
 
@@ -384,7 +387,7 @@ static OBJ_BMP    VehStateBmpObj;             /* symbol for current vehicle stat
 
 /* --------------------------------------------- */
 /* lower area vehicle state objects */
-static OBJ_TEXTST   SurvVehStateTxtObj;         /* Vehicle State detected by MonDev_ */
+static OBJ_STEXT   SurvVehStateTxtObj;         /* Vehicle State detected by MonDev_ */
 extern INT8         SurvParamListCount;         /* number of states currently not ok */
 static INT8         SurvShowVehState = 0;       /* != 0 if vehicle state is to be displayed */
 
@@ -406,36 +409,36 @@ static OBJ_BMP    MonVertLineBmpObj;
 
 /* measure data 1: temperature from external air / internal NTC sensor */
 static OBJ_BMP    MonAmbientTempBmpObj;
-static OBJ_TEXTST   MonAmbientTempTxtObj;
-static OBJ_TEXTST   MonAmbientTempDescTxtObj;
+static OBJ_STEXT   MonAmbientTempTxtObj;
+static OBJ_STEXT   MonAmbientTempDescTxtObj;
 static CHAR         szTemp[5];
 
 /* measure data 2: battery voltage */
 static OBJ_BMP    MonVoltageBmpObj;
-static OBJ_TEXTST   MonVoltageTxtObj;
-static OBJ_TEXTST   MonVoltageDescTxtObj;
+static OBJ_STEXT   MonVoltageTxtObj;
+static OBJ_STEXT   MonVoltageDescTxtObj;
 static CHAR         szVoltage[5];
 
 /* measure data 3: motor oil temperature */
-static OBJ_TEXTST   MonOilTempTxtObj;
-static OBJ_TEXTST   MonOilTempDescTxtObj;
+static OBJ_STEXT   MonOilTempTxtObj;
+static OBJ_STEXT   MonOilTempDescTxtObj;
 static OBJ_BMP    MonOilTempBmpObj;
 static CHAR         szOilTemp[5];
 
 /* measure data 4: motor RPM (used, if no oil temp sensor connected) */
-static OBJ_TEXTST   MonRPMTxtObj;
-static OBJ_TEXTST   MonRPMDescTxtObj;
+static OBJ_STEXT   MonRPMTxtObj;
+static OBJ_STEXT   MonRPMDescTxtObj;
 static OBJ_BMP    MonRPMBmpObj;
 
 /* measure data 5: water temperature */
-static OBJ_TEXTST   MonWaterTempTxtObj;
-static OBJ_TEXTST   MonWaterTempDescTxtObj;
+static OBJ_STEXT   MonWaterTempTxtObj;
+static OBJ_STEXT   MonWaterTempDescTxtObj;
 static CHAR         szWaterTemp[5];
 static OBJ_BMP    MonWaterTempBmpObj;
 
 /* measure data 5: fuel distance (used, if water temp sensor not available) */
-static OBJ_TEXTST   MonFuelTxtObj;
-static OBJ_TEXTST   MonFuelDescTxtObj;
+static OBJ_STEXT   MonFuelTxtObj;
+static OBJ_STEXT   MonFuelDescTxtObj;
 static OBJ_BMP    MonFuelBmpObj;
 
 
@@ -500,7 +503,7 @@ static const OBJ_BMP_INIT BmpObjInit[] =
 
 /* ============================================================= */
 /* text object table */
-static const OBJ_TEXTST_INIT TextObjInit[] =
+static const OBJ_STEXT_INIT TextObjInit[] =
 {
     /* BIG Vehicle Speed + Unit */
     /* pObject                  X    Y  Font            H  Width  Align     Format    string ptr            State      */
@@ -549,7 +552,7 @@ static const OBJ_TEXTST_INIT TextObjInit[] =
     { &SurvVehStateTxtObj,       2, 56, DPLFONT_6X8,    1, 21, TXT_CENTER, TXT_NORM, szSurvGlobalState,     OC_DISPL | OC_DYN   },
     /*------------------------ ---- --- -------------- --- ----- --------- ---------- -----------------     ---------           */
 };
-#define TEXTOBJECTLISTSIZE   (sizeof(TextObjInit)/sizeof(OBJ_TEXTST_INIT))
+#define STEXTOBJ_INITLISTSIZE   (sizeof(TextObjInit)/sizeof(OBJ_STEXT_INIT))
 
 
 
@@ -868,7 +871,7 @@ ERRCODE MainDev_Init(void)
     MDObj.wDevState    = gDeviceFlags1.flags.MainDevState;
 
     /* initialize all objects of any type */
-    DevObjInit( &MDObj, (void far *)TextObjInit,   TEXTOBJECTLISTSIZE,     OBJT_TXT  );
+    DevObjInit( &MDObj, (void far *)TextObjInit,   STEXTOBJ_INITLISTSIZE,     OBJT_TXT  );
     DevObjInit( &MDObj, (void far *)BmpObjInit,    BMPOBJECTLISTSIZE,      OBJT_BMP  );
 
     /* initialize this devices objects list */

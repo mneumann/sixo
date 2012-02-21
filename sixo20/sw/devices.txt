@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 1.6  2012/02/21 20:58:15  tuberkel
+ * all Setdevice ObjectNames reviewed
+ *
  * Revision 1.5  2012/02/19 21:07:31  tuberkel
  * - Extensions-Screen reviewed
  * - Compass-Settings-Strings reduced
@@ -143,6 +146,9 @@
 // |Benzin:24,5l  10,2l/h|  |Metrik:   mi   Bmp:[]|  |    WarnModus:   SIxO|  |[]GPS-Maus           |
 // |Logo:____BMW     5.5s|  |DbgOut: 0xff   Def:[]|  |    Schaltbl.:  10200|  |[]Kette O:1 100km _1s|
 // +----.----.----.----.-+  +----.----.----.----.-+  +----.----.----.----.-+  +----.----.----.----.-+
+
+
+
 
 // +----.----.----.----.-+  +----.----.----.----.-+  +----.----.----.----.-+
 // |>> KOMPASS          ^|  |>> INSTRUMENTE     <^|  |>> GANGANZEIGE     v^|

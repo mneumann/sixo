@@ -69,6 +69,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.5  2012/02/21 20:58:15  tuberkel
+ * all Setdevice ObjectNames reviewed
+ *
  * Revision 3.4  2012/02/15 07:32:43  tuberkel
  * Objects-API reviewed (no functional changes)
  *
@@ -137,28 +140,28 @@ static DEVDATA      TestScreen_Dev;
 
 /* ----------------------------------------------------------- */
 /* static headline text object */
-static OBJ_TEXTST   TextObj_Headline;
-static OBJ_TEXTST   TextObj_SpecialChars;
+static OBJ_STEXT   STxtObj_Headline;
+static OBJ_STEXT   STxtObj_SpecialChars;
 unsigned char       szSpecialChar[60];
 
-static const OBJ_TEXTST_INIT TextObjInit[] =
+static const OBJ_STEXT_INIT TextObjInit[] =
 {   /*pObject               X    Y   Font         H  Width  Align       Format      string ptr           State  */
-    {&TextObj_Headline,     C01, R1, DPLFONT_6X8, 1, 21,    TXT_CENTER, TXT_INVERS, RESTXT_TEST_GUITEST, OC_DISPL},
-    {&TextObj_SpecialChars, C01, R6, DPLFONT_6X8, 2, 21,    TXT_LEFT,   TXT_NORM,   szSpecialChar,       OC_DISPL}
+    {&STxtObj_Headline,     C01, R1, DPLFONT_6X8, 1, 21,    TXT_CENTER, TXT_INVERS, RESTXT_TEST_GUITEST, OC_DISPL},
+    {&STxtObj_SpecialChars, C01, R6, DPLFONT_6X8, 2, 21,    TXT_LEFT,   TXT_NORM,   szSpecialChar,       OC_DISPL}
 };
-#define TEXTOBJECTLISTSIZE   (sizeof(TextObjInit)/sizeof(OBJ_TEXTST_INIT))
+#define STEXTOBJ_INITLISTSIZE   (sizeof(TextObjInit)/sizeof(OBJ_STEXT_INIT))
 
 
 /* ----------------------------------------------------------- */
 /* edit text object */
-static OBJ_TEXT               EditTextObj_Test;
+static OBJ_TEXT               EditSTxtObj_Test;
 static CHAR                         szEditText[20] = "abcdefgh";
 static CHAR                         szEditBuffer[32];
 static const OBJ_TEXT_INIT      EditTextInit[]=
 {   // object            x    y    font         width value       decriptor           edit buffer   length char list    state
-    { &EditTextObj_Test, C01, R2,  DPLFONT_6X8, 21,   szEditText, RESTXT_TEST_ET_DSC, szEditBuffer, 10,    CHARL_LOWER, OC_DISPL | OC_SELECT | OC_EDIT }
+    { &EditSTxtObj_Test, C01, R2,  DPLFONT_6X8, 21,   szEditText, RESTXT_TEST_ET_DSC, szEditBuffer, 10,    CHARL_LOWER, OC_DISPL | OC_SELECT | OC_EDIT }
 };
-#define EDITTEXTOBJECTLISTSIZE   (sizeof(EditTextInit)/sizeof(OBJ_TEXTST_INIT))
+#define EDITTEXTOBJECTLISTSIZE   (sizeof(EditTextInit)/sizeof(OBJ_STEXT_INIT))
 
 
 
@@ -172,7 +175,7 @@ static const OBJ_NUM_INIT EditNumInit[] =
 {   /* fpObject          OrgX OrgY  Font         Width  pNumber          pWorkNumber     Type   Min  Max    Step DplType Mode     C  zDescr                zUnit                L   State                                       */
     {&EditNumObj_Test,   C01, R3,   DPLFONT_6X8, 21,    &dwEditNumValue, &dwEditBuffer,  eULONG,0L,999999L, 0L,  eDez,   eColumn, 0, RESTXT_TEST_EN_DSC,   RESTXT_TEST_EN_UNIT, 6,  OC_DISPL | OC_SELECT | OC_EDIT }
 };
-#define EDITNUMOBJECTLISTSIZE   (sizeof(EditNumInit)/sizeof(OBJ_NUM_INIT))
+#define NUMOBJ_INITLISTSIZE   (sizeof(EditNumInit)/sizeof(OBJ_NUM_INIT))
 
 
 
@@ -185,7 +188,7 @@ static const OBJ_BOOL_INIT EditBoolInit[] =
 {   /*pObject           X    Y   Font            Width  Data             EditBuffer        Descriptor            State      */
     {&EditBoolObj_Test, C01, R4, DPLFONT_6X8,    21,    &bEditBoolValue, &bEditBoolBuffer, RESTXT_TEST_EB_DSC,   OC_DISPL | OC_SELECT | OC_EDIT },
 };
-#define EDITBOOLOBJECTLISTSIZE   (sizeof(EditBoolInit)/sizeof(OBJ_BOOL_INIT))
+#define BOOLOBJ_INITLISTSIZE   (sizeof(EditBoolInit)/sizeof(OBJ_BOOL_INIT))
 
 
 
@@ -200,11 +203,11 @@ static const STRING     pszSelectList[RESTXT_TEST_SLCT_MAX] =   /* list if choic
                             RESTXT_TEST_SLCT_C,
                             RESTXT_TEST_SLCT_D,
                             RESTXT_TEST_SLCT_E };
-static const OBJ_SELECT_INIT SelectObjInit[] =
+static const OBJ_SLCT_INIT SelectObjInit[] =
 {   /*pObject          X    Y   Font            Width   Data            ListSize                EditBuffer      Descriptor              List of choice strings String field width       State   */
     {&SelectObj_Test,  C01, R5, DPLFONT_6X8,    21,     &u8SelectValue, RESTXT_TEST_SLCT_MAX,   &u8EditBuffer,  RESTXT_TEST_SLCT_DSC,   pszSelectList,         RESTXT_TEST_SLCT_WIDTH,  OC_DISPL | OC_SELECT | OC_EDIT  }
 };
-#define SELECTOBJECTLISTSIZE   (sizeof(SelectObjInit)/sizeof(OBJ_SELECT_INIT))
+#define SLCTOBJ_INITLISTSIZE   (sizeof(SelectObjInit)/sizeof(OBJ_SLCT_INIT))
 
 
 
@@ -219,12 +222,12 @@ extern DEVFLAGS1_TYPE    gDeviceFlags1;           /* system parameters */
 /* this devices object focus handling - list of all objects */
 static const void far * ObjectList[] =
 {
-    (void far *) &TextObj_Headline,
-    (void far *) &EditTextObj_Test,
+    (void far *) &STxtObj_Headline,
+    (void far *) &EditSTxtObj_Test,
     (void far *) &EditNumObj_Test,
     (void far *) &EditBoolObj_Test,
     (void far *) &SelectObj_Test,
-    (void far *) &TextObj_SpecialChars
+    (void far *) &STxtObj_SpecialChars
 };
 #define OBJECTLIST_SIZE   (sizeof(ObjectList)/sizeof(OBJ_STATE)/sizeof(void far *))
 
@@ -258,10 +261,10 @@ ERRCODE TestScreen_Init(void)
     }
 
     /* initialize all objects of any type */
-    DevObjInit( &TestScreen_Dev, (void far *)TextObjInit,   TEXTOBJECTLISTSIZE,     OBJT_TXT   );
-    DevObjInit( &TestScreen_Dev, (void far *)EditNumInit,   EDITNUMOBJECTLISTSIZE,  OBJT_ENUM  );
-    DevObjInit( &TestScreen_Dev, (void far *)SelectObjInit, SELECTOBJECTLISTSIZE,   OBJT_SLCT  );
-    DevObjInit( &TestScreen_Dev, (void far *)EditBoolInit,  EDITBOOLOBJECTLISTSIZE, OBJT_EBOOL );
+    DevObjInit( &TestScreen_Dev, (void far *)TextObjInit,   STEXTOBJ_INITLISTSIZE,     OBJT_TXT   );
+    DevObjInit( &TestScreen_Dev, (void far *)EditNumInit,   NUMOBJ_INITLISTSIZE,  OBJT_ENUM  );
+    DevObjInit( &TestScreen_Dev, (void far *)SelectObjInit, SLCTOBJ_INITLISTSIZE,   OBJT_SLCT  );
+    DevObjInit( &TestScreen_Dev, (void far *)EditBoolInit,  BOOLOBJ_INITLISTSIZE, OBJT_EBOOL );
     DevObjInit( &TestScreen_Dev, (void far *)EditTextInit,  EDITTEXTOBJECTLISTSIZE, OBJT_ETXT );
 
     // initialize this devices objects list

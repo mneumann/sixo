@@ -73,6 +73,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.4  2012/02/21 20:58:15  tuberkel
+ * all Setdevice ObjectNames reviewed
+ *
  * Revision 3.3  2012/02/15 07:32:43  tuberkel
  * Objects-API reviewed (no functional changes)
  *
@@ -465,7 +468,7 @@ ERRCODE DevObjShow( DEVDATA far *       fpDevData,
         switch (ObjList[i]->eType)
         {
             case OBJT_BMP:   Obj_Bmp_Show      ( (OBJ_BMP far *)        (ObjList[i]) ); break;
-            case OBJT_TXT:   Obj_TextSt_Show     ( (OBJ_TEXTST far *)       (ObjList[i]) ); break;
+            case OBJT_TXT:   Obj_TextSt_Show     ( (OBJ_STEXT far *)       (ObjList[i]) ); break;
             case OBJT_ETXT:  Obj_Text_Show ( (OBJ_TEXT far *)   (ObjList[i]), UpdateMode ); break;
             case OBJT_ENUM:  Obj_Num_Show  ( (OBJ_NUM far *) (ObjList[i]), UpdateMode ); break;
             case OBJT_EBOOL: Obj_Bool_Show ( (OBJ_BOOL far *)   (ObjList[i]), UpdateMode ); break;
@@ -563,12 +566,12 @@ ERRCODE DevObjInit( DEVDATA far *       fpDevData,
         /* select correct kind of method */
         switch ((OBJ_TYPE) eType)
         {
-            case OBJT_TXT:   Obj_TextSt_Init     ( &((OBJ_TEXTST_INIT far *)ObjList)[i]); break;
+            case OBJT_TXT:   Obj_TextSt_Init     ( &((OBJ_STEXT_INIT far *)ObjList)[i]); break;
             case OBJT_BMP:   Obj_Bmp_Init      ( &((OBJ_BMP_INIT far *) ObjList)[i]); break;
             case OBJT_ETXT:  Obj_Text_Init ( &((OBJ_TEXT_INIT far *)  ObjList)[i]); break;
             case OBJT_ENUM:  Obj_Num_Init  ( &((OBJ_NUM_INIT far *)ObjList)[i]); break;
             case OBJT_EBOOL: Obj_Bool_Init ( &((OBJ_BOOL_INIT far *)  ObjList)[i]); break;
-            case OBJT_SLCT:  Obj_Select_Init   ( &((OBJ_SELECT_INIT far *)    ObjList)[i]); break;
+            case OBJT_SLCT:  Obj_Select_Init   ( &((OBJ_SLCT_INIT far *)    ObjList)[i]); break;
             default: ODS1( DBG_SYS, DBG_WARNING, "DevObjInit(): Unknown ObjType %u!", eType); break;
         }
     }

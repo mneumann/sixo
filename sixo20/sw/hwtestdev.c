@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.11  2012/02/21 20:58:15  tuberkel
+ * all Setdevice ObjectNames reviewed
+ *
  * Revision 3.10  2012/02/15 07:32:43  tuberkel
  * Objects-API reviewed (no functional changes)
  *
@@ -192,7 +195,7 @@ extern DEVFLAGS1_TYPE       gDeviceFlags1;      /* system parameters */
 
 /* local objects */
 static DEVDATA      HWTestDev;                  /* this device */
-static OBJ_TEXTST   HWTestScreen_;               /* basic screen content ------------------- */
+static OBJ_STEXT   HWTestScreen_;               /* basic screen content ------------------- */
 static BOOL         fEOLTester_present = FALSE; /* TRUE if test adapter present, FALSE if runs in vehicle */
 static BOOL         fGPO0_active = FALSE;       /* for hw stimulation of pin eGPO_0 */
 static BOOL         fGPO1_active = FALSE;       /* for hw stimulation of pin eGPO_1 */
@@ -217,52 +220,52 @@ static char         szUnknown[]="?";
 
 
 /* text objects for values */
-static OBJ_TEXTST   VoltageObj;
-static OBJ_TEXTST   KmhObj;
-static OBJ_TEXTST   RPMObj;
-static OBJ_TEXTST   OilTempObj;
-static OBJ_TEXTST   WatTempObj;
-static OBJ_TEXTST   ExtTempObj;
-static OBJ_TEXTST   IntTempObj;
-static OBJ_TEXTST   AltWObj;
-static OBJ_TEXTST   LDRObj;
+static OBJ_STEXT   VoltageObj;
+static OBJ_STEXT   KmhObj;
+static OBJ_STEXT   RPMObj;
+static OBJ_STEXT   OilTempObj;
+static OBJ_STEXT   WatTempObj;
+static OBJ_STEXT   ExtTempObj;
+static OBJ_STEXT   IntTempObj;
+static OBJ_STEXT   AltWObj;
+static OBJ_STEXT   LDRObj;
 
 
 /* text objects for key status */
-static OBJ_TEXTST   KeyUp;
-static OBJ_TEXTST   KeyDown;
-static OBJ_TEXTST   KeyOk;
+static OBJ_STEXT   KeyUp;
+static OBJ_STEXT   KeyDown;
+static OBJ_STEXT   KeyOk;
 
 /* text objects for test status */
-static OBJ_TEXTST   StatObj_VBAT;
-static OBJ_TEXTST   StatObj_KMH;
-static OBJ_TEXTST   StatObj_WHEEL;
-static OBJ_TEXTST   StatObj_RPM;
-static OBJ_TEXTST   StatObj_TOIL;
-static OBJ_TEXTST   StatObj_TWAT;
-static OBJ_TEXTST   StatObj_TAIR;
-static OBJ_TEXTST   StatObj_TDEV;
-static OBJ_TEXTST   StatObj_ALTW;
-static OBJ_TEXTST   StatObj_HWVER;
-static OBJ_TEXTST   StatObj_LDR;
-static OBJ_TEXTST   StatObj_EEPR;
-static OBJ_TEXTST   StatObj_RTC;
-static OBJ_TEXTST   StatObj_NVRAM;
-static OBJ_TEXTST   StatObj_UART0;
-static OBJ_TEXTST   StatObj_UART1;
-static OBJ_TEXTST   StatObj_BAT;
-static OBJ_TEXTST   StatObj_NEUTR;
-static OBJ_TEXTST   StatObj_GPI0;
-static OBJ_TEXTST   StatObj_GPI1;
-static OBJ_TEXTST   StatObj_GPI2;
-static OBJ_TEXTST   StatObj_GPI3;
-static OBJ_TEXTST   StatObj_HBEAM;
-static OBJ_TEXTST   StatObj_OIL;
-static OBJ_TEXTST   StatObj_TURNL;
-static OBJ_TEXTST   StatObj_TURNR;
-static OBJ_TEXTST   StatObj_KEY0;
-static OBJ_TEXTST   StatObj_KEY1;
-static OBJ_TEXTST   StatObj_KEY2;
+static OBJ_STEXT   StatObj_VBAT;
+static OBJ_STEXT   StatObj_KMH;
+static OBJ_STEXT   StatObj_WHEEL;
+static OBJ_STEXT   StatObj_RPM;
+static OBJ_STEXT   StatObj_TOIL;
+static OBJ_STEXT   StatObj_TWAT;
+static OBJ_STEXT   StatObj_TAIR;
+static OBJ_STEXT   StatObj_TDEV;
+static OBJ_STEXT   StatObj_ALTW;
+static OBJ_STEXT   StatObj_HWVER;
+static OBJ_STEXT   StatObj_LDR;
+static OBJ_STEXT   StatObj_EEPR;
+static OBJ_STEXT   StatObj_RTC;
+static OBJ_STEXT   StatObj_NVRAM;
+static OBJ_STEXT   StatObj_UART0;
+static OBJ_STEXT   StatObj_UART1;
+static OBJ_STEXT   StatObj_BAT;
+static OBJ_STEXT   StatObj_NEUTR;
+static OBJ_STEXT   StatObj_GPI0;
+static OBJ_STEXT   StatObj_GPI1;
+static OBJ_STEXT   StatObj_GPI2;
+static OBJ_STEXT   StatObj_GPI3;
+static OBJ_STEXT   StatObj_HBEAM;
+static OBJ_STEXT   StatObj_OIL;
+static OBJ_STEXT   StatObj_TURNL;
+static OBJ_STEXT   StatObj_TURNR;
+static OBJ_STEXT   StatObj_KEY0;
+static OBJ_STEXT   StatObj_KEY1;
+static OBJ_STEXT   StatObj_KEY2;
 
 
 
@@ -331,7 +334,7 @@ static OBJ_TEXTST   StatObj_KEY2;
 
 
 // HW Test  device resources ----------------------------
-static const OBJ_TEXTST_INIT TextObjInit[] =
+static const OBJ_STEXT_INIT TextObjInit[] =
 {
     /* basic screen content ------------------- */
 
@@ -392,7 +395,7 @@ static const OBJ_TEXTST_INIT TextObjInit[] =
     { &KeyDown,         C2PH(30), C2PV(7), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, "D",        OC_DISPL | OC_DYN },
     { &KeyOk,           C2PH(31), C2PV(7), DPLFONT_4X6, 1,  1, TXT_RIGHT, TXT_NORM, "O",        OC_DISPL | OC_DYN },
 };
-#define TEXTOBJECTLISTSIZE   (sizeof(TextObjInit)/sizeof(OBJ_TEXTST_INIT))
+#define STEXTOBJ_INITLISTSIZE   (sizeof(TextObjInit)/sizeof(OBJ_STEXT_INIT))
 
 
 
@@ -483,7 +486,7 @@ ERRCODE HWTDev_Init(void)
     HWTestDev.fScreenInit  = FALSE;
 
     /* initialize all objects of any type */
-    DevObjInit( &HWTestDev, (void far *)TextObjInit,   TEXTOBJECTLISTSIZE,     OBJT_TXT   );
+    DevObjInit( &HWTestDev, (void far *)TextObjInit,   STEXTOBJ_INITLISTSIZE,     OBJT_TXT   );
 
     /* initialize this devices objects list */
     HWTestDev.Objects.ObjList       = ObjectList;

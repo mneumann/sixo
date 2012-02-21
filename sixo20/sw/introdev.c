@@ -69,6 +69,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.5  2012/02/21 20:58:15  tuberkel
+ * all Setdevice ObjectNames reviewed
+ *
  * Revision 3.4  2012/02/15 07:32:43  tuberkel
  * Objects-API reviewed (no functional changes)
  *
@@ -168,15 +171,15 @@ extern unsigned char    szSWVersion[];      /* formated sw version */
 static DEVDATA      IntroScreenDev;         /* this device */
 
 /* text objects */
-static OBJ_TEXTST   SWVersionTxtObj;        /* version text object */
+static OBJ_STEXT   SWVersionTxtObj;        /* version text object */
 
 
 /* text object table of this device */
-static const OBJ_TEXTST_INIT TextObjInit[] =
+static const OBJ_STEXT_INIT TextObjInit[] =
 {   /*pObject           X  Y   Font         H  Width  Align     Format    string ptr   State  */
     { &SWVersionTxtObj, 0, 57, DPLFONT_6X8, 1, 21,    TXT_LEFT, TXT_NORM, szSWVersion, OC_DISPL }
 };
-#define TEXTOBJECTLISTSIZE   (sizeof(TextObjInit)/sizeof(OBJ_TEXTST_INIT))
+#define STEXTOBJ_INITLISTSIZE   (sizeof(TextObjInit)/sizeof(OBJ_STEXT_INIT))
 
 
 /* bitmap object */
@@ -231,7 +234,7 @@ ERRCODE IntroDev_Init(void)
     IntroScreenDev.fScreenInit  = FALSE;
 
     /* initialize all objects of any type */
-    DevObjInit( &IntroScreenDev, (void far *)TextObjInit,   TEXTOBJECTLISTSIZE, OBJT_TXT  );
+    DevObjInit( &IntroScreenDev, (void far *)TextObjInit,   STEXTOBJ_INITLISTSIZE, OBJT_TXT  );
     DevObjInit( &IntroScreenDev, (void far *)BmpObjInit,    BMPOBJECTLISTSIZE,  OBJT_BMP  );
 
     /* initialize this devices objects list */

@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.3  2012/02/21 20:58:15  tuberkel
+ * all Setdevice ObjectNames reviewed
+ *
  * Revision 3.2  2012/02/19 09:01:54  tuberkel
  * NEW: Bool-Object now able to display [x] on left side
  *
@@ -79,15 +82,15 @@
  * - Object Handling reviewed
  * - BugFix in Blinking Cursor in Editmode
  * - BugFix in ODS() Makros
- * - EditBoolObj with new 'Box' appearence
- * - SelectObj with optimized output
+ * - BoolObj_InitList with new 'Box' appearence
+ * - SlctObj_InitList with optimized output
  *
  * Revision 2.5  2009/07/22 12:47:04  tuberkel
  * Just comments
  *
  * Revision 2.4  2009/07/19 12:40:28  tuberkel
  * - ObjectInit reviewed
- * - bugfix in OBJ_SELECT_INIT
+ * - bugfix in OBJ_SLCT_INIT
  * - Object Flag 'Init' renamed into 'dynamic'
  * - 'dynamic' for later optimization in static/dynamic text object behaviour
  *
@@ -322,12 +325,12 @@ typedef struct
     STRING      szText;     /* address of string to be displayed */
     OBJ_TALIGN  eAlign;     /* alignment of text in text window (left, right,..) */
     OBJ_TFORMAT eFormat;    /* format of text in text window (normal, invers,..) */
-} OBJ_TEXTST;
+} OBJ_STEXT;
 
 /* TextObject init data */
 typedef struct
 {
-    OBJ_TEXTST far * fpObject;
+    OBJ_STEXT far * fpObject;
     UINT16      wOrgPosX;
     UINT16      wOrgPosY;
     DPLFONT     eFont;
@@ -337,13 +340,13 @@ typedef struct
     OBJ_TFORMAT eFormat;
     STRING      szText;
     UINT8       bState;
-} OBJ_TEXTST_INIT;
+} OBJ_STEXT_INIT;
 
 
 
 /* text object prototypes */
-ERRCODE Obj_TextSt_Show( OBJ_TEXTST far * fpObject);
-ERRCODE Obj_TextSt_Init( OBJ_TEXTST_INIT far *  fpInitData);
+ERRCODE Obj_TextSt_Show( OBJ_STEXT far * fpObject);
+ERRCODE Obj_TextSt_Init( OBJ_STEXT_INIT far *  fpInitData);
 
 
 
@@ -726,14 +729,14 @@ typedef struct
     const STRING far *  pszSlctTxtList;
     UINT8               bSelectWidth;
     UINT8               bState;
-} OBJ_SELECT_INIT;
+} OBJ_SLCT_INIT;
 
 
 
 /* select object prototypes */
 ERRCODE Obj_Select_MsgEntry   ( OBJ_SELECT    far * fpObject, MESSAGE msg );
 ERRCODE Obj_Select_Show       ( OBJ_SELECT    far * fpObject, UINT8 bUpdateMode );
-ERRCODE Obj_Select_Init       ( OBJ_SELECT_INIT far * fpInitData );
+ERRCODE Obj_Select_Init       ( OBJ_SLCT_INIT far * fpInitData );
 
 
 #define OBJ_SELECT_TWIDTH    20

@@ -76,6 +76,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.6  2012/02/21 20:58:15  tuberkel
+ * all Setdevice ObjectNames reviewed
+ *
  * Revision 3.5  2012/02/15 07:32:43  tuberkel
  * Objects-API reviewed (no functional changes)
  *
@@ -180,17 +183,17 @@ ERRCODE LCDev_StartStop(MESSAGE Msg);
 // lap timer text objects
 #define LAP_TXTLEN  10                                      // we use 9 bytes for '#16 99:59' (+ NULL char)
 
-static OBJ_TEXTST   LapCntTxtObj[LAPS_MAX];                 // 16 lap objects
+static OBJ_STEXT   LapCntTxtObj[LAPS_MAX];                 // 16 lap objects
 static CHAR         szLapCntText[LAPS_MAX][LAP_TXTLEN];     // 16 text buffers a 10 bytes
 
 TIME_TYPE_LL LapCntTime[LAPS_MAX];                   // original values from EEPROM
 LCSTATE_TYPE LapCounterState;                        // LapCounter state
 
-static OBJ_TEXTST   TestObject;
+static OBJ_STEXT   TestObject;
 static CHAR         szTest;
 
 /* text object table */
-static const OBJ_TEXTST_INIT TextObjInit[] =
+static const OBJ_STEXT_INIT TextObjInit[] =
 {
     /*object              X   Y  Font            H   W  align       format    string                 state    */
     /*----------------    -   -  -------------  --- --- ----------- --------- -------------------    -------- */
@@ -213,7 +216,7 @@ static const OBJ_TEXTST_INIT TextObjInit[] =
     { &LapCntTxtObj[15], 72, 56, DPLFONT_6X8,    1,  9, TXT_LEFT,  TXT_NORM, &szLapCntText[15][0], OC_DISPL | OC_DYN }
 
 };
-#define TEXTOBJECTLISTSIZE   (sizeof(TextObjInit)/sizeof(OBJ_TEXTST_INIT))
+#define STEXTOBJ_INITLISTSIZE   (sizeof(TextObjInit)/sizeof(OBJ_STEXT_INIT))
 
 
 /* this devices object focus handling - list of all objects */
@@ -268,7 +271,7 @@ ERRCODE LCDev_Init(void)
     // LapCounterState.cCurrentLap = 0;    // default start with 0; might be changed via EEPROM setting
 
     /* initialize all objects of any type */
-    DevObjInit( &LCDev_, &TextObjInit,   TEXTOBJECTLISTSIZE, OBJT_TXT  );
+    DevObjInit( &LCDev_, &TextObjInit,   STEXTOBJ_INITLISTSIZE, OBJT_TXT  );
 
     /* initialize this devices objects list */
     LCDev_.Objects.ObjList       = ObjectList;

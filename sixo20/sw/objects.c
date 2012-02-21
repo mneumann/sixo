@@ -69,6 +69,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.8  2012/02/21 20:58:15  tuberkel
+ * all Setdevice ObjectNames reviewed
+ *
  * Revision 3.7  2012/02/19 11:23:13  tuberkel
  * BugFix BOOL Obj - R-mode-Left aligned
  *
@@ -100,8 +103,8 @@
  * - Object Handling reviewed
  * - BugFix in Blinking Cursor in Editmode
  * - BugFix in ODS() Makros
- * - EditBoolObj with new 'Box' appearence
- * - SelectObj with optimized output
+ * - BoolObj_InitList with new 'Box' appearence
+ * - SlctObj_InitList with optimized output
  *
  * Revision 2.9  2009/07/22 12:42:31  tuberkel
  * Just comments
@@ -246,7 +249,7 @@ ERRCODE Obj_Bmp_Init( OBJ_BMP_INIT far * fpInitData)
  *  RETURN:         ERR_OK
  *  COMMENT:        handles text output in multiple lines!
  *********************************************************************** */
-ERRCODE Obj_TextSt_Show( OBJ_TEXTST far * pObject)
+ERRCODE Obj_TextSt_Show( OBJ_STEXT far * pObject)
 {
     DISPLXY    PixelCoord;              /* coord of text parts (lines) */
     UINT8      bMode;                   /* selected display modes */
@@ -333,7 +336,7 @@ ERRCODE Obj_TextSt_Show( OBJ_TEXTST far * pObject)
  *  RETURN:         ERR_OK
  *  COMMENT:        -
  *********************************************************************** */
-ERRCODE Obj_TextSt_Init(    OBJ_TEXTST_INIT far * fpInitData )
+ERRCODE Obj_TextSt_Init(    OBJ_STEXT_INIT far * fpInitData )
 {
     fpInitData->fpObject->eType           = OBJT_TXT;
     fpInitData->fpObject->Org.wXPos       = fpInitData->wOrgPosX;
@@ -2102,7 +2105,7 @@ ERRCODE Obj_Select_Show( OBJ_SELECT far * fpObject, UINT8 bUpdateMode )
  *  RETURN:         error code
  *  COMMENT:        -
  *********************************************************************** */
-ERRCODE Obj_Select_Init(  OBJ_SELECT_INIT far * fpInitData )
+ERRCODE Obj_Select_Init(  OBJ_SLCT_INIT far * fpInitData )
 {
     /* descr + text + border fits into window? */
     if ( (strlen(fpInitData->szDescr) + fpInitData->bSelectWidth ) > fpInitData->bWindWidth)

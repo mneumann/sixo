@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.8  2012/02/21 20:58:15  tuberkel
+ * all Setdevice ObjectNames reviewed
+ *
  * Revision 3.7  2012/02/15 07:32:43  tuberkel
  * Objects-API reviewed (no functional changes)
  *
@@ -235,23 +238,23 @@ extern TIME_TYPE_LD  EngRunTime_All;
 /* device static objects */
 static DEVDATA      MonitorScreenDev;       /* this device */
 
-static OBJ_TEXTST   BattObj;
+static OBJ_STEXT   BattObj;
 static char         szBatt[STAT_TXT_LEN];
-static OBJ_TEXTST   DevTempObj;
+static OBJ_STEXT   DevTempObj;
 static char         szDevTemp[STAT_TXT_LEN];
-static OBJ_TEXTST   AirTempObj;
+static OBJ_STEXT   AirTempObj;
 static char         szAirTemp[STAT_TXT_LEN];
-static OBJ_TEXTST   OilTempObj;
+static OBJ_STEXT   OilTempObj;
 static char         szOilTemp[STAT_TXT_LEN];
-static OBJ_TEXTST   WatTempObj;
+static OBJ_STEXT   WatTempObj;
 static char         szWatTemp[STAT_TXT_LEN];
-static OBJ_TEXTST   RPMmaxObj;
+static OBJ_STEXT   RPMmaxObj;
 static char         szRPMmax[STAT_TXT_LEN];
-static OBJ_TEXTST   VmaxObj;
+static OBJ_STEXT   VmaxObj;
 static char         szVmax[STAT_TXT_LEN];
-static OBJ_TEXTST   RunTimeObj;
+static OBJ_STEXT   RunTimeObj;
 static char         szRunTime[STAT_TXT_LEN];
-static OBJ_TEXTST   StatusObj;
+static OBJ_STEXT   StatusObj;
 
 extern char         szSurvGlobalState[VEHSTATE_TXT_LEN];    /* vehicle state string */
 
@@ -261,7 +264,7 @@ extern char         szSurvGlobalState[VEHSTATE_TXT_LEN];    /* vehicle state str
 
 
 
-static OBJ_TEXTST_INIT TextObjInit[] =
+static OBJ_STEXT_INIT TextObjInit[] =
 {
 
 #if(BIKE_MOTOBAU==1)
@@ -294,7 +297,7 @@ static OBJ_TEXTST_INIT TextObjInit[] =
 
 #endif // BIKE_MOTOBAU
 };
-#define TEXTOBJECTLISTSIZE   (sizeof(TextObjInit)/sizeof(OBJ_TEXTST_INIT))
+#define STEXTOBJ_INITLISTSIZE   (sizeof(TextObjInit)/sizeof(OBJ_STEXT_INIT))
 
 
 /* this devices object focus handling - list of all objects */
@@ -353,7 +356,7 @@ ERRCODE MonDev_Init(void)
     MonitorScreenDev.fScreenInit  = FALSE;
 
     /* initialize all objects of any type */
-    DevObjInit( &MonitorScreenDev, (void far *)TextObjInit,   TEXTOBJECTLISTSIZE,     OBJT_TXT   );
+    DevObjInit( &MonitorScreenDev, (void far *)TextObjInit,   STEXTOBJ_INITLISTSIZE,     OBJT_TXT   );
 
     // initialize this devices objects list
     MonitorScreenDev.Objects.ObjList       = ObjectList;
