@@ -74,6 +74,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.1  2012/02/21 21:13:57  tuberkel
+ * Makros renamed
+ *
  * Revision 3.0  2010/11/07 14:00:50  tuberkel
  * V30 Preparations - no changes
  *
@@ -741,13 +744,13 @@ INT16 AnaInGetOilTemperature( void )
  *                  szResult - target string buffer
  *                  cbResult - target string buffer[ANAIN_CB_FORMAT]
  *  RETURN:         -
- *  COMMENT:        if the given value is invalid, RESTXT_NOTAVAIL is returned
+ *  COMMENT:        if the given value is invalid, RESTXT_ANALOG_NA is returned
  *********************************************************************** */
 void AnaInFormatVoltage( UINT16 usVolts, STRING szResult, size_t cbResult)
 {
    // check: sensor signal available?
    if( usVolts == ANAIN_INVALID_U ){
-      strncpy( szResult, RESTXT_NOTAVAIL, cbResult );
+      strncpy( szResult, RESTXT_ANALOG_NA, cbResult );
       szResult[cbResult-1] = '\0';
       return;
    }
@@ -763,21 +766,21 @@ void AnaInFormatVoltage( UINT16 usVolts, STRING szResult, size_t cbResult)
  *  PARAMETER:      temp     - temperature value
  *                  cbResult - target string buffer[ANAIN_CB_FORMAT]
  *  RETURN:         -
- *  COMMENT:        if the given value is invalid, RESTXT_NOTAVAIL is returned
+ *  COMMENT:        if the given value is invalid, RESTXT_ANALOG_NA is returned
  *********************************************************************** */
 void AnaInFormatTemperature( INT16 sTemp, STRING szResult, size_t cbResult )
 {
    // check: sensor signal available?
    if( sTemp == ANAIN_INVALID_S )
    {
-      strncpy( szResult, RESTXT_NOTAVAIL, cbResult );
+      strncpy( szResult, RESTXT_ANALOG_NA, cbResult );
       szResult[cbResult-1] = '\0';
    }
 
    // check: sensor signal plausible (sensor connected)?
    else if( sTemp <= ANAIN_TEMP_SENSORDETECT )
    {
-      strncpy( szResult, RESTXT_NOTCONN, cbResult );
+      strncpy( szResult, RESTXT_ANALOG_NC, cbResult );
       szResult[cbResult-1] = '\0';
    }
    // ok, format value to string

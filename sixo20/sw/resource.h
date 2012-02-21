@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.7  2012/02/21 21:15:31  tuberkel
+ * Makros renamed
+ *
  * Revision 3.6  2012/02/19 21:04:51  tuberkel
  * - Extensions-Screen reviewed
  * - Compass-Settings-Strings reduced
@@ -256,8 +259,8 @@
 
 
 /* analog input formating*/
-#define RESTXT_NOTAVAIL     "  -"  // 'not available'
-#define RESTXT_NOTCONN      "  -"  // 'not connected'
+#define RESTXT_ANALOG_NA        "  -"       // analoge value 'not available'
+#define RESTXT_ANALOG_NC        "  -"       // analoge value 'not connected'
 
 
 /* some default surveillance state levels */
