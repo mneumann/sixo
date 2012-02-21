@@ -78,6 +78,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.6  2012/02/21 22:01:56  tuberkel
+ * Compass Control/Mode/Eeprom reveiwed/fixed
+ *
  * Revision 3.5  2012/02/14 21:08:03  tuberkel
  * - #define COMPASS ==> COMPDRV
  * - Compass SystemParam moved from devFlags2 -> 3
@@ -369,7 +372,7 @@ const  LCSTATE_TYPE LapCounterState_def = 0;
 
 
 /* Compass */
-extern COMPASSCNTFL_TYPE gCompDplMode;
+extern COMPASSCNTFL_TYPE gCompassCntrl;
 static COMPASSCNTFL_TYPE gCompDplMode_cmp;
 const  COMPASSCNTFL_TYPE gCompDplMode_def   = 0;    // default: off
 

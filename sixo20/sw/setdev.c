@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.19  2012/02/21 22:01:56  tuberkel
+ * Compass Control/Mode/Eeprom reveiwed/fixed
+ *
  * Revision 3.18  2012/02/21 21:14:34  tuberkel
  * SourceCode reformated
  *
@@ -523,8 +526,10 @@ static OBJ_BOOL     BoolObj_BeepCtrl;               // complete boolean Beeper c
 
 // ----------------------------------------------------------------
 // Compass Display Mode Object:
+extern COMPASSCNTFL_TYPE    gCompassCntrl;          // Eeprom value
+
+static UINT8        bCompassDispl;                  // to support enum display mode
 static OBJ_SELECT   SlctObj_CompassD;               // compass calibration state object
-extern UINT8        gCompDplMode;                   // Eeprom value
 static const STRING pszSelectCompD[RESTXT_SET_COMPD_CNT] =
                         {   RESTXT_SET_COMPD_NA  ,
                             RESTXT_SET_COMPD_HD  ,
@@ -536,7 +541,7 @@ static const STRING pszSelectCompD[RESTXT_SET_COMPD_CNT] =
 // ----------------------------------------------------------------
 // Compass Calibration State Object (temporary while calibration mode is active):
 static OBJ_SELECT   SlctObj_CompassC;               // compass display mode object
-static UINT8        bCmpCalState;                   // to detect user pressed buttons/activity
+static UINT8        bCompassCal;                    // to detect user pressed buttons/activity
 static const STRING pszSelectCompC[RESTXT_SET_COMPC_CNT] =
                         {   RESTXT_SET_COMPC_NA   ,
                             RESTXT_SET_COMPC_WORK ,
@@ -644,8 +649,8 @@ static const OBJ_SLCT_INIT SlctObj_InitList[] =
     /* ------------------ ------ ------ ------------ ----- ----------------------------- ------------------     --------------- ---------------------------- ----------------  ------------------------ --------------------------------- */
     { &SlctObj_Logo,        C01,   R7,  DPLFONT_6X8,   12, (UINT8 far *)&gLogoSelection, RESTXT_SET_LOGO_CNT,   &bEditBuffer,   RESTXT_SET_LOGO_DESC,        pszSelectLogo,    RESTXT_SET_LOGO_WIDTH,   OC_DISPL | OC_SELECT | OC_EDIT   },
     /* ------------------ ------ ------ ------------ ----- ----------------------------- ------------------     --------------- ---------------------------- ----------------  ------------------------ --------------------------------- */
-    { &SlctObj_CompassD,    C11,   R2,  DPLFONT_6X8,    5, (UINT8 far *)&gCompDplMode,   RESTXT_SET_COMPD_CNT,  &bEditBuffer,   RESTXT_SET_COMPD_DESC,       pszSelectCompD,   RESTXT_SET_COMPD_WIDTH,  OC_DISPL | OC_SELECT | OC_EDIT   },
-    { &SlctObj_CompassC,    C17,   R2,  DPLFONT_6X8,    5, (UINT8 far *)&bCmpCalState,   RESTXT_SET_COMPC_CNT,  &bEditBuffer,   RESTXT_SET_COMPC_DESC,       pszSelectCompC,   RESTXT_SET_COMPC_WIDTH,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &SlctObj_CompassD,    C11,   R2,  DPLFONT_6X8,    5, (UINT8 far *)&bCompassDispl,  RESTXT_SET_COMPD_CNT,  &bEditBuffer,   RESTXT_SET_COMPD_DESC,       pszSelectCompD,   RESTXT_SET_COMPD_WIDTH,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &SlctObj_CompassC,    C17,   R2,  DPLFONT_6X8,    5, (UINT8 far *)&bCompassCal,    RESTXT_SET_COMPC_CNT,  &bEditBuffer,   RESTXT_SET_COMPC_DESC,       pszSelectCompC,   RESTXT_SET_COMPC_WIDTH,  OC_DISPL | OC_SELECT | OC_EDIT   },
     /* ------------------ ------ ------ ------------ ----- ----------------------------- ------------------     --------------- ---------------------------- ----------------  ------------------------ --------------------------------- */
 
 };
@@ -1357,19 +1362,26 @@ void SetDev_CheckChanges_Extension( void )
     // EXTENSIONS SETTINGS
     // ============================================================
 
-    // CompassCalib State in edit mode? -----------------
-    if (SlctObj_CompassD.State.bits.fEditActive == TRUE )    // edit mode active?
+    // -------------------------------------------------------
+    // Compass Display Mode was changed ?
+    if ( SlctObj_CompassD.State.bits.fEditActive == FALSE ) // edit mode NOT active?
+    {   gCompassCntrl.flags.CompassDisplay = bCompassDispl; // just assure eeprom value equals local copy
+    }
+
+    // -------------------------------------------------------
+    // Compass Calibration State in edit mode?
+    if (SlctObj_CompassC.State.bits.fEditActive == TRUE )    // edit mode active?
     {
-        if(bEditBuffer  < bCmpCalState)           // decr. state NOT allowed! -> fix old value!
-        {   bEditBuffer = bCmpCalState;
+        if(bEditBuffer  < bCompassCal)           // decr. state NOT allowed! -> fix old value!
+        {   bEditBuffer = bCompassCal;
         }
-        else if(bEditBuffer > bCmpCalState+1)    // incr. >1 NOT allowed! -> limit new value!
-        {   bEditBuffer = bCmpCalState+1;
+        else if(bEditBuffer > bCompassCal+1)    // incr. >1 NOT allowed! -> limit new value!
+        {   bEditBuffer = bCompassCal+1;
         }
-        else if (bEditBuffer != bCmpCalState)    // still a user activity detected?
+        else if (bEditBuffer != bCompassCal)    // still a user activity detected?
         {
-            bCmpCalState++;                      // should indicate the real compass driver calibration state
-            switch(bCmpCalState)
+            bCompassCal++;                      // should indicate the real compass driver calibration state
+            switch(bCompassCal)
             {   case 0: ODS( DBG_SYS, DBG_INFO, "Waiting for Compass Calibration start.."); break;
                 case 1: ODS( DBG_SYS, DBG_INFO, "Step 1: Hold compass horizontal and keep still!"); break;
                 case 2: ODS( DBG_SYS, DBG_INFO, "Step 2: Multiple rotate compass horizontal!"); break;
@@ -1386,11 +1398,11 @@ void SetDev_CheckChanges_Extension( void )
     }
     else    // currently not (no longer) in edit mode
     {   // check for changed value after editing finished with ESC / OK
-        if (bCmpCalState == 0)                      // user pressed ESC ?
+        if (bCompassCal == 0)                      // user pressed ESC ?
         {   ODS( DBG_SYS, DBG_INFO, "Calibration aborted => Reset Calibration Mode!");
             CompDrv_Cmd_Reset();                      // ==> reset calibration process!
         }
-        if (bCmpCalState < 6)                      // user OK before end 'state 6'?
+        if (bCompassCal < 6)                      // user OK before end 'state 6'?
         {   ODS( DBG_SYS, DBG_INFO, "Calibration not completed => Reset Calibration Mode!");
             CompDrv_Cmd_Reset();                      // ==> reset calibration process!
         }
@@ -1398,7 +1410,7 @@ void SetDev_CheckChanges_Extension( void )
         {   // success finished calibration state!
             ODS( DBG_SYS, DBG_INFO, "Calibration successfully completed!");
         }
-        bCmpCalState = 0;                         // reset to default state
+        bCompassCal = 0;                         // reset to default state
     }
 }
 
@@ -1578,7 +1590,7 @@ void SetDev_ValuesUpdate(void)
     if (SlctObj_CompassC.State.bits.fEditActive == FALSE)
     {   COMPDRV_HEADINFO *ptHeadingInfo;
         ptHeadingInfo = CompassGetHeadingInfo();
-        bCmpCalState  = ptHeadingInfo->ucCalState;
+        bCompassCal  = ptHeadingInfo->ucCalState;
     }
 
 }
@@ -1591,7 +1603,8 @@ void SetDev_ValuesUpdate(void)
  *                  to handle edit objects
  *  PARAMETER:      -
  *  RETURN:         -
- *  COMMENT:        -
+ *  COMMENT:        WE HERE HANDLE ONLY THOSE DATA, WHICH CAN _NOT_DIRECTLY_
+ *                  BE ACCESSED BY THE EDIT OBJECT VIA AN ADDRESS!
  *********************************************************************** */
 void SetDev_ValuesInit(void)
 {
@@ -1607,8 +1620,9 @@ void SetDev_ValuesInit(void)
     // bike type
     LocalBikeType   = gBikeType;
 
-    // compass state
-    bCmpCalState    = 0;
+    // compass state & display mode
+    bCompassCal     = 0;
+    bCompassDispl   = gCompassCntrl.flags.CompassDisplay;
 
     // time/date
     TimeDate_GetDate( &RTCDateCopy );       // get current date

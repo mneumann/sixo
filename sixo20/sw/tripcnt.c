@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.8  2012/02/21 22:01:56  tuberkel
+ * Compass Control/Mode/Eeprom reveiwed/fixed
+ *
  * Revision 3.7  2012/02/21 20:58:15  tuberkel
  * all Setdevice ObjectNames reviewed
  *
@@ -222,7 +225,7 @@ extern DEVFLAGS3_TYPE   gDeviceFlags3;              /* device parameter set 3 */
 extern BIKE_TYPE        gBikeType;                  /* bike type selecetion */
 
 /* compass display mode */
-COMPASSCNTFL_TYPE gCompDplMode;
+COMPASSCNTFL_TYPE gCompassCntrl;
 
 /* external bitmaps */
 extern const unsigned char far * rgCompassTop144x8[];

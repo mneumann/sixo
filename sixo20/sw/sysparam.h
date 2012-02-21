@@ -69,6 +69,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.7  2012/02/21 22:01:56  tuberkel
+ * Compass Control/Mode/Eeprom reveiwed/fixed
+ *
  * Revision 3.6  2012/02/14 21:08:03  tuberkel
  * - #define COMPASS ==> COMPDRV
  * - Compass SystemParam moved from devFlags2 -> 3
@@ -317,8 +320,7 @@ typedef union
     struct
     {
         unsigned char   CompassAvail:1;     /* Compass available: 1=driver active, 0: driver inactive */
-        unsigned char   CompassShowHead:1; /* Show Compass Heading in TripCounter: 1=show, 0=off */
-        unsigned char   CompassShowBar:1;   /* Show Compass Bargraph in TripCounter: 1=show, 0=off */
+        unsigned char   CompassDisplay:2;   /* Compass Display Mode (none/heading7graph/head+graph) */
         unsigned char   reserved:5;         /* reserved */
     } flags;
 } COMPASSCNTFL_TYPE;

@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.10  2012/02/21 22:01:56  tuberkel
+ * Compass Control/Mode/Eeprom reveiwed/fixed
+ *
  * Revision 3.9  2012/02/19 21:04:51  tuberkel
  * - Extensions-Screen reviewed
  * - Compass-Settings-Strings reduced
@@ -275,15 +278,15 @@
 // Compass objects
 #define RESTXT_SET_COMPASS          "Kompass"
 
-#define RESTXT_SET_COMPD_DESC       "A:"    // COMPD: Compass Display Mode: 3 chars, right aligned!
+#define RESTXT_SET_COMPD_DESC       "A:"    // Kompass Anzeige Mode (3 chars, right aligned!)
 #define RESTXT_SET_COMPD_NA         "nv "   // nicht verfuegbar
-#define RESTXT_SET_COMPD_HD         "K  "   // nur Kurs im TripCounter
-#define RESTXT_SET_COMPD_GR         "G  "   // nur Graph im TripCounter
+#define RESTXT_SET_COMPD_HD         " K "   // nur Kurs im TripCounter
+#define RESTXT_SET_COMPD_GR         " G "   // nur Graph im TripCounter
 #define RESTXT_SET_COMPD_HDGR       "K+G"   // Kurs + Graph im TripCounter
 
-#define RESTXT_SET_COMPC_DESC       "K:"    // COMPC: Compass Calibration Mode: 3 chars, right aligned!
-#define RESTXT_SET_COMPC_NA         "nv "   // Modul
-#define RESTXT_SET_COMPC_WORK       "akt"   // Modul
+#define RESTXT_SET_COMPC_DESC       "K:"    // Kompass Kalibriering (3 chars, right aligned!)
+#define RESTXT_SET_COMPC_NA         "nv "   // Modul nicht verfügbar
+#define RESTXT_SET_COMPC_WORK       "akt"   // Modul aktiv (nicht kalibrierbar)
 #define RESTXT_SET_COMPC_HHOLD      "H-H"   // Modul horizontal halten
 #define RESTXT_SET_COMPC_HTURN      "H-D"   // Modul horizontal drehen
 #define RESTXT_SET_COMPC_HSAVE      "H-S"   // Modul horizontal sichern
