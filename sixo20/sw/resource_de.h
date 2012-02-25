@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.11  2012/02/25 16:48:30  tuberkel
+ * 5 new Objects in ExtensionsScreen
+ *
  * Revision 3.10  2012/02/21 22:01:56  tuberkel
  * Compass Control/Mode/Eeprom reveiwed/fixed
  *
@@ -133,7 +136,9 @@
 /* language decriptor */
 #define RESTXT_LANG            "DE"
 
+/* =============================================== */
 /* main device strings */
+/* =============================================== */
 #define RESTXT_SPEED_DESC       "km/h"
 #define RESTXT_SPEEDA_DESC      "km"
 #define RESTXT_SPEEDB_DESC      "h"
@@ -147,7 +152,9 @@
 #define RESTXT_SPEEDMAX_UNIT    "km/h"
 
 
+/* =============================================== */
 /* monitor device resources */
+/* =============================================== */
 #define RESTXT_MON_TEMP_DEV        "Ger\xe4t   "
 #define RESTXT_MON_TEMP_AIR        "Luft    "
 #define RESTXT_MON_BATT            "Batt.   "
@@ -155,8 +162,9 @@
 #define RESTXT_MON_TEMP_OIL        "\xd6l      "
 #define RESTXT_MON_VOLTAGE         "Batt.   "
 
-
+/* =============================================== */
 /* statistic device resources */
+/* =============================================== */
 #define RESTXT_STAT_BATT            "Batterie "
 #define RESTXT_STAT_BATT_DESC       "V"
 #define RESTXT_STAT_TEMP_AIR        "Luft "
@@ -172,11 +180,13 @@
 #define RESTXT_STAT_H_DESC          "h"
 
 
+/* =============================================== */
 /* vehicle/device parameter state texts;
  * NOTE: if you add one here, also add the eSURVID_ value in device.h,
  * as well as an assignment in MonDev_Init()
  *  Note: (max 4+17 chars),
  *  E.g.: "1/1    <8 l. Sprit!  */
+ /* =============================================== */
                                 //+....!....!....!..+..+..+
 #define RESTXT_STATE_ALLRIGHT     "   \xbb Alles ok \xab  "      // 00 - special case: 21 char len
 
@@ -272,9 +282,9 @@
 #define RESTXT_SET_RPMFL_UNIT       "U/Min"
 
 
-// ---------------------------------------------------
+/* =============================================== */
 // Extensions 1 Screen              ....!....!....!....!.
-
+/* =============================================== */
 // Compass objects
 #define RESTXT_SET_COMPASS          "Kompass"
 
@@ -294,9 +304,17 @@
 #define RESTXT_SET_COMPC_VTURN      "V-D"   // Modul vertikal   drehen
 #define RESTXT_SET_COMPC_VSAVE      "V-S"   // Modul vertikal   sichern
 
+#define RESTXT_SET_COOLRIDE         "Coolride"
+#define RESTXT_SET_FUELSENSOR       "Tanksensor"
+#define RESTXT_SET_GEARINFO         "Ganganzeige"
+#define RESTXT_SET_GPS              "GPS-Maus"
+#define RESTXT_SET_CHAINOILER       "Kette"
 
 
 
+/* =============================================== */
+/* time/date strings */
+/* =============================================== */
 
 /* 'day of week' strings */
 #define RESTXT_DOWSHORT_MON     "Mo"

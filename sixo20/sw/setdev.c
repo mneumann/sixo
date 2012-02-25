@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.20  2012/02/25 16:48:30  tuberkel
+ * 5 new Objects in ExtensionsScreen
+ *
  * Revision 3.19  2012/02/21 22:01:56  tuberkel
  * Compass Control/Mode/Eeprom reveiwed/fixed
  *
@@ -523,11 +526,12 @@ static OBJ_BOOL     BoolObj_BeepCtrl;               // complete boolean Beeper c
 
 // ----------------------------------------------------------------
 // EXTENSIONS Settings objects
+// ----------------------------------------------------------------
 
 // ----------------------------------------------------------------
+// COMPASS OJECTS
 // Compass Display Mode Object:
 extern COMPASSCNTFL_TYPE    gCompassCntrl;          // Eeprom value
-
 static UINT8        bCompassDispl;                  // to support enum display mode
 static OBJ_SELECT   SlctObj_CompassD;               // compass calibration state object
 static const STRING pszSelectCompD[RESTXT_SET_COMPD_CNT] =
@@ -537,8 +541,6 @@ static const STRING pszSelectCompD[RESTXT_SET_COMPD_CNT] =
                             RESTXT_SET_COMPD_HDGR
                         };
 
-
-// ----------------------------------------------------------------
 // Compass Calibration State Object (temporary while calibration mode is active):
 static OBJ_SELECT   SlctObj_CompassC;               // compass display mode object
 static UINT8        bCompassCal;                    // to detect user pressed buttons/activity
@@ -552,13 +554,23 @@ static const STRING pszSelectCompC[RESTXT_SET_COMPC_CNT] =
                             RESTXT_SET_COMPC_VTURN,
                             RESTXT_SET_COMPC_VSAVE
                         };
-
 // Compass Available Control
 static OBJ_BOOL     BoolObj_CompAvail;              // complete boolean Compass main switch Object
 BOOL                gfCompAvail;                    // local value
 
 
+// ----------------------------------------------------------------
 
+static OBJ_BOOL BoolObj_CoolrAvail;
+BOOL            gfCoolrAvail;
+static OBJ_BOOL BoolObj_FuelSAvail;
+BOOL            gfFuelSensAvail;
+static OBJ_BOOL BoolObj_GearIAvail;
+BOOL            gfGearInfoAvail;
+static OBJ_BOOL BoolObj_GPSAvail;
+BOOL            gfGPSAvail;
+static OBJ_BOOL BoolObj_ChainOAvail;
+BOOL            gfChainOilerAvail;
 
 
 // ----------------------------------------------------------------
@@ -624,7 +636,12 @@ static const OBJ_BOOL_INIT BoolObj_InitList[] =
     {&BoolObj_ScrDmp,      C16,  R6, DPLFONT_6X8,    6,  &gfHardcopy,         &fEditBuffer, RESTXT_SET_HARDCOPY,    RESTXT_EMPTY_TXT,        OC_SCREENDUMP_OPT              },
     {&BoolObj_EeprRst,     C16,  R7, DPLFONT_6X8,    6,  &gfEepromReset,      &fEditBuffer, RESTXT_SET_RESETEEPROM, RESTXT_EMPTY_TXT,        OC_DISPL | OC_SELECT | OC_EDIT },
     /*-------------------- ---- ---- ------------ -----  -------------------- ------------- ----------------------- -----------------------  --------------------------------- */
-    {&BoolObj_CompAvail,   C01,  R2, DPLFONT_6X8,   21,  &gfCompAvail,        &fEditBuffer, RESTXT_EMPTY_TXT,       RESTXT_SET_COMPASS,      OC_DISPL | OC_SELECT | OC_EDIT },
+    {&BoolObj_CompAvail,   C01,  R2, DPLFONT_6X8,   10,  &gfCompAvail,        &fEditBuffer, RESTXT_EMPTY_TXT,       RESTXT_SET_COMPASS,      OC_DISPL | OC_SELECT | OC_EDIT },
+    {&BoolObj_CoolrAvail,  C01,  R3, DPLFONT_6X8,   11,  &gfCoolrAvail,       &fEditBuffer, RESTXT_EMPTY_TXT,       RESTXT_SET_COOLRIDE,     OC_DISPL | OC_SELECT | OC_EDIT },
+    {&BoolObj_FuelSAvail,  C01,  R4, DPLFONT_6X8,   12,  &gfFuelSensAvail,    &fEditBuffer, RESTXT_EMPTY_TXT,       RESTXT_SET_FUELSENSOR,   OC_DISPL | OC_SELECT | OC_EDIT },
+    {&BoolObj_GearIAvail,  C01,  R5, DPLFONT_6X8,   21,  &gfGearInfoAvail,    &fEditBuffer, RESTXT_EMPTY_TXT,       RESTXT_SET_GEARINFO,     OC_DISPL | OC_SELECT | OC_EDIT },
+    {&BoolObj_GPSAvail,    C01,  R6, DPLFONT_6X8,   21,  &gfGPSAvail,         &fEditBuffer, RESTXT_EMPTY_TXT,       RESTXT_SET_GPS,          OC_DISPL | OC_SELECT | OC_EDIT },
+    {&BoolObj_ChainOAvail, C01,  R7, DPLFONT_6X8,    8,  &gfChainOilerAvail,  &fEditBuffer, RESTXT_EMPTY_TXT,       RESTXT_SET_CHAINOILER,   OC_DISPL | OC_SELECT | OC_EDIT },
     /*-------------------- ---- ---- ------------ -----  -------------------- ------------- ----------------------- -----------------------  --------------------------------- */
 };
 #define BOOLOBJ_INITLISTSIZE   (sizeof(BoolObj_InitList)/sizeof(OBJ_BOOL_INIT))
@@ -714,7 +731,7 @@ static const OBJ_NUM_INIT NumObj_InitList[] =
 // Vehicle-Settings - Screen Focus Order
 static const void far * ObjectList_Veh[] =
 {
-    (void far *) &STxtObj_HL_Vehicle,   // 00
+    (void far *) &STxtObj_HL_Vehicle,   // 0 - Headline (not selectable)
     (void far *) &SlctObj_BikeType,     // 01
     (void far *) &NumObj_CCFNom,        // 02
     (void far *) &NumObj_CCFDenom,      // 03
@@ -737,7 +754,7 @@ static const void far * ObjectList_Veh[] =
 // Device-Settings - Screen Focus Order
 static const void far * ObjectList_Dev[] =
 {
-    (void far *) &STxtObj_HL_Device,    // 00
+    (void far *) &STxtObj_HL_Device,    // 0 - Headline (not selectable)
     (void far *) &NumObj_ClkHour,       // 01
     (void far *) &NumObj_ClkMin,        // 02
     (void far *) &NumObj_ClkSec,        // 03
@@ -762,7 +779,7 @@ static const void far * ObjectList_Dev[] =
 // LED/LCD Settings Screen Tab order
 static const void far * ObjectList_Out[] =
 {
-    (void far *) &STxtObj_HL_Out,       // 0
+    (void far *) &STxtObj_HL_Out,       // 0 - Headline (not selectable)
     (void far *) &STxtObj_Lcd_Desc,     // 1
     (void far *) &NumObj_BacklOL,       // 2
     (void far *) &NumObj_BacklLvl,      // 3
@@ -779,10 +796,15 @@ static const void far * ObjectList_Out[] =
 // Compass Screen Tab order
 static const void far * ObjectList_Ext1[] =
 {
-    (void far *) &STxtObj_HL_Ext1,      // 0 (not selectable)
+    (void far *) &STxtObj_HL_Ext1,      // 0 - Headline (not selectable)
     (void far *) &BoolObj_CompAvail,    // 1
     (void far *) &SlctObj_CompassD,     // 2
     (void far *) &SlctObj_CompassC,     // 3
+    (void far *) &BoolObj_CoolrAvail,   // 4
+    (void far *) &BoolObj_FuelSAvail,   // 5
+    (void far *) &BoolObj_GearIAvail,   // 6
+    (void far *) &BoolObj_GPSAvail,     // 7
+    (void far *) &BoolObj_ChainOAvail   // 8
 };
 #define OBJLIST_EXT1_CNT (sizeof(ObjectList_Ext1)/sizeof(OBJ_STATE)/sizeof(void far *))
 
