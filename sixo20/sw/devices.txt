@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 1.11  2012/02/25 21:30:16  tuberkel
+ * Draft 'Warnings-Settings'
+ *
  * Revision 1.10  2012/02/25 21:17:44  tuberkel
  * Draft 'Warnings-Settings'
  *
@@ -143,9 +146,8 @@
 // |Fzg:999999km   __100h|  |TripC-kurz:^   Sum:[]|  |    Kontrast:      44|
 // |Srv:112500km   _1024h|  |Sprache:  DE   Sim:[]|  |LED:Helligkeit:     0|
 // |Benzin:24.5l  05.6l/h|  |Metrik:   km   Bmp:[]|  |    Warnmodus:   _Std|
-// |Logo:____BMW     0.0s|  |DbgOut: 0x00   Rst:[]|  |    Schaltbl.:  10200|
+// |Logo:____BMW     0.0s|  |DbgOut: 0x00   Rst:[]|  |    RPM-H:  O:1 10200|  <== !!! Neu
 // +----.----.----.----.-+  +----.----.----.----.-+  +----.----.----.----.-+
-
 
 
 
@@ -160,8 +162,15 @@
 // |Logo:____BMW     5.5s|  |DbgOut: 0xff   Def:[]|  |    Schaltbl.:  10200|  |[]GPS-Maus           |
 // +----.----.----.----.-+  +----.----.----.----.-+  +----.----.----.----.-+  +----.----.----.----.-+
 
-
-
+// +----.----.----.----.-+
+// |>> MENU              |
+// |  Fahrzeug           |
+// |  Gerät              |
+// |  LCD/LED            |
+// |  Erweiterungen      |
+// |  Warnungen          |
+// |  Instrumente        |
+// +----.----.----.----.-+
 
 // +----.----.----.----.-+  +----.----.----.----.-+  +----.----.----.----.-+
 // |>> KOMPASS          ^|  |>> INSTRUMENTE     <^|  |>> GANGANZEIGE     v^|
@@ -195,7 +204,7 @@
 // |I:OilSw  0H|I:OilSwitch  2000rpm|
 // |I:Ständ  1L|-:BattLow   <10,5  V|
 // |-:EngDef 0L|-:AltwLow   < 8,0  V|
-// |-:ElcDef 0L|-:                  |
+// |-:EltDef 0L|-:                  |
 // |-:         |-:                  |
 // +----.----!----.----!----.----!--+
 
