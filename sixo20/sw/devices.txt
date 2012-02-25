@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 1.10  2012/02/25 21:17:44  tuberkel
+ * Draft 'Warnings-Settings'
+ *
  * Revision 1.9  2012/02/25 20:14:35  tuberkel
  * - All FuelSensor Settings available
  * - Tab-order rearranged
@@ -181,13 +184,29 @@
 // +----.----.----.----.-+  +----.----.----.----.-+  +----.----.----.----.-+
 
 
+// =============================================================
+// WARNUNGEN - 4x6 Font (32x10 Zeichen)
+// +----.----!----.----!----.----!--+
+// |I:Fuel8  0L|I:EngineCold   50 °C|
+// |W:Fuel4  1L|-:Glaced   -2°..2 °C|
+// |E:ABSDef 2H|E:OilHot      150 °C|
+// |-:OilHot 3H|E:WaterHot    110 °C|
+// |E:WatHot 1L|W:BattHigh  >15,5  V|
+// |I:OilSw  0H|I:OilSwitch  2000rpm|
+// |I:Ständ  1L|-:BattLow   <10,5  V|
+// |-:EngDef 0L|-:AltwLow   < 8,0  V|
+// |-:ElcDef 0L|-:                  |
+// |-:         |-:                  |
+// +----.----!----.----!----.----!--+
+
+
 
 // =============================================================
 // STATISTICSDEVICE (not yet realized)
 
-// Verbrauchsstatistik - 4x6 Font (32x10 Zeichen) - 8 Zeilen - 8 Byte/Eintrag = 64 Byte EEPROM
+// VERBRAUCHSSTATISTIK - 4x6 Font (32x10 Zeichen) - 8 Zeilen - 8 Byte/Eintrag = 64 Byte EEPROM
 // +----.----!----.----!----.----!--+
-// |VERBRAUCH:     | km   | L. |lhkm|
+// |VERBRAUCH:     |  km  | L. |lhkm|
 // | 1|13.12. 13:12| 312,2|24,2|7,51|
 // | 2|14.12. 09:45|   7,8| 1,0|6,91|
 // | 3|15.12. 16:10|  18,6|18,2|7,82|
@@ -196,10 +215,10 @@
 // | 6|--.--. --:--|      |    |    |
 // | 7|--.--. --:--|      |    |    |
 // | 8|--.--. --:--|      |    |    |
-// | 2456,5 km  523 L.  8,45 l/hkm  |
+// | 2456,5 km  523 L.  8,45 l/hkm  |   Gesamtdurchschnitt
 // +----.----!----.----!----.----!--+
 
-// Tageetappen - 4x6 Font (32x10 Zeichen) - 9 Zeilen - 5 Byte/Eintrag - = 45 Byte EEPROM
+// TAGESETAPPEN - 4x6 Font (32x10 Zeichen) - 9 Zeilen - 5 Byte/Eintrag - = 45 Byte EEPROM
 // +----.----!----.----!----.----!--+
 // |ETAPPEN:     km   |   h   | km/h|
 // | 1|13.12.| 1312,2 |  12,5 | 75,5|
