@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 1.8  2012/02/25 17:25:05  tuberkel
+ * All Coolride Settings available
+ *
  * Revision 1.7  2012/02/25 16:48:30  tuberkel
  * 5 new Objects in ExtensionsScreen
  *
@@ -143,7 +146,7 @@
 // +----.----.----.----.-+  +----.----.----.----.-+  +----.----.----.----.-+  +----.----.----.----.-+
 // |>> FAHRZEUG         v|  |>> GERÄT           v^|  |>> LCD/LED         v^|  |>> ERWEITERUNGEN    ^|
 // |Typ:  R100GS  ZKF:1/1|  |Zeit: 13:24:25 K:±200|  |LCD:Lichtschwelle:  7|  |[]Kompass A:K+G K:V-S|
-// |Rad:  2200mm   I/U:01|  |Datum:24.12.04 Smz:[]|  |    Helligkeit:    64|  |[]Coolride In:0 Out:1|
+// |Rad:  2200mm   I/U:01|  |Datum:24.12.04 Smz:[]|  |    Helligkeit:    64|  |[]Coolride    M:0 T:1|
 // |Fzg:112500km   _1024h|  |TripC-kurz:^   Sum:[]|  |    Kontrast:      36|  |[]Tanksensor _1000I/l|
 // |Srv:120000km   _1000h|  |Sprache:  DE   Sim:[]|  |LED:Helligkeit:     4|  |[]Ganganzeige  M:auto|
 // |Benzin:24,5l  10,2l/h|  |Metrik:   mi   Bmp:[]|  |    WarnModus:   SIxO|  |[]GPS-Maus           |

@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.21  2012/02/25 17:25:05  tuberkel
+ * All Coolride Settings available
+ *
  * Revision 3.20  2012/02/25 16:48:30  tuberkel
  * 5 new Objects in ExtensionsScreen
  *
@@ -353,7 +356,10 @@ static OBJ_NUM      NumObj_FuelCons;                // complete number object
 // Backlight objects:
 extern DPLFLAGS_TYPE    gDisplayFlags;              // orginal display values
 
+
 // BacklightOnLevel: 'an/aus/auto: 0..63'
+static OBJ_STEXT    STxtObj_Lcd_Desc;
+
 static OBJ_NUM      NumObj_BacklOL;                 // complete backlight object
 static UINT8        bBacklOnLevel;                  // copy of gDisplayFlags.flags.BacklOnLevel as reference
 
@@ -365,13 +371,14 @@ static UINT8        bBacklLev;                      // copy of gDisplayFlags.fla
 static OBJ_NUM      NumObj_ContrLvl;                // complete contrast level object
 static UINT8        bContrLev;                      // copy of gDisplayFlags.flags.ContLev as reference
 
-// LEDs Control
-static OBJ_NUM      NumObj_LEDDimm;                 // complete LED dimmer object
-static UINT8        bLEDDimmLev;                    // copy of gDisplayFlags.flags.BacklLev as reference
-
 // Display Contrast:
 static OBJ_NUM      NumObj_DbgOut;                  // complete DebugOut control object (level & module)
 extern DBGFILT_TYPE gDebugFilter;                   // original value
+
+// LEDs Control
+static OBJ_STEXT    STxtObj_Led_Desc;
+static OBJ_NUM      NumObj_LEDDimm;                 // complete LED dimmer object
+static UINT8        bLEDDimmLev;                    // copy of gDisplayFlags.flags.BacklLev as reference
 
 
 // ----------------------------------------------------------------
@@ -560,38 +567,51 @@ BOOL                gfCompAvail;                    // local value
 
 
 // ----------------------------------------------------------------
-
-static OBJ_BOOL BoolObj_CoolrAvail;
+// COOLRIDE HEATGRIP OBJECTS
+static OBJ_BOOL BoolObj_CoolrAvail;                 // main switch to enable 'Coolride' extension
+static OBJ_NUM  NumObj_CoolrIn;                     // Number of SIxO-GPI - to measure PWM of heatgrip
+static OBJ_NUM  NumObj_CoolrOut;                    // Number of SIxO-GPO - to provide Key-Action to Coolride
 BOOL            gfCoolrAvail;
+UINT8           gbCoolrGPI;
+UINT8           gbCoolrGPO;
+
+
+// ----------------------------------------------------------------
+// FUEL SENSOR OBJECTS
 static OBJ_BOOL BoolObj_FuelSAvail;
 BOOL            gfFuelSensAvail;
+
+// ----------------------------------------------------------------
+// GEARBOX OBJECTS
 static OBJ_BOOL BoolObj_GearIAvail;
 BOOL            gfGearInfoAvail;
+
+// ----------------------------------------------------------------
+// GPS MOUSE OBJECTS
 static OBJ_BOOL BoolObj_GPSAvail;
 BOOL            gfGPSAvail;
+
+// ----------------------------------------------------------------
+// CHAIN OILER OBJECTS
 static OBJ_BOOL BoolObj_ChainOAvail;
 BOOL            gfChainOilerAvail;
-
 
 // ----------------------------------------------------------------
 // other external symbols
 extern UINT16       wMilliSecCounter;               // valid values: 0h .. ffffh
 
-
+// ----------------------------------------------------------------
+// STATIC HEADLINE & OTHER TEXT OBJECTS
+static OBJ_STEXT   STxtObj_HL_Vehicle;
+static OBJ_STEXT   STxtObj_HL_Device;
+static OBJ_STEXT   STxtObj_HL_Out;
+static OBJ_STEXT   STxtObj_HL_Ext1;
 
 
 
 /* ----------------------------------------------------------- */
 /* STATIC HEADLINE & OTHER TEXT OBJECTS */
 /* ----------------------------------------------------------- */
-static OBJ_STEXT   STxtObj_HL_Vehicle;
-static OBJ_STEXT   STxtObj_HL_Device;
-static OBJ_STEXT   STxtObj_HL_Out;
-static OBJ_STEXT   STxtObj_HL_Ext1;
-
-static OBJ_STEXT   STxtObj_Led_Desc;
-static OBJ_STEXT   STxtObj_Lcd_Desc;
-
 
 static const OBJ_STEXT_INIT STxtObj_InitList[] =
 {
@@ -637,7 +657,7 @@ static const OBJ_BOOL_INIT BoolObj_InitList[] =
     {&BoolObj_EeprRst,     C16,  R7, DPLFONT_6X8,    6,  &gfEepromReset,      &fEditBuffer, RESTXT_SET_RESETEEPROM, RESTXT_EMPTY_TXT,        OC_DISPL | OC_SELECT | OC_EDIT },
     /*-------------------- ---- ---- ------------ -----  -------------------- ------------- ----------------------- -----------------------  --------------------------------- */
     {&BoolObj_CompAvail,   C01,  R2, DPLFONT_6X8,   10,  &gfCompAvail,        &fEditBuffer, RESTXT_EMPTY_TXT,       RESTXT_SET_COMPASS,      OC_DISPL | OC_SELECT | OC_EDIT },
-    {&BoolObj_CoolrAvail,  C01,  R3, DPLFONT_6X8,   11,  &gfCoolrAvail,       &fEditBuffer, RESTXT_EMPTY_TXT,       RESTXT_SET_COOLRIDE,     OC_DISPL | OC_SELECT | OC_EDIT },
+    {&BoolObj_CoolrAvail,  C01,  R3, DPLFONT_6X8,   14,  &gfCoolrAvail,       &fEditBuffer, RESTXT_EMPTY_TXT,       RESTXT_SET_COOLRIDE,     OC_DISPL | OC_SELECT | OC_EDIT },
     {&BoolObj_FuelSAvail,  C01,  R4, DPLFONT_6X8,   12,  &gfFuelSensAvail,    &fEditBuffer, RESTXT_EMPTY_TXT,       RESTXT_SET_FUELSENSOR,   OC_DISPL | OC_SELECT | OC_EDIT },
     {&BoolObj_GearIAvail,  C01,  R5, DPLFONT_6X8,   21,  &gfGearInfoAvail,    &fEditBuffer, RESTXT_EMPTY_TXT,       RESTXT_SET_GEARINFO,     OC_DISPL | OC_SELECT | OC_EDIT },
     {&BoolObj_GPSAvail,    C01,  R6, DPLFONT_6X8,   21,  &gfGPSAvail,         &fEditBuffer, RESTXT_EMPTY_TXT,       RESTXT_SET_GPS,          OC_DISPL | OC_SELECT | OC_EDIT },
@@ -715,6 +735,12 @@ static const OBJ_NUM_INIT NumObj_InitList[] =
     { &NumObj_ContrLvl,     C05,   R4,  DPLFONT_6X8,    17, &bContrLev,             &bEditBuffer,   eUCHAR, 0L,    63L,  1L, eDez,   eStep,   0, RESTXT_SET_LCD_CNT_DESC,    RESTXT_EMPTY_TXT,           2,  OC_DISPL | OC_SELECT | OC_EDIT   },
     { &NumObj_LEDDimm,      C05,   R5,  DPLFONT_6X8,    17, &bLEDDimmLev,           &bEditBuffer,   eUCHAR, 0L,     7L,  1L, eDez,   eStep,   0, RESTXT_SET_LED_DIM_DESC,    RESTXT_EMPTY_TXT,           1,  OC_DISPL | OC_SELECT             },
     { &NumObj_RPMFlash,     C05,   R7,  DPLFONT_6X8,    17, &RPM_Flash,             &wEditBuffer,   eUINT,  0L, 30000L,  0L, eDez,   eColumn, 0, RESTXT_SET_RPMFL_DESC,      RESTXT_EMPTY_TXT,           5,  OC_DISPL | OC_SELECT | OC_EDIT   },
+
+    /* EXTENSIONS SETTINGS */
+    /* fpObject           OrgX    OrgY  Font         Width  pNumber                 pWorkNumber     Type   Min  Max    Step DplType  Mode     C  zDescr                      zUnit                       L   State                              */
+    /* ------------------ ------ ------ ------------ ----- -----------------------  --------------- ------ ---- ------- --- -------  -------- - ---------------------------- --------------------------- -- ----------------------------------- */
+    { &NumObj_CoolrIn,      C15,   R3,  DPLFONT_6X8,     3, &gbCoolrGPI,            &bEditBuffer,   eUCHAR, 0L,     3L,  0L, eDez,   eColumn, 0, RESTXT_SET_COOLR_IN,        RESTXT_EMPTY_TXT,           1,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &NumObj_CoolrOut,     C19,   R3,  DPLFONT_6X8,     3, &gbCoolrGPO,            &bEditBuffer,   eUCHAR, 0L,     1L,  0L, eDez,   eColumn, 0, RESTXT_SET_COOLR_OUT,       RESTXT_EMPTY_TXT,           1,  OC_DISPL | OC_SELECT | OC_EDIT   },
 
     /* ------------------ ------ ------ ------------ ----- -----------------------  --------------- ------ ---- ------- --- ------- -------- - ------------------------ ----------------------- -- -------------------------------------------- */
 };
@@ -801,10 +827,12 @@ static const void far * ObjectList_Ext1[] =
     (void far *) &SlctObj_CompassD,     // 2
     (void far *) &SlctObj_CompassC,     // 3
     (void far *) &BoolObj_CoolrAvail,   // 4
-    (void far *) &BoolObj_FuelSAvail,   // 5
-    (void far *) &BoolObj_GearIAvail,   // 6
-    (void far *) &BoolObj_GPSAvail,     // 7
-    (void far *) &BoolObj_ChainOAvail   // 8
+    (void far *) &NumObj_CoolrIn,
+    (void far *) &NumObj_CoolrOut,
+    (void far *) &BoolObj_FuelSAvail,   //
+    (void far *) &BoolObj_GearIAvail,   //
+    (void far *) &BoolObj_GPSAvail,     //
+    (void far *) &BoolObj_ChainOAvail   //
 };
 #define OBJLIST_EXT1_CNT (sizeof(ObjectList_Ext1)/sizeof(OBJ_STATE)/sizeof(void far *))
 

@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.12  2012/02/25 17:25:05  tuberkel
+ * All Coolride Settings available
+ *
  * Revision 3.11  2012/02/25 16:48:30  tuberkel
  * 5 new Objects in ExtensionsScreen
  *
@@ -304,10 +307,16 @@
 #define RESTXT_SET_COMPC_VTURN      "V-D"   // Modul vertikal   drehen
 #define RESTXT_SET_COMPC_VSAVE      "V-S"   // Modul vertikal   sichern
 
-#define RESTXT_SET_COOLRIDE         "Coolride"
+#define RESTXT_SET_COOLRIDE         "Coolride"  // Modul verfügbar
+#define RESTXT_SET_COOLR_IN         "M:"        // Mess-Eingang:   GPI 0..3
+#define RESTXT_SET_COOLR_OUT        "T:"        // Tasten-Ausgang: GPO 0..1
+
 #define RESTXT_SET_FUELSENSOR       "Tanksensor"
+
 #define RESTXT_SET_GEARINFO         "Ganganzeige"
+
 #define RESTXT_SET_GPS              "GPS-Maus"
+
 #define RESTXT_SET_CHAINOILER       "Kette"
 
 
