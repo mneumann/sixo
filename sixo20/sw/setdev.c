@@ -68,6 +68,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.22  2012/02/25 20:14:35  tuberkel
+ * - All FuelSensor Settings available
+ * - Tab-order rearranged
+ *
  * Revision 3.21  2012/02/25 17:25:05  tuberkel
  * All Coolride Settings available
  *
@@ -578,8 +582,12 @@ UINT8           gbCoolrGPO;
 
 // ----------------------------------------------------------------
 // FUEL SENSOR OBJECTS
-static OBJ_BOOL BoolObj_FuelSAvail;
+static OBJ_BOOL BoolObj_FuelSAvail;                 // main switch to enable 'FuelSensor' extension
+static OBJ_NUM  NumObj_FuelSIn;                     // Number of SIxO-GPI - to count impulses of fuel sensor
+static OBJ_NUM  NumObj_FuelSImp;                    // Number of Impulses/Liter of fuel sensor
 BOOL            gfFuelSensAvail;
+UINT8           gbFuelSIn;
+UINT16          gwFuelSImp;
 
 // ----------------------------------------------------------------
 // GEARBOX OBJECTS
@@ -659,9 +667,9 @@ static const OBJ_BOOL_INIT BoolObj_InitList[] =
     {&BoolObj_CompAvail,   C01,  R2, DPLFONT_6X8,   10,  &gfCompAvail,        &fEditBuffer, RESTXT_EMPTY_TXT,       RESTXT_SET_COMPASS,      OC_DISPL | OC_SELECT | OC_EDIT },
     {&BoolObj_CoolrAvail,  C01,  R3, DPLFONT_6X8,   14,  &gfCoolrAvail,       &fEditBuffer, RESTXT_EMPTY_TXT,       RESTXT_SET_COOLRIDE,     OC_DISPL | OC_SELECT | OC_EDIT },
     {&BoolObj_FuelSAvail,  C01,  R4, DPLFONT_6X8,   12,  &gfFuelSensAvail,    &fEditBuffer, RESTXT_EMPTY_TXT,       RESTXT_SET_FUELSENSOR,   OC_DISPL | OC_SELECT | OC_EDIT },
-    {&BoolObj_GearIAvail,  C01,  R5, DPLFONT_6X8,   21,  &gfGearInfoAvail,    &fEditBuffer, RESTXT_EMPTY_TXT,       RESTXT_SET_GEARINFO,     OC_DISPL | OC_SELECT | OC_EDIT },
-    {&BoolObj_GPSAvail,    C01,  R6, DPLFONT_6X8,   21,  &gfGPSAvail,         &fEditBuffer, RESTXT_EMPTY_TXT,       RESTXT_SET_GPS,          OC_DISPL | OC_SELECT | OC_EDIT },
-    {&BoolObj_ChainOAvail, C01,  R7, DPLFONT_6X8,    8,  &gfChainOilerAvail,  &fEditBuffer, RESTXT_EMPTY_TXT,       RESTXT_SET_CHAINOILER,   OC_DISPL | OC_SELECT | OC_EDIT },
+    {&BoolObj_ChainOAvail, C01,  R5, DPLFONT_6X8,    8,  &gfChainOilerAvail,  &fEditBuffer, RESTXT_EMPTY_TXT,       RESTXT_SET_CHAINOILER,   OC_DISPL | OC_SELECT | OC_EDIT },
+    {&BoolObj_GearIAvail,  C01,  R6, DPLFONT_6X8,   21,  &gfGearInfoAvail,    &fEditBuffer, RESTXT_EMPTY_TXT,       RESTXT_SET_GEARINFO,     OC_DISPL | OC_SELECT | OC_EDIT },
+    {&BoolObj_GPSAvail,    C01,  R7, DPLFONT_6X8,   21,  &gfGPSAvail,         &fEditBuffer, RESTXT_EMPTY_TXT,       RESTXT_SET_GPS,          OC_DISPL | OC_SELECT | OC_EDIT },
     /*-------------------- ---- ---- ------------ -----  -------------------- ------------- ----------------------- -----------------------  --------------------------------- */
 };
 #define BOOLOBJ_INITLISTSIZE   (sizeof(BoolObj_InitList)/sizeof(OBJ_BOOL_INIT))
@@ -701,7 +709,7 @@ static const OBJ_SLCT_INIT SlctObj_InitList[] =
 static const OBJ_NUM_INIT NumObj_InitList[] =
 {
     /* VEHICLE SETTINGS */
-    /* fpObject           OrgX    OrgY  Font         Width  pNumber                 pWorkNumber     Type   Min  Max    Step DplType  Mode     C  zDescr                      zUnit                       L   State                              */
+    /* fpObject           OrgX    OrgY  Font         Width  pNumber                 pWorkNumber     Type   Min  Max    Step DplType  Mode     C  zDescr                      zUnit                       L   Capabilities                     */
     /* ------------------ ------ ------ ------------ ----- -----------------------  --------------- ------ ---- ------- --- -------  -------- - ---------------------------- --------------------------- -- ----------------------------------- */
     { &NumObj_CCFNom,       C15,   R2,  DPLFONT_6X8,     6, &CCFNom,                &bEditBuffer,   eUCHAR, 1L,     9L,  0L, eDez,   eColumn, 0, RESTXT_SET_CCFNOM_DESC,     RESTXT_SET_CCFNOM_UNIT,     1,  OC_DISPL | OC_SELECT | OC_EDIT   },
     { &NumObj_CCFDenom,     C21,   R2,  DPLFONT_6X8,     1, &CCFDenom,              &bEditBuffer,   eUCHAR, 1L,     9L,  0L, eDez,   eColumn, 0, RESTXT_EMPTY_TXT,           RESTXT_EMPTY_TXT,           1,  OC_DISPL | OC_SELECT | OC_EDIT   },
@@ -716,7 +724,7 @@ static const OBJ_NUM_INIT NumObj_InitList[] =
     { &NumObj_LogoDelay,    C18,   R7,  DPLFONT_6X8,     4, &gbLogoDelay,           &bEditBuffer,   eUCHAR, 0L,    99L,  0L, eDez,   eColumn, 1, "",                         RESTXT_SET_LOGODELAY_UNIT,  3,  OC_DISPL | OC_SELECT | OC_EDIT   },
 
     /* DEVICE SETTINGS */
-    /* fpObject           OrgX    OrgY  Font         Width  pNumber                 pWorkNumber     Type   Min  Max    Step DplType  Mode     C  zDescr                      zUnit                       L   State                              */
+    /* fpObject           OrgX    OrgY  Font         Width  pNumber                 pWorkNumber     Type   Min  Max    Step DplType  Mode     C  zDescr                      zUnit                       L   Capabilities                     */
     /* ------------------ ------ ------ ------------ ----- -----------------------  --------------- ------ ---- ------- --- -------  -------- - ---------------------------- --------------------------- -- ----------------------------------- */
     { &NumObj_ClkHour,      C01,   R2,  DPLFONT_6X8,     8, &bHour,                 &bEditBuffer,   eUCHAR, 0L,    23L,  0L, eDez,   eColumn, 0, RESTXT_SET_RTC_TIME,        RESTXT_EMPTY_TXT,           2,  OC_DISPL | OC_SELECT | OC_EDIT   },
     { &NumObj_ClkMin,       C09,   R2,  DPLFONT_6X8,     3, &bMin,                  &bEditBuffer,   eUCHAR, 0L,    59L,  0L, eDez,   eColumn, 0, RESTXT_TIMESEPERATOR,       RESTXT_EMPTY_TXT,           2,  OC_DISPL | OC_SELECT | OC_EDIT   },
@@ -728,7 +736,7 @@ static const OBJ_NUM_INIT NumObj_InitList[] =
     { &NumObj_DbgOut,       C01,   R7,  DPLFONT_6X8,    12, &gDebugFilter,          &bEditBuffer,   eUCHAR, 0L,   255L,  0L, eHex,   eColumn, 0, RESTXT_DBGOUTDESCR,         RESTXT_EMPTY_TXT,           2,  OC_DISPL                         },
 
     /* LED/LCD SETTINGS */
-    /* fpObject           OrgX    OrgY  Font         Width  pNumber                 pWorkNumber     Type   Min  Max    Step DplType  Mode     C  zDescr                      zUnit                       L   State                              */
+    /* fpObject           OrgX    OrgY  Font         Width  pNumber                 pWorkNumber     Type   Min  Max    Step DplType  Mode     C  zDescr                      zUnit                       L   Capabilities                     */
     /* ------------------ ------ ------ ------------ ----- -----------------------  --------------- ------ ---- ------- --- -------  -------- - ---------------------------- --------------------------- -- ----------------------------------- */
     { &NumObj_BacklOL,      C05,   R2,  DPLFONT_6X8,    17, &bBacklOnLevel,         &bEditBuffer,   eUCHAR, 0L,     7L,  0L, eDez,   eColumn, 0, RESTXT_SET_LCD_BL_DESC,     RESTXT_EMPTY_TXT,           1,  OC_DISPL | OC_SELECT | OC_EDIT   },
     { &NumObj_BacklLvl,     C05,   R3,  DPLFONT_6X8,    17, &bBacklLev,             &bEditBuffer,   eUCHAR, 0L,    63L,  1L, eDez,   eStep,   0, RESTXT_SET_LCD_BR_DESC,     RESTXT_EMPTY_TXT,           2,  OC_DISPL | OC_SELECT | OC_EDIT   },
@@ -737,10 +745,12 @@ static const OBJ_NUM_INIT NumObj_InitList[] =
     { &NumObj_RPMFlash,     C05,   R7,  DPLFONT_6X8,    17, &RPM_Flash,             &wEditBuffer,   eUINT,  0L, 30000L,  0L, eDez,   eColumn, 0, RESTXT_SET_RPMFL_DESC,      RESTXT_EMPTY_TXT,           5,  OC_DISPL | OC_SELECT | OC_EDIT   },
 
     /* EXTENSIONS SETTINGS */
-    /* fpObject           OrgX    OrgY  Font         Width  pNumber                 pWorkNumber     Type   Min  Max    Step DplType  Mode     C  zDescr                      zUnit                       L   State                              */
+    /* fpObject           OrgX    OrgY  Font         Width  pNumber                 pWorkNumber     Type   Min  Max    Step DplType  Mode     C  zDescr                      zUnit                       L   Capabilities                     */
     /* ------------------ ------ ------ ------------ ----- -----------------------  --------------- ------ ---- ------- --- -------  -------- - ---------------------------- --------------------------- -- ----------------------------------- */
-    { &NumObj_CoolrIn,      C15,   R3,  DPLFONT_6X8,     3, &gbCoolrGPI,            &bEditBuffer,   eUCHAR, 0L,     3L,  0L, eDez,   eColumn, 0, RESTXT_SET_COOLR_IN,        RESTXT_EMPTY_TXT,           1,  OC_DISPL | OC_SELECT | OC_EDIT   },
-    { &NumObj_CoolrOut,     C19,   R3,  DPLFONT_6X8,     3, &gbCoolrGPO,            &bEditBuffer,   eUCHAR, 0L,     1L,  0L, eDez,   eColumn, 0, RESTXT_SET_COOLR_OUT,       RESTXT_EMPTY_TXT,           1,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &NumObj_CoolrOut,     C15,   R3,  DPLFONT_6X8,     3, &gbCoolrGPO,            &bEditBuffer,   eUCHAR, 0L,     1L,  0L, eDez,   eColumn, 0, RESTXT_SET_COOLR_OUT,       RESTXT_EMPTY_TXT,           1,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &NumObj_CoolrIn,      C19,   R3,  DPLFONT_6X8,     3, &gbCoolrGPI,            &bEditBuffer,   eUCHAR, 0L,     3L,  0L, eDez,   eColumn, 0, RESTXT_SET_COOLR_IN,        RESTXT_EMPTY_TXT,           1,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &NumObj_FuelSImp,     C10,   R4,  DPLFONT_6X8,     8, &gwFuelSImp,            &wEditBuffer,   eUINT,  0L, 64000L,  0L, eDez,   eColumn, 0, RESTXT_EMPTY_TXT,           RESTXT_SET_FUELS_IMP,       5,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &NumObj_FuelSIn,      C19,   R4,  DPLFONT_6X8,     3, &gbFuelSIn,             &bEditBuffer,   eUCHAR, 0L,     3L,  0L, eDez,   eColumn, 0, RESTXT_SET_FUELS_IN,        RESTXT_EMPTY_TXT,           1,  OC_DISPL | OC_SELECT | OC_EDIT   },
 
     /* ------------------ ------ ------ ------------ ----- -----------------------  --------------- ------ ---- ------- --- ------- -------- - ------------------------ ----------------------- -- -------------------------------------------- */
 };
@@ -827,9 +837,11 @@ static const void far * ObjectList_Ext1[] =
     (void far *) &SlctObj_CompassD,     // 2
     (void far *) &SlctObj_CompassC,     // 3
     (void far *) &BoolObj_CoolrAvail,   // 4
-    (void far *) &NumObj_CoolrIn,
     (void far *) &NumObj_CoolrOut,
+    (void far *) &NumObj_CoolrIn,
     (void far *) &BoolObj_FuelSAvail,   //
+    (void far *) &NumObj_FuelSImp,
+    (void far *) &NumObj_FuelSIn,
     (void far *) &BoolObj_GearIAvail,   //
     (void far *) &BoolObj_GPSAvail,     //
     (void far *) &BoolObj_ChainOAvail   //

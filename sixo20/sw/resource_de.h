@@ -68,6 +68,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.13  2012/02/25 20:14:35  tuberkel
+ * - All FuelSensor Settings available
+ * - Tab-order rearranged
+ *
  * Revision 3.12  2012/02/25 17:25:05  tuberkel
  * All Coolride Settings available
  *
@@ -308,10 +312,12 @@
 #define RESTXT_SET_COMPC_VSAVE      "V-S"   // Modul vertikal   sichern
 
 #define RESTXT_SET_COOLRIDE         "Coolride"  // Modul verfügbar
-#define RESTXT_SET_COOLR_IN         "M:"        // Mess-Eingang:   GPI 0..3
-#define RESTXT_SET_COOLR_OUT        "T:"        // Tasten-Ausgang: GPO 0..1
+#define RESTXT_SET_COOLR_IN         "I:"        // Mess-Eingang:   GPI 0..3
+#define RESTXT_SET_COOLR_OUT        "O:"        // Tasten-Ausgang: GPO 0..1
 
-#define RESTXT_SET_FUELSENSOR       "Tanksensor"
+#define RESTXT_SET_FUELSENSOR       "Tanks."    // Modul verfügbar
+#define RESTXT_SET_FUELS_IN         "I:"        // GebMess-Eingang:   GPI 0..3
+#define RESTXT_SET_FUELS_IMP        "I/l"       // Sensordaten: Impulse/Liter
 
 #define RESTXT_SET_GEARINFO         "Ganganzeige"
 
