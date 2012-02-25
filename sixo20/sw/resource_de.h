@@ -68,9 +68,8 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
- * Revision 3.13  2012/02/25 20:14:35  tuberkel
- * - All FuelSensor Settings available
- * - Tab-order rearranged
+ * Revision 3.14  2012/02/25 20:43:01  tuberkel
+ * - All ChainOiler Settings available
  *
  * Revision 3.12  2012/02/25 17:25:05  tuberkel
  * All Coolride Settings available
@@ -231,7 +230,7 @@
 #define RESTXT_SET_HL_VEHICLE       ">> FAHRZEUG         \x8c"          // Arrow down
 #define RESTXT_SET_HL_DEVICE        ">> GER\xc4T           \x8c\x8b"    // Arrow down/up
 #define RESTXT_SET_HL_DISPLAY       ">> LCD/LED         \x8c\x8b"       // Arrow down/up
-#define RESTXT_SET_HL_COMPASS       ">> ERWEITERUNG      \x8b"          // Arrow up
+#define RESTXT_SET_HL_EXTENS1       ">> ERWEITERUNGEN    \x8b"          // Arrow up
 #define RESTXT_SET_HL_IOPORTS       ">> ANSCHL\xdcSSE        "          // Arrow up
 #define RESTXT_SET_HL_WARNINGS      ">> WARNUNGEN         "
 
@@ -311,19 +310,25 @@
 #define RESTXT_SET_COMPC_VTURN      "V-D"   // Modul vertikal   drehen
 #define RESTXT_SET_COMPC_VSAVE      "V-S"   // Modul vertikal   sichern
 
-#define RESTXT_SET_COOLRIDE         "Coolride"  // Modul verfügbar
+#define RESTXT_SET_COOLRIDE         "Coolride"  // Coolride Modul verfügbar
 #define RESTXT_SET_COOLR_IN         "I:"        // Mess-Eingang:   GPI 0..3
 #define RESTXT_SET_COOLR_OUT        "O:"        // Tasten-Ausgang: GPO 0..1
 
-#define RESTXT_SET_FUELSENSOR       "Tanks."    // Modul verfügbar
+#define RESTXT_SET_FUELSENSOR       "Tanks."    // Tanksensor Modul verfügbar
 #define RESTXT_SET_FUELS_IN         "I:"        // GebMess-Eingang:   GPI 0..3
 #define RESTXT_SET_FUELS_IMP        "I/l"       // Sensordaten: Impulse/Liter
+
+#define RESTXT_SET_CHAINOILER       "Kette"     // Kettenöler Module verfügbar
+#define RESTXT_SET_CHAINO_DUR       "s"         // Aktivität für n sec.
+#define RESTXT_SET_CHAINO_KM        "km"        // Aktivität alle n km
+#define RESTXT_SET_CHAINO_OUT       "O:"        // Kettenölerausgang: GPO 0..1
+
 
 #define RESTXT_SET_GEARINFO         "Ganganzeige"
 
 #define RESTXT_SET_GPS              "GPS-Maus"
 
-#define RESTXT_SET_CHAINOILER       "Kette"
+
 
 
 

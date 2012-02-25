@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.23  2012/02/25 20:43:01  tuberkel
+ * - All ChainOiler Settings available
+ *
  * Revision 3.22  2012/02/25 20:14:35  tuberkel
  * - All FuelSensor Settings available
  * - Tab-order rearranged
@@ -579,15 +582,25 @@ BOOL            gfCoolrAvail;
 UINT8           gbCoolrGPI;
 UINT8           gbCoolrGPO;
 
-
 // ----------------------------------------------------------------
 // FUEL SENSOR OBJECTS
 static OBJ_BOOL BoolObj_FuelSAvail;                 // main switch to enable 'FuelSensor' extension
 static OBJ_NUM  NumObj_FuelSIn;                     // Number of SIxO-GPI - to count impulses of fuel sensor
 static OBJ_NUM  NumObj_FuelSImp;                    // Number of Impulses/Liter of fuel sensor
 BOOL            gfFuelSensAvail;
-UINT8           gbFuelSIn;
+UINT8           gbFuelSGPI;
 UINT16          gwFuelSImp;
+
+// ----------------------------------------------------------------
+// CHAIN OILER OBJECTS
+static OBJ_BOOL BoolObj_ChainOAvail;
+static OBJ_NUM  NumObj_ChainOOut;                   // Number of SIxO-GPO - to activate ChainOiler
+static OBJ_NUM  NumObj_ChainODur;                   // ChainOiler - duration of Oiler in sec. every n km
+static OBJ_NUM  NumObj_ChainOkm;                    // ChainOiler - km to reactivate forn sec.
+BOOL            gfChainOAvail;
+UINT8           gbChainOGPO;
+UINT8           gbChainODur;
+UINT8           gbChainOkm;
 
 // ----------------------------------------------------------------
 // GEARBOX OBJECTS
@@ -598,11 +611,6 @@ BOOL            gfGearInfoAvail;
 // GPS MOUSE OBJECTS
 static OBJ_BOOL BoolObj_GPSAvail;
 BOOL            gfGPSAvail;
-
-// ----------------------------------------------------------------
-// CHAIN OILER OBJECTS
-static OBJ_BOOL BoolObj_ChainOAvail;
-BOOL            gfChainOilerAvail;
 
 // ----------------------------------------------------------------
 // other external symbols
@@ -629,7 +637,7 @@ static const OBJ_STEXT_INIT STxtObj_InitList[] =
     {&STxtObj_HL_Vehicle,   C01, R1, DPLFONT_6X8, 1, 21,    TXT_CENTER, TXT_INVERS, RESTXT_SET_HL_VEHICLE, OC_DISPL},
     {&STxtObj_HL_Device,    C01, R1, DPLFONT_6X8, 1, 21,    TXT_CENTER, TXT_INVERS, RESTXT_SET_HL_DEVICE,  OC_DISPL},
     {&STxtObj_HL_Out,       C01, R1, DPLFONT_6X8, 1, 21,    TXT_CENTER, TXT_INVERS, RESTXT_SET_HL_DISPLAY, OC_DISPL},
-    {&STxtObj_HL_Ext1,      C01, R1, DPLFONT_6X8, 1, 21,    TXT_CENTER, TXT_INVERS, RESTXT_SET_HL_COMPASS, OC_DISPL},
+    {&STxtObj_HL_Ext1,      C01, R1, DPLFONT_6X8, 1, 21,    TXT_CENTER, TXT_INVERS, RESTXT_SET_HL_EXTENS1, OC_DISPL},
   //{&STxtObj_HL_IOPorts,   C01, R1, DPLFONT_6X8, 1, 21,    TXT_CENTER, TXT_INVERS, RESTXT_SET_HL_IOPORTS, OC_DISPL},
   //{&STxtObj_HL_Warnings,  C01, R1, DPLFONT_6X8, 1, 21,    TXT_CENTER, TXT_INVERS, RESTXT_SET_HL_WARNINGS,OC_DISPL},
 
@@ -667,7 +675,7 @@ static const OBJ_BOOL_INIT BoolObj_InitList[] =
     {&BoolObj_CompAvail,   C01,  R2, DPLFONT_6X8,   10,  &gfCompAvail,        &fEditBuffer, RESTXT_EMPTY_TXT,       RESTXT_SET_COMPASS,      OC_DISPL | OC_SELECT | OC_EDIT },
     {&BoolObj_CoolrAvail,  C01,  R3, DPLFONT_6X8,   14,  &gfCoolrAvail,       &fEditBuffer, RESTXT_EMPTY_TXT,       RESTXT_SET_COOLRIDE,     OC_DISPL | OC_SELECT | OC_EDIT },
     {&BoolObj_FuelSAvail,  C01,  R4, DPLFONT_6X8,   12,  &gfFuelSensAvail,    &fEditBuffer, RESTXT_EMPTY_TXT,       RESTXT_SET_FUELSENSOR,   OC_DISPL | OC_SELECT | OC_EDIT },
-    {&BoolObj_ChainOAvail, C01,  R5, DPLFONT_6X8,    8,  &gfChainOilerAvail,  &fEditBuffer, RESTXT_EMPTY_TXT,       RESTXT_SET_CHAINOILER,   OC_DISPL | OC_SELECT | OC_EDIT },
+    {&BoolObj_ChainOAvail, C01,  R5, DPLFONT_6X8,    8,  &gfChainOAvail,  &fEditBuffer, RESTXT_EMPTY_TXT,       RESTXT_SET_CHAINOILER,   OC_DISPL | OC_SELECT | OC_EDIT },
     {&BoolObj_GearIAvail,  C01,  R6, DPLFONT_6X8,   21,  &gfGearInfoAvail,    &fEditBuffer, RESTXT_EMPTY_TXT,       RESTXT_SET_GEARINFO,     OC_DISPL | OC_SELECT | OC_EDIT },
     {&BoolObj_GPSAvail,    C01,  R7, DPLFONT_6X8,   21,  &gfGPSAvail,         &fEditBuffer, RESTXT_EMPTY_TXT,       RESTXT_SET_GPS,          OC_DISPL | OC_SELECT | OC_EDIT },
     /*-------------------- ---- ---- ------------ -----  -------------------- ------------- ----------------------- -----------------------  --------------------------------- */
@@ -750,7 +758,10 @@ static const OBJ_NUM_INIT NumObj_InitList[] =
     { &NumObj_CoolrOut,     C15,   R3,  DPLFONT_6X8,     3, &gbCoolrGPO,            &bEditBuffer,   eUCHAR, 0L,     1L,  0L, eDez,   eColumn, 0, RESTXT_SET_COOLR_OUT,       RESTXT_EMPTY_TXT,           1,  OC_DISPL | OC_SELECT | OC_EDIT   },
     { &NumObj_CoolrIn,      C19,   R3,  DPLFONT_6X8,     3, &gbCoolrGPI,            &bEditBuffer,   eUCHAR, 0L,     3L,  0L, eDez,   eColumn, 0, RESTXT_SET_COOLR_IN,        RESTXT_EMPTY_TXT,           1,  OC_DISPL | OC_SELECT | OC_EDIT   },
     { &NumObj_FuelSImp,     C10,   R4,  DPLFONT_6X8,     8, &gwFuelSImp,            &wEditBuffer,   eUINT,  0L, 64000L,  0L, eDez,   eColumn, 0, RESTXT_EMPTY_TXT,           RESTXT_SET_FUELS_IMP,       5,  OC_DISPL | OC_SELECT | OC_EDIT   },
-    { &NumObj_FuelSIn,      C19,   R4,  DPLFONT_6X8,     3, &gbFuelSIn,             &bEditBuffer,   eUCHAR, 0L,     3L,  0L, eDez,   eColumn, 0, RESTXT_SET_FUELS_IN,        RESTXT_EMPTY_TXT,           1,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &NumObj_FuelSIn,      C19,   R4,  DPLFONT_6X8,     3, &gbFuelSGPI,            &bEditBuffer,   eUCHAR, 0L,     3L,  0L, eDez,   eColumn, 0, RESTXT_SET_FUELS_IN,        RESTXT_EMPTY_TXT,           1,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &NumObj_ChainODur,    C09,   R5,  DPLFONT_6X8,     3, &gbChainODur,           &bEditBuffer,   eUCHAR, 0L,    99L,  0L, eDez,   eColumn, 0, RESTXT_EMPTY_TXT,           RESTXT_SET_CHAINO_DUR,      2,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &NumObj_ChainOkm,     C13,   R5,  DPLFONT_6X8,     5, &gbChainOkm,            &bEditBuffer,   eUCHAR, 0L,   999L,  0L, eDez,   eColumn, 0, RESTXT_EMPTY_TXT,           RESTXT_SET_CHAINO_KM,       3,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &NumObj_ChainOOut,    C19,   R5,  DPLFONT_6X8,     3, &gbChainOGPO,           &bEditBuffer,   eUCHAR, 0L,     1L,  0L, eDez,   eColumn, 0, RESTXT_SET_CHAINO_OUT,      RESTXT_EMPTY_TXT,           1,  OC_DISPL | OC_SELECT | OC_EDIT   },
 
     /* ------------------ ------ ------ ------------ ----- -----------------------  --------------- ------ ---- ------- --- ------- -------- - ------------------------ ----------------------- -- -------------------------------------------- */
 };
@@ -829,7 +840,7 @@ static const void far * ObjectList_Out[] =
 
 
 // -------------------------------------------------------------------------
-// Compass Screen Tab order
+// Extensions Screen Tab Order
 static const void far * ObjectList_Ext1[] =
 {
     (void far *) &STxtObj_HL_Ext1,      // 0 - Headline (not selectable)
@@ -842,9 +853,12 @@ static const void far * ObjectList_Ext1[] =
     (void far *) &BoolObj_FuelSAvail,   //
     (void far *) &NumObj_FuelSImp,
     (void far *) &NumObj_FuelSIn,
+    (void far *) &BoolObj_ChainOAvail,  //
+    (void far *) &NumObj_ChainODur,
+    (void far *) &NumObj_ChainOkm,
+    (void far *) &NumObj_ChainOOut,
     (void far *) &BoolObj_GearIAvail,   //
-    (void far *) &BoolObj_GPSAvail,     //
-    (void far *) &BoolObj_ChainOAvail   //
+    (void far *) &BoolObj_GPSAvail      //
 };
 #define OBJLIST_EXT1_CNT (sizeof(ObjectList_Ext1)/sizeof(OBJ_STATE)/sizeof(void far *))
 
