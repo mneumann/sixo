@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.25  2012/02/26 11:47:16  tuberkel
+ * Objects Order reviewed
+ *
  * Revision 3.24  2012/02/26 10:11:52  tuberkel
  * - All GearInfo Settings available
  *
@@ -265,7 +268,7 @@
 
 
 // ----------------------------------------------------------------
-// DEVICE OBJECT DATA
+// SETTINGS DEVICE DATA
 // ----------------------------------------------------------------
 // special types to handle SDObj internal display states
 //
@@ -286,21 +289,32 @@ typedef enum
 
 // set device control structure (to handle ALL screens)
 typedef struct
-{   SETDEV_STATE    eState;         // internal show state
-    DEVOBJLIST      List[SD_LAST];  // array of all list control structures
+{   SETDEV_STATE    eState;         // Setdevice show state
+    DEVOBJLIST      List[SD_LAST];  // array of lists of display objects
 } SETDEV_CNTRL;
 
 
 static DEVDATA          SDObj;              // settings device object itself
 static SETDEV_CNTRL     SDCntrl;            // special set device show state control
 
-extern STRING far       szDevName[];        // device names
-extern DEVFLAGS1_TYPE   gDeviceFlags1;      // system parameters
-extern unsigned char    szSWVersion[];      /* formated sw version */
+// Static Headline Text Objects
+static OBJ_STEXT   STxtObj_HL_Vehicle;
+static OBJ_STEXT   STxtObj_HL_Device;
+static OBJ_STEXT   STxtObj_HL_Out;
+static OBJ_STEXT   STxtObj_HL_Ext1;
+
 
 
 // ----------------------------------------------------------------
-// universal edit buffers for screen objects
+// externals
+extern STRING far       szDevName[];        // device names
+extern DEVFLAGS1_TYPE   gDeviceFlags1;      // system parameters
+extern unsigned char    szSWVersion[];      // formated sw version
+extern UINT16           wMilliSecCounter;   // valid values: 0h .. ffffh
+
+
+// ----------------------------------------------------------------
+// universal buffers for all edit objects
 static BOOL     fEditBuffer;                //  1 bit edit buffer
 static UINT8    bEditBuffer;                //  8 bit edit buffer
 static UINT16   wEditBuffer;                // 16 bit edit buffer
@@ -308,100 +322,16 @@ static UINT32   dwEditBuffer;               // 32 bit edit buffer
 
 
 
-// ----------------------------------------------------------------
-// OBJECTS TO BE HANDLED IN EDIT MODE
-// ----------------------------------------------------------------
-
-// ----------------------------------------------------------------
-// wheel size / impulse objects
-extern UINT16   wWheelSize;                     // original wheel size from eeprom in mm
-extern UINT8    gbWheelImpulse;                 // original wheel impulse from eeprom
-
-static OBJ_NUM  NumObj_WheelSize;               // complete wheel size object
-static OBJ_NUM  NumObj_WheelImpuls;             // complete wheel impulse object
 
 
-
-// ----------------------------------------------------------------
-// cylinder correcture factor:
-extern CCF_TYPE CCF;                            // original CCF value (with Nom/Denom nibbles) from eeprom
-
-static OBJ_NUM  NumObj_CCFNom;                  // complete nominator number object
-static OBJ_NUM  NumObj_CCFDenom;                // complete denominator number object
-static UINT8    CCFNom;                         // copy of CCF.Nom as reference
-static UINT8    CCFDenom;                       // copy of CCF.Denom as reference
-
-
-// ----------------------------------------------------------------
-// EngineRunTime objects:
-extern TIME_TYPE_LD EngRunTime_Srv;                 // original values from NVRAM, 4 bytes, engine runtime since last service
-extern TIME_TYPE_LD EngRunTime_All;                 // original values from NVRAM, 4 bytes, engine runtime overall
-
-static OBJ_NUM      NumObj_EngRunSrv;               // complete EnginRunTime Service object
-static OBJ_NUM      NumObj_EngRunAll;               // complete EnginRunTime All object
-
-
-// ----------------------------------------------------------------
-// vehicle / service km objects:
-extern DIST_TYPE    gNextServKm;                    // to get/set original value
-
-static UINT32       dwServKm;                       // original vehicle distance in km only
-static DIST_TYPE    VehicDist;                      // to get/set original value
-static UINT32       dwVehicDist;                    // original vehicle distance in km only
-
-static OBJ_NUM      NumObj_ServKm;                  // complete number object
-static OBJ_NUM      NumObj_VehicDist;               // complete number object
-
-
-// ----------------------------------------------------------------
-// tank capacity / fuel consumption objects:
-extern UINT16       gwFuelCap;                      // to get/set original value, in 1/10 liters
-extern UINT8        gbFuelCons;                     // to get/set original value, in 1/10 l/100 km
-
-static OBJ_NUM      NumObj_TankCap;                 // complete number object
-static OBJ_NUM      NumObj_FuelCons;                // complete number object
-
-
-// ----------------------------------------------------------------
-// Backlight objects:
-extern DPLFLAGS_TYPE    gDisplayFlags;              // orginal display values
-
-
-// BacklightOnLevel: 'an/aus/auto: 0..63'
-static OBJ_STEXT    STxtObj_Lcd_Desc;
-
-static OBJ_NUM      NumObj_BacklOL;                 // complete backlight object
-static UINT8        bBacklOnLevel;                  // copy of gDisplayFlags.flags.BacklOnLevel as reference
-
-// Backlight Level: 'Helligkeit: 63'
-static OBJ_NUM      NumObj_BacklLvl;                // complete backlight level object
-static UINT8        bBacklLev;                      // copy of gDisplayFlags.flags.BacklLev as reference
-
-// Display Contrast:
-static OBJ_NUM      NumObj_ContrLvl;                // complete contrast level object
-static UINT8        bContrLev;                      // copy of gDisplayFlags.flags.ContLev as reference
-
-// Display Contrast:
-static OBJ_NUM      NumObj_DbgOut;                  // complete DebugOut control object (level & module)
-extern DBGFILT_TYPE gDebugFilter;                   // original value
-
-// LEDs Control
-static OBJ_STEXT    STxtObj_Led_Desc;
-static OBJ_NUM      NumObj_LEDDimm;                 // complete LED dimmer object
-static UINT8        bLEDDimmLev;                    // copy of gDisplayFlags.flags.BacklLev as reference
-
-
-// ----------------------------------------------------------------
-// RPM Flash Light:
-extern RPM_TYPE     RPM_Flash;                      // original values from EEPROM, engine speed to enable flash lamp,   1 RPM/bit
-static OBJ_NUM      NumObj_RPMFlash;                // complete RPM Flashlight object
-
+// ===================================================================
+// VEHICLE-SETTINGS - OBJECTS
+// ===================================================================
 
 // ----------------------------------------------------------------
 // BikeType:
-extern BIKE_TYPE    gBikeType;                      // EEprom value
-
-static OBJ_SELECT   SlctObj_BikeType;               // complete bike type object
+extern BIKE_TYPE    gBikeType;                      // BikeType (from eeprom)
+static OBJ_SELECT   SlctObj_BikeType;               // BikeType - edit object
 static BIKE_TYPE    LocalBikeType;                  // local edit buffer
 static const STRING pszSelectBike[RESTXT_SET_BIKE_CNT] =
                         {   RESTXT_SET_BIKE_STANDARD    ,
@@ -411,12 +341,52 @@ static const STRING pszSelectBike[RESTXT_SET_BIKE_CNT] =
                             RESTXT_SET_BIKE_F650        ,
                         };
 
-// ----------------------------------------------------------------
-// BikeLogo
-/* NOTE: All entries derived from 'LOGO_TYPE' */
-extern UINT8        gLogoSelection;                 // Eeprom value
+// ------------------------------------------
+// CylinderCorrectureFactor CCF:
+// Note: CCF is a bitfield structure - can therefore NOT directly be adressed by edit objects,
+//       So we need local copy 'CCFNom'/'CCFDenom' to compare/save changes!
+extern CCF_TYPE CCF;                        // CCF value (with Nom/Denom nibbles) from eeprom (can not be address
+static UINT8    CCFNom;                     // copy of CCF.Nom as reference for edit object
+static UINT8    CCFDenom;                   // copy of CCF.Denom as reference for edit object
+static OBJ_NUM  NumObj_CCFNom;              // nominator edit object
+static OBJ_NUM  NumObj_CCFDenom;            // denominator edit object
 
-static OBJ_SELECT   SlctObj_Logo;                 // complete logo type object
+// ------------------------------------------
+// WheelSize / WheelImpulse objects
+extern UINT16   wWheelSize;                 // wheel size from eeprom in mm
+static OBJ_NUM  NumObj_WheelSize;           // wheel size edit object
+extern UINT8    gbWheelImpulse;             // wheel impulse from eeprom
+static OBJ_NUM  NumObj_WheelImpuls;         // wheel impulse edit object
+
+// ------------------------------------------
+// EngineRunTime objects:
+extern TIME_TYPE_LD EngRunTime_Srv;         // engine runtime in h - since last service (NVRAM, 4 bytes)
+extern TIME_TYPE_LD EngRunTime_All;         // engine runtime in h - overall (NVRAM, 4 bytes)
+static OBJ_NUM      NumObj_EngRunSrv;       // EnginRunTime Service - edit object
+static OBJ_NUM      NumObj_EngRunAll;       // EnginRunTime All     - edit object
+
+// ------------------------------------------
+// Vehicle / Service km objects:
+// Note: 'VehicDist' is Interrupt-driven and API protected - can therefore NOT directly be adressed by edit objects,
+//       So we need local copy 'VehicDist' to compare/save changes!
+extern DIST_TYPE    gNextServKm;            // Next km-Service (from eeprom)
+static UINT32       dwServKm;               // original vehicle distance in km only
+static DIST_TYPE    VehicDist;              // VehicDist-Copy returned by Measurement API
+static UINT32       dwVehicDist;            // VehicDist-Copy - in km only
+static OBJ_NUM      NumObj_ServKm;          // Serv-km  - edit object
+static OBJ_NUM      NumObj_VehicDist;       // Vehic-km - edit object
+
+// ----------------------------------------------------------------
+// TankCapacity / FuelConsumption objects:
+extern UINT16       gwFuelCap;              // FuelCapacity in 1/10 liters (from eeprom)
+extern UINT8        gbFuelCons;             // FuelConsumption in 1/10 l/100 km (from eeprom)
+static OBJ_NUM      NumObj_TankCap;         // FuelCapacity    - edit object
+static OBJ_NUM      NumObj_FuelCons;        // FuelConsumption - edit object
+
+// ----------------------------------------------------------------
+// BikeLogo (NOTE: All entries derived from 'LOGO_TYPE')
+extern UINT8        gLogoSelection;         // BikeLogo (from eeprom)
+static OBJ_SELECT   SlctObj_Logo;           // BikeLogo - edit object
 static const STRING pszSelectLogo[RESTXT_SET_LOGO_CNT] =
                         {   RESTXT_SET_LOGO_NKDEV     ,
                             RESTXT_SET_LOGO_BMW       ,
@@ -433,124 +403,155 @@ static const STRING pszSelectLogo[RESTXT_SET_LOGO_CNT] =
                             RESTXT_SET_LOGO_TENERISTI ,
                             RESTXT_SET_LOGO_COOLRIDE
                         };
-static OBJ_NUM NumObj_LogoDelay;                    // complete logo delay object
-UINT8  gbLogoDelay;                                 // Eeprom value;
+static OBJ_NUM NumObj_LogoDelay;            // StartLogoDelay - edit object
+UINT8  gbLogoDelay;                         // StartLogoDelay (from eeprom)
 
 
+
+// ===================================================================
+// DISPLAY-SETTINGS - OBJECTS
+// ===================================================================
 
 // ----------------------------------------------------------------
-// Language Selection Object
-static OBJ_SELECT   SlctObj_Lang;                   // Language Selection Object
-extern UINT8        gLanguage;                      // eeprom value
+// DisplayControl objects:
+// Note: 'gDisplayFlags' is a bitfield structure - can therefore NOT directly be adressed by edit objects,
+//       So we need local copies to compare/save changes!
+extern DPLFLAGS_TYPE  gDisplayFlags;        // All Display Control Flags (from eeprom)
+
+// ----------------------------------------------------------------
+// LCD settings
+static OBJ_STEXT    STxtObj_Lcd_Desc;       // static text 'LCD'
+static OBJ_NUM      NumObj_BacklOL;         // LCD BacklightOnLevel - edit object
+static UINT8        bBacklOnLevel;          // LCD BacklightOnLevel - local edit value
+static OBJ_NUM      NumObj_BacklLvl;        // LCD BacklightLevel - edit object
+static UINT8        bBacklLev;              // LCD BacklightLevel - local edit value
+static OBJ_NUM      NumObj_ContrLvl;        // LCD DisplyContrast - edit object
+static UINT8        bContrLev;              // LCD DisplyContrast - local edit value
+
+// ----------------------------------------------------------------
+// LED settings
+static OBJ_STEXT    STxtObj_Led_Desc;       // static text 'LED'
+static OBJ_NUM      NumObj_LEDDimm;         // LED Dimmer - edit object
+static UINT8        bLEDDimmLev;            // LED Dimmer - local edit value
+static OBJ_NUM      NumObj_RPMFlash;        // LED RPM-High-Flash - edit object,
+extern RPM_TYPE     RPM_Flash;              // LED RPM-High-Flash, 1 RPM/bit (from EEPROM)
+static OBJ_SELECT   SlctObj_LEDWM;          // LED WarningMode - edit object
+static BOOL         fLedWarnMode;           // LED WarningMode - copy eeprom value
+static const STRING pszSelectLedWM[RESTXT_SET_LEDWM_CNT] =
+                        {   RESTXT_SET_LEDWM_SIXO,
+                            RESTXT_SET_LEDWM_STD
+                        };
+
+
+
+
+
+// ===================================================================
+// DEVICE-SETTINGS - OBJECTS
+// ===================================================================
+
+// ----------------------------------------------------------------
+// Device Flags 2+3:
+// Note: 'gDeviceFlags2/3' are a bitfield structure - can therefore NOT directly be adressed by edit objects,
+//       So we need local copies to compare/save changes!
+extern DEVFLAGS2_TYPE   gDeviceFlags2;
+extern DEVFLAGS3_TYPE   gDeviceFlags3;
+
+// ----------------------------------------------------------------
+// Date objects
+static DATE_TYPE    RTCDateCopy;            // buffer to get current RTC data
+static UINT8        bDate;                  // copy of RTC day as reference
+static UINT8        bMonth;                 // copy of RTC day as reference
+static UINT8        bYear;                  // copy of RTC day as reference
+static OBJ_NUM      NumObj_ClkDate;         // day   - edit object
+static OBJ_NUM      NumObj_ClkMonth;        // month - edit object
+static OBJ_NUM      NumObj_ClkYear;         // year  - edit object
+
+// ----------------------------------------------------------------
+// Time objects
+static TIME_TYPE    RTCTimeCopy;            // buffer to get current RTC data
+static UINT8        bHour;                  // copy of RTC hour as reference
+static UINT8        bMin;                   // copy of RTC minute as reference
+static UINT8        bSec;                   // copy of RTC second as reference
+static OBJ_NUM      NumObj_ClkHour;         // hour    -  edit object
+static OBJ_NUM      NumObj_ClkMin;          // minute  -  edit object
+static OBJ_NUM      NumObj_ClkSec;          // seconds -  edit object
+
+// ----------------------------------------------------------------
+// ClockDriverCalibration '±168'
+static OBJ_NUM      NumObj_ClkCal;          // ClockCalibration - edit object
+static UINT8        bRTCCalib;              // buffer to get current RTC value
+static UINT8        bClkCalib;              // copy of RTC clock calibration as reference
+
+// ----------------------------------------------------------------
+// DayLightSaving DLS
+static OBJ_BOOL     BoolObj_DLSave;         // DaylightSaving - edit object
+BOOL                gfDaylightSave;         // Copy of eeprom value.struct element
+
+// ----------------------------------------------------------------
+// Language Selection
+static OBJ_SELECT   SlctObj_Lang;           // Language - edit object
+extern UINT8        gLanguage;              // Language (from eeprom
 static const STRING pszSelectLang[RESTXT_SET_LANG_CNT] =
                         {   RESTXT_SET_LANG_DE,
                             RESTXT_SET_LANG_EN,
                             RESTXT_SET_LANG_NL
                         };
 
-
 // ----------------------------------------------------------------
-// Device Flags 2:
-extern DEVFLAGS2_TYPE   gDeviceFlags2;
-
-static OBJ_SELECT   SlctObj_TripCntLUp;                 // trip counter flag object (taken from gDeviceFlags2 )
+// TripCounterDisplayMode (up/down)
+static OBJ_SELECT   SlctObj_TripCntLUp;     // TripCounterDisplayMode - edit object
+static BOOL         fTripCntLongUp;         // TripCounterDisplayMode - copy of eeprom value
 static const STRING pszSelectTrip[RESTXT_SET_TRIP_CNT] =
                         {   RESTXT_SET_TRIP_VST,
                             RESTXT_SET_TRIP_VSB
                         };
-static BOOL         fTripCntLongUp;                     // copy of trip counter flag as reference
-
-
 
 // ----------------------------------------------------------------
-// Device Flags 3:
-extern DEVFLAGS3_TYPE   gDeviceFlags3;
-
-static OBJ_SELECT   SlctObj_Metric;              // Metric selection: METER/INCH (taken from gDeviceFlags3 )
+// SIxO Metric (miles/km)
+static BOOL         fMetric;                // Metric - copy of eeprom value
+static OBJ_SELECT   SlctObj_Metric;         // Metric edit object
 static const STRING pszSelectMetric[RESTXT_SET_METRIC_CNT] =
                         {   RESTXT_SET_METRIC_KM,
                             RESTXT_SET_METRIC_MILES
                         };
-static BOOL         fMetric;                    // copy of Metric flag as reference
-
-static OBJ_SELECT   SlctObj_LEDWM;              // Led Warning Mode Selection: SIxO-like / common mode (leds on at ignition), taken from gDeviceFlags3 )
-static const STRING pszSelectLedWM[RESTXT_SET_LEDWM_CNT] =
-                        {   RESTXT_SET_LEDWM_SIXO,
-                            RESTXT_SET_LEDWM_STD
-                        };
-static BOOL         fLedWarnMode;                   // copy of Metric flag as reference
-
-
 
 // ----------------------------------------------------------------
-// Date field objects
-static DATE_TYPE    RTCDateCopy;                    // buffer to get current RTC data
-
-static UINT8        bDate;                          // copy of RTC day as reference
-static UINT8        bMonth;                         // copy of RTC day as reference
-static UINT8        bYear;                          // copy of RTC day as reference
-
-static OBJ_NUM      NumObj_ClkDate;                 // complete day object
-static OBJ_NUM      NumObj_ClkMonth;                // complete month object
-static OBJ_NUM      NumObj_ClkYear;                 // complete year object
-
-
-// ----------------------------------------------------------------
-// time field objects
-static TIME_TYPE    RTCTimeCopy;                    // buffer to get current RTC data
-
-static UINT8        bHour;                          // copy of RTC hour as reference
-static UINT8        bMin;                           // copy of RTC minute as reference
-static UINT8        bSec;                           // copy of RTC second as reference
-
-static OBJ_NUM      NumObj_ClkHour;                 // complete hour object
-static OBJ_NUM      NumObj_ClkMin;                  // complete minute object
-static OBJ_NUM      NumObj_ClkSec;                  // complete seconds object
-
-
-// ----------------------------------------------------------------
-// clock driver calibration value '±168'
-static OBJ_NUM      NumObj_ClkCal;                  // complete calibration object
-static UINT8        bRTCCalib;                      // buffer to get current RTC value
-static UINT8        bClkCalib;                      // copy of RTC clock calibration as reference
-
-// ----------------------------------------------------------------
-// daylight saving value (on/off, from eeprom)
-static OBJ_BOOL     BoolObj_DLSave;                 // complete boolean DaylightSavingseconds object
-BOOL                gfDaylightSave;                 // original value from eeprom
-
-
-// ----------------------------------------------------------------
-// Device Settings objects
-
 // Vehicle simulation object (on/off, from eeprom)
-BOOL                gfVehicSimulation;              // original value from eeprom
-static OBJ_BOOL     BoolObj_VehSim;                 // complete boolean VehicleSimualtion edit Object
+BOOL                gfVehicSimulation;      // Simulation On/off switch (copy of eeprom)
+static OBJ_BOOL     BoolObj_VehSim;         // Simulation - edit object
 
+// ----------------------------------------------------------------
 // BMP-Hardcopy via UART and HIGH_BEAM available object (on/off, from eeprom)
-BOOL                gfHardcopy;                     // original value from eeprom
-static OBJ_BOOL     BoolObj_ScrDmp;                 // complete boolean Hardcopy edit Object
+static OBJ_BOOL     BoolObj_ScrDmp;         // Hardcopy - edit object
+BOOL                gfHardcopy;             // Hardcopy On/off switch (copy of eeprom)
 
-// Eeprom Reset object (on = reset)
-BOOL                gfEepromReset;                  // local value to start reset
-static OBJ_BOOL     BoolObj_EeprRst;                // complete boolean Eeprom reset Object
-
+// ----------------------------------------------------------------
 // Beeper Control (taken from gDeviceFlags2 )
-BOOL                gfBeepCtrl;                     // local value
-static OBJ_BOOL     BoolObj_BeepCtrl;               // complete boolean Beeper control Object
-
-
+static OBJ_BOOL     BoolObj_BeepCtrl;       // Beeper On/off - edit object
+BOOL                gfBeepCtrl;             // Beeper On/off switch (copy of eeprom)
 
 // ----------------------------------------------------------------
-// EXTENSIONS Settings objects
-// ----------------------------------------------------------------
+// Eeprom Reset object (on = reset)
+static OBJ_BOOL     BoolObj_EeprRst;        // Eeprom Reset - edit Object
+BOOL                gfEepromReset;          // Eeprom Reset
 
 // ----------------------------------------------------------------
-// COMPASS OJECTS
+// SIxO DebugOut Control daylight saving value (on/off, from eeprom)
+static OBJ_NUM      NumObj_DbgOut;          // SIxO-DebugOut control - edit object
+extern DBGFILT_TYPE gDebugFilter;           // SIxO-DebugOut control (level & module, from eeprom
+
+
+
+// ===================================================================
+// EXTENSIONS SETTINGS - OBJECTS
+// ===================================================================
+
+// ----------------------------------------------------------------
 // Compass Display Mode Object:
-extern COMPASSCNTFL_TYPE    gCompassCntrl;          // Eeprom value
-static UINT8        bCompassDispl;                  // to support enum display mode
-static OBJ_SELECT   SlctObj_CompassD;               // compass calibration state object
+extern COMPASSCNTFL_TYPE    gCompassCntrl;  // Eeprom value
+static UINT8        bCompassDispl;          // to support enum display mode
+static OBJ_SELECT   SlctObj_CompassD;       // compass calibration state object
 static const STRING pszSelectCompD[RESTXT_SET_COMPD_CNT] =
                         {   RESTXT_SET_COMPD_NA  ,
                             RESTXT_SET_COMPD_HD  ,
@@ -558,9 +559,10 @@ static const STRING pszSelectCompD[RESTXT_SET_COMPD_CNT] =
                             RESTXT_SET_COMPD_HDGR
                         };
 
+// ----------------------------------------------------------------
 // Compass Calibration State Object (temporary while calibration mode is active):
-static OBJ_SELECT   SlctObj_CompassC;               // compass display mode object
-static UINT8        bCompassCal;                    // to detect user pressed buttons/activity
+static OBJ_SELECT   SlctObj_CompassC;       // compass display mode object
+static UINT8        bCompassCal;            // to detect user pressed buttons/activity
 static const STRING pszSelectCompC[RESTXT_SET_COMPC_CNT] =
                         {   RESTXT_SET_COMPC_NA   ,
                             RESTXT_SET_COMPC_WORK ,
@@ -571,35 +573,36 @@ static const STRING pszSelectCompC[RESTXT_SET_COMPC_CNT] =
                             RESTXT_SET_COMPC_VTURN,
                             RESTXT_SET_COMPC_VSAVE
                         };
-// Compass Available Control
-static OBJ_BOOL     BoolObj_CompAvail;              // complete boolean Compass main switch Object
-BOOL                gfCompAvail;                    // local value
 
+// ----------------------------------------------------------------
+// Compass Available Control
+static OBJ_BOOL BoolObj_CompAvail;          // complete boolean Compass main switch Object
+BOOL            gfCompAvail;                // local value
 
 // ----------------------------------------------------------------
 // COOLRIDE HEATGRIP OBJECTS
-static OBJ_BOOL BoolObj_CoolrAvail;                 // main switch to enable 'Coolride' extension
-static OBJ_NUM  NumObj_CoolrIn;                     // Number of SIxO-GPI - to measure PWM of heatgrip
-static OBJ_NUM  NumObj_CoolrOut;                    // Number of SIxO-GPO - to provide Key-Action to Coolride
+static OBJ_BOOL BoolObj_CoolrAvail;         // main switch to enable 'Coolride' extension
+static OBJ_NUM  NumObj_CoolrIn;             // Number of SIxO-GPI - to measure PWM of heatgrip
+static OBJ_NUM  NumObj_CoolrOut;            // Number of SIxO-GPO - to provide Key-Action to Coolride
 BOOL            gfCoolrAvail;
 UINT8           gbCoolrGPI;
 UINT8           gbCoolrGPO;
 
 // ----------------------------------------------------------------
 // FUEL SENSOR OBJECTS
-static OBJ_BOOL BoolObj_FuelSAvail;                 // main switch to enable 'FuelSensor' extension
-static OBJ_NUM  NumObj_FuelSIn;                     // Number of SIxO-GPI - to count impulses of fuel sensor
-static OBJ_NUM  NumObj_FuelSImp;                    // Number of Impulses/Liter of fuel sensor
+static OBJ_BOOL BoolObj_FuelSAvail;         // main switch to enable 'FuelSensor' extension
+static OBJ_NUM  NumObj_FuelSIn;             // Number of SIxO-GPI - to count impulses of fuel sensor
+static OBJ_NUM  NumObj_FuelSImp;            // Number of Impulses/Liter of fuel sensor
 BOOL            gfFuelSensAvail;
 UINT8           gbFuelSGPI;
 UINT16          gwFuelSImp;
 
 // ----------------------------------------------------------------
 // CHAIN OILER OBJECTS
-static OBJ_BOOL BoolObj_ChainOAvail;                // main switch to enable 'Chain Oiler' extension
-static OBJ_NUM  NumObj_ChainOOut;                   // Number of SIxO-GPO - to activate ChainOiler
-static OBJ_NUM  NumObj_ChainODur;                   // ChainOiler - duration of Oiler in sec. every n km
-static OBJ_NUM  NumObj_ChainOkm;                    // ChainOiler - km to reactivate forn sec.
+static OBJ_BOOL BoolObj_ChainOAvail;        // main switch to enable 'Chain Oiler' extension
+static OBJ_NUM  NumObj_ChainOOut;           // Number of SIxO-GPO - to activate ChainOiler
+static OBJ_NUM  NumObj_ChainODur;           // ChainOiler - duration of Oiler in sec. every n km
+static OBJ_NUM  NumObj_ChainOkm;            // ChainOiler - km to reactivate forn sec.
 BOOL            gfChainOAvail;
 UINT8           gbChainOGPO;
 UINT8           gbChainODur;
@@ -607,15 +610,15 @@ UINT8           gbChainOkm;
 
 // ----------------------------------------------------------------
 // GEARBOX OBJECTS
-static OBJ_BOOL     BoolObj_GearIAvail;             // main switch to enable 'GearInfo' extension
-static OBJ_SELECT   SlctObj_GearIMode;              // gearinfo - input mode
-static UINT8        bGearIMode;
-BOOL                gfGearInfoAvail;
+static OBJ_BOOL     BoolObj_GearIAvail;     // main switch to enable 'GearInfo' extension
+static OBJ_SELECT   SlctObj_GearIMode;      // gearinfo - input mode
 static const STRING pszSelectGearIM[RESTXT_SET_GEARIM_CNT] =
                         {   RESTXT_SET_GEARIM_NA   ,
                             RESTXT_SET_GEARIM_AUTO ,
                             RESTXT_SET_GEARIM_GPI
                         };
+static UINT8        bGearIMode;
+BOOL                gfGearInfoAvail;
 
 
 // ----------------------------------------------------------------
@@ -623,16 +626,9 @@ static const STRING pszSelectGearIM[RESTXT_SET_GEARIM_CNT] =
 static OBJ_BOOL BoolObj_GPSAvail;
 BOOL            gfGPSAvail;
 
-// ----------------------------------------------------------------
-// other external symbols
-extern UINT16       wMilliSecCounter;               // valid values: 0h .. ffffh
 
-// ----------------------------------------------------------------
-// STATIC HEADLINE & OTHER TEXT OBJECTS
-static OBJ_STEXT   STxtObj_HL_Vehicle;
-static OBJ_STEXT   STxtObj_HL_Device;
-static OBJ_STEXT   STxtObj_HL_Out;
-static OBJ_STEXT   STxtObj_HL_Ext1;
+
+
 
 
 
@@ -655,8 +651,8 @@ static const OBJ_STEXT_INIT STxtObj_InitList[] =
     /* Led/Lcd Descriptors */
     /*pObject                X   Y   Font         H  Width  Align       Format      string ptr             State  */
     /*--------------------- ---- --- ------------ -- -----  ----------- ----------- ---------------------- --------- */
-    {&STxtObj_Led_Desc,     C01, R2, DPLFONT_6X8, 1, 4,     TXT_LEFT,   TXT_NORM,   RESTXT_SET_LCD,        OC_DISPL},
-    {&STxtObj_Lcd_Desc,     C01, R5, DPLFONT_6X8, 1, 4,     TXT_LEFT,   TXT_NORM,   RESTXT_SET_LED,        OC_DISPL},
+    {&STxtObj_Lcd_Desc,     C01, R2, DPLFONT_6X8, 1, 4,     TXT_LEFT,   TXT_NORM,   RESTXT_SET_LCD,        OC_DISPL},
+    {&STxtObj_Led_Desc,     C01, R5, DPLFONT_6X8, 1, 4,     TXT_LEFT,   TXT_NORM,   RESTXT_SET_LED,        OC_DISPL},
     /*--------------------- ---- --- ------------ -- -----  ----------- ----------- ---------------------- --------- */
 };
 #define STEXTOBJ_INITLISTSIZE   (sizeof(STxtObj_InitList)/sizeof(OBJ_STEXT_INIT))
