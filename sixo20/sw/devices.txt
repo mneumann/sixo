@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 1.12  2012/02/26 10:26:57  tuberkel
+ * Update
+ *
  * Revision 1.11  2012/02/25 21:30:16  tuberkel
  * Draft 'Warnings-Settings'
  *
@@ -159,8 +162,28 @@
 // |Fzg:112500km   _1024h|  |TripC-kurz:^   Sum:[]|  |    Kontrast:      36|  |[]Tanks. _1000I/l I:0|
 // |Srv:120000km   _1000h|  |Sprache:  DE   Sim:[]|  |LED:Helligkeit:     4|  |[]Kette _1s _10km O:1|
 // |Benzin:24,5l  10,2l/h|  |Metrik:   mi   Bmp:[]|  |    WarnModus:   SIxO|  |[]Ganganzeige  M:auto|
-// |Logo:____BMW     5.5s|  |DbgOut: 0xff   Def:[]|  |    Schaltbl.:  10200|  |[]GPS-Maus           |
+// |Logo:____BMW     5.5s|  |DbgOut: 0xff   Def:[]|  |    DZ-hoch O:1 10200|  |[]GPS-Maus           |
 // +----.----.----.----.-+  +----.----.----.----.-+  +----.----.----.----.-+  +----.----.----.----.-+
+
+// =============================================================
+// WARNUNGEN - 4x6 Font (32x10 Zeichen)
+// +----.----!----.----!----.----!--+
+// |>> WARNUNGEN       v^|              // <== Headline 6x8 font!
+// |I:Fuel8  0 L|I:EngineCold   50°C|
+// |W:Fuel4  1 L|-:Glaced   -2°..2°C|
+// |E:ABSDef 2 H|E:OilHot      150°C|
+// |-:OilHot 3 H|E:WaterHot    110°C|
+// |E:WatHot 1 L|W:BattHigh  >15,5 V|
+// |I:OilSw  0 H|I:OilSwRPM   2000  |
+// |I:Ständ  1 L|-:BattLow   <10,5 V|
+// |-:EngDef 0 L|-:AltwLow   < 8,0 V|
+// |-:EltDef 0 L|-:                 |
+// +----.----!----.----!----.----!--+
+
+
+
+// =============================================================
+// DRAFTS
 
 // +----.----.----.----.-+
 // |>> MENU              |
@@ -191,23 +214,6 @@
 // |LED:[1]  Ausg.:[GPO0]|  |Offset: 010          |  |LED:[1]  Ausg.:[GPO0]|
 // |___Wasser zu heiß!___|  |Anz.: TOIL / °C      |  |___Wasser zu heiß!___|
 // +----.----.----.----.-+  +----.----.----.----.-+  +----.----.----.----.-+
-
-
-// =============================================================
-// WARNUNGEN - 4x6 Font (32x10 Zeichen)
-// +----.----!----.----!----.----!--+
-// |I:Fuel8  0L|I:EngineCold   50 °C|
-// |W:Fuel4  1L|-:Glaced   -2°..2 °C|
-// |E:ABSDef 2H|E:OilHot      150 °C|
-// |-:OilHot 3H|E:WaterHot    110 °C|
-// |E:WatHot 1L|W:BattHigh  >15,5  V|
-// |I:OilSw  0H|I:OilSwitch  2000rpm|
-// |I:Ständ  1L|-:BattLow   <10,5  V|
-// |-:EngDef 0L|-:AltwLow   < 8,0  V|
-// |-:EltDef 0L|-:                  |
-// |-:         |-:                  |
-// +----.----!----.----!----.----!--+
-
 
 
 // =============================================================

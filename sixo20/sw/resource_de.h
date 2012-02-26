@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.16  2012/02/26 10:26:57  tuberkel
+ * Update
+ *
  * Revision 3.15  2012/02/26 10:11:52  tuberkel
  * - All GearInfo Settings available
  *
@@ -298,13 +301,13 @@
 #define RESTXT_SET_COMPASS          "Kompass"
 
 #define RESTXT_SET_COMPD_DESC       "A:"    // Kompass Anzeige Mode (3 chars, right aligned!)
-#define RESTXT_SET_COMPD_NA         "nv "   // nicht verfuegbar
-#define RESTXT_SET_COMPD_HD         " K "   // nur Kurs im TripCounter
-#define RESTXT_SET_COMPD_GR         " G "   // nur Graph im TripCounter
+#define RESTXT_SET_COMPD_NA         " nv"   // nicht verfuegbar
+#define RESTXT_SET_COMPD_HD         "K  "   // nur Kurs im TripCounter
+#define RESTXT_SET_COMPD_GR         "  G"   // nur Graph im TripCounter
 #define RESTXT_SET_COMPD_HDGR       "K+G"   // Kurs + Graph im TripCounter
 
 #define RESTXT_SET_COMPC_DESC       "K:"    // Kompass Kalibriering (3 chars, right aligned!)
-#define RESTXT_SET_COMPC_NA         "nv "   // Modul nicht verfügbar
+#define RESTXT_SET_COMPC_NA         " nv"   // Modul nicht verfügbar
 #define RESTXT_SET_COMPC_WORK       "akt"   // Modul aktiv (nicht kalibrierbar)
 #define RESTXT_SET_COMPC_HHOLD      "H-H"   // Modul horizontal halten
 #define RESTXT_SET_COMPC_HTURN      "H-D"   // Modul horizontal drehen
@@ -328,9 +331,9 @@
 
 #define RESTXT_SET_GEARINFO         "Ganganzeige"
 #define RESTXT_SET_GEARIM_DESC      "M:"
-#define RESTXT_SET_GEARIM_NA        " nv "
+#define RESTXT_SET_GEARIM_NA        "  nv"
 #define RESTXT_SET_GEARIM_AUTO      "auto"
-#define RESTXT_SET_GEARIM_GPI       "GPI "
+#define RESTXT_SET_GEARIM_GPI       " GPI"
 
 #define RESTXT_SET_GPS              "GPS-Maus"
 
