@@ -70,6 +70,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.11  2012/02/26 12:24:55  tuberkel
+ * - moved all Eeprom Vlaues physically into 'sysparam' module
+ *
  * Revision 3.10  2012/02/14 21:08:03  tuberkel
  * - #define COMPASS ==> COMPDRV
  * - Compass SystemParam moved from devFlags2 -> 3
@@ -192,42 +195,38 @@
 
 
 
+// ------------------------------------------------------
+/* external symbols (taken from eeprom/nvram) */
+extern  far UINT16          wMilliSecCounter;   // high resolution short distance timer, ms,  max  65 sec
+extern  far UINT16          wSecCounter;        // low  resolution long  distance timer, sec, max. 18 h
+extern  far DEVFLAGS2_TYPE  gDeviceFlags2;      // device status parameters
+extern  far DEVFLAGS3_TYPE  gDeviceFlags3;      // device status parameters
+extern  far BIKE_TYPE       gBikeType;          // bike type
+extern  far DIST_TYPE       gNextServKm;        // to get/set original value
+extern  far DIST_TYPE       gNextServKm_def;    // to detect wether enabled/not
+extern  far TIME_TYPE_LD    EngRunTime_Srv_def; // to detect wether enabled/not
+extern  far DIGFILTTYPE     DigInFilter[];      // digital filter table for all inputs
+extern  far RPM_TYPE        RPM_Flash;          // engine speed to enable flash lamp,   1 RPM/bit
+extern  far RPM_TYPE        RPM_Max;            // max engine speed,                    1 RPM/bit
+extern  far SPEED_TYPE      Speed_Max;          // max vehicel speed                    1 km/h/bit
+extern  far TIME_TYPE_LD    EngRunTime_Srv;     // 4 bytes, engine runtime since last service
+extern  far TIME_TYPE_LD    EngRunTime_All;     // 4 bytes, engine runtime overall
+extern  far UINT16          gwFuelCap;          // tank size in 1/10 liters
+extern  far UINT8           gbFuelCons;         // motor fuel consumption in 1/10 liter/100 km
 
-// global data (will be initialized via EEPROM/NVRAM parameter init
-RPM_TYPE    RPM_Flash;          // engine speed to enable flash lamp,   1 RPM/bit
-
-RPM_TYPE    RPM_Max;            // max engine speed,                    1 RPM/bit
-SPEED_TYPE  Speed_Max;          // max vehicel speed                    1 km/h/bit
-
-UINT16      Volt_Min;           // minimal battery voltage,             0,01 V/bit
-UINT16      Volt_Max;           // maximal battery voltage,             0,01 V/bit
-INT16       TAir_Min;           // minimal air temperature,             1°C/bit, valid -40°C...215°C
-INT16       TAir_Max;           // maximal air temperature,             1°C/bit, valid -40°C...215°C
-INT16       TOil_Min;           // minimal oil temperature,             1°C/bit, valid -40°C...215°C
-INT16       TOil_Max;           // maximal oil temperature,             1°C/bit, valid -40°C...215°C
-INT16       TWat_Min;           // minimal water temperature,           1°C/bit, valid -40°C...215°C
-INT16       TWat_Max;           // maximal water temperature,           1°C/bit, valid -40°C...215°C
-
-TIME_TYPE_LD  EngRunTime_Srv;   // 4 bytes, engine runtime since last service
-TIME_TYPE_LD  EngRunTime_All;   // 4 bytes, engine runtime overall
-
-UINT16      gwFuelCap;          // tank size in 1/10 liters
-UINT8       gbFuelCons;         // motor fuel consumption in 1/10 liter/100 km
-
-BOOL        fCESTChanged = FALSE;   // DaylaightSaving 'CET/CEST changed flag'
-BOOL        fRTCDefect = FALSE;     // RTC defect detection
+extern  far UINT16          Volt_Min;           // minimal battery voltage,     0,01 V/bit
+extern  far UINT16          Volt_Max;           // maximal battery voltage,     0,01 V/bit
+extern  far INT16           TAir_Min;           // minimal air temperature,     1°C/bit, valid -40°C...215°C
+extern  far INT16           TAir_Max;           // maximal air temperature,     1°C/bit, valid -40°C...215°C
+extern  far INT16           TOil_Min;           // minimal oil temperature,     1°C/bit, valid -40°C...215°C
+extern  far INT16           TOil_Max;           // maximal oil temperature,     1°C/bit, valid -40°C...215°C
+extern  far INT16           TWat_Min;           // minimal water temperature,   1°C/bit, valid -40°C...215°C
+extern  far INT16           TWat_Max;           // maximal water temperature,   1°C/bit, valid -40°C...215°C
 
 
-// external data
-extern far UINT16           wMilliSecCounter;       // high resolution short distance timer, ms,  max  65 sec
-extern far UINT16           wSecCounter;            // low  resolution long  distance timer, sec, max. 18 h
-extern far DEVFLAGS2_TYPE   gDeviceFlags2;          // device status parameters
-extern far DEVFLAGS3_TYPE   gDeviceFlags3;          // device status parameters
-extern far BIKE_TYPE        gBikeType;              // bike type
-extern far DIST_TYPE        gNextServKm;            // to get/set original value
-extern far DIST_TYPE        gNextServKm_def;        // to detect wether enabled/not
-extern far TIME_TYPE_LD     EngRunTime_Srv_def;     // to detect wether enabled/not
-extern far DIGFILTTYPE      DigInFilter[];          // digital filter table for all inputs
+/* clock control */
+BOOL    fCESTChanged = FALSE;   // DaylaightSaving 'CET/CEST changed flag'
+BOOL    fRTCDefect = FALSE;     // RTC defect detection
 
 
 // locally surveilled data

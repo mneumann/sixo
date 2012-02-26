@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.9  2012/02/26 12:24:55  tuberkel
+ * - moved all Eeprom Vlaues physically into 'sysparam' module
+ *
  * Revision 3.8  2012/02/21 22:01:56  tuberkel
  * Compass Control/Mode/Eeprom reveiwed/fixed
  *
@@ -193,43 +196,39 @@
 
 
 /* defines for device data */
-#define BIGTRIP_STRSIZE    7            /* to contain max. string    '999,99' km */
-#define SMALLTRIP_STRSIZE 10            /* to contain max. string '999999,99' km */
+#define BIGTRIP_STRSIZE    7        /* to contain max. string    '999,99' km */
+#define SMALLTRIP_STRSIZE 10        /* to contain max. string '999999,99' km */
 #define BUFFER_STRSIZE    16
 
-/* device static objects */
-static DEVDATA      TripCntDev;
-
-static OBJ_STEXT   BigTripCntObj;                      /* contains the bigger trip counter object data */
-static OBJ_STEXT   SmallTripCntObj;                    /* contains the smaller trip counter object data */
-
-static CHAR         BigTripCntTxt[BUFFER_STRSIZE]   = {' ', ' ', '0', RESTXT_DEC_SEPARATOR, '0', '0'};  /* buffer for big trip counter string */
-static CHAR         SmallTripCntTxt[BUFFER_STRSIZE] = {' ', ' ', ' ', ' ', ' ', '0', RESTXT_DEC_SEPARATOR, '0', '0'};  /* buffer for samll trip counter string */
-
-static OBJ_STEXT   VehSpeedTxtObj;                     /* stateline speed object */
-static CHAR         szVehSpeed[8] = "---km/h";          /* buffer for speed string */
-
-static OBJ_STEXT   CompassTxtObj;                      /* stateline compass object */
-static CHAR         szCompass[5] = "---°";              /* buffer for time string */
-
-static OBJ_STEXT   TimeTxtObj;                         /* stateline time object */
-static CHAR         szTime[10] = "--:--:--a";           /* buffer for time string (add. am/pm in engl. version!)*/
 
 
 /* external symbols */
-extern UINT16           wMilliSecCounter;           /* valid values: 0h .. ffffh */
-extern STRING far       szDevName[];                /* device names */
-extern DEVFLAGS1_TYPE   gDeviceFlags1;              /* device parameter set 1 */
-extern DEVFLAGS2_TYPE   gDeviceFlags2;              /* device parameter set 2 */
-extern DEVFLAGS3_TYPE   gDeviceFlags3;              /* device parameter set 3 */
-extern BIKE_TYPE        gBikeType;                  /* bike type selecetion */
+extern UINT16               wMilliSecCounter;       /* valid values: 0h .. ffffh */
+extern STRING far           szDevName[];            /* device names */
+extern DEVFLAGS1_TYPE       gDeviceFlags1;          /* device parameter set 1 */
+extern DEVFLAGS2_TYPE       gDeviceFlags2;          /* device parameter set 2 */
+extern DEVFLAGS3_TYPE       gDeviceFlags3;          /* device parameter set 3 */
+extern BIKE_TYPE            gBikeType;              /* bike type selecetion */
+extern COMPASSCNTFL_TYPE    gCompassCntrl;          /* compass display mode */
 
-/* compass display mode */
-COMPASSCNTFL_TYPE gCompassCntrl;
-
-/* external bitmaps */
-extern const unsigned char far * rgCompassTop144x8[];
+extern const unsigned char far * rgCompassTop144x8[];   /* external bitmaps */
 extern const unsigned char far * rgCompassBot144x8[];
+
+
+
+/* device static objects */
+static DEVDATA      TripCntDev;
+static OBJ_STEXT    BigTripCntObj;                      /* contains the bigger trip counter object data */
+static OBJ_STEXT    SmallTripCntObj;                    /* contains the smaller trip counter object data */
+static CHAR         BigTripCntTxt[BUFFER_STRSIZE]   = {' ', ' ', '0', RESTXT_DEC_SEPARATOR, '0', '0'};  /* buffer for big trip counter string */
+static CHAR         SmallTripCntTxt[BUFFER_STRSIZE] = {' ', ' ', ' ', ' ', ' ', '0', RESTXT_DEC_SEPARATOR, '0', '0'};  /* buffer for samll trip counter string */
+static OBJ_STEXT    VehSpeedTxtObj;                     /* stateline speed object */
+static CHAR         szVehSpeed[8] = "---km/h";          /* buffer for speed string */
+static OBJ_STEXT    CompassTxtObj;                      /* stateline compass object */
+static CHAR         szCompass[5] = "---°";              /* buffer for time string */
+static OBJ_STEXT    TimeTxtObj;                         /* stateline time object */
+static CHAR         szTime[10] = "--:--:--a";           /* buffer for time string (add. am/pm in engl. version!)*/
+
 
 
 /* internal prototypes */
@@ -238,6 +237,8 @@ UINT16  TripCDev_ExpSpeed(MESSAGE GivenMsg);
 void    TripCDev_UpdTimeDate(void);
 void    TripCDev_UpdCompassHead(void);
 void    TripCDev_UpdCompassBargr(void);
+
+
 
 /* text object table */
 static const OBJ_STEXT_INIT TextObjInit[] =

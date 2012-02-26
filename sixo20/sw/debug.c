@@ -69,6 +69,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.3  2012/02/26 12:24:55  tuberkel
+ * - moved all Eeprom Vlaues physically into 'sysparam' module
+ *
  * Revision 3.2  2012/02/08 03:41:30  tuberkel
  * renamed #define MINIEMU ==> KD30_USED
  *
@@ -93,16 +96,19 @@
 
 
 
+// local defines
 #define LEN_SEND_BUFFER 80                  /* buffer to handle debug string */
 
-DBGFILT_TYPE    gDebugFilter = DEF_DBGFILT;     /* default off, use DebugSetFilterDetails() to change */
-DBGDETDIR_TYPE  gDebugDetails = DEF_DBGDETDIR;  /* default uart, use DebugSetFilterDetails() to change */
+// externals
+extern  UINT16          wMilliSecCounter;   /* valid values: 0h .. ffffh */
+extern  UINT16          wSecCounter;        /* valid values: 0h .. ffffh */
+extern  DBGFILT_TYPE    gDebugFilter;       /* default off, use DebugSetFilterDetails() to change */
+extern  DBGDETDIR_TYPE  gDebugDetails;      /* default uart, use DebugSetFilterDetails() to change */
+
 
 //unsigned char szDispDbgBuff[DBG_DISPLAYCOLUMN][DBG_DISPLAYLINES];
                                         /* 7 lines á 32 character lcd debug screen */
 
-extern   UINT16 wMilliSecCounter;     /* valid values: 0h .. ffffh */
-extern   UINT16 wSecCounter;          /* valid values: 0h .. ffffh */
 
 
 /***********************************************************************

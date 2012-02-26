@@ -76,6 +76,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.7  2012/02/26 12:24:55  tuberkel
+ * - moved all Eeprom Vlaues physically into 'sysparam' module
+ *
  * Revision 3.6  2012/02/21 20:58:15  tuberkel
  * all Setdevice ObjectNames reviewed
  *
@@ -161,15 +164,17 @@
 
 
 
+/* external symbols (taken from eeprom/nvram) */
+extern STRING far       szDevName[];            // device names
+extern DEVFLAGS1_TYPE   gDeviceFlags1;          // system parameters
+extern UINT16           wMilliSecCounter;       // high resolution short distance timer, ms,  max  65 sec
+extern UINT16           wSecCounter;            // low  resolution long  distance timer, sec, max. 18 h
+extern TIME_TYPE_LL     LapCntTime[LAPS_MAX];   // original values from EEPROM
+extern LCSTATE_TYPE     LapCounterState;        // LapCounter state
+
 
 // device object data
 static DEVDATA          LCDev_;       // LapCounter Device object itself
-extern STRING far       szDevName[];        // device names
-extern DEVFLAGS1_TYPE    gDeviceFlags1;      // system parameters
-
-extern UINT16  wMilliSecCounter;        // high resolution short distance timer, ms,  max  65 sec
-extern UINT16  wSecCounter;             // low  resolution long  distance timer, sec, max. 18 h
-
 
 
 // non public prototypes
@@ -186,8 +191,6 @@ ERRCODE LCDev_StartStop(MESSAGE Msg);
 static OBJ_STEXT   LapCntTxtObj[LAPS_MAX];                 // 16 lap objects
 static CHAR         szLapCntText[LAPS_MAX][LAP_TXTLEN];     // 16 text buffers a 10 bytes
 
-TIME_TYPE_LL LapCntTime[LAPS_MAX];                   // original values from EEPROM
-LCSTATE_TYPE LapCounterState;                        // LapCounter state
 
 static OBJ_STEXT   TestObject;
 static CHAR         szTest;

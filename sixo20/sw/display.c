@@ -77,6 +77,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.2  2012/02/26 12:24:55  tuberkel
+ * - moved all Eeprom Vlaues physically into 'sysparam' module
+ *
  * Revision 3.1  2012/01/02 20:52:27  tuberkel
  * Just comments
  *
@@ -105,10 +108,12 @@ extern unsigned char far rgNumber14x16[];
 extern unsigned char far rgNumber24x32[];
 
 /* external symbols */
-extern UINT16 wMilliSecCounter;        // for cyclic LCD module checks
+extern UINT16           wMilliSecCounter;   // for cyclic LCD module checks
+extern DPLFLAGS_TYPE    gDisplayFlags;      // display control structure from eeprom
 
-/* global status */
-DPLFLAGS_TYPE   gDisplayFlags = DEF_DPLFLAGS;
+
+
+
 
 
 /***********************************************************************

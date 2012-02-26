@@ -78,6 +78,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.7  2012/02/26 12:24:55  tuberkel
+ * - moved all Eeprom Vlaues physically into 'sysparam' module
+ *
  * Revision 3.6  2012/02/21 22:01:56  tuberkel
  * Compass Control/Mode/Eeprom reveiwed/fixed
  *
@@ -201,200 +204,190 @@ extern far BOOL     fRTCDefect;         /* surveillance RTC defect detection */
 
    -------------------------------------------------------------- */
 
+// -------------------------------------------------
 // display flags
-extern  DPLFLAGS_TYPE   gDisplayFlags;                     // original value
+        DPLFLAGS_TYPE   gDisplayFlags;                     // original value
 static  DPLFLAGS_TYPE   gDisplayFlags_cmp;                 // compare value
 const   DPLFLAGS_TYPE   gDisplayFlags_def = DEF_DPLFLAGS;  // default value
 
+// -------------------------------------------------
 // debug filter flags
-extern  DBGFILT_TYPE    gDebugFilter;                      // original value
+        DBGFILT_TYPE    gDebugFilter;                      // original value
 static  DBGFILT_TYPE    gDebugFilter_cmp;                  // compare value
 const   DBGFILT_TYPE    gDebugFilter_def = DEF_DBGFILT;    // default value
-extern  DBGDETDIR_TYPE  gDebugDetails;
+        DBGDETDIR_TYPE  gDebugDetails;
 static  DBGDETDIR_TYPE  gDebugDetails_cmp;
 const   DBGDETDIR_TYPE  gDebugDetails_def = DEF_DBGDETDIR;
 
-/* device flags 1 */
+// -------------------------------------------------
+/* device flags 1+2+3 */
        DEVFLAGS1_TYPE   gDeviceFlags1;
 static DEVFLAGS1_TYPE   DeviceFlags1_cmp;
 const  DEVFLAGS1_TYPE   DeviceFlags1_def = DEF_DEVFLAGS1;
-
-/* device flags 2 */
        DEVFLAGS2_TYPE   gDeviceFlags2;
 static DEVFLAGS2_TYPE   DeviceFlags2_cmp;
 const  DEVFLAGS2_TYPE   DeviceFlags2_def = DEF_DEVFLAGS2;
-
-/* device flags 3 */
        DEVFLAGS3_TYPE   gDeviceFlags3;
 static DEVFLAGS3_TYPE   DeviceFlags3_cmp;
 const  DEVFLAGS3_TYPE   DeviceFlags3_def = DEF_DEVFLAGS3;
 
+// -------------------------------------------------
 /* Software ID (would never change at application run time) */
        SWVERS_TYPE gSWID;
 static SWVERS_TYPE gSWID_cmp;
 const  SWVERS_TYPE gSWID_def = DEF_SWID_NUMBER;
        unsigned char szSWVersion[64];       /* buffer to contain formated sw id */
 
-/* selected logo */
+// -------------------------------------------------
+/* Bike Logo & Type */
        UINT8 gLogoSelection;
 static UINT8 gLogoSelection_cmp;
 #if(BIKE_MOTOBAU==1)
-    const  UINT8 gLogoSelection_def = eLogo_Motobau;
+const  UINT8 gLogoSelection_def = eLogo_Motobau;
 #else // BIKE_MOTOBAU
-    const  UINT8 gLogoSelection_def = eLogo_SIXO;
+const  UINT8 gLogoSelection_def = eLogo_SIXO;
 #endif // BIKE_MOTOBAU
-
-/* bike type settings */
        BIKE_TYPE gBikeType;
 static BIKE_TYPE gBikeType_cmp;
 const  BIKE_TYPE gBikeType_def = eBIKE_STANDARD;
 
-// wheel size in mm
-extern  UINT16 wWheelSize;                      // original value
-static  UINT16 wWheelSize_cmp;                  // compare value
-const   UINT16 wWheelSize_def = DEF_WHEELSIZE;  // default value
+// -------------------------------------------------
+// WheelSize & Impulses
+       UINT16 wWheelSize;                       // original value in mm
+static UINT16 wWheelSize_cmp;                   // compare value
+const  UINT16 wWheelSize_def = DEF_WHEELSIZE;   // default value
+       UINT8 gbWheelImpulse;                    // wheel impulses/revolution
+static UINT8 bWheelImpulse_cmp;
+const  UINT8 bWheelImpulse_def = 1;
 
-// wheel impulses/revolution
-extern  UINT8 gbWheelImpulse;                  // wheel impulses/revolution
-static  UINT8 bWheelImpulse_cmp;
-const   UINT8 bWheelImpulse_def = 1;
-
+// -------------------------------------------------
 // RPM cylinder correcture factor
-extern  CCF_TYPE CCF;
-static  CCF_TYPE CCF_cmp;
-const   CCF_TYPE CCF_def = DEF_CCF_NOM | DEF_CCF_DENOM;
+       CCF_TYPE CCF;
+static CCF_TYPE CCF_cmp;
+const  CCF_TYPE CCF_def = DEF_CCF_NOM | DEF_CCF_DENOM;
 
-// vehicle distance
-extern DIST_TYPE   VehicDist;
-static DIST_TYPE   VehicDist_cmp;
-const  DIST_TYPE   VehicDist_def = 0L;
+// -------------------------------------------------
+// distances
+       DIST_TYPE    VehicDist;
+static DIST_TYPE    VehicDist_cmp;
+const  DIST_TYPE    VehicDist_def = 0L;
+       DIST_TYPE    TripA;
+static DIST_TYPE    TripA_cmp;
+const  DIST_TYPE    TripA_def = 0L;
+       DIST_TYPE    TripB;
+static DIST_TYPE    TripB_cmp;
+const  DIST_TYPE    TripB_def = 0L;
+       DIST_TYPE    TripC;
+static DIST_TYPE    TripC_cmp;
+const  DIST_TYPE    TripC_def = 0L;
+       DIST_TYPE    TripD;
+static DIST_TYPE    TripD_cmp;
+const  DIST_TYPE    TripD_def = 0L;
+       DIST_TYPE    gNextServKm;
+static DIST_TYPE    gNextServKm_cmp;
+const  DIST_TYPE    gNextServKm_def = 0L;
+       DIST_TYPE    FuelDist;
+static DIST_TYPE    FuelDist_cmp;
+const  DIST_TYPE    FuelDist_def = 0L;
 
-// TripCounter A..D
-extern DIST_TYPE   TripA;
-static DIST_TYPE   TripA_cmp;
-const  DIST_TYPE   TripA_def = 0L;
-
-extern DIST_TYPE   TripB;
-static DIST_TYPE   TripB_cmp;
-const  DIST_TYPE   TripB_def = 0L;
-
-extern DIST_TYPE   TripC;
-static DIST_TYPE   TripC_cmp;
-const  DIST_TYPE   TripC_def = 0L;
-
-extern DIST_TYPE   TripD;
-static DIST_TYPE   TripD_cmp;
-const  DIST_TYPE   TripD_def = 0L;
-
-       DIST_TYPE   gNextServKm;
-static DIST_TYPE   gNextServKm_cmp;
-const  DIST_TYPE   gNextServKm_def = 0L;
-
-
-// Fuel Distance
-extern DIST_TYPE   FuelDist;
-static DIST_TYPE   FuelDist_cmp;
-const  DIST_TYPE   FuelDist_def = 0L;
-
+// -------------------------------------------------
 // Speed statistics
-extern SPEED_TYPE  Speed_Max;
-static SPEED_TYPE  Speed_Max_cmp;
-const  SPEED_TYPE  Speed_Max_def = 0;
+       SPEED_TYPE   Speed_Max;
+static SPEED_TYPE   Speed_Max_cmp;
+const  SPEED_TYPE   Speed_Max_def = 0;
+       SPEED_TYPE   Speed_AvrM;
+static SPEED_TYPE   Speed_AvrM_cmp;
+const  SPEED_TYPE   Speed_AvrM_def = 0;
+       SPEED_TYPE   Speed_AvrP;
+static SPEED_TYPE   Speed_AvrP_cmp;
+const  SPEED_TYPE   Speed_AvrP_def = 0;
 
-extern SPEED_TYPE  Speed_AvrM;
-static SPEED_TYPE  Speed_AvrM_cmp;
-const  SPEED_TYPE  Speed_AvrM_def = 0;
-
-extern SPEED_TYPE  Speed_AvrP;
-static SPEED_TYPE  Speed_AvrP_cmp;
-const  SPEED_TYPE  Speed_AvrP_def = 0;
-
+// -------------------------------------------------
 /* Engine speed parameters */
-extern RPM_TYPE RPM_Flash;
-static RPM_TYPE RPM_Flash_cmp;
-const  RPM_TYPE RPM_Flash_def = 0;
+       RPM_TYPE     RPM_Flash;
+static RPM_TYPE     RPM_Flash_cmp;
+const  RPM_TYPE     RPM_Flash_def = 0;
+       RPM_TYPE     RPM_Max;
+static RPM_TYPE     RPM_Max_cmp;
+const  RPM_TYPE     RPM_Max_def = 0;
 
-extern RPM_TYPE RPM_Max;
-static RPM_TYPE RPM_Max_cmp;
-const  RPM_TYPE RPM_Max_def = 0;
-
-
+// -------------------------------------------------
 /* Engine RunTime statistics */
-extern TIME_TYPE_LD  EngRunTime_Srv;
-static TIME_TYPE_LD  EngRunTime_Srv_cmp;
-const  TIME_TYPE_LD  EngRunTime_Srv_def = 0L;
+       TIME_TYPE_LD EngRunTime_Srv;
+static TIME_TYPE_LD EngRunTime_Srv_cmp;
+const  TIME_TYPE_LD EngRunTime_Srv_def = 0L;
+       TIME_TYPE_LD EngRunTime_All;
+static TIME_TYPE_LD EngRunTime_All_cmp;
+const  TIME_TYPE_LD EngRunTime_All_def = 0L;
 
-extern TIME_TYPE_LD  EngRunTime_All;
-static TIME_TYPE_LD  EngRunTime_All_cmp;
-const  TIME_TYPE_LD  EngRunTime_All_def = 0L;
-
-
+// -------------------------------------------------
 /* voltages */
-extern UINT16 Volt_Min;
-static UINT16 Volt_Min_cmp;
-const  UINT16 Volt_Min_def = ANAIN_INVALID_U;
+       UINT16       Volt_Min;
+static UINT16       Volt_Min_cmp;
+const  UINT16       Volt_Min_def = ANAIN_INVALID_U;
+       UINT16       Volt_Max;
+static UINT16       Volt_Max_cmp;
+const  UINT16       Volt_Max_def = ANAIN_INVALID_U;
 
-extern UINT16 Volt_Max;
-static UINT16 Volt_Max_cmp;
-const  UINT16 Volt_Max_def = ANAIN_INVALID_U;
-
-
+// -------------------------------------------------
 /* temperatures */
-extern INT16 TAir_Min;
-static INT16 TAir_Min_cmp;
-const  INT16 TAir_Min_def = ANAIN_INVALID_S;
-extern INT16 TAir_Max;
-static INT16 TAir_Max_cmp;
-const  INT16 TAir_Max_def = ANAIN_INVALID_S;
+       INT16        TAir_Min;
+static INT16        TAir_Min_cmp;
+const  INT16        TAir_Min_def = ANAIN_INVALID_S;
+       INT16        TAir_Max;
+static INT16        TAir_Max_cmp;
+const  INT16        TAir_Max_def = ANAIN_INVALID_S;
+       INT16        TOil_Min;
+static INT16        TOil_Min_cmp;
+const  INT16        TOil_Min_def = ANAIN_INVALID_S;
+       INT16        TOil_Max;
+static INT16        TOil_Max_cmp;
+const  INT16        TOil_Max_def = ANAIN_INVALID_S;
+       INT16        TWat_Min;
+static INT16        TWat_Min_cmp;
+const  INT16        TWat_Min_def = ANAIN_INVALID_S;
+       INT16        TWat_Max;
+static INT16        TWat_Max_cmp;
+const  INT16        TWat_Max_def = ANAIN_INVALID_S;
 
-extern INT16 TOil_Min;
-static INT16 TOil_Min_cmp;
-const  INT16 TOil_Min_def = ANAIN_INVALID_S;
-extern INT16 TOil_Max;
-static INT16 TOil_Max_cmp;
-const  INT16 TOil_Max_def = ANAIN_INVALID_S;
-
-extern INT16 TWat_Min;
-static INT16 TWat_Min_cmp;
-const  INT16 TWat_Min_def = ANAIN_INVALID_S;
-extern INT16 TWat_Max;
-static INT16 TWat_Max_cmp;
-const  INT16 TWat_Max_def = ANAIN_INVALID_S;
-
+// -------------------------------------------------
 /* lap counter */
-extern TIME_TYPE_LL LapCntTime[LAPS_MAX];
+       TIME_TYPE_LL LapCntTime[LAPS_MAX];
 static TIME_TYPE_LL LapCntTime_cmp[LAPS_MAX];
 const  TIME_TYPE_LL LapCntTime_def = { 0, 0 };  // reset bMin & bSec
-
-extern LCSTATE_TYPE LapCounterState;
+       LCSTATE_TYPE LapCounterState;
 static LCSTATE_TYPE LapCounterState_cmp;
 const  LCSTATE_TYPE LapCounterState_def = 0;
 
-
+// -------------------------------------------------
 /* Compass */
-extern COMPASSCNTFL_TYPE gCompassCntrl;
+       COMPASSCNTFL_TYPE gCompassCntrl;
 static COMPASSCNTFL_TYPE gCompDplMode_cmp;
 const  COMPASSCNTFL_TYPE gCompDplMode_def   = 0;    // default: off
 
+// -------------------------------------------------
 /* Language */
        UINT8 gLanguage;         // eeprom value
 static UINT8 gLanguage_cmp;
 const  UINT8 gLanguage_def = 0; // default: DE
 
-
+// -------------------------------------------------
 /* fuel handling */
-extern UINT16 gwFuelCap;        // fuel tank size in 1/10 liters
+       UINT16 gwFuelCap;        // fuel tank size in 1/10 liters
 static UINT16 wFuelCap_cmp;
 const  UINT16 wFuelCap_def = 0;
-
-extern UINT8  gbFuelCons;       // fuel consumption in 1/10 liter/100 km
+       UINT8  gbFuelCons;       // fuel consumption in 1/10 liter/100 km
 static UINT8  bFuelCons_cmp;
 static UINT8  bFuelCons_def = 0;
 
+// -------------------------------------------------
 /* system start / boot screen */
-extern UINT8  gbLogoDelay;      // Boot delay in 1/10 sec
+       UINT8  gbLogoDelay;      // Boot delay in 1/10 sec
 static UINT8  bLogoDelay_cmp;
 const  UINT8  bLogoDelay_def = 20;  // default: 2 sec. delay
+
+
+
 
 
 

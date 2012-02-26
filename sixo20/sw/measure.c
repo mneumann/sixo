@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.2  2012/02/26 12:24:55  tuberkel
+ * - moved all Eeprom Vlaues physically into 'sysparam' module
+ *
  * Revision 3.1  2011/05/29 12:43:19  tuberkel
  * BugFix gwWheelImpulse
  * - Typ korrgiert
@@ -112,22 +115,25 @@
 #include "sysparam.h"
 
 
-/* external symbols */
-extern  UINT16  wMilliSecCounter; // valid values: 0h .. ffffh
 
 
-/* non public module symbols */
-UINT16       wWheelSize     = DEF_WHEELSIZE;                 /* wheel size in mm */
-UINT16       gbWheelImpulse = DEF_WHEELIMPULSE;              /* wheel impulses per revolution */
-CCF_TYPE     CCF         = DEF_CCF_NOM | DEF_CCF_DENOM;      /* RPM cylinder correcture factor */
-DIST_TYPE    VehicDist   = 0x0;                              /* vehicle distance */
-DIST_TYPE    TripA       = 0x0;                              /* TripCounter A */
-DIST_TYPE    TripB       = 0x0;                              /* TripCounter B */
-DIST_TYPE    TripC       = 0x0;                              /* TripCounter C */
-DIST_TYPE    TripD       = 0x0;                              /* TripCounter D */
-DIST_TYPE    FuelDist    = 0x0;                              /* fuel distance */
-SPEED_TYPE   Speed_AvrM  = 0x0;                              /* average speed in motion only */
-SPEED_TYPE   Speed_AvrP  = 0x0;                              /* average speed incl. pauses */
+/* external symbols (taken from eeprom/nvram) */
+extern  UINT16      wMilliSecCounter;   /* valid values: 0h .. ffffh */
+extern  UINT16      wWheelSize;         /* wheel size in mm */
+extern  UINT16      gbWheelImpulse;     /* wheel impulses per revolution */
+extern  CCF_TYPE    CCF;                /* RPM cylinder correcture factor */
+extern  DIST_TYPE   VehicDist;          /* vehicle distance */
+extern  DIST_TYPE   TripA;              /* TripCounter A */
+extern  DIST_TYPE   TripB;              /* TripCounter B */
+extern  DIST_TYPE   TripC;              /* TripCounter C */
+extern  DIST_TYPE   TripD;              /* TripCounter D */
+extern  DIST_TYPE   FuelDist  ;         /* fuel distance */
+extern  SPEED_TYPE  Speed_AvrM;         /* average speed in motion only */
+extern  SPEED_TYPE  Speed_AvrP;         /* average speed incl. pauses */
+
+
+
+
 
 
 

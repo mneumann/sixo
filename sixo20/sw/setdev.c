@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.26  2012/02/26 12:24:55  tuberkel
+ * - moved all Eeprom Vlaues physically into 'sysparam' module
+ *
  * Revision 3.25  2012/02/26 11:47:16  tuberkel
  * Objects Order reviewed
  *
@@ -385,7 +388,9 @@ static OBJ_NUM      NumObj_FuelCons;        // FuelConsumption - edit object
 
 // ----------------------------------------------------------------
 // BikeLogo (NOTE: All entries derived from 'LOGO_TYPE')
+extern UINT8        gbLogoDelay;            // StartLogoDelay (from eeprom)
 extern UINT8        gLogoSelection;         // BikeLogo (from eeprom)
+static OBJ_NUM      NumObj_LogoDelay;       // StartLogoDelay - edit object
 static OBJ_SELECT   SlctObj_Logo;           // BikeLogo - edit object
 static const STRING pszSelectLogo[RESTXT_SET_LOGO_CNT] =
                         {   RESTXT_SET_LOGO_NKDEV     ,
@@ -403,8 +408,8 @@ static const STRING pszSelectLogo[RESTXT_SET_LOGO_CNT] =
                             RESTXT_SET_LOGO_TENERISTI ,
                             RESTXT_SET_LOGO_COOLRIDE
                         };
-static OBJ_NUM NumObj_LogoDelay;            // StartLogoDelay - edit object
-UINT8  gbLogoDelay;                         // StartLogoDelay (from eeprom)
+
+
 
 
 
