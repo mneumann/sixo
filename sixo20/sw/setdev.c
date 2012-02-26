@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.24  2012/02/26 10:11:52  tuberkel
+ * - All GearInfo Settings available
+ *
  * Revision 3.23  2012/02/25 20:43:01  tuberkel
  * - All ChainOiler Settings available
  *
@@ -593,7 +596,7 @@ UINT16          gwFuelSImp;
 
 // ----------------------------------------------------------------
 // CHAIN OILER OBJECTS
-static OBJ_BOOL BoolObj_ChainOAvail;
+static OBJ_BOOL BoolObj_ChainOAvail;                // main switch to enable 'Chain Oiler' extension
 static OBJ_NUM  NumObj_ChainOOut;                   // Number of SIxO-GPO - to activate ChainOiler
 static OBJ_NUM  NumObj_ChainODur;                   // ChainOiler - duration of Oiler in sec. every n km
 static OBJ_NUM  NumObj_ChainOkm;                    // ChainOiler - km to reactivate forn sec.
@@ -604,8 +607,16 @@ UINT8           gbChainOkm;
 
 // ----------------------------------------------------------------
 // GEARBOX OBJECTS
-static OBJ_BOOL BoolObj_GearIAvail;
-BOOL            gfGearInfoAvail;
+static OBJ_BOOL     BoolObj_GearIAvail;             // main switch to enable 'GearInfo' extension
+static OBJ_SELECT   SlctObj_GearIMode;              // gearinfo - input mode
+static UINT8        bGearIMode;
+BOOL                gfGearInfoAvail;
+static const STRING pszSelectGearIM[RESTXT_SET_GEARIM_CNT] =
+                        {   RESTXT_SET_GEARIM_NA   ,
+                            RESTXT_SET_GEARIM_AUTO ,
+                            RESTXT_SET_GEARIM_GPI
+                        };
+
 
 // ----------------------------------------------------------------
 // GPS MOUSE OBJECTS
@@ -704,6 +715,7 @@ static const OBJ_SLCT_INIT SlctObj_InitList[] =
     /* ------------------ ------ ------ ------------ ----- ----------------------------- ------------------     --------------- ---------------------------- ----------------  ------------------------ --------------------------------- */
     { &SlctObj_CompassD,    C11,   R2,  DPLFONT_6X8,    5, (UINT8 far *)&bCompassDispl,  RESTXT_SET_COMPD_CNT,  &bEditBuffer,   RESTXT_SET_COMPD_DESC,       pszSelectCompD,   RESTXT_SET_COMPD_WIDTH,  OC_DISPL | OC_SELECT | OC_EDIT   },
     { &SlctObj_CompassC,    C17,   R2,  DPLFONT_6X8,    5, (UINT8 far *)&bCompassCal,    RESTXT_SET_COMPC_CNT,  &bEditBuffer,   RESTXT_SET_COMPC_DESC,       pszSelectCompC,   RESTXT_SET_COMPC_WIDTH,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &SlctObj_GearIMode,   C16,   R6,  DPLFONT_6X8,    6, (UINT8 far *)&bGearIMode,     RESTXT_SET_GEARIM_CNT, &bEditBuffer,   RESTXT_SET_GEARIM_DESC,      pszSelectGearIM,  RESTXT_SET_GEARIM_WIDTH, OC_DISPL | OC_SELECT | OC_EDIT   },
     /* ------------------ ------ ------ ------------ ----- ----------------------------- ------------------     --------------- ---------------------------- ----------------  ------------------------ --------------------------------- */
 
 };
@@ -858,6 +870,7 @@ static const void far * ObjectList_Ext1[] =
     (void far *) &NumObj_ChainOkm,
     (void far *) &NumObj_ChainOOut,
     (void far *) &BoolObj_GearIAvail,   //
+    (void far *) &SlctObj_GearIMode,
     (void far *) &BoolObj_GPSAvail      //
 };
 #define OBJLIST_EXT1_CNT (sizeof(ObjectList_Ext1)/sizeof(OBJ_STATE)/sizeof(void far *))

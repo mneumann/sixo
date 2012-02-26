@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.8  2012/02/26 10:11:52  tuberkel
+ * - All GearInfo Settings available
+ *
  * Revision 3.7  2012/02/21 21:15:31  tuberkel
  * Makros renamed
  *
@@ -242,13 +245,16 @@
 #define RESTXT_SET_LEDWM_STD       " Std"
 
 /* language settings */
-#define RESTXT_SET_LANG_WIDTH       2
-#define RESTXT_SET_LANG_CNT         3
-                                   /*....!....!...*/    // 2 chars available
+#define RESTXT_SET_LANG_WIDTH       2       // use 2 chars for language selection
+#define RESTXT_SET_LANG_CNT         3       // currentyl 3 langauages selectable
 #define RESTXT_SET_LANG_DE          "DE"
 #define RESTXT_SET_LANG_EN          "EN"
 #define RESTXT_SET_LANG_NL          "NL"
 
+
+/* --------------------------------------------------------- */
+/* Extensions Resource Settings */
+/* --------------------------------------------------------- */
 
 /* compass settings */
 #define RESTXT_SET_COMPD_WIDTH      3       // see RESTXT_SET_COMPD_NA.. for language strings
@@ -257,6 +263,8 @@
 #define RESTXT_SET_COMPC_WIDTH      3       // see RESTXT_SET_COMPC_NA.. for language strings
 #define RESTXT_SET_COMPC_CNT        8       // 8 steps available
 
+#define RESTXT_SET_GEARIM_WIDTH     4       // see RESTXT_SET_GEARIM_NA.. for language strings
+#define RESTXT_SET_GEARIM_CNT       3       // 3 steps available
 
 /* analog input formating*/
 #define RESTXT_ANALOG_NA        "  -"       // analoge value 'not available'

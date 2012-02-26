@@ -8,19 +8,19 @@ Relative to Project File=1
 Project Wordfile=
 [Open Files]
 Open File0=s:\CVS\sixo\sixo20\sw\setdev.c
-Open File Pos0=47738
-Open File Line0=46952
-Active File Index=2
-Open File Window Pos0=0,1,-1,-1,-4,-30,2,-1,919,768
+Open File Pos0=45001
+Open File Line0=38587
+Active File Index=1
+Open File Window Pos0=0,1,-1,-1,-4,-30,0,0,917,737
 Open File1=S:\CVS\sixo\sixo20\sw\devices.txt
-Active File Display Mode=1
-Open File Pos1=5960
-Open File Line1=4628
-Open File Window Pos1=0,1,-1,-1,-4,-30,928,0,1834,1059
+Active File Display Mode=3
+Open File Pos1=8153
+Open File Line1=5580
+Open File Window Pos1=2,3,-1,-1,-4,-30,917,0,1834,737
 Open File2=S:\CVS\sixo\sixo20\sw\resource_de.h
-Open File Pos2=9048
-Open File Line2=8569
-Open File Window Pos2=0,1,-1,-1,-1,-1,0,0,926,1059
+Open File Pos2=13475
+Open File Line2=11339
+Open File Window Pos2=0,2,0,737,-4,-30,0,0,917,737
 Open File3=
 Open File Pos3=3915
 Open File Line3=4904
@@ -112,7 +112,7 @@ Open File Window Pos24=2,3,-1,-1,-4,-30,66,87,755,443
 Open File25=
 
 [File View]
-Current Select=Projektdateien\Resources\resource_de.h
+Current Select=Offene Dateien\
 
 [Files - Test]
 

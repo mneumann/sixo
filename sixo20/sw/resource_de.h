@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.15  2012/02/26 10:11:52  tuberkel
+ * - All GearInfo Settings available
+ *
  * Revision 3.14  2012/02/25 20:43:01  tuberkel
  * - All ChainOiler Settings available
  *
@@ -323,8 +326,11 @@
 #define RESTXT_SET_CHAINO_KM        "km"        // Aktivität alle n km
 #define RESTXT_SET_CHAINO_OUT       "O:"        // Kettenölerausgang: GPO 0..1
 
-
 #define RESTXT_SET_GEARINFO         "Ganganzeige"
+#define RESTXT_SET_GEARIM_DESC      "M:"
+#define RESTXT_SET_GEARIM_NA        " nv "
+#define RESTXT_SET_GEARIM_AUTO      "auto"
+#define RESTXT_SET_GEARIM_GPI       "GPI "
 
 #define RESTXT_SET_GPS              "GPS-Maus"
 
