@@ -68,6 +68,11 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.28  2012/02/27 23:05:46  tuberkel
+ * - Compass: Information moved from gDeviceFlags3  ==> gCompassCntrl
+ * - CompassDrv corrected
+ * - SysPar- API changed
+ *
  * Revision 3.27  2012/02/27 20:46:50  tuberkel
  * - all Coolride GPIs/GPOs correctly set by Eeprom value
  *
@@ -463,8 +468,9 @@ static const STRING pszSelectLedWM[RESTXT_SET_LEDWM_CNT] =
 // Device Flags 2+3:
 // Note: 'gDeviceFlags2/3' are a bitfield structure - can therefore NOT directly be adressed by edit objects,
 //       So we need local copies to compare/save changes!
-extern DEVFLAGS2_TYPE   gDeviceFlags2;
-extern DEVFLAGS3_TYPE   gDeviceFlags3;
+extern DEVFLAGS2_TYPE       gDeviceFlags2;
+extern DEVFLAGS3_TYPE       gDeviceFlags3;
+extern COMPASSCNTL_TYPE     gCompassCntrl;
 
 // ----------------------------------------------------------------
 // Date objects
@@ -558,9 +564,9 @@ extern DBGFILT_TYPE gDebugFilter;           // SIxO-DebugOut control (level & mo
 
 // ----------------------------------------------------------------
 // COMPASS OBJECTS
-extern COMPASSCNTFL_TYPE    gCompassCntrl;  // Eeprom value
-static UINT8        bCompassDispl;          // to support enum display mode
-static OBJ_SELECT   SlctObj_CompassD;       // compass calibration state object
+extern COMPASSCNTL_TYPE    gCompassCntrl;      // Eeprom value
+static UINT8                bCompassDispl;      // to support enum display mode
+static OBJ_SELECT           SlctObj_CompassD;   // compass calibration state object
 static const STRING pszSelectCompD[RESTXT_SET_COMPD_CNT] =
                         {   RESTXT_SET_COMPD_NA  ,
                             RESTXT_SET_COMPD_HD  ,
@@ -1233,7 +1239,7 @@ void SetDev_CheckChanges_Device( void )
     {
         gfEepromReset  = 0;                     // clear for next use
         SetDev_Show(FALSE);                   // clear screen
-        ParSetDefaults(PARTIAL);                // reset ALL parameters
+        SysPar_SetDefaults(PARTIAL);                // reset ALL parameters
         Delay_ms(500);                          // wait, simulate a reset
         SetDev_Show(TRUE);                    // rebuild screen
     }
@@ -1478,7 +1484,9 @@ void SetDev_CheckChanges_Extension( void )
                 case 5: ODS( DBG_SYS, DBG_INFO, "Step 5: Multiple rotate compass vertical!"); break;
                 case 6: ODS( DBG_SYS, DBG_INFO, "Step 6: Save vertical measurement!"); break;
             }
+            #if (COMPASSDRV==1)
             CompDrv_Cmd_IncCalState();                    // ==> activate next calibration step!
+            #endif
         }
         else
         {   // nothing changed ==> nothing to do!
@@ -1486,6 +1494,7 @@ void SetDev_CheckChanges_Extension( void )
     }
     else    // currently not (no longer) in edit mode
     {   // check for changed value after editing finished with ESC / OK
+        #if (COMPASSDRV==1)
         if (bCompassCal == 0)                      // user pressed ESC ?
         {   ODS( DBG_SYS, DBG_INFO, "Calibration aborted => Reset Calibration Mode!");
             CompDrv_Cmd_Reset();                      // ==> reset calibration process!
@@ -1498,6 +1507,7 @@ void SetDev_CheckChanges_Extension( void )
         {   // success finished calibration state!
             ODS( DBG_SYS, DBG_INFO, "Calibration successfully completed!");
         }
+        #endif
         bCompassCal = 0;                         // reset to default state
     }
 
@@ -1704,9 +1714,12 @@ void SetDev_ValuesUpdate(void)
 
     // compass state
     if (SlctObj_CompassC.State.bits.fEditActive == FALSE)
-    {   COMPDRV_HEADINFO *ptHeadingInfo;
-        ptHeadingInfo   = CompassGetHeadingInfo();
+    {
+        #if (COMPASSDRV==1)
+        COMPDRV_HEADINFO *ptHeadingInfo;
+        ptHeadingInfo   = CompDrv_GetHeadingInfo();
         bCompassCal     = ptHeadingInfo->ucCalState;
+        #endif
     }
 
     // Coolride enable/disable changed?
