@@ -77,6 +77,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.3  2012/02/27 23:06:37  tuberkel
+ * - SysPar- API changed
+ *
  * Revision 3.2  2012/02/26 12:24:55  tuberkel
  * - moved all Eeprom Vlaues physically into 'sysparam' module
  *
@@ -122,7 +125,7 @@ extern DPLFLAGS_TYPE    gDisplayFlags;      // display control structure from ee
  *  PARAMETER:      BOOL fFlash     if TRUE, inverses Screen 1/2 second
  *  RETURN:         -
  *  COMMENT:        uses global display flags initialized by
- *                  ParInitSystemPar()
+ *                  SysPar_InitSystemPar()
  *********************************************************************** */
 ERRCODE DisplInit( BOOL fFlash )
 {
