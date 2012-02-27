@@ -69,6 +69,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.8  2012/02/27 20:46:50  tuberkel
+ * - all Coolride GPIs/GPOs correctly set by Eeprom value
+ *
  * Revision 3.7  2012/02/21 22:01:56  tuberkel
  * Compass Control/Mode/Eeprom reveiwed/fixed
  *
@@ -290,7 +293,7 @@ typedef enum
 /* ----------------------------------------------------------------------------- */
 /* COOLRIDE - HEATGRIP SETTINGS
     KEY-OUTPUT:
-        - SIxO controls Coolride keyInput by shortening CR-Key to SIxO GPO0-Gnd
+        - SIxO controls Coolride keyInput by shortening Coolride-Key-Input to SIxO GPO0-Gnd
         - Coolride needs at least Key-pressed 100 ms and 380 ms Intervall to next Press
         - we currently reserve GPO_0 as Coolride Control
         - we here adjust 100 ms GPO-ON-Time and 280 ms DURATION
@@ -301,11 +304,22 @@ typedef enum
         - but user ca setup PWM in 20% steps only
         - for display, SIXO uses 5x 10% bar */
 
-#define COOLR_KEYOUT_PORT       eGPO_0      // GPO to stimulate coolride key input
 #define COOLR_KEYOUT_SIGNAL     100, 0, 280 // GPO PWM signal for coolride key input
-#define COOLR_PWMIN_PORT        eGPI0_Int2  // GPI to be used for PWM input
 #define COOLR_PWMIN_LOGIC       TRUE        // GPI PWM logic: high active
 #define COOLR_PWMIN_TO          1000        // Timeout in ms to detect missing transitions
+
+typedef struct
+{
+    UINT8   byte;   // for access via MACRO / bytewise
+    struct
+    {
+        unsigned char   CoolrAvail  :1;     /* Coolride Available: 1=available, 0=n.a. */
+        unsigned char   CoolrGPI    :2;     /* Coolride PWM-Measurement: GPI 0..3 */
+        unsigned char   CoolrGPO    :1;     /* Coolride Key-Output: GPO 0..1 */
+        unsigned char   Coolr_res4  :4;     /* reserved */
+    } flags;
+} COOLRIDECNTRL_TYPE;
+
 
 
 

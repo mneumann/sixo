@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.27  2012/02/27 20:46:50  tuberkel
+ * - all Coolride GPIs/GPOs correctly set by Eeprom value
+ *
  * Revision 3.26  2012/02/26 12:24:55  tuberkel
  * - moved all Eeprom Vlaues physically into 'sysparam' module
  *
@@ -301,19 +304,20 @@ static DEVDATA          SDObj;              // settings device object itself
 static SETDEV_CNTRL     SDCntrl;            // special set device show state control
 
 // Static Headline Text Objects
-static OBJ_STEXT   STxtObj_HL_Vehicle;
-static OBJ_STEXT   STxtObj_HL_Device;
-static OBJ_STEXT   STxtObj_HL_Out;
-static OBJ_STEXT   STxtObj_HL_Ext1;
+static OBJ_STEXT        STxtObj_HL_Vehicle;
+static OBJ_STEXT        STxtObj_HL_Device;
+static OBJ_STEXT        STxtObj_HL_Out;
+static OBJ_STEXT        STxtObj_HL_Ext1;
 
 
 
 // ----------------------------------------------------------------
 // externals
-extern STRING far       szDevName[];        // device names
-extern DEVFLAGS1_TYPE   gDeviceFlags1;      // system parameters
-extern unsigned char    szSWVersion[];      // formated sw version
-extern UINT16           wMilliSecCounter;   // valid values: 0h .. ffffh
+extern STRING far           szDevName[];        // device names
+extern DEVFLAGS1_TYPE       gDeviceFlags1;      // system parameters
+extern unsigned char        szSWVersion[];      // formated sw version
+extern UINT16               wMilliSecCounter;   // valid values: 0h .. ffffh
+extern COOLRIDECNTRL_TYPE   gCoolrideCntrl;     // Coolride Control (from eeprom)
 
 
 // ----------------------------------------------------------------
@@ -553,7 +557,7 @@ extern DBGFILT_TYPE gDebugFilter;           // SIxO-DebugOut control (level & mo
 // ===================================================================
 
 // ----------------------------------------------------------------
-// Compass Display Mode Object:
+// COMPASS OBJECTS
 extern COMPASSCNTFL_TYPE    gCompassCntrl;  // Eeprom value
 static UINT8        bCompassDispl;          // to support enum display mode
 static OBJ_SELECT   SlctObj_CompassD;       // compass calibration state object
@@ -563,9 +567,6 @@ static const STRING pszSelectCompD[RESTXT_SET_COMPD_CNT] =
                             RESTXT_SET_COMPD_GR  ,
                             RESTXT_SET_COMPD_HDGR
                         };
-
-// ----------------------------------------------------------------
-// Compass Calibration State Object (temporary while calibration mode is active):
 static OBJ_SELECT   SlctObj_CompassC;       // compass display mode object
 static UINT8        bCompassCal;            // to detect user pressed buttons/activity
 static const STRING pszSelectCompC[RESTXT_SET_COMPC_CNT] =
@@ -578,9 +579,6 @@ static const STRING pszSelectCompC[RESTXT_SET_COMPC_CNT] =
                             RESTXT_SET_COMPC_VTURN,
                             RESTXT_SET_COMPC_VSAVE
                         };
-
-// ----------------------------------------------------------------
-// Compass Available Control
 static OBJ_BOOL BoolObj_CompAvail;          // complete boolean Compass main switch Object
 BOOL            gfCompAvail;                // local value
 
@@ -1441,6 +1439,7 @@ void SetDev_CheckChanges_LCDLED( void )
 /***********************************************************************
  *  FUNCTION:       SetDev_CheckChanges_Extension
  *  DESCRIPTION:    Subfunction of SetDev_CheckChanges() (see for details)
+ *                  Used to detect any changes, once after EDIT mode was finished!
  *  PARAMETER:      -
  *  RETURN:         -
  *  COMMENT:        WE HERE HANDLE ONLY THOSE DATA, WHICH CAN _NOT_DIRECTLY_
@@ -1448,11 +1447,10 @@ void SetDev_CheckChanges_LCDLED( void )
  *********************************************************************** */
 void SetDev_CheckChanges_Extension( void )
 {
-    // ============================================================
-    // EXTENSIONS SETTINGS
-    // ============================================================
-
     // -------------------------------------------------------
+    // COMPASS SETTINGS
+    // -------------------------------------------------------
+
     // Compass Display Mode was changed ?
     if ( SlctObj_CompassD.State.bits.fEditActive == FALSE ) // edit mode NOT active?
     {   gCompassCntrl.flags.CompassDisplay = bCompassDispl; // just assure eeprom value equals local copy
@@ -1502,6 +1500,34 @@ void SetDev_CheckChanges_Extension( void )
         }
         bCompassCal = 0;                         // reset to default state
     }
+
+    // -------------------------------------------------------
+    // COOLRIDE HEATGRIP SETTINGS
+    // -------------------------------------------------------
+
+    // Coolride enable/disable changed?
+    if ( BoolObj_CoolrAvail.State.bits.fEditActive == FALSE )   // edit mode NOT active?
+    {   gCoolrideCntrl.flags.CoolrAvail = gfCoolrAvail;         // just assure eeprom value equals local copy
+    }
+
+    // Coolride GPO Settings changed?
+    if ( NumObj_CoolrOut.State.bits.fEditActive == FALSE )  // edit mode NOT active?
+    {   gCoolrideCntrl.flags.CoolrGPO = gbCoolrGPO;         // just assure eeprom value equals local copy
+    }
+
+    // Coolride GPI Settings changed?
+    if ( NumObj_CoolrIn.State.bits.fEditActive == FALSE )   // edit mode NOT active?
+    {
+        // check: GPI has been changed?
+        if (gCoolrideCntrl.flags.CoolrGPI != gbCoolrGPI);
+        {
+            // save new value
+            gCoolrideCntrl.flags.CoolrGPI = gbCoolrGPI;
+            // essential: initialize new GPI with valid Coolride-PWM-Measurement settings
+            DigInDrv_GPI_SetupMeas( gCoolrideCntrl.flags.CoolrGPI, COOLR_PWMIN_LOGIC, COOLR_PWMIN_TO );
+        }
+    }
+
 }
 
 
@@ -1547,8 +1573,8 @@ void SetDev_CheckChanges( void )
 
 /***********************************************************************
  *  FUNCTION:       SetDev_ValuesUpdate
- *  DESCRIPTION:    Updates all SDObj parameters in order to be
- *                  shown immediatly.
+ *  DESCRIPTION:    Updates all Setdevice Objects in order to be
+ *                  shown on screen immediatly.
  *  PARAMETER:      -
  *  RETURN:         -
  *  COMMENT:        We here handle only those data, which can not directly
@@ -1560,7 +1586,7 @@ void SetDev_CheckChanges( void )
  *                  is doing!
  *
  *                  Note that file-local-copies of global data (e.g.
- *                  local 'CCFNom' of 'CCF.nibble.nom' are changed by
+ *                  local 'CCFNom' of 'CCF.nibble.nom') are changed by
  *                  edit object only if 'Save' button was pressed! So,
  *                  while edit process is still active, these local values
  *                  won't change!
@@ -1661,16 +1687,16 @@ void SetDev_ValuesUpdate(void)
 
     // Led Warning Mode state
     if (SlctObj_LEDWM.State.bits.fEditActive == FALSE)
-    {   fLedWarnMode = gDeviceFlags2.flags.LedWarnMode;
+    {   fLedWarnMode    = gDeviceFlags2.flags.LedWarnMode;
     }
 
     // Backlight Level
     if (NumObj_BacklOL.State.bits.fEditActive == FALSE)
-        bBacklOnLevel = gDisplayFlags.flags.BacklOnLevel;
+        bBacklOnLevel   = gDisplayFlags.flags.BacklOnLevel;
     if (NumObj_BacklLvl.State.bits.fEditActive == FALSE)
-        bBacklLev = gDisplayFlags.flags.BacklLev;
+        bBacklLev       = gDisplayFlags.flags.BacklLev;
     if (NumObj_ContrLvl.State.bits.fEditActive == FALSE)
-        bContrLev   = gDisplayFlags.flags.ContrLev;
+        bContrLev       = gDisplayFlags.flags.ContrLev;
 
     // ============================================================
     // EXTENSIONS SETTINGS
@@ -1679,9 +1705,21 @@ void SetDev_ValuesUpdate(void)
     // compass state
     if (SlctObj_CompassC.State.bits.fEditActive == FALSE)
     {   COMPDRV_HEADINFO *ptHeadingInfo;
-        ptHeadingInfo = CompassGetHeadingInfo();
-        bCompassCal  = ptHeadingInfo->ucCalState;
+        ptHeadingInfo   = CompassGetHeadingInfo();
+        bCompassCal     = ptHeadingInfo->ucCalState;
     }
+
+    // Coolride enable/disable changed?
+    if ( BoolObj_CoolrAvail.State.bits.fEditActive == FALSE )   // edit mode NOT active?
+        gfCoolrAvail    = gCoolrideCntrl.flags.CoolrAvail;
+
+    // Coolride GPO Settings changed?
+    if ( NumObj_CoolrOut.State.bits.fEditActive == FALSE )  // edit mode NOT active?
+        gbCoolrGPO      = gCoolrideCntrl.flags.CoolrGPO;
+
+    // Coolride GPI Settings changed?
+    if ( NumObj_CoolrIn.State.bits.fEditActive == FALSE )   // edit mode NOT active?
+        gbCoolrGPI      = gCoolrideCntrl.flags.CoolrGPI;
 
 }
 
@@ -1713,6 +1751,11 @@ void SetDev_ValuesInit(void)
     // compass state & display mode
     bCompassCal     = 0;
     bCompassDispl   = gCompassCntrl.flags.CompassDisplay;
+
+    // Coolride settings
+    gfCoolrAvail    = gCoolrideCntrl.flags.CoolrAvail;
+    gbCoolrGPO      = gCoolrideCntrl.flags.CoolrGPO;
+    gbCoolrGPI      = gCoolrideCntrl.flags.CoolrGPI;
 
     // time/date
     TimeDate_GetDate( &RTCDateCopy );       // get current date

@@ -78,6 +78,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.8  2012/02/27 20:46:50  tuberkel
+ * - all Coolride GPIs/GPOs correctly set by Eeprom value
+ *
  * Revision 3.7  2012/02/26 12:24:55  tuberkel
  * - moved all Eeprom Vlaues physically into 'sysparam' module
  *
@@ -364,6 +367,12 @@ const  LCSTATE_TYPE LapCounterState_def = 0;
        COMPASSCNTFL_TYPE gCompassCntrl;
 static COMPASSCNTFL_TYPE gCompDplMode_cmp;
 const  COMPASSCNTFL_TYPE gCompDplMode_def   = 0;    // default: off
+
+// -------------------------------------------------
+/* Compass */
+       COOLRIDECNTRL_TYPE     gCoolrideCntrl;
+static COOLRIDECNTRL_TYPE     gCoolrideCntrl_cmp;
+const  COOLRIDECNTRL_TYPE     gCoolrideCntrl_def = 0;    // default: off
 
 // -------------------------------------------------
 /* Language */

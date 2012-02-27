@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.27  2012/02/27 20:46:50  tuberkel
+ * - all Coolride GPIs/GPOs correctly set by Eeprom value
+ *
  * Revision 3.26  2012/02/21 20:58:15  tuberkel
  * all Setdevice ObjectNames reviewed
  *
@@ -267,12 +270,12 @@ static MAINDEV_CNTRL    MDCntrl;    // special device show state control
 
 /* ============================================================= */
 /* external symbols */
-extern UINT16           wMilliSecCounter;                   /* valid values: 0h .. ffffh */
-extern UINT16           wSecCounter;                        /* valid values: 0h .. ffffh */
-extern STRING far       szDevName[];                        /* device names */
-extern DEVFLAGS1_TYPE   gDeviceFlags1;                      /* system parameters */
-extern char             szSurvGlobalState[VEHSTATE_TXT_LEN];/* vehicle state string */
-
+extern UINT16               wMilliSecCounter;                   /* valid values: 0h .. ffffh */
+extern UINT16               wSecCounter;                        /* valid values: 0h .. ffffh */
+extern STRING far           szDevName[];                        /* device names */
+extern DEVFLAGS1_TYPE       gDeviceFlags1;                      /* system parameters */
+extern char                 szSurvGlobalState[VEHSTATE_TXT_LEN];/* vehicle state string */
+extern COOLRIDECNTRL_TYPE   gCoolrideCntrl;                     /* Coolride Control (from eeprom) */
 
 
 /* ============================================================= */
@@ -1154,9 +1157,9 @@ void MainDev_Show_Icon(void)
 
     /* Check: No icon shown? -> Heatgrip-icon needed?
        Note: Only if not already shown in MD_HEATGRIP state */
-    if (  ( VehStateBmpObj.Data.fpucBitmap          == rgEmptySymbol16x16 )     // no other icon used?
-        &&( MDObj.wDevState                         != MD_HEATGRIP        )     // not already shown below?
-        &&( DigInDrv_GPI_GetMeas(COOLR_PWMIN_PORT)->ucPWM > 0                   ) )   // PWM is active?
+    if (  ( VehStateBmpObj.Data.fpucBitmap          == rgEmptySymbol16x16  )     // no other icon used?
+        &&( MDObj.wDevState                         != MD_HEATGRIP         )     // not already shown below?
+        &&( DigInDrv_GPI_GetMeas(gCoolrideCntrl.flags.CoolrGPI)->ucPWM > 0 ) )   // PWM is active?
     {   VehStateBmpObj.Data.fpucBitmap = rgHeatGrip16x16;
     }
 
@@ -1299,13 +1302,13 @@ void MainDev_Show_Monitor(BOOL fComplete)
  *********************************************************************** */
 void MainDev_Show_Heatgrip(BOOL fInitial)
 {
-    UINT8               i;
-    OBJ_BMP           objBmp    = HeatBarBmpObj;  // we use a copy of that object to manipulate!
-    UINT8               ucPwmCurr = 0;              // current PWM value
-    UINT8               ucPwmCmp  = 5;              // comparison value to select emty/full bmp
+    UINT8   i;
+    OBJ_BMP objBmp    = HeatBarBmpObj;  // we use a copy of that object to manipulate!
+    UINT8   ucPwmCurr = 0;              // current PWM value
+    UINT8   ucPwmCmp  = 5;              // comparison value to select emty/full bmp
 
     /* get a fresh PWM value */
-    ucPwmCurr       = DigInDrv_GPI_GetMeas(COOLR_PWMIN_PORT)->ucPWM;
+    ucPwmCurr       = DigInDrv_GPI_GetMeas(gCoolrideCntrl.flags.CoolrGPI)->ucPWM;
 
     /* update leftside icon only at initial state */
     if (fInitial == TRUE)

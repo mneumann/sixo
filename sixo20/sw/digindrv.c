@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.15  2012/02/27 20:46:50  tuberkel
+ * - all Coolride GPIs/GPOs correctly set by Eeprom value
+ *
  * Revision 3.14  2012/02/18 16:46:48  tuberkel
  * KD30-GUI Simulator GUI improved
  *
@@ -162,9 +165,9 @@
 
 
 /* external vars */
-extern UINT16       wMilliSecCounter;   /* valid values: 0h .. ffffh */
-extern BIKE_TYPE    gBikeType;          /* bike type */
-
+extern UINT16               wMilliSecCounter;   /* valid values: 0h .. ffffh */
+extern BIKE_TYPE            gBikeType;          /* bike type (from eeprom) */
+extern COOLRIDECNTRL_TYPE   gCoolrideCntrl;     /* Coolride Control (from eeprom) */
 
 
 /* module global vars */
@@ -281,7 +284,7 @@ ERRCODE DigInDrv_Init(void)
     DigInDrv_FilterInit();
 
     /* Setup Coolride GPI Measurement (GPI0, High-active, 1 sec timeout) */
-    DigInDrv_GPI_SetupMeas( COOLR_PWMIN_PORT, COOLR_PWMIN_LOGIC, COOLR_PWMIN_TO );
+    DigInDrv_GPI_SetupMeas( gCoolrideCntrl.flags.CoolrGPI, COOLR_PWMIN_LOGIC, COOLR_PWMIN_TO );
 
     INT_GLOB_ENABLE;             /* enable all ISRs */
 

@@ -70,6 +70,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.12  2012/02/27 20:46:50  tuberkel
+ * - all Coolride GPIs/GPOs correctly set by Eeprom value
+ *
  * Revision 3.11  2012/02/26 12:24:55  tuberkel
  * - moved all Eeprom Vlaues physically into 'sysparam' module
  *
@@ -795,7 +798,7 @@ void Surv_CheckDevice(void)
 {
     /* User Info: heatgrips active? */
     #if 0   /* disabled - should not be handled as 'Info' */
-    if ( DigInDrv_GPI_GetMeas(COOLR_PWMIN_PORT)->ucPWM > 0 )
+    if ( DigInDrv_GPI_GetMeas(gCoolrideCntrl.flags.CoolrGPI)->ucPWM > 0 )
          Surv_ListSetParamState(eSURVID_HEATGRIP, eSURVST_INFO);
     else Surv_ListSetParamState(eSURVID_HEATGRIP, eSURVST_OK);
     #endif

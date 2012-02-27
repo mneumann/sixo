@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 1.8  2012/02/27 20:46:50  tuberkel
+ * - all Coolride GPIs/GPOs correctly set by Eeprom value
+ *
  * Revision 1.7  2012/02/11 12:21:45  tuberkel
  * dedicated COOLRIDE macros prepared & used
  *
@@ -104,8 +107,8 @@
 #include "sysparam.h"
 
 
-/* global symbols */
-
+/* external symbols */
+extern COOLRIDECNTRL_TYPE   gCoolrideCntrl;                     /* Coolride Control (from eeprom) */
 
 
 
@@ -202,7 +205,7 @@ BOOL GPO_GetState( GPO_ENUM eGpo )
 ERRCODE GPO_SignalCoolRide( void )
 {
     ERRCODE RValue;
-    RValue = DigOutDrv_SetNewState( COOLR_KEYOUT_PORT, COOLR_KEYOUT_SIGNAL );
+    RValue = DigOutDrv_SetNewState( gCoolrideCntrl.flags.CoolrGPO, COOLR_KEYOUT_SIGNAL );
     return (RValue);
 }
 
