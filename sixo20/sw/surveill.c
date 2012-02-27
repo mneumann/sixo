@@ -70,6 +70,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.13  2012/02/27 21:43:18  tuberkel
+ * Surv_CheckDevice(): removed check of Coolride Heatgrips
+ *
  * Revision 3.12  2012/02/27 20:46:50  tuberkel
  * - all Coolride GPIs/GPOs correctly set by Eeprom value
  *
@@ -796,13 +799,6 @@ void Surv_CheckAnalogPorts(void)
  *********************************************************************** */
 void Surv_CheckDevice(void)
 {
-    /* User Info: heatgrips active? */
-    #if 0   /* disabled - should not be handled as 'Info' */
-    if ( DigInDrv_GPI_GetMeas(gCoolrideCntrl.flags.CoolrGPI)->ucPWM > 0 )
-         Surv_ListSetParamState(eSURVID_HEATGRIP, eSURVST_INFO);
-    else Surv_ListSetParamState(eSURVID_HEATGRIP, eSURVST_OK);
-    #endif
-
     /* User Info: do not drive with vehicle simulation on! */
     if (gDeviceFlags2.flags.VehicSimul == TRUE)
          Surv_ListSetParamState(eSURVID_SIMULATION, eSURVST_INFO);
