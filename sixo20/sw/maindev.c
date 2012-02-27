@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.28  2012/02/27 21:44:16  tuberkel
+ * Coolride Heatgrip: Only shon if enabled via eeprom setting
+ *
  * Revision 3.27  2012/02/27 20:46:50  tuberkel
  * - all Coolride GPIs/GPOs correctly set by Eeprom value
  *
@@ -1157,8 +1160,9 @@ void MainDev_Show_Icon(void)
 
     /* Check: No icon shown? -> Heatgrip-icon needed?
        Note: Only if not already shown in MD_HEATGRIP state */
-    if (  ( VehStateBmpObj.Data.fpucBitmap          == rgEmptySymbol16x16  )     // no other icon used?
-        &&( MDObj.wDevState                         != MD_HEATGRIP         )     // not already shown below?
+    if (  ( gCoolrideCntrl.flags.CoolrAvail == TRUE                )
+        &&( VehStateBmpObj.Data.fpucBitmap  == rgEmptySymbol16x16  )     // no other icon used?
+        &&( MDObj.wDevState                 != MD_HEATGRIP         )     // not already shown below?
         &&( DigInDrv_GPI_GetMeas(gCoolrideCntrl.flags.CoolrGPI)->ucPWM > 0 ) )   // PWM is active?
     {   VehStateBmpObj.Data.fpucBitmap = rgHeatGrip16x16;
     }
@@ -1500,7 +1504,7 @@ ERRCODE MainDev_MsgEntry(MESSAGE GivenMsg)
  *********************************************************************** */
 ERRCODE MainDev_MsgEntry_StateMachine(MESSAGE Msg)
 {
-    MESSAGE_ID  MsgId = MSG_ID(Msg);                        /* get message id */
+    MESSAGE_ID  MsgId  = MSG_ID(Msg);                       /* get message id */
     ERRCODE     RValue = ERR_MSG_NOT_PROCESSED;
 
     /* -------------------------------------- */
@@ -1509,15 +1513,21 @@ ERRCODE MainDev_MsgEntry_StateMachine(MESSAGE Msg)
         &&(MsgId  == MSG_KEY_UP                        )    /* [UP] */
         &&(MSG_KEY_TRANSITION(Msg) == KEYTRANS_PRESSED ) )  /* not released */
     {
-        DevObjClearState(   &MDObj,                         /* reset states of all objects of this device */
+        DevObjClearState(  &MDObj,                          /* reset states of all objects of this device */
                             MDObj.Objects.ObjList,
                             MDObj.Objects.ObjCount,
                             OS_DISPL | OS_SELECT | OS_EDIT );
+
         MDObj.wDevState--;                                  /* previous state */
         if (MDObj.wDevState == MD_FIRST)                    /* wrap around? */
             MDObj.wDevState = (MD_LAST-1);
+
+        if (  ( MDObj.wDevState == MD_HEATGRIP )            /* jump over Coolride, if n.a.! */
+            &&( gCoolrideCntrl.flags.CoolrAvail == FALSE ) )
+            MDObj.wDevState--;
+
         MDObj.fScreenInit   = FALSE;                        /* next time rebuild complete screen */
-        MainDev_Show(TRUE);                               /* rebuild screen right now */
+        MainDev_Show(TRUE);                                 /* rebuild screen right now */
         RValue = ERR_MSG_PROCESSED;
         ODS1( DBG_SYS, DBG_INFO, "MainDevState: %u", MDObj.wDevState);
     }
@@ -1532,11 +1542,17 @@ ERRCODE MainDev_MsgEntry_StateMachine(MESSAGE Msg)
                             MDObj.Objects.ObjList,
                             MDObj.Objects.ObjCount,
                             OS_DISPL | OS_SELECT | OS_EDIT );
+
         MDObj.wDevState++;                                  /* next state */
+        if (  ( MDObj.wDevState == MD_HEATGRIP )            /* jump over Coolride, if n.a.! */
+            &&( gCoolrideCntrl.flags.CoolrAvail == FALSE ) )
+            MDObj.wDevState++;
+
         if (MDObj.wDevState == MD_LAST)                     /* wrap around? */
             MDObj.wDevState = (MD_FIRST+1);
+
         MDObj.fScreenInit   = FALSE;                        /* next time rebuild complete screen */
-        MainDev_Show(TRUE);                               /* rebuild screen right now */
+        MainDev_Show(TRUE);                                 /* rebuild screen right now */
         RValue = ERR_MSG_PROCESSED;
         ODS1( DBG_SYS, DBG_INFO, "MainDevState: %u", MDObj.wDevState);
     }
