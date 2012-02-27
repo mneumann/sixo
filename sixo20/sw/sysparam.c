@@ -78,6 +78,14 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.9  2012/02/27 23:02:29  tuberkel
+ * - Eeprom layout changed ==> V3.0.5
+ * - new: PID_COOLR_CNTRL, PID_COMPS_CNTRL, PID_LANGUAGE
+ * - empty: PID_DEVFLAGS3
+ * - CompassDrv corrected
+ * - COOLRIDECNTRL_TYPE Bugfix (union)
+ * - SysPar- API changed
+ *
  * Revision 3.8  2012/02/27 20:46:50  tuberkel
  * - all Coolride GPIs/GPOs correctly set by Eeprom value
  *
@@ -134,7 +142,7 @@
  * Revision 2.2  2009/04/14 21:01:10  tuberkel
  * Changes done by Arnold:
  * - EEPR_MAGICNUM_ADDR removed
- * - ParCheckMagicNumber() dyn. detects addr. of magic number at end of Eeprom
+ * - SysPar_CheckMagicNumber() dyn. detects addr. of magic number at end of Eeprom
  *
  * Revision 2.1  2007/03/26 23:27:30  tuberkel
  * changed MOTOBAU version handling
@@ -364,9 +372,9 @@ const  LCSTATE_TYPE LapCounterState_def = 0;
 
 // -------------------------------------------------
 /* Compass */
-       COMPASSCNTFL_TYPE gCompassCntrl;
-static COMPASSCNTFL_TYPE gCompDplMode_cmp;
-const  COMPASSCNTFL_TYPE gCompDplMode_def   = 0;    // default: off
+       COMPASSCNTL_TYPE gCompassCntrl;
+static COMPASSCNTL_TYPE gCompassCntrl_cmp;
+const  COMPASSCNTL_TYPE gCompassCntrl_def  = 0;    // default: off
 
 // -------------------------------------------------
 /* Compass */
@@ -431,7 +439,7 @@ const SYSPARINFO_TYPE  rgSysParControl[] =
     {   PID_WHEELSIZE,      EEPROM_SEC,  2,   sizeof(UINT16),         &wWheelSize,        &wWheelSize_cmp,        &wWheelSize_def     },  // 2 bytes, wheel circumcistence in mm
     {   PID_RPM_CCF,        EEPROM_SEC,  4,   sizeof(CCF_TYPE),       &CCF,               &CCF_cmp,               &CCF_def            },  // 1 byte, two cylinder correcture factor nibbles
     {   PID_DEVFLAGS1,      EEPROM,      5,   sizeof(DEVFLAGS1_TYPE), &gDeviceFlags1,     &DeviceFlags1_cmp,      &DeviceFlags1_def   },  // 1 byte, bitfield for system status
-    {   PID_DPLFL,          EEPROM,      6,   sizeof(DPLFLAGS_TYPE),  &gDisplayFlags,     &gDisplayFlags_cmp,     &gDisplayFlags_def  },  // 4 byte, bitfield for display control
+    {   PID_DPLFL,          EEPROM_SEC,  6,   sizeof(DPLFLAGS_TYPE),  &gDisplayFlags,     &gDisplayFlags_cmp,     &gDisplayFlags_def  },  // 4 byte, bitfield for display control
     {   PID_DBGFILTFL,      EEPROM,     10,   sizeof(DBGFILT_TYPE),   &gDebugFilter,      &gDebugFilter_cmp,      &gDebugFilter_def   },  // 1 byte, bitfield for debug filters
     {   PID_DBGDETDIRFL,    EEPROM,     11,   sizeof(DBGDETDIR_TYPE), &gDebugDetails,     &gDebugDetails_cmp,     &gDebugDetails_def  },  // 1 byte, bitfield for debug details & direction
     {   PID_LOGO,           EEPROM,     12,   sizeof(UINT8),          &gLogoSelection,    &gLogoSelection_cmp,    &gLogoSelection_def },  // 1 byte, number of currently selected logo
@@ -452,8 +460,11 @@ const SYSPARINFO_TYPE  rgSysParControl[] =
     {   PID_FUEL_CAP,       EEPROM,     41,   sizeof(UINT16),         &gwFuelCap,         &wFuelCap_cmp,          &wFuelCap_def       },  // 2 bytes, fuel reservoir in 1/10 liters
     {   PID_FUEL_CONS,      EEPROM,     43,   sizeof(UINT8),          &gbFuelCons,        &bFuelCons_cmp,         &bFuelCons_def      },  // 1 byte,  fuel consumption in 1/10 l/100km
     {   PID_BOOT_DELAY,     EEPROM,     44,   sizeof(UINT8),          &gbLogoDelay,       &bLogoDelay_cmp,        &bLogoDelay_def     },  // 1 byte,  delay in 1/10 s at power up
-    {   PID_WHEEL_IMP,      EEPROM,     45,   sizeof(UINT8),          &gbWheelImpulse,    &bWheelImpulse_cmp,     &bWheelImpulse_def },  // 1 byte,  number of impulses/wheel rotation
+    {   PID_WHEEL_IMP,      EEPROM,     45,   sizeof(UINT8),          &gbWheelImpulse,    &bWheelImpulse_cmp,     &bWheelImpulse_def  },  // 1 byte,  number of impulses/wheel rotation
     {   PID_DEVFLAGS3,      EEPROM,     46,   sizeof(DEVFLAGS3_TYPE), &gDeviceFlags3,     &DeviceFlags3_cmp,      &DeviceFlags3_def   },  // 1 byte,  bitfield for system status
+    {   PID_COOLR_CNTRL,    EEPROM,     47,   sizeof(UINT8),          &gCoolrideCntrl,    &gCoolrideCntrl_cmp,    &gCoolrideCntrl_def },  // 1 byte,  bitfield for Coolride Heatgrip Control
+    {   PID_COMPS_CNTRL,    EEPROM,     48,   sizeof(UINT8),          &gCompassCntrl,     &gCompassCntrl_cmp,     &gCompassCntrl_def  },  // 1 byte,  bitfield for Compass Module Control
+    {   PID_LANGUAGE,       EEPROM,     49,   sizeof(UINT8),          &gLanguage,         &gLanguage_cmp,         &gLanguage_def      },  // 1 byte,  language indicator
 
     {   PID_LAPCSTAT,       EEPROM,    136,   sizeof(LCSTATE_TYPE),   &LapCounterState,   &LapCounterState_cmp,   &LapCounterState_def},  // 1 bytes, lap counter status
     {   PID_LAPC_0 ,        EEPROM,    137,   sizeof(TIME_TYPE_LL),   &LapCntTime[0 ],    &LapCntTime_cmp[0 ],    &LapCntTime_def     },  // 2 bytes, lap counter time struct
@@ -493,7 +504,7 @@ const SYSPARINFO_TYPE  rgSysParControl[] =
 
 
 /***********************************************************************
- *  FUNCTION:       ParGetSysParamInfo
+ *  FUNCTION:       SysPar_GetSysParamInfo
  *  DESCRIPTION:    returns a pointer to the requested system parameter
  *                  info structure (not the sys parameter itself!)
  *  PARAMETER:      PARAM_ID_TYPE eSearchedID   searched parameter ID
@@ -501,7 +512,7 @@ const SYSPARINFO_TYPE  rgSysParControl[] =
  *                  NULL if not found!
  *  COMMENT:        to be used before reading / writing a system parameter
  *********************************************************************** */
-SYSPARINFO_TYPE far * ParGetSysParamInfo(const PARAM_ID_TYPE eSearchedID)
+SYSPARINFO_TYPE far * SysPar_GetSysParamInfo(const PARAM_ID_TYPE eSearchedID)
 {
     UINT8 bIndex;
     for (bIndex = 0; bIndex < NROFSYSPAR; bIndex++)
@@ -518,7 +529,7 @@ SYSPARINFO_TYPE far * ParGetSysParamInfo(const PARAM_ID_TYPE eSearchedID)
 
 
 /***********************************************************************
- *  FUNCTION:       ParReadSysParam
+ *  FUNCTION:       SysPar_ReadSysParam
  *  DESCRIPTION:    Reads the requested system variable from EEPROM or NVRAM
  *                  and fills the given buffer
  *  PARAMETER:      PARAM_ID_TYPE   eParamID   enum type of requested system parameter
@@ -526,14 +537,14 @@ SYSPARINFO_TYPE far * ParGetSysParamInfo(const PARAM_ID_TYPE eSearchedID)
  *  RETURN:         error code
  *  COMMENT:        -
  *********************************************************************** */
-ERRCODE ParReadSysParam(const PARAM_ID_TYPE eParamID, void far * fpParamBuffer)
+ERRCODE SysPar_ReadSysParam(const PARAM_ID_TYPE eParamID, void far * fpParamBuffer)
 {
     UINT8                   LocalBuffer[MAXPARAMSIZE];
     SYSPARINFO_TYPE far *   fpParamInfo;
     ERRCODE                 RValue = ERR_PARAM_ERR;
 
     /* parameter check: */
-    fpParamInfo = ParGetSysParamInfo(eParamID);     /* parameter ID exists? */
+    fpParamInfo = SysPar_GetSysParamInfo(eParamID);     /* parameter ID exists? */
     if (  (fpParamInfo == NULL  )
         ||(fpParamBuffer == NULL) )
     {
@@ -570,21 +581,21 @@ ERRCODE ParReadSysParam(const PARAM_ID_TYPE eParamID, void far * fpParamBuffer)
 
 
 /***********************************************************************
- *  FUNCTION:       ParWriteSysParam
+ *  FUNCTION:       SysPar_WriteSysParam
  *  DESCRIPTION:    Writes the given system variable into EEPROM or NVRAM
  *  PARAMETER:      PARAM_ID_TYPE   eParamID   enum type of given system parameter
  *                  void far *      pointer to given parameter
  *  RETURN:         ERRCODE         error code
  *  COMMENT:        -
  *********************************************************************** */
-ERRCODE ParWriteSysParam (const PARAM_ID_TYPE eParamID, void far * fpGivenParam)
+ERRCODE SysPar_WriteSysParam (const PARAM_ID_TYPE eParamID, void far * fpGivenParam)
 {
     UINT8                 LocalBuffer[MAXPARAMSIZE];
     SYSPARINFO_TYPE far * fpParamInfo;
     ERRCODE               RValue = ERR_PARAM_ERR;
 
     /* parameter check: */
-    fpParamInfo = ParGetSysParamInfo(eParamID);     /* parameter ID exists? */
+    fpParamInfo = SysPar_GetSysParamInfo(eParamID);     /* parameter ID exists? */
     if (  (fpParamInfo == NULL )
         ||(fpGivenParam == NULL) )
     {
@@ -621,7 +632,7 @@ ERRCODE ParWriteSysParam (const PARAM_ID_TYPE eParamID, void far * fpGivenParam)
 
 
 /***********************************************************************
- *  FUNCTION:       ParSetDefaults
+ *  FUNCTION:       SysPar_SetDefaults
  *  DESCRIPTION:    Re-Write all nvram/eeprom parameters with default
  *                  data.
  *  PARAMETER:      fComplete  TRUE:  overwrites WHEELSIZE & CCF & VehicDist too
@@ -632,7 +643,7 @@ ERRCODE ParWriteSysParam (const PARAM_ID_TYPE eParamID, void far * fpGivenParam)
  *                  - Manual reset eeprom/nvram by removing the
  *                    'magic number' in eeprom.
  *********************************************************************** */
-ERRCODE ParSetDefaults(BOOL fComplete)
+ERRCODE SysPar_SetDefaults(BOOL fComplete)
 {
     ERRCODE RValue = ERR_OK;
     UINT8   cPara;              // just a loop variable
@@ -662,10 +673,10 @@ ERRCODE ParSetDefaults(BOOL fComplete)
         memcpy( rgSysParControl[cPara].fpCompare, rgSysParControl[cPara].fpDefault, rgSysParControl[cPara].bSize );
 
         // debug out!
-        ParDebugOutParameter( rgSysParControl[cPara].eParamID );
+        SysPar_DebugOutParameter( rgSysParControl[cPara].eParamID );
 
         // write default value into EEPROM/NVRAM
-        RValue = ParWriteSysParam( rgSysParControl[cPara].eParamID, rgSysParControl[cPara].fpDefault);
+        RValue = SysPar_WriteSysParam( rgSysParControl[cPara].eParamID, rgSysParControl[cPara].fpDefault);
         if (RValue != ERR_OK)
             ODS1(DBG_SYS,DBG_ERROR,"Error while initializing PID:%u", rgSysParControl[cPara].eParamID);
 
@@ -677,7 +688,7 @@ ERRCODE ParSetDefaults(BOOL fComplete)
 
 
 /***********************************************************************
- *  FUNCTION:       ParCheckFirstInit
+ *  FUNCTION:       SysPar_CheckFirstInit
  *  DESCRIPTION:    Checks the eeprom software ID.
  *                  If its not up2date, it (completely) renews
  *                  eeprom/nvram memory content to defaults
@@ -685,24 +696,24 @@ ERRCODE ParSetDefaults(BOOL fComplete)
  *  RETURN:         error code
  *  COMMENT:        resetting the 'magic number' forces complete re-initialize of eeprom
  *********************************************************************** */
-ERRCODE ParCheckFirstInit(void)
+ERRCODE SysPar_CheckFirstInit(void)
 {
     ERRCODE     RValue  = ERR_OK;
     SWVERS_TYPE SWID    = 0x0;
 
     /* read eeprom saved software version number */
-    RValue = ParReadSysParam(PID_SWVERSION, &SWID);
+    RValue = SysPar_ReadSysParam(PID_SWVERSION, &SWID);
     /*ODS4(DBG_SYS,DBG_INFO,"EEPROM Software Version: %u.%u.%u.%c",
             SWID.Fields.apl, SWID.Fields.swv, SWID.Fields.bld, SWID.Fields.spc+APLNUMCOFFS); */
 
     /* First EEPROM use or user forced eeprom init?
        (indicated by 0xff in complete eeprom memory) */
-    if ( ParCheckMagicNumber() == FALSE)
+    if ( SysPar_CheckMagicNumber() == FALSE)
     //if (SWID.Number == 0xFFFF)
     {
         /* renew the COMPLETE nvram & eeprom */
         ODS(DBG_SYS,DBG_INFO,"\nFirst use of EEPROM/NVRAM: Complete Init!");
-        RValue = ParSetDefaults(COMPLETE);
+        RValue = SysPar_SetDefaults(COMPLETE);
     }
 
     /* check software ID */
@@ -711,7 +722,7 @@ ERRCODE ParCheckFirstInit(void)
         /*renew the nvram & eeprom */
         ODS(DBG_SYS,DBG_INFO,"\nNew SW version: Re-Newing EEPROM/NVRAM!");
         ODS(DBG_SYS,DBG_INFO,"(Some basic parameters will remain unchanged!)");
-        RValue = ParSetDefaults(PARTIAL);
+        RValue = SysPar_SetDefaults(PARTIAL);
     }
     return RValue;
 }
@@ -719,7 +730,7 @@ ERRCODE ParCheckFirstInit(void)
 
 
 /***********************************************************************
- *  FUNCTION:       ParCyclicSaveValues
+ *  FUNCTION:       SysPar_CyclicSaveValues
  *  DESCRIPTION:    Cyclicly called routine to asure all necessary
  *                  measurement data to be saved in EEPROM / NVRAM
  *  PARAMETER:      -
@@ -728,7 +739,7 @@ ERRCODE ParCheckFirstInit(void)
  *                    application data.
  *                  - Reduces sytem load by only saving one value every 200 ms.
  *********************************************************************** */
-ERRCODE ParCyclicSaveValues(void)
+ERRCODE SysPar_CyclicSaveValues(void)
 {
     static  BOOL        fInit           = FALSE;            // to check for initialized static vars
     static  UINT8       cCurrentPara    = 0;                // indicates current parameter to be handled
@@ -745,7 +756,7 @@ ERRCODE ParCyclicSaveValues(void)
         for ( cPara = 0; cPara < NROFSYSPAR; cPara++ )
         {
             // copy current data to compare data
-            // NOTE: current data has already been initialized by ParInitSystemPar() before main() loop.
+            // NOTE: current data has already been initialized by SysPar_InitSystemPar() before main() loop.
             memcpy( rgSysParControl[cPara].fpCompare, rgSysParControl[cPara].fpData, rgSysParControl[cPara].bSize );
         }
         // never do this again
@@ -761,10 +772,10 @@ ERRCODE ParCyclicSaveValues(void)
         // check current parameter
         if ( memcmp( rgSysParControl[cCurrentPara].fpCompare, rgSysParControl[cCurrentPara].fpData, rgSysParControl[cCurrentPara].bSize) != 0 )
         {
-            ParDebugOutParameter( rgSysParControl[cCurrentPara].eParamID );
+            SysPar_DebugOutParameter( rgSysParControl[cCurrentPara].eParamID );
 
             // Difference found! -> save parameter into EEPROM/NVRAM
-            RValue = ParWriteSysParam( rgSysParControl[cCurrentPara].eParamID, rgSysParControl[cCurrentPara].fpData);
+            RValue = SysPar_WriteSysParam( rgSysParControl[cCurrentPara].eParamID, rgSysParControl[cCurrentPara].fpData);
             if (RValue != ERR_OK)
                 ODS1(DBG_SYS,DBG_ERROR,"Error saving PID:%u", rgSysParControl[cCurrentPara].eParamID);
             // Update compare value too!
@@ -782,14 +793,14 @@ ERRCODE ParCyclicSaveValues(void)
 
 
 /***********************************************************************
- *  FUNCTION:       ParInitSystemPar
+ *  FUNCTION:       SysPar_InitSystemPar
  *  DESCRIPTION:    Reads all system parameters from eeprom/nvram
  *                  to initialize them as global variables
  *  PARAMETER:      -
  *  RETURN:         error code
  *  COMMENT:        -
  *********************************************************************** */
-ERRCODE ParInitSystemPar (void)
+ERRCODE SysPar_InitSystemPar (void)
 {
     ERRCODE RValue = ERR_OK;    // return value
     UINT8   cPara;              // just a loop variable
@@ -808,16 +819,16 @@ ERRCODE ParInitSystemPar (void)
 #endif // WE_USE_DBGSETTINGS_FROM_EEPROM
 
         // get current parameter from EEPROM/NVRAM
-        RValue = ParReadSysParam(rgSysParControl[cPara].eParamID, rgSysParControl[cPara].fpData);
+        RValue = SysPar_ReadSysParam(rgSysParControl[cPara].eParamID, rgSysParControl[cPara].fpData);
         if (RValue != ERR_OK)
             ODS1(DBG_SYS,DBG_ERROR,"Error reading PID:%u", rgSysParControl[cPara].eParamID);
 
         // debug out!
-        ParDebugOutParameter( rgSysParControl[cPara].eParamID );
+        SysPar_DebugOutParameter( rgSysParControl[cPara].eParamID );
     }
 
     // setup the SW version
-    ParSetupSWVersionStr();
+    SysPar_SetupSWVersionStr();
 
     // check: invalid NVRAM parameters? (may be caused by battery defect)
     if ( VehicDist.km > DIST_MAX_VEHIC )    // invalid?
@@ -847,7 +858,7 @@ ERRCODE ParInitSystemPar (void)
 
 
 /***********************************************************************
- *  FUNCTION:       ParCheckMagicNumber
+ *  FUNCTION:       SysPar_CheckMagicNumber
  *  DESCRIPTION:    Checks existance of 'magic number'
  *                  (a word in EEPROMs most top address) and writes
  *                  the magic number if not found
@@ -857,7 +868,7 @@ ERRCODE ParInitSystemPar (void)
  *  COMMENT:        Used to detect a hardware (eq. EEPROM) which was
  *                  NEVER used before.
  *********************************************************************** */
-BOOL ParCheckMagicNumber ( void )
+BOOL SysPar_CheckMagicNumber ( void )
 {
     UINT16 wMagicAdr    = 0;
     UINT16 wMagicNumber = 0;
@@ -880,14 +891,14 @@ BOOL ParCheckMagicNumber ( void )
 
 
 /***********************************************************************
- *  FUNCTION:       ParSetupSWVersionStr
+ *  FUNCTION:       SysPar_SetupSWVersionStr
  *  DESCRIPTION:    Setups a string buffer containing the software
  *                  version as formated string
  *  PARAMETER:      -
  *  RETURN:         -
  *  COMMENT:        Objects should use global 'szSWVersion' as reference
  *********************************************************************** */
-void ParSetupSWVersionStr( void )
+void SysPar_SetupSWVersionStr( void )
 {
     /* get formated sw version */
     szSWVersion[0] = 0x0;
@@ -916,7 +927,7 @@ void ParSetupSWVersionStr( void )
 
 
 /***********************************************************************
- *  FUNCTION:       ParDebugOutParameter
+ *  FUNCTION:       SysPar_DebugOutParameter
  *  DESCRIPTION:    Just a helper function to write clear formated
  *                  parameter data to debug out screen, prints out
  *                  current data of given parameter in one line
@@ -925,7 +936,7 @@ void ParSetupSWVersionStr( void )
  *  COMMENT:        To be used e.g. after preceding comment line like
  *                  'Now initialzing data: ...'
  *********************************************************************** */
-void ParDebugOutParameter( const PARAM_ID_TYPE PID )
+void SysPar_DebugOutParameter( const PARAM_ID_TYPE PID )
 {
     switch (PID)                    /* choice of system parameter to be saved */
     {
@@ -944,13 +955,13 @@ void ParDebugOutParameter( const PARAM_ID_TYPE PID )
         case PID_WHEELSIZE:     ODS1(DBG_SYS,DBG_INFO, "- EE WheelSize:  %6u mm",           wWheelSize); break;
         case PID_RPM_CCF:       ODS2(DBG_SYS,DBG_INFO, "- EE CCF:        %u/%u",            CCF.nibble.nom, CCF.nibble.denom); break;
         case PID_DEVFLAGS1:     ODS2(DBG_SYS,DBG_INFO, "- EE DevFlags1:  DEV:%s MAIND:%u",    szDevName[gDeviceFlags1.flags.ActDevNr], gDeviceFlags1.flags.MainDevState); break;
-        case PID_DEVFLAGS2:     ODS8(DBG_SYS,DBG_INFO, "- EE DevFlags2:  TC:%u B:%u DL:%u DA:%u CV:%u CB:%u VS:%u HC:%u",
+        case PID_DEVFLAGS2:     ODS8(DBG_SYS,DBG_INFO, "- EE DevFlags2:  TC:%u B:%u DL:%u DA:%u M:%u LW:%u VS:%u HC:%u",
                                                                                             gDeviceFlags2.flags.TripCLongDistUp,
                                                                                             gDeviceFlags2.flags.BeeperAvail,
                                                                                             gDeviceFlags2.flags.DLS_Auto,
                                                                                             gDeviceFlags2.flags.DLS_Active,
-                                                                                            gDeviceFlags2.flags.CompassShowHead,
-                                                                                            gDeviceFlags2.flags.CompassShowBar,
+                                                                                            gDeviceFlags2.flags.Metric,
+                                                                                            gDeviceFlags2.flags.LedWarnMode,
                                                                                             gDeviceFlags2.flags.VehicSimul,
                                                                                             gDeviceFlags2.flags.Hardcopy   ) ; break;
         case PID_DPLFL:         ODS4(DBG_SYS,DBG_INFO, "- EE DplFlags:   C:%u BLL:%u BLOL:%u Inv:%u",
@@ -978,8 +989,13 @@ void ParDebugOutParameter( const PARAM_ID_TYPE PID )
         case PID_FUEL_CONS:     ODS2(DBG_SYS,DBG_INFO, "- EE Fuel Cons:  %4u,%1u l/100", gbFuelCons/10, gbFuelCons-(gbFuelCons/10)*10); break;
         case PID_BOOT_DELAY:    ODS2(DBG_SYS,DBG_INFO, "- EE BootDelay:  %4u,%1u s", gbLogoDelay/10, gbLogoDelay-(gbLogoDelay/10)*10); break;
         case PID_WHEEL_IMP:     ODS1(DBG_SYS,DBG_INFO, "- EE Wheel Imp:  %6u I/Rev", gbWheelImpulse); break;
-        case PID_DEVFLAGS3:     ODS2(DBG_SYS,DBG_INFO, "- EE DevFlags3:  MTRC:%u LWM:%s", gDeviceFlags3.flags.Metric,
-                                                                                (gDeviceFlags3.flags.LedWarnMode==SURV_LWM_STD)?"STD":"SIXO" );
+        case PID_DEVFLAGS3:     ODS (DBG_SYS,DBG_INFO, "- EE DevFlags3:  currently not used!"); break;
+        case PID_COOLR_CNTRL:   ODS3(DBG_SYS,DBG_INFO, "- EE Coolride:   On:%u GPO:%u GPI:%u",  gCoolrideCntrl.flags.CoolrAvail,
+                                                                                                gCoolrideCntrl.flags.CoolrGPO,
+                                                                                                gCoolrideCntrl.flags.CoolrGPI ); break;
+        case PID_COMPS_CNTRL:   ODS2(DBG_SYS,DBG_INFO, "- EE Compass:    On:%u DPL:%u",         gCompassCntrl.flags.CompassAvail,
+                                                                                                gCompassCntrl.flags.CompassDisplay ); break;
+        case PID_LANGUAGE:      ODS1(DBG_SYS,DBG_INFO, "- EE Language:   %u", gLanguage); break;
 
         case PID_LAPCSTAT:      ODS2(DBG_MEAS,DBG_INFO,"- EE LapCnt:     Act:%u Lap:%u", LapCounterState.fActive, LapCounterState.cCurrentLap); break;
         case PID_LAPC_0 :       ODS2(DBG_MEAS,DBG_INFO,"- EE LapCntTimer:  Lap[0 ]: %02u:%02u", LapCntTime[0 ].bMin, LapCntTime[0 ].bSec); break;

@@ -69,6 +69,14 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.9  2012/02/27 23:01:54  tuberkel
+ * - Eeprom layout changed ==> V3.0.5
+ * - new: PID_COOLR_CNTRL, PID_COMPS_CNTRL, PID_LANGUAGE
+ * - empty: PID_DEVFLAGS3
+ * - CompassDrv corrected
+ * - COOLRIDECNTRL_TYPE Bugfix (union)
+ * - SysPar- API changed
+ *
  * Revision 3.8  2012/02/27 20:46:50  tuberkel
  * - all Coolride GPIs/GPOs correctly set by Eeprom value
  *
@@ -163,7 +171,7 @@
 /* software version number e.q. '2.1.1' */
 #define DEF_SWID_APL   3  // APL = (0..15) main aplication number (changed with new main application features)
 #define DEF_SWID_SWV   0  // SWV = (0..15) sw version number (changed with additional features)
-#define DEF_SWID_BLD   4  // BLD = (0..15) build number (changed with bugfixes)
+#define DEF_SWID_BLD   5  // BLD = (0..15) build number (changed with bugfixes)
 
 
 /* hardware specific version number */
@@ -265,13 +273,10 @@ typedef union
     UINT8           byte;
     struct
     {
-        unsigned char   CompassAvail    :1;     /* CompassAvailable:    1=available, 0=n.a. */
-        unsigned char   CompassShowHead :1;     /* CompassHeading:      1=show, 0=off */
-        unsigned char   CompassShowBar  :1;     /* CompassBargragh:     1=show, 0=off */
-        unsigned char   res5            :5;     /* reserved */
+        unsigned char   res8            :8;     /* reserved */
     } flags;
 } DEVFLAGS3_TYPE;
-#define DEF_DEVFLAGS3 (0x00 )  /* default: Metric:Meter, WarnStd:SIxO */
+#define DEF_DEVFLAGS3 (0x00 )  /* default: all off */
 
 
 /* ----------------------------------------------------------------------------- */
@@ -289,6 +294,24 @@ typedef enum
 /* NOTE: For bike-LOGO(!) - please use LOGO_TYPE instead of BIKE_TYPE! */
 
 
+/* ----------------------------------------------------------------------------- */
+/* COMPASSDRV SETUP FLAGS */
+typedef union
+{
+    UINT8           byte;
+    struct
+    {
+        unsigned char   CompassAvail:1;     /* Compass available: 1=driver active, 0: driver inactive */
+        unsigned char   CompassDisplay:2;   /* Compass Display Mode (0=none/1=heading/2=graph/3=head+graph) */
+        unsigned char   reserved:5;         /* reserved */
+    } flags;
+} COMPASSCNTL_TYPE;
+#define DEF_COMPASSCNTFL (0x00 )/* default: complete off*/
+#define COMPASS_DPL_OFF         0x00   /* no display (although module available) */
+#define COMPASS_DPL_HEAD        0x01   /* show heading only  */
+#define COMPASS_DPL_GRAPH       0x02   /* show bargraph only */
+#define COMPASS_DPL_HEADGRAPH   0x03   /* show heading & bargraph only */
+
 
 /* ----------------------------------------------------------------------------- */
 /* COOLRIDE - HEATGRIP SETTINGS
@@ -303,12 +326,7 @@ typedef enum
         - Coolride generates PWM in 10% steps (ambient temperatur compensation)
         - but user ca setup PWM in 20% steps only
         - for display, SIXO uses 5x 10% bar */
-
-#define COOLR_KEYOUT_SIGNAL     100, 0, 280 // GPO PWM signal for coolride key input
-#define COOLR_PWMIN_LOGIC       TRUE        // GPI PWM logic: high active
-#define COOLR_PWMIN_TO          1000        // Timeout in ms to detect missing transitions
-
-typedef struct
+typedef union
 {
     UINT8   byte;   // for access via MACRO / bytewise
     struct
@@ -320,25 +338,10 @@ typedef struct
     } flags;
 } COOLRIDECNTRL_TYPE;
 
+#define COOLR_KEYOUT_SIGNAL     100, 0, 280 // GPO PWM signal for coolride key input
+#define COOLR_PWMIN_LOGIC       TRUE        // GPI PWM logic: high active
+#define COOLR_PWMIN_TO          1000        // Timeout in ms to detect missing transitions
 
-
-
-
-
-
-/* ----------------------------------------------------------------------------- */
-/* COMPASSDRV SETUP FLAGS */
-typedef union
-{
-    UINT8           byte;
-    struct
-    {
-        unsigned char   CompassAvail:1;     /* Compass available: 1=driver active, 0: driver inactive */
-        unsigned char   CompassDisplay:2;   /* Compass Display Mode (none/heading7graph/head+graph) */
-        unsigned char   reserved:5;         /* reserved */
-    } flags;
-} COMPASSCNTFL_TYPE;
-#define DEF_COMPASSCNTFL (0x00 )  /* default: complete off*/
 
 
 /* ----------------------------------------------------------------------------- */
@@ -404,6 +407,9 @@ typedef enum
     PID_BOOT_DELAY,                         // start screen dealy in 1/10 s
     PID_WHEEL_IMP,                          // number of impulses / wheel rotation
     PID_DEVFLAGS3,                          // device flags 3 (e.g. metric)
+    PID_COOLR_CNTRL,                        // Coolride Heatgrip Control
+    PID_COMPS_CNTRL,                        // Microcopter Compass Control
+    PID_LANGUAGE,                           // SIxO user Language
 
     PID_LAPCSTAT,                           // lap counter status
     PID_LAPC_0,                             // lap timer #
@@ -456,19 +462,19 @@ typedef struct
 
 
 /* public function prototypes */
-ERRCODE ParReadSysParam     ( const PARAM_ID_TYPE eParamID, void far * fpParamBuffer );
-ERRCODE ParWriteSysParam    ( const PARAM_ID_TYPE eParamID, void far * fpGivenParam );
+ERRCODE SysPar_ReadSysParam     ( const PARAM_ID_TYPE eParamID, void far * fpParamBuffer );
+ERRCODE SysPar_WriteSysParam    ( const PARAM_ID_TYPE eParamID, void far * fpGivenParam );
 ERRCODE ParInitSystemParam  ( void );
-ERRCODE ParSetDefaults      ( BOOL fComplete );
-ERRCODE ParCheckFirstInit   ( void );
-ERRCODE ParCyclicSaveValues ( void );
-ERRCODE ParInitSystemPar    ( void );
-BOOL    ParCheckMagicNumber ( void );
-void    ParDebugOutParameter( const PARAM_ID_TYPE PID );
-void    ParSetupSWVersionStr( void );
+ERRCODE SysPar_SetDefaults      ( BOOL fComplete );
+ERRCODE SysPar_CheckFirstInit   ( void );
+ERRCODE SysPar_CyclicSaveValues ( void );
+ERRCODE SysPar_InitSystemPar    ( void );
+BOOL    SysPar_CheckMagicNumber ( void );
+void    SysPar_DebugOutParameter( const PARAM_ID_TYPE PID );
+void    SysPar_SetupSWVersionStr( void );
 
 /* private function prototypes */
-//SYSPARINFO_TYPE far * ParGetSysParamInfo(const PARAM_ID_TYPE eSearchedID);
+//SYSPARINFO_TYPE far * SysPar_GetSysParamInfo(const PARAM_ID_TYPE eSearchedID);
 
 
 
