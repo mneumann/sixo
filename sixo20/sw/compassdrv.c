@@ -89,6 +89,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.4  2012/02/27 23:15:38  tuberkel
+ * CompassDrv API changed
+ *
  * Revision 3.3  2012/02/14 21:08:03  tuberkel
  * - #define COMPASS ==> COMPDRV
  * - Compass SystemParam moved from devFlags2 -> 3
@@ -178,14 +181,14 @@ void CompDrv_DecodePacket       ( void );
 
 
 /***********************************************************************
- *  FUNCTION:       CompassRxIsr
- *  DESCRIPTION:    UART0 receive ISR
+ *  FUNCTION:       CompDrv_RxIsr
+ *  DESCRIPTION:    UART receive ISR
  *  PARAMETER:      none
  *  RETURN:         none
  *  COMMENT:        Runs at very high priority. Keep as short as possible.
  *********************************************************************** */
-#pragma INTERRUPT CompassRxIsr
-void CompassRxIsr( void )
+#pragma INTERRUPT CompDrv_RxIsr
+void CompDrv_RxIsr( void )
 {
    UINT8  ucChar = u0rb;
 
@@ -423,7 +426,7 @@ ERRCODE CompDrv_Init( void )
 
 
 /***********************************************************************
- *  FUNCTION:       CompassGetVersionInfo
+ *  FUNCTION:       CompDrv_GetVersionInfo
  *  DESCRIPTION:    provides access to the version information received
  *                  from the compass
  *  PARAMETER:      none
@@ -432,14 +435,14 @@ ERRCODE CompDrv_Init( void )
  *                  An MSG_COMPASS_RFRSH is sent if the version info
  *                  changes.
  *********************************************************************** */
-COMPDRV_VERSINFO *CompassGetVersionInfo( void )
+COMPDRV_VERSINFO *CompDrv_GetVersionInfo( void )
 {
    return &gtCompassVersionInfo;
 }
 
 
 /***********************************************************************
- *  FUNCTION:       CompassGetHeadingInfo
+ *  FUNCTION:       CompDrv_GetHeadingInfo
  *  DESCRIPTION:    provides access to heading and calibration state
  *                  received from the compass
  *  PARAMETER:      none
@@ -448,7 +451,7 @@ COMPDRV_VERSINFO *CompassGetVersionInfo( void )
  *                  An MSG_COMPASS_RFRSH is sent if the heading or
  *                  calibration state changes.
  *********************************************************************** */
-COMPDRV_HEADINFO *CompassGetHeadingInfo( void )
+COMPDRV_HEADINFO *CompDrv_GetHeadingInfo( void )
 {
    return &gtCompassHeadingInfo;
 }

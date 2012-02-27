@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.3  2012/02/27 23:15:38  tuberkel
+ * CompassDrv API changed
+ *
  * Revision 3.2  2012/02/14 21:08:03  tuberkel
  * - #define COMPASS ==> COMPDRV
  * - Compass SystemParam moved from devFlags2 -> 3
@@ -131,12 +134,12 @@ typedef struct
 
 
 // public prototypes
-void    CompassRxIsr( void );   //called by interrupt
+void    CompDrv_RxIsr( void );   //called by interrupt
 ERRCODE CompDrv_Init( void );   //called once by main()
 void    CompDrv_Task( void );   //called cyclic by main()
 
-COMPDRV_VERSINFO *CompassGetVersionInfo( void );
-COMPDRV_HEADINFO *CompassGetHeadingInfo( void ); //not recommended, see above
+COMPDRV_VERSINFO *CompDrv_GetVersionInfo( void );
+COMPDRV_HEADINFO *CompDrv_GetHeadingInfo( void ); //not recommended, see above
 
 UINT8 CompDrv_GetError( void );
 void  CompDrv_Cmd_Reset( void );

@@ -75,6 +75,9 @@
 ;  changes to CVC ('Log message'):
 ;
 ; $Log$
+; Revision 3.5  2012/02/27 23:15:38  tuberkel
+; CompassDrv API changed
+;
 ; Revision 3.4  2012/02/14 21:08:03  tuberkel
 ; - #define COMPASS ==> COMPDRV
 ; - Compass SystemParam moved from devFlags2 -> 3
@@ -104,7 +107,7 @@
 ;
 ; Revision 2.1  2009/06/21 21:24:08  tuberkel
 ; Changes done by AN:
-; New _CompassRxIsr
+; New _CompDrv_RxIsr
 ;
 ; Revision 2.0  2006/06/26 23:25:51  tuberkel
 ; no message
@@ -135,7 +138,7 @@
     .glb        _RPMSensor_ISR      ; as int1 isr vector
     .glb        _HWTDev_StimuISR     ; as timer tb5 isr vector
 
-    .glb        _CompassRxIsr       ; as uart0 receive isr vector
+    .glb        _CompDrv_RxIsr       ; as uart0 receive isr vector
 
     .glb        _GPI0_Int2_ISR      ; as p8_4 as INT2 source (connected to GPI0)
     .glb        _GPI1_Int3_ISR      ; as p1_5 as INT3 source (connected to GPI1)
@@ -382,7 +385,7 @@ switch_table_top:
         .lword        _dummy_int         ; uart2 receive(for user)(vector 16)
         .lword        _dummy_int         ; uart0 transmit(for user)(vector 17)
 .if        COMPASSDRV==1
-        .lword        _CompassRxIsr      ; uart0 receive for compass, note that
+        .lword        _CompDrv_RxIsr      ; uart0 receive for compass, note that
 .else                                    ; there is no transmit ISR
         .lword        _dummy_int         ; uart0 receive(for user)(vector 18)
 .endif
