@@ -5,7 +5,7 @@
 # All Rights Reserved.
 #
 #	Notice	:	Don't edit.
-#	Date	:	2012 02(February) 15(Wednesday) PM.10.57
+#	Date	:	2012 02(February) 27(Monday) PM.11.33
 #	Project	:	SIxO20
 ####################################################################
 
@@ -23,14 +23,14 @@ OUTDIR	=	.\outdir
 MKDIR	=	@-mkdir
 ABSFILE	=	$(PROJECT).x30
 ODINCMD	=	$(OUTDIR)
-LN	=	LN30
 TARGET	=	$(ABSFILE)
+LN	=	LN30
 ECHO	=	@-echo
 MKFILE	=	$(PROJECT).tmk
-PROJECT	=	SIxO20
 TYPE	=	@-type
-CFLAGS	=	-c -I. -silent -dir $(OUTDIR) -Wall -DDEBUG=0 -DKD30_USED=1 -DKD30_GUI_USED=1 -DGEARBOX=0 -DCOMPASSDRV=1 -finfo
-AFLAGS	=	-. -DDEBUG=0:KD30_USED=1:COMPASSDRV=1 -finfo -O$(OUTDIR)
+PROJECT	=	SIxO20
+CFLAGS	=	-c -I. -silent -dir $(OUTDIR) -Wall -DDEBUG=1 -DKD30_USED=1 -DKD30_GUI_USED=1 -DGEARBOX=0 -DCOMPASSDRV=0 -finfo
+AFLAGS	=	-. -DDEBUG=1:KD30_USED=1:COMPASSDRV=0 -finfo -O$(OUTDIR)
 LFLAGS	=	-MS -L nc30lib -. -G -O $(OUTDIR)\$(TARGET)
 LIBFLAGS	=	-C
 UTLFLAGS	=	
@@ -231,13 +231,7 @@ $(OUTDIR)\clkdrv.r30: \
 $(OUTDIR)\compassdrv.r30: \
 		.\compassdrv.c \
 		.\standard.h \
-		.\compassdrv.h \
-		$(MTOOLINC)\string.h \
-		.\sfr62p.h \
-		.\timer.h \
-		.\msgqueue.h \
-		.\stdmsgs.h \
-		.\m16c.h 
+		.\compassdrv.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) compassdrv.c
 $(OUTDIR)\debug.r30: \
 		.\debug.c \
