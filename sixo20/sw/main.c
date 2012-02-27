@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.12  2012/02/27 23:15:19  tuberkel
+ * - SysPar- API changed
+ *
  * Revision 3.11  2012/02/14 21:08:03  tuberkel
  * - #define COMPASS ==> COMPDRV
  * - Compass SystemParam moved from devFlags2 -> 3
@@ -272,8 +275,8 @@ int main()
     ODS(DBG_SYS,DBG_INFO,"\n\rInitialize Drivers:");
     Error = TimerInit();            /* start our both timers (ta0 1kHz, ta1 50 Hz) */
     Error = iicInit();              /* prepare iic ports and eeprom type (needs TimerInit()!)*/
-    Error = ParCheckFirstInit();    /* check, wether eeprom/nvram update necessary */
-    Error = ParInitSystemPar();     /* initialize all system parameters from eeprom/nvram */
+    Error = SysPar_CheckFirstInit();    /* check, wether eeprom/nvram update necessary */
+    Error = SysPar_InitSystemPar();     /* initialize all system parameters from eeprom/nvram */
     Error = TimeDateInit();         /* initialize system time & date stuff */
     Error = DigOutDrv_Init();       /* all digital output ports & PWM out */
     Error = DigInDrv_Init();        /* prepare keyboard ports and other input ports */
@@ -330,7 +333,7 @@ int main()
         /* Register cyclicely called (50Hz) fast functions --------- */
         TimerRegisterEntryFunction( DigInDrv_Key_CheckKeys );      /* check keys */
         TimerRegisterEntryFunction( DigInDrv_CheckAllPorts );       /* update of standard LEDs for Turn/HighBeam/Neutral */
-        TimerRegisterEntryFunction( ParCyclicSaveValues );          /* check/save eeprom values */
+        TimerRegisterEntryFunction( SysPar_CyclicSaveValues );          /* check/save eeprom values */
         TimerRegisterEntryFunction( DevCyclicRefresh );             /* generation of MSG_SCREEN_RFRSH */
         TimerRegisterEntryFunction( TimeDateUpdate );               /* RTC check */
         TimerRegisterEntryFunction( AnaInDrvTriggerADConverter );   /* generation of AD samples in single sweep mode */
