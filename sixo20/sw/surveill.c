@@ -70,6 +70,11 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.14  2012/03/01 20:49:59  tuberkel
+ * Surv_CheckDigitalPorts():
+ * - Oilswitch defect Detection disabled for all
+ * - Oilswitch defect Detection enabled for AT & BMW only
+ *
  * Revision 3.13  2012/02/27 21:43:18  tuberkel
  * Surv_CheckDevice(): removed check of Coolride Heatgrips
  *
@@ -762,7 +767,7 @@ void Surv_CheckAnalogPorts(void)
         vstatelvl = eSURVST_OK;
     }
 
-    /* now add this resh state to our surveillance list */
+    /* now add this fresh state to our surveillance list */
     Surv_ListSetParamState(vstateprm, vstatelvl);
 
     /* Check eSURVID_SURV_BATT_LOW -------------------------------
@@ -945,18 +950,18 @@ void Surv_CheckDigitalPorts(void)
 
         } break;
 
-        /* DEFAULT HANDLING FOR ALL OTHER BIKES ============================= */
-        default:
+        /* SPECIAL HANDLING FOR BMW R100GS ============================= */
+        case eBIKE_R100GS:
         {
             /* --------------------------------------------- */
-            /* Standard - oil switch defect? - Warning */
+            /* R100GS - Oil switch defect? - Warning */
             if (  ( DF_OILSW == 1 )      // no oil signal
                 &&( wRPM     == 0 ) )    // but engine stands still?
                  Surv_ListSetParamState(eSURVID_OILSWDEF, eSURVST_WARNING);
             else Surv_ListSetParamState(eSURVID_OILSWDEF, eSURVST_OK);
 
             /* --------------------------------------------- */
-            /* Standard - Oil pressure ok? */
+            /* R100GS  - Oil pressure ok? */
             if (  ( DF_OILSW == 0             )      // low active
                 &&( wRPM     >  SURV_OILPRESS_RPM ) )    // and engine running?
                  Surv_ListSetParamState(eSURVID_OILPRESS, eSURVST_ERROR);
@@ -967,6 +972,14 @@ void Surv_CheckDigitalPorts(void)
                      LED_SetNewState(eLED_ERROR, LED_ON );
                 else LED_SetNewState(eLED_ERROR, LED_OFF );
             }
+
+        }
+
+        /* DEFAULT HANDLING FOR ALL OTHER BIKES ============================= */
+        default:
+        {
+            /* --------------------------------------------- */
+            /* nothing to check here in general.. */
 
         } break;
     }
