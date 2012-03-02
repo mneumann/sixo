@@ -70,6 +70,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.15  2012/03/02 22:44:33  tuberkel
+ * Surv_CheckDevice():
+ * - VehicSim-Warning only if not debugging!
+ *
  * Revision 3.14  2012/03/01 20:49:59  tuberkel
  * Surv_CheckDigitalPorts():
  * - Oilswitch defect Detection disabled for all
@@ -810,9 +814,12 @@ void Surv_CheckDevice(void)
     else Surv_ListSetParamState(eSURVID_SIMULATION, eSURVST_OK);
 
     /* User warning: Hardcopy via HBEAM-switch active? */
+    /* Note: If in Debugger-Mode KD30, Prevent warning for undisturbed screenshots */
+#if(KD30_USED==0)
     if (gDeviceFlags2.flags.Hardcopy == TRUE)
          Surv_ListSetParamState(eSURVID_HARDCOPY, eSURVST_INFO);
     else Surv_ListSetParamState(eSURVID_HARDCOPY, eSURVST_OK);
+#endif  // KD30_USED
 
     /* User Warning: Automatic RTC Clock change because of summer/winter time? */
     if (  ( gDeviceFlags2.flags.DLS_Auto == TRUE )
