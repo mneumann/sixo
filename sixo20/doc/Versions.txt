@@ -8,6 +8,18 @@ Note that "sixo" is freezed (except bug fixes and minor updates).
 Version Date        Feature
 ======= ==========  ======================================
 
+======= ==========  ======================================
+v3.0.5  2012-03-03
+> NEW:
+    + Coolride Heatgrip Support - a new hardware extension
+    + Setting: 'Extensions' Screen added
+> CHANGES:
+    + 'Oiltemp too high' - changed to 120°(Warning)/150°C(Error)
+    + 'Oilswitch defect?' - Warning only for BMW + AfricaTwin
+> BUGFIXES:
+    -
+
+======= ==========  ======================================
 v3.0.3  2012-02-05
 > NEW:
     + Internal Review: LED / Beeper / GPO handling completely reviewed

@@ -6,6 +6,10 @@ Project Directory=S:\CVS\SIXO20\SW\
 Use Relative Directory=1
 Relative to Project File=1
 Project Wordfile=
+Include Sub Directories=1
+Project Tagfile=
+Filter=
+Create Tagfile=0
 [Open Files]
 Open File0=s:\CVS\sixo\sixo20\sw\setdev.c
 Open File Pos0=31879
