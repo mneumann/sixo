@@ -48,51 +48,11 @@ Section7== 0..n (def:0)
 Mail7=if 1, enables a special GUI test screen
 TEL7=for development purpose only
 ETC7=
-Name8=C-FLAG: GEARBOX
-Section8== 0 / 1 (def:0)
-Mail8=if 1, enables adaptive GEARBOX display
-TEL8=experimental
+Name8=A+C-FLAG: KD30_GUI_USED
+Section8== 0 / 1 (def:0)   ==> SEE NOTES!!!
+Mail8=if 1, activates KD30 GUI Extensions
+TEL8=if enabled, some Inputs use simulated values only!
 ETC8=
-Name9=C-FLAG: TESTSCREEN
-Section9== 0..n (def:0)
-Mail9=if 1, enables a special GUI test screen
-TEL9=for development purpose only
-ETC9=
-Name10=A+C-FLAG: COMPASSDRV
-Section10=0 / 1 NOTE: Set both A-FLAGS & C-FLAGS !!!
-Mail10=if defined, enables use of compass attached to UART0
-TEL10=only two of COMPASS, DEBUG, KD30_USED can be defined
-ETC10=
-Name11=C-FLAG: BIKE_HUSQV
-Section11=- / def
-Mail11=sw version string changed only
-TEL11=
-ETC11=
-Name12=C-FLAG: BIKE_HUSQVRS
-Section12=- / def
-Mail12=sw version string changed only
-TEL12=
-ETC12=
-Name13=C-FLAG: HARDCOPY
-Section13=- / def
-Mail13=if defined, setting input HIGHBEAM to ON starts a ScreenDumps as BMP via Uart1
-TEL13=only to be used with DEBUG defined
-ETC13=to be used for documentation only
-Name14=C-FLAG: SENSOR_TWAT
-Section14=- / def
-Mail14=if defined, enables use of water temperature sensor
-TEL14=only VDO standard sensor is available
-ETC14=
-Name15=C-FLAG: SENSOR_TOIL
-Section15=- / def
-Mail15=if defined, enables use of oil temperature sensor
-TEL15=only VDO standard sensor is available
-ETC15=
-Name16=A+C-FLAG: COMPASSDRV
-Section16=0 / 1 NOTE: Set both A-FLAGS & C-FLAGS !!!
-Mail16=if defined, enables use of compass attached to UART0
-TEL16=only two of COMPASS, DEBUG, KD30_USED can be defined
-ETC16=
 
 [DOCUMENTFILE]
 Count=0

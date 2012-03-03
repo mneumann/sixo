@@ -5,7 +5,7 @@
 # All Rights Reserved.
 #
 #	Notice	:	Don't edit.
-#	Date	:	2012 03(March) 01(Thursday) PM.09.23
+#	Date	:	2012 03(March) 03(Saturday) PM.12.00
 #	Project	:	SIxO20
 ####################################################################
 
@@ -23,18 +23,18 @@ OUTDIR	=	.\outdir
 MKDIR	=	@-mkdir
 ABSFILE	=	$(PROJECT).x30
 ODINCMD	=	$(OUTDIR)
-LN	=	LN30
 TARGET	=	$(ABSFILE)
+LN	=	LN30
 ECHO	=	@-echo
 MKFILE	=	$(PROJECT).tmk
-PROJECT	=	SIxO20
 TYPE	=	@-type
-CFLAGS	=	-c -I. -silent -dir $(OUTDIR) -Wall -DDEBUG=1 -DKD30_USED=1 -DKD30_GUI_USED=0 -DGEARBOX=0 -DCOMPASSDRV=0 -finfo
-AFLAGS	=	-. -DDEBUG=1:KD30_USED=1:COMPASSDRV=0 -finfo -O$(OUTDIR)
+PROJECT	=	SIxO20
 LFLAGS	=	-MS -L nc30lib -. -G -O $(OUTDIR)\$(TARGET)
-LIBFLAGS	=	-C
 UTLFLAGS	=	
+CFLAGS	=	-c -I. -silent -dir $(OUTDIR) -Wall -DDEBUG=0 -DKD30_USED=0 -DKD30_GUI_USED=0 -DGEARBOX=0 -DCOMPASSDRV=0 -finfo
 LMCFLAGS	=	-. -ID
+LIBFLAGS	=	-C
+AFLAGS	=	-. -DDEBUG=0:KD30_USED=0:COMPASSDRV=0 -finfo -O$(OUTDIR)
 .SUFFIXES: .a30 .r30 .c .x30 .lib
 .PHONY: all
 all: \
