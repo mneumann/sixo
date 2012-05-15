@@ -78,6 +78,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.10  2012/05/15 20:11:35  tuberkel
+ * FuelSensor: BasicSettings enabled & ok (not yet displayed)
+ *
  * Revision 3.9  2012/02/27 23:02:29  tuberkel
  * - Eeprom layout changed ==> V3.0.5
  * - new: PID_COOLR_CNTRL, PID_COMPS_CNTRL, PID_LANGUAGE
@@ -377,10 +380,11 @@ static COMPASSCNTL_TYPE gCompassCntrl_cmp;
 const  COMPASSCNTL_TYPE gCompassCntrl_def  = 0;    // default: off
 
 // -------------------------------------------------
-/* Compass */
+/* Coolride Heatgrip */
        COOLRIDECNTRL_TYPE     gCoolrideCntrl;
 static COOLRIDECNTRL_TYPE     gCoolrideCntrl_cmp;
 const  COOLRIDECNTRL_TYPE     gCoolrideCntrl_def = 0;    // default: off
+
 
 // -------------------------------------------------
 /* Language */
@@ -390,12 +394,19 @@ const  UINT8 gLanguage_def = 0; // default: DE
 
 // -------------------------------------------------
 /* fuel handling */
-       UINT16 gwFuelCap;        // fuel tank size in 1/10 liters
-static UINT16 wFuelCap_cmp;
-const  UINT16 wFuelCap_def = 0;
-       UINT8  gbFuelCons;       // fuel consumption in 1/10 liter/100 km
-static UINT8  bFuelCons_cmp;
-static UINT8  bFuelCons_def = 0;
+       UINT16               gwFuelCap;              // fuel tank size in 1/10 liters
+static UINT16               wFuelCap_cmp;
+const  UINT16               wFuelCap_def = 0;
+       UINT8                gbFuelCons;             // fuel consumption in 1/10 liter/100 km
+static UINT8                bFuelCons_cmp;
+const  UINT8                bFuelCons_def = 0;     
+       UINT32               FuelSensImp;            // Fuel sensor Impulses counter since last refuel 
+static UINT32               FuelSensImp_cmp;
+const  UINT32               FuelSensImp_def;
+       FUELSCNTRL_TYPE   gFuelSensCntrl;         // fuel sensor control 
+static FUELSCNTRL_TYPE   gFuelSensCntrl_cmp;         
+const  FUELSCNTRL_TYPE   gFuelSensCntrl_def = 0;     
+
 
 // -------------------------------------------------
 /* system start / boot screen */
@@ -427,6 +438,7 @@ const SYSPARINFO_TYPE  rgSysParControl[] =
     {   PID_SPEED_AVR_M,    NVRAM,       28,  sizeof(SPEED_TYPE),     &Speed_AvrM,        &Speed_AvrM_cmp,        &Speed_AvrM_def     },  // 2 bytes, average speed EX-cluding pause times
     {   PID_SPEED_AVR_P,    NVRAM,       30,  sizeof(SPEED_TYPE),     &Speed_AvrP,        &Speed_AvrP_cmp,        &Speed_AvrP_def     },  // 2 bytes, average speed IN-cluding pause times
     {   PID_FUEL_KM,        NVRAM,       32,  sizeof(DIST_TYPE),      &FuelDist,          &FuelDist_cmp,          &FuelDist_def       },  // 4 bytes, distance since last refuel
+    {   PID_FUEL_SENSOR,    NVRAM,       36,  sizeof(UINT32),         &FuelSensImp,       &FuelSensImp_cmp,       &FuelSensImp_def    },  // 4 bytes, Fuel sensor Impulses counter since last refuel 
                                        /* ^                                              */
                                        /* |                                              */
                                        /* +---  ATTENTION: MAX 56 BYTES NVRAM (RTC+Battery) AVAILABLE! */
@@ -465,7 +477,8 @@ const SYSPARINFO_TYPE  rgSysParControl[] =
     {   PID_COOLR_CNTRL,    EEPROM,     47,   sizeof(UINT8),          &gCoolrideCntrl,    &gCoolrideCntrl_cmp,    &gCoolrideCntrl_def },  // 1 byte,  bitfield for Coolride Heatgrip Control
     {   PID_COMPS_CNTRL,    EEPROM,     48,   sizeof(UINT8),          &gCompassCntrl,     &gCompassCntrl_cmp,     &gCompassCntrl_def  },  // 1 byte,  bitfield for Compass Module Control
     {   PID_LANGUAGE,       EEPROM,     49,   sizeof(UINT8),          &gLanguage,         &gLanguage_cmp,         &gLanguage_def      },  // 1 byte,  language indicator
-
+    {   PID_FUELS_CNTRL,    EEPROM,     50,   sizeof(FUELSCNTRL_TYPE),&gFuelSensCntrl,    &gFuelSensCntrl_cmp,    &gFuelSensCntrl_def },  // 4 byte,  bitfield for FuelSensor Control
+    
     {   PID_LAPCSTAT,       EEPROM,    136,   sizeof(LCSTATE_TYPE),   &LapCounterState,   &LapCounterState_cmp,   &LapCounterState_def},  // 1 bytes, lap counter status
     {   PID_LAPC_0 ,        EEPROM,    137,   sizeof(TIME_TYPE_LL),   &LapCntTime[0 ],    &LapCntTime_cmp[0 ],    &LapCntTime_def     },  // 2 bytes, lap counter time struct
     {   PID_LAPC_1 ,        EEPROM,    139,   sizeof(TIME_TYPE_LL),   &LapCntTime[1 ],    &LapCntTime_cmp[1 ],    &LapCntTime_def     },  // 2 bytes, lap counter time struct
@@ -948,6 +961,7 @@ void SysPar_DebugOutParameter( const PARAM_ID_TYPE PID )
         case PID_SPEED_AVR_M:   ODS2(DBG_SYS,DBG_INFO, "- NV Speed_AvrM: %6u,%.2u km/h",    Speed_AvrM/100, Speed_AvrM-(Speed_AvrM/100)*100); break;
         case PID_SPEED_AVR_P:   ODS2(DBG_SYS,DBG_INFO, "- NV Speed_AvrP: %6u,%.2u km/h",    Speed_AvrP/100, Speed_AvrP-(Speed_AvrP/100)*100); break;
         case PID_FUEL_KM:       ODS2(DBG_SYS,DBG_INFO, "- NV FuelDist:   %6lu,%.2lu km",    FuelDist.dkm/100L, FuelDist.dkm-(FuelDist.dkm/100L)*100); break;
+        case PID_FUEL_SENSOR:   ODS1(DBG_SYS,DBG_INFO, "- NV FuelSens:   %6lu% Imp.",       FuelSensImp); break;
         case PID_HOURS_SERV:    ODS3(DBG_SYS,DBG_INFO, "- NV EngTimeSrv: %2u:%02u:%02u",    EngRunTime_Srv.wHour, EngRunTime_Srv.bMin, EngRunTime_Srv.bSec); break;
         case PID_HOURS_ALL:     ODS3(DBG_SYS,DBG_INFO, "- NV EngTimeAll: %2u:%02u:%02u",    EngRunTime_All.wHour, EngRunTime_All.bMin, EngRunTime_All.bSec); break;
 
@@ -996,6 +1010,10 @@ void SysPar_DebugOutParameter( const PARAM_ID_TYPE PID )
         case PID_COMPS_CNTRL:   ODS2(DBG_SYS,DBG_INFO, "- EE Compass:    On:%u DPL:%u",         gCompassCntrl.flags.CompassAvail,
                                                                                                 gCompassCntrl.flags.CompassDisplay ); break;
         case PID_LANGUAGE:      ODS1(DBG_SYS,DBG_INFO, "- EE Language:   %u", gLanguage); break;
+        case PID_FUELS_CNTRL:   ODS3(DBG_SYS,DBG_INFO, "- EE FuelSensor: On:%u I/l:%u GPI:%u",  gFuelSensCntrl.flags.FuelSAvail,
+                                                                                                gFuelSensCntrl.FuelSImpulseRate,
+                                                                                                gFuelSensCntrl.flags.FuelSGPI ); break;
+
 
         case PID_LAPCSTAT:      ODS2(DBG_MEAS,DBG_INFO,"- EE LapCnt:     Act:%u Lap:%u", LapCounterState.fActive, LapCounterState.cCurrentLap); break;
         case PID_LAPC_0 :       ODS2(DBG_MEAS,DBG_INFO,"- EE LapCntTimer:  Lap[0 ]: %02u:%02u", LapCntTime[0 ].bMin, LapCntTime[0 ].bSec); break;

@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.30  2012/05/15 20:11:35  tuberkel
+ * FuelSensor: BasicSettings enabled & ok (not yet displayed)
+ *
  * Revision 3.29  2012/03/01 20:48:25  tuberkel
  * Extensions: all - except Coolride - disabled for next Release
  *
@@ -325,7 +328,6 @@ extern STRING far           szDevName[];        // device names
 extern DEVFLAGS1_TYPE       gDeviceFlags1;      // system parameters
 extern unsigned char        szSWVersion[];      // formated sw version
 extern UINT16               wMilliSecCounter;   // valid values: 0h .. ffffh
-extern COOLRIDECNTRL_TYPE   gCoolrideCntrl;     // Coolride Control (from eeprom)
 
 
 // ----------------------------------------------------------------
@@ -473,7 +475,6 @@ static const STRING pszSelectLedWM[RESTXT_SET_LEDWM_CNT] =
 //       So we need local copies to compare/save changes!
 extern DEVFLAGS2_TYPE       gDeviceFlags2;
 extern DEVFLAGS3_TYPE       gDeviceFlags3;
-extern COMPASSCNTL_TYPE     gCompassCntrl;
 
 // ----------------------------------------------------------------
 // Date objects
@@ -567,7 +568,7 @@ extern DBGFILT_TYPE gDebugFilter;           // SIxO-DebugOut control (level & mo
 
 // ----------------------------------------------------------------
 // COMPASS OBJECTS
-extern COMPASSCNTL_TYPE    gCompassCntrl;      // Eeprom value
+extern COMPASSCNTL_TYPE     gCompassCntrl;      // Eeprom value
 static UINT8                bCompassDispl;      // to support enum display mode
 static OBJ_SELECT           SlctObj_CompassD;   // compass calibration state object
 static const STRING pszSelectCompD[RESTXT_SET_COMPD_CNT] =
@@ -593,21 +594,24 @@ BOOL            gfCompAvail;                // local value
 
 // ----------------------------------------------------------------
 // COOLRIDE HEATGRIP OBJECTS
+extern COOLRIDECNTRL_TYPE   gCoolrideCntrl; // Eeprom saved Coolride Control Flags
 static OBJ_BOOL BoolObj_CoolrAvail;         // main switch to enable 'Coolride' extension
 static OBJ_NUM  NumObj_CoolrIn;             // Number of SIxO-GPI - to measure PWM of heatgrip
 static OBJ_NUM  NumObj_CoolrOut;            // Number of SIxO-GPO - to provide Key-Action to Coolride
-BOOL            gfCoolrAvail;
+BOOL            gfCoolrAvail;               // parts of the 'gCoolrideCntrl' structure
 UINT8           gbCoolrGPI;
 UINT8           gbCoolrGPO;
 
 // ----------------------------------------------------------------
 // FUEL SENSOR OBJECTS
+extern FUELSCNTRL_TYPE gFuelSensCntrl;   // Eeprom saved Control flags
+extern UINT32   FuelSensImp;                // NVram Fuel sensor Impulses counter since last refuel 
 static OBJ_BOOL BoolObj_FuelSAvail;         // main switch to enable 'FuelSensor' extension
 static OBJ_NUM  NumObj_FuelSIn;             // Number of SIxO-GPI - to count impulses of fuel sensor
 static OBJ_NUM  NumObj_FuelSImp;            // Number of Impulses/Liter of fuel sensor
-BOOL            gfFuelSensAvail;
-UINT8           gbFuelSGPI;
-UINT16          gwFuelSImp;
+BOOL            gfFuelSensAvail;            // parts of the 'gFuelSensCntrl' structure
+UINT8           gbFuelSGPI;                 // edit value for GPI
+UINT16          gwFuelSImp;                 // edit value for Impulse/Litre
 
 // ----------------------------------------------------------------
 // CHAIN OILER OBJECTS
@@ -693,7 +697,7 @@ static const OBJ_BOOL_INIT BoolObj_InitList[] =
     /*-------------------- ---- ---- ------------ -----  -------------------- ------------- ----------------------- -----------------------  --------------------------------- */
     {&BoolObj_CompAvail,   C01,  R2, DPLFONT_6X8,   10,  &gfCompAvail,        &fEditBuffer, RESTXT_EMPTY_TXT,       RESTXT_SET_COMPASS,      OC_DISPL | OC_SELECT  },
     {&BoolObj_CoolrAvail,  C01,  R3, DPLFONT_6X8,   14,  &gfCoolrAvail,       &fEditBuffer, RESTXT_EMPTY_TXT,       RESTXT_SET_COOLRIDE,     OC_DISPL | OC_SELECT | OC_EDIT },
-    {&BoolObj_FuelSAvail,  C01,  R4, DPLFONT_6X8,   12,  &gfFuelSensAvail,    &fEditBuffer, RESTXT_EMPTY_TXT,       RESTXT_SET_FUELSENSOR,   OC_DISPL | OC_SELECT  },
+    {&BoolObj_FuelSAvail,  C01,  R4, DPLFONT_6X8,   12,  &gfFuelSensAvail,    &fEditBuffer, RESTXT_EMPTY_TXT,       RESTXT_SET_FUELSENSOR,   OC_DISPL | OC_SELECT | OC_EDIT },
     {&BoolObj_ChainOAvail, C01,  R5, DPLFONT_6X8,    8,  &gfChainOAvail,      &fEditBuffer, RESTXT_EMPTY_TXT,       RESTXT_SET_CHAINOILER,   OC_DISPL | OC_SELECT  },
     {&BoolObj_GearIAvail,  C01,  R6, DPLFONT_6X8,   21,  &gfGearInfoAvail,    &fEditBuffer, RESTXT_EMPTY_TXT,       RESTXT_SET_GEARINFO,     OC_DISPL | OC_SELECT  },
     {&BoolObj_GPSAvail,    C01,  R7, DPLFONT_6X8,   21,  &gfGPSAvail,         &fEditBuffer, RESTXT_EMPTY_TXT,       RESTXT_SET_GPS,          OC_DISPL | OC_SELECT  },
@@ -1530,14 +1534,35 @@ void SetDev_CheckChanges_Extension( void )
 
     // Coolride GPI Settings changed?
     if ( NumObj_CoolrIn.State.bits.fEditActive == FALSE )   // edit mode NOT active?
-    {
-        // check: GPI has been changed?
-        if (gCoolrideCntrl.flags.CoolrGPI != gbCoolrGPI);
-        {
-            // save new value
+    {   // check: GPI has been changed?
+        if (gCoolrideCntrl.flags.CoolrGPI != gbCoolrGPI)
+        {   // save new value & initialize new GPI with valid Coolride-PWM-Measurement settings
             gCoolrideCntrl.flags.CoolrGPI = gbCoolrGPI;
-            // essential: initialize new GPI with valid Coolride-PWM-Measurement settings
             DigInDrv_GPI_SetupMeas( gCoolrideCntrl.flags.CoolrGPI, COOLR_PWMIN_LOGIC, COOLR_PWMIN_TO );
+        }
+    }
+
+    // -------------------------------------------------------
+    // FUEL SENSOR SETTINGS
+    // -------------------------------------------------------
+
+    // FuelSensor enable/disable changed?
+    if ( BoolObj_FuelSAvail.State.bits.fEditActive == FALSE )   // edit mode NOT active?
+    {   gFuelSensCntrl.flags.FuelSAvail = gfFuelSensAvail;      // just assure eeprom value equals local copy
+    }
+
+    // FuelSensor ImpulsRate changed?
+    if ( NumObj_FuelSImp.State.bits.fEditActive == FALSE )      // edit mode NOT active?
+    {   gFuelSensCntrl.FuelSImpulseRate = gwFuelSImp;           // just assure eeprom value equals local copy
+    }
+
+    // FuelSensor GPI Settings changed?
+    if ( NumObj_FuelSIn.State.bits.fEditActive == FALSE )   // edit mode NOT active?
+    {   // check: GPI has been changed?
+        if (gFuelSensCntrl.flags.FuelSGPI != gbFuelSGPI );
+        {   // save new value & initialize new GPI with valid FuelSensor-PWM-Measurement settings
+            gFuelSensCntrl.flags.FuelSGPI = gbFuelSGPI;
+            DigInDrv_GPI_SetupMeas( gFuelSensCntrl.flags.FuelSGPI, FUELS_PWMIN_LOGIC, FUELS_PWMIN_TO );
         }
     }
 
@@ -1730,13 +1755,28 @@ void SetDev_ValuesUpdate(void)
         gfCoolrAvail    = gCoolrideCntrl.flags.CoolrAvail;
 
     // Coolride GPO Settings changed?
-    if ( NumObj_CoolrOut.State.bits.fEditActive == FALSE )  // edit mode NOT active?
+    if ( NumObj_CoolrOut.State.bits.fEditActive == FALSE )      // edit mode NOT active?
         gbCoolrGPO      = gCoolrideCntrl.flags.CoolrGPO;
 
     // Coolride GPI Settings changed?
-    if ( NumObj_CoolrIn.State.bits.fEditActive == FALSE )   // edit mode NOT active?
+    if ( NumObj_CoolrIn.State.bits.fEditActive == FALSE )       // edit mode NOT active?
         gbCoolrGPI      = gCoolrideCntrl.flags.CoolrGPI;
 
+    // FuelSensor enable/disable changed?
+    if ( BoolObj_FuelSAvail.State.bits.fEditActive == FALSE )   // edit mode NOT active?
+    {   gfFuelSensAvail = gFuelSensCntrl.flags.FuelSAvail;      
+    }
+
+    // FuelSensor ImpulsRate changed?
+    if ( NumObj_FuelSImp.State.bits.fEditActive == FALSE )      // edit mode NOT active?
+    {   gwFuelSImp = gFuelSensCntrl.FuelSImpulseRate;           
+    }
+
+    // FuelSensor GPI Settings changed?
+    if ( NumObj_FuelSIn.State.bits.fEditActive == FALSE )       // edit mode NOT active?
+    {   gbFuelSGPI = gFuelSensCntrl.flags.FuelSGPI;
+    }
+    
 }
 
 
@@ -1772,6 +1812,11 @@ void SetDev_ValuesInit(void)
     gfCoolrAvail    = gCoolrideCntrl.flags.CoolrAvail;
     gbCoolrGPO      = gCoolrideCntrl.flags.CoolrGPO;
     gbCoolrGPI      = gCoolrideCntrl.flags.CoolrGPI;
+    
+    // FuelSensor settings
+    gfFuelSensAvail = gFuelSensCntrl.flags.FuelSAvail;      
+    gwFuelSImp      = gFuelSensCntrl.FuelSImpulseRate;           
+    gbFuelSGPI      = gFuelSensCntrl.flags.FuelSGPI;   
 
     // time/date
     TimeDate_GetDate( &RTCDateCopy );       // get current date

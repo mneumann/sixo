@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 1.13  2012/05/15 20:11:35  tuberkel
+ * FuelSensor: BasicSettings enabled & ok (not yet displayed)
+ *
  * Revision 1.12  2012/02/26 10:26:57  tuberkel
  * Update
  *
@@ -121,15 +124,14 @@
 //     >= V3.0.0       | S       ###      h  |
 //                     |_____________________|
 //                     |AT   28 °C|B  14,4 V |
-//                     |F  1234 km|U   12500 |
-//                     |WT   28 °C|OT  135 °C| (alternativ - if available)
+//                     |F  1234 km|U   12500 | |WT   28 °C|OT  135 °C| (alternativ - if available)
 //                     |So  24.12.|  13:24:25|
 //                     +----.----.----.----.-+
 //                                |
 
 
 // =============================================================
-// SETDEVICE:
+// SET DEVICE:
 
 // Screen Appearance:  +----.----.----.----.-+
 // (21 Chars width)    |Rad:2200 mm   ZKF:1/1|
@@ -165,6 +167,17 @@
 // |Logo:____BMW     5.5s|  |DbgOut: 0xff   Def:[]|  |    DZ-hoch O:1 10200|  |[]GPS-Maus           |
 // +----.----.----.----.-+  +----.----.----.----.-+  +----.----.----.----.-+  +----.----.----.----.-+
 
+
+
+// Fuel-Counter-Reset
+//  |_____________________|
+//  |120.0km|F10,3l|o13,5h|  
+//  |T 13.5l|+ 2,3l|T16,0l|
+//  |So 24.12.    13:24:25|
+//  +----.----.----.----.-+
+
+
+
 // =============================================================
 // WARNUNGEN - 4x6 Font (32x10 Zeichen)
 // +----.----!----.----!----.----!--+
@@ -174,7 +187,7 @@
 // |E:ABSDef 2 H|E:OilHot      150°C|
 // |-:OilHot 3 H|E:WaterHot    110°C|
 // |E:WatHot 1 L|W:BattHigh  >15,5 V|
-// |I:OilSw  0 H|I:OilSwRPM   2000  |
+// |E:OilSw  0 H|I:OilSwRPM   2000  |
 // |I:Ständ  1 L|-:BattLow   <10,5 V|
 // |-:EngDef 0 L|-:AltwLow   < 8,0 V|
 // |-:EltDef 0 L|-:                 |

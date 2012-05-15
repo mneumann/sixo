@@ -69,6 +69,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.10  2012/05/15 20:11:35  tuberkel
+ * FuelSensor: BasicSettings enabled & ok (not yet displayed)
+ *
  * Revision 3.9  2012/02/27 23:01:54  tuberkel
  * - Eeprom layout changed ==> V3.0.5
  * - new: PID_COOLR_CNTRL, PID_COMPS_CNTRL, PID_LANGUAGE
@@ -171,7 +174,7 @@
 /* software version number e.q. '2.1.1' */
 #define DEF_SWID_APL   3  // APL = (0..15) main aplication number (changed with new main application features)
 #define DEF_SWID_SWV   0  // SWV = (0..15) sw version number (changed with additional features)
-#define DEF_SWID_BLD   5  // BLD = (0..15) build number (changed with bugfixes)
+#define DEF_SWID_BLD   6  // BLD = (0..15) build number (changed with bugfixes)
 
 
 /* hardware specific version number */
@@ -321,7 +324,7 @@ typedef union
         - we currently reserve GPO_0 as Coolride Control
         - we here adjust 100 ms GPO-ON-Time and 280 ms DURATION
     PWM-INPUT
-        - SIxO measures Coolride Heatgrip PWM  via GPI0
+        - SIxO measures Coolride Heatgrip PWM  via GPIx
         - Coolride uses ~720 ms PWM cycle, so we set timout to 1000 ms
         - Coolride generates PWM in 10% steps (ambient temperatur compensation)
         - but user ca setup PWM in 20% steps only
@@ -341,6 +344,42 @@ typedef union
 #define COOLR_KEYOUT_SIGNAL     100, 0, 280 // GPO PWM signal for coolride key input
 #define COOLR_PWMIN_LOGIC       TRUE        // GPI PWM logic: high active
 #define COOLR_PWMIN_TO          1000        // Timeout in ms to detect missing transitions
+
+
+
+/* ----------------------------------------------------------------------------- */
+/* FUELSENSOR - INCREMENTAL
+    
+    PRINCIPLE
+        - an external incremental sensor measures fuel volume passed by
+        - fuel sensor delivers typical n Impulses/Liter
+        - SIxO PWM-Input counts transitions low2high and increments impulses        
+        - current impulscount is always saved in NVRAM area (fast changing)
+        - impulses devided by Imp/Litre can be used to calculate the consumption
+        - at refueling, the fuel distance counter and fuel sensor impulses counter are reseted
+
+    COUNT-INPUT
+        - SIxO measures Fuelsensor impulse via GPIx
+        - typ. Fuelsenor impulsrate is ~20000 impulses/liter
+        - typ. Fuelsenor impulsrate is therefor about ??? impulses/min */
+
+typedef struct
+{
+    UINT16  FuelSImpulseRate;               /* Number of Impulses per Litre */
+    struct
+    {
+        unsigned char   FuelSAvail  :1;     /* FuelSensor Available: 1=available, 0=n.a. */
+        unsigned char   FuelSGPI    :2;     /* FuelSensor Counter-Measurement: GPI 0..3 */
+        unsigned char   FuelS_res5  :5;     /* reserved */        
+        unsigned char   FuelS_res8  :8;     /* reserved */        
+    } flags;
+} FUELSCNTRL_TYPE;
+
+#define FUELS_PWMIN_LOGIC       TRUE        // GPI PWM logic: high active
+#define FUELS_PWMIN_TO          1000        // Timeout in ms to detect missing transitions
+
+
+
 
 
 
@@ -375,7 +414,8 @@ typedef enum
     PID_TRIP_D_KM,                          // TripD distance km struct (for common use)
     PID_SPEED_AVR_M,                        // average speed of time in motion only (no pauses)
     PID_SPEED_AVR_P,                        // average speed of time with pauses
-    PID_FUEL_KM,                            // distance since last refuel km struct
+    PID_FUEL_KM,                            // distance since last refuel (km struct)
+    PID_FUEL_SENSOR,                        // number of fuel sensor impulses since last refuel
 
     PID_NVRAM_END,                          // INVALID PID to mark end!
 
@@ -410,6 +450,7 @@ typedef enum
     PID_COOLR_CNTRL,                        // Coolride Heatgrip Control
     PID_COMPS_CNTRL,                        // Microcopter Compass Control
     PID_LANGUAGE,                           // SIxO user Language
+    PID_FUELS_CNTRL,                        // FuelSensor Control
 
     PID_LAPCSTAT,                           // lap counter status
     PID_LAPC_0,                             // lap timer #
