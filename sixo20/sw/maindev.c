@@ -68,6 +68,12 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.29  2012/05/16 21:06:57  tuberkel
+ * New FuelSensor:
+ * - now displayed & handled in Maindevice
+ * - if enabled: replaces 'FuelDistance'
+ * - works well with GPI-0..3 / NVRAM / Reboot / ImpRate = 0
+ *
  * Revision 3.28  2012/02/27 21:44:16  tuberkel
  * Coolride Heatgrip: Only shon if enabled via eeprom setting
  *
@@ -279,6 +285,8 @@ extern STRING far           szDevName[];                        /* device names 
 extern DEVFLAGS1_TYPE       gDeviceFlags1;                      /* system parameters */
 extern char                 szSurvGlobalState[VEHSTATE_TXT_LEN];/* vehicle state string */
 extern COOLRIDECNTRL_TYPE   gCoolrideCntrl;                     /* Coolride Control (from eeprom) */
+extern FUELSCNTRL_TYPE      gFuelSensCntrl;                     /* FuelSensor Control flags (from eeprom) */
+extern UINT32               FuelSensImp;                        /* Fuel sensor Impulses counter since last refuel (NVRAM!) */
 
 
 /* ============================================================= */
@@ -333,7 +341,7 @@ extern unsigned char far rgHeatBarFull19x8[];
 static OBJ_STEXT   SpeedTxtObj;                /* speed text '000' object */
 static OBJ_STEXT   SpeedDescATxtObj;           /* speed descriptor 'km' (or 'mi' for EN) text object */
 static OBJ_STEXT   SpeedDescBTxtObj;           /* speed descriptor 'h' text object */
-static CHAR         szSpeed[4] = "0";           /* buffer for current speed, max. string '999' */
+static CHAR        szSpeed[4] = "0";           /* buffer for current speed, max. string '999' */
 
 
 /* =================================================== */
@@ -341,59 +349,59 @@ static CHAR         szSpeed[4] = "0";           /* buffer for current speed, max
 /* =================================================== */
 
 /* lower area mode 1: Rounds Per Minute */
-static OBJ_STEXT   RPMTxtObj;                  /* rpm text '00000' object */
-static OBJ_STEXT   RPMDescTxtObj;              /* rpm descriptor 'U/Min' (or RPM for DE) text object */
+static OBJ_STEXT    RPMTxtObj;                  /* rpm text '00000' object */
+static OBJ_STEXT    RPMDescTxtObj;              /* rpm descriptor 'U/Min' (or RPM for DE) text object */
 static CHAR         szRPM[6] = "0";             /* buffer current eng speed, max. string '13500' */
-static OBJ_BMP    RPMBmpObj;                  /* symbol to indicate RPM */
+static OBJ_BMP      RPMBmpObj;                  /* symbol to indicate RPM */
 
 /* lower area mode 2: Fuel Distance */
-static OBJ_STEXT   FuelDistTxtObj;             /* fuel distance text object */
+static OBJ_STEXT    FuelDistTxtObj;             /* fuel distance text object */
 static CHAR         szFuelDist[10] = "0,0";     /* buffer to contain fuel distance, max. string '9999999,9' */
-static OBJ_BMP    FuelDistBmpObj;             /* symbol to indicate fuel distance display mode */
+static OBJ_BMP      FuelDistBmpObj;             /* symbol to indicate fuel distance display mode */
 
 /* lower area mode 3: Vehicle Distance */
-static OBJ_STEXT   VehDistTxtObj;              /* vehicle distance text object */
+static OBJ_STEXT    VehDistTxtObj;              /* vehicle distance text object */
 static CHAR         szVehDist[10] = "0,0";      /* buffer to contain fuel distance, max. string '9999999,9' */
-static OBJ_BMP    VehDistBmpObj;              /* symbol to indicate vehicle distance display mode */
+static OBJ_BMP      VehDistBmpObj;              /* symbol to indicate vehicle distance display mode */
 
 /* lower area mode 4: TripCounter 1 Distance */
-static OBJ_STEXT   Trip1DescTxtObj;            /* tripcounter1 descriptor text object 'T1' */
-static OBJ_STEXT   Trip1DistTxtObj;            /* tripcounter1 distance text object */
+static OBJ_STEXT    Trip1DescTxtObj;            /* tripcounter1 descriptor text object 'T1' */
+static OBJ_STEXT    Trip1DistTxtObj;            /* tripcounter1 distance text object */
 static CHAR         szTrip1Dist[10] = "0,0";    /* buffer to contain tripcounter1 distance, max. string '9999,9' */
 
 /* lower area mode 5: TripCounter 2 Distance */
-static OBJ_STEXT   Trip2DescTxtObj;            /* tripcounter1 descriptor text object 'T2' */
-static OBJ_STEXT   Trip2DistTxtObj;            /* tripcounter2 distance text object */
+static OBJ_STEXT    Trip2DescTxtObj;            /* tripcounter1 descriptor text object 'T2' */
+static OBJ_STEXT    Trip2DistTxtObj;            /* tripcounter2 distance text object */
 static CHAR         szTrip2Dist[10] = "0,0";    /* buffer to contain tripcounter2 distance, max. string '9999,9' */
 
 /* lower area mode 2..5: common distance descriptor */
-static OBJ_STEXT   DistDescTxtObj;             /* COMMON vehicle & fuel distance decriptor for 'km' or 'mi' */
+static OBJ_STEXT    DistDescTxtObj;             /* COMMON vehicle & fuel distance decriptor for 'km' or 'mi' */
 
 /* lower area mode 6: Max Speed */
-static OBJ_STEXT   SpeedMaxDescTxtObj;         /* SpeedMax descriptor text object for 'v(max)' */
-static OBJ_STEXT   SpeedMaxUnitTxtObj;         /* speed max desciptor text object 'km/h' or 'mi/h' */
-static OBJ_STEXT   SpeedMaxTxtObj;             /* SpeedMax descriptor text object for '110.0' */
+static OBJ_STEXT    SpeedMaxDescTxtObj;         /* SpeedMax descriptor text object for 'v(max)' */
+static OBJ_STEXT    SpeedMaxUnitTxtObj;         /* speed max desciptor text object 'km/h' or 'mi/h' */
+static OBJ_STEXT    SpeedMaxTxtObj;             /* SpeedMax descriptor text object for '110.0' */
 static CHAR         szSpeedMax[4] = "  0";      /* buffer to contain SpeedMax, max. string '999' km/h*/
 extern SPEED_TYPE   Speed_Max;                  /* prepared value */
 
 /* lower area mode 7: Coolride Heat Control */
-static OBJ_BMP    HeatGripIconBmpObj;         /* symbol to indicate heat at handgrip */
-static OBJ_BMP    HeatBarBmpObj;              /* empty/full bar icon - for multiple use */
+static OBJ_BMP      HeatGripIconBmpObj;         /* symbol to indicate heat at handgrip */
+static OBJ_BMP      HeatBarBmpObj;              /* empty/full bar icon - for multiple use */
 #define MD_HEATBARPARTS 5                       /* number of bargrapgh parts */
 
 /* lower area: Date & Time Display */
-static OBJ_STEXT   TimeDateTxtObj;             /* time & date output opbject */
+static OBJ_STEXT    TimeDateTxtObj;             /* time & date output opbject */
 static CHAR         szTimeDate[22] = "Mo 01.01.01  00:00:00";   /* buffer for timedate string */
 
 
 /* --------------------------------------------- */
 /* upper area bitmap objects & vehicle state */
-static OBJ_BMP    VehStateBmpObj;             /* symbol for current vehicle state */
+static OBJ_BMP      VehStateBmpObj;             /* symbol for current vehicle state */
 
 
 /* --------------------------------------------- */
 /* lower area vehicle state objects */
-static OBJ_STEXT   SurvVehStateTxtObj;         /* Vehicle State detected by MonDev_ */
+static OBJ_STEXT    SurvVehStateTxtObj;         /* Vehicle State detected by MonDev_ */
 extern INT8         SurvParamListCount;         /* number of states currently not ok */
 static INT8         SurvShowVehState = 0;       /* != 0 if vehicle state is to be displayed */
 
@@ -401,7 +409,7 @@ static INT8         SurvShowVehState = 0;       /* != 0 if vehicle state is to b
 /* --------------------------------------------- */
 /* upper area gearbox state */
 #if(GEARBOX==1)
-static OBJ_BMP    GearSymbolBmpObj;           /* selected gear indicator */
+static OBJ_BMP      GearSymbolBmpObj;           /* selected gear indicator */
 #endif
 
 
@@ -459,6 +467,7 @@ ERRCODE MainDev_MsgEntry_VehDistRst     (MESSAGE Msg);
 ERRCODE MainDev_MsgEntry_VehState       (MESSAGE Msg);
 void    MainDev_UpdTimeDate             (void);
 void    MainDev_UpdMeasVal              (void);
+void    MainDev_UpdFuelSensor           (void);
 void    MainDev_ObjListInit             (void);
 void    MainDev_ShowHorLine             (void);
 void    MainDev_Show_Icon               (void);
@@ -1025,6 +1034,7 @@ void MainDev_Show(BOOL fShow)
                     Obj_Bmp_Show( &RPMBmpObj );
                     break;
                 case MD_FUEL:
+                    MainDev_UpdFuelSensor();
                     Obj_TextSt_Show( &FuelDistTxtObj );
                     Obj_TextSt_Show( &DistDescTxtObj );
                     Obj_Bmp_Show( &FuelDistBmpObj );
@@ -1099,7 +1109,10 @@ void MainDev_Show(BOOL fShow)
             {
                 // show bigger parts
                 case MD_RPM:        Obj_TextSt_Show( &RPMTxtObj );          break;
-                case MD_FUEL:       Obj_TextSt_Show( &FuelDistTxtObj );     break;
+                case MD_FUEL:       
+                    MainDev_UpdFuelSensor();
+                    Obj_TextSt_Show( &FuelDistTxtObj );     
+                    break;
                 case MD_TRIP1:      Obj_TextSt_Show( &Trip1DistTxtObj );    break;
                 case MD_TRIP2:      Obj_TextSt_Show( &Trip2DistTxtObj );    break;
                 case MD_VEHDIST:    Obj_TextSt_Show( &VehDistTxtObj );      break;
@@ -1312,7 +1325,7 @@ void MainDev_Show_Heatgrip(BOOL fInitial)
     UINT8   ucPwmCmp  = 5;              // comparison value to select emty/full bmp
 
     /* get a fresh PWM value */
-    ucPwmCurr       = DigInDrv_GPI_GetMeas(gCoolrideCntrl.flags.CoolrGPI)->ucPWM;
+    ucPwmCurr = DigInDrv_GPI_GetMeas(gCoolrideCntrl.flags.CoolrGPI)->ucPWM;
 
     /* update leftside icon only at initial state */
     if (fInitial == TRUE)
@@ -1608,7 +1621,15 @@ ERRCODE MainDev_MsgEntry_VehDistRst(MESSAGE Msg)
             Dist.dkm = 0;               /* reset distance value */
             switch (MDObj.wDevState) /* set into memory */
             {
-                case MD_FUEL:   MeasSetFuelDist( &Dist );  break;
+                case MD_FUEL:   
+                    MeasSetFuelDist( &Dist );                      
+                    /* check: Reset FuelConsumption too? */
+                    if ( gFuelSensCntrl.flags.FuelSAvail == TRUE ) 
+                    {   // reset NVRAM value and current FuelSensor impulse counter
+                        FuelSensImp = 0L;   
+                        DigInDrv_GPI_RstCount( gFuelSensCntrl.flags.FuelSGPI );
+                    }
+                    break;
                 case MD_TRIP1:  MeasSetTripCnt( eTRIPC_C, &Dist ); break;
                 case MD_TRIP2:  MeasSetTripCnt( eTRIPC_D, &Dist ); break;
                 case MD_SPEEDMAX: Speed_Max = 0; break;
@@ -1758,6 +1779,56 @@ void MainDev_UpdTimeDate(void)
         Obj_TextSt_Show( &TimeDateTxtObj );
     }
 }
+
+
+
+/***********************************************************************
+ *  FUNCTION:       MainDev_UpdFuelSensor
+ *  DESCRIPTION:    Separate handling of FuelSensor data
+ *  PARAMETER:      -
+ *  RETURN:         -
+ *  COMMENT:        Just a hack right now.
+ *********************************************************************** */
+void MainDev_UpdFuelSensor(void)
+{
+    UINT32 dwFuelCons = 0;      // Fuel Consumption in Milli-Liters
+    UINT8  bFuelCons_Liter;     // Fuel Consumption - left comma part (liters only)
+    UINT16 wFuelCons_ml;        // Fuel Consumption - right comma part (ml only)
+    
+    /* check: FuelSensor available? */
+    if ( gFuelSensCntrl.flags.FuelSAvail == TRUE ) 
+    {              
+        /* assure 'l' descriptor instead of 'km' */
+        DistDescTxtObj.szText = "l";
+     
+        /* get a fresh fuel consumption value 
+           NOTE: a) 'dwLHCounter' has been initilized by NVRAM value at init time
+                 b) 'FuelSensImp' is implicitely saved back into NVRAM (for next init time) */
+        FuelSensImp = DigInDrv_GPI_GetMeas(gFuelSensCntrl.flags.FuelSGPI)->dwLHCounter;
+        
+        /* convert FuelImpulses into 'Liters.MilliLiters' */
+        if ( gFuelSensCntrl.FuelSImpulseRate > 0 )
+        {
+            dwFuelCons = (1000 * FuelSensImp) / gFuelSensCntrl.FuelSImpulseRate;
+            bFuelCons_Liter = (UINT8) ( dwFuelCons / 1000L );
+            wFuelCons_ml    = (UINT16)( dwFuelCons - ((UINT32)bFuelCons_Liter * 1000L) );
+            
+            /* update fuel consumption string (max. 10 chars) */
+            sprintf( szFuelDist, "%2u.%03u", bFuelCons_Liter, wFuelCons_ml );
+        }
+        else        
+        {   /* Missing FuelSensor parameter! -> prevent division by Zero! */
+            sprintf( szFuelDist, " --.---" );
+        }        
+    }
+    else
+    {   // nothing todo - just 'Fuel-Distance' as is 
+        /* assure 'km' descriptor instead of 'l' */
+        DistDescTxtObj.szText = "km";
+    
+    }
+}
+
 
 
 

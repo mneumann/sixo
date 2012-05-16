@@ -78,6 +78,12 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.11  2012/05/16 21:06:57  tuberkel
+ * New FuelSensor:
+ * - now displayed & handled in Maindevice
+ * - if enabled: replaces 'FuelDistance'
+ * - works well with GPI-0..3 / NVRAM / Reboot / ImpRate = 0
+ *
  * Revision 3.10  2012/05/15 20:11:35  tuberkel
  * FuelSensor: BasicSettings enabled & ok (not yet displayed)
  *
@@ -400,12 +406,12 @@ const  UINT16               wFuelCap_def = 0;
        UINT8                gbFuelCons;             // fuel consumption in 1/10 liter/100 km
 static UINT8                bFuelCons_cmp;
 const  UINT8                bFuelCons_def = 0;     
-       UINT32               FuelSensImp;            // Fuel sensor Impulses counter since last refuel 
+       UINT32               FuelSensImp;            // Fuel sensor Impulses counter since last refuel (NVRAM!)
 static UINT32               FuelSensImp_cmp;
 const  UINT32               FuelSensImp_def;
-       FUELSCNTRL_TYPE   gFuelSensCntrl;         // fuel sensor control 
-static FUELSCNTRL_TYPE   gFuelSensCntrl_cmp;         
-const  FUELSCNTRL_TYPE   gFuelSensCntrl_def = 0;     
+       FUELSCNTRL_TYPE      gFuelSensCntrl;         // fuel sensor control 
+static FUELSCNTRL_TYPE      gFuelSensCntrl_cmp;         
+const  FUELSCNTRL_TYPE      gFuelSensCntrl_def = 0;     
 
 
 // -------------------------------------------------
@@ -961,7 +967,7 @@ void SysPar_DebugOutParameter( const PARAM_ID_TYPE PID )
         case PID_SPEED_AVR_M:   ODS2(DBG_SYS,DBG_INFO, "- NV Speed_AvrM: %6u,%.2u km/h",    Speed_AvrM/100, Speed_AvrM-(Speed_AvrM/100)*100); break;
         case PID_SPEED_AVR_P:   ODS2(DBG_SYS,DBG_INFO, "- NV Speed_AvrP: %6u,%.2u km/h",    Speed_AvrP/100, Speed_AvrP-(Speed_AvrP/100)*100); break;
         case PID_FUEL_KM:       ODS2(DBG_SYS,DBG_INFO, "- NV FuelDist:   %6lu,%.2lu km",    FuelDist.dkm/100L, FuelDist.dkm-(FuelDist.dkm/100L)*100); break;
-        case PID_FUEL_SENSOR:   ODS1(DBG_SYS,DBG_INFO, "- NV FuelSens:   %6lu% Imp.",       FuelSensImp); break;
+        case PID_FUEL_SENSOR:   ODS1(DBG_SYS,DBG_INFO, "- NV FuelSens:   %6lu Imp.",        FuelSensImp); break;
         case PID_HOURS_SERV:    ODS3(DBG_SYS,DBG_INFO, "- NV EngTimeSrv: %2u:%02u:%02u",    EngRunTime_Srv.wHour, EngRunTime_Srv.bMin, EngRunTime_Srv.bSec); break;
         case PID_HOURS_ALL:     ODS3(DBG_SYS,DBG_INFO, "- NV EngTimeAll: %2u:%02u:%02u",    EngRunTime_All.wHour, EngRunTime_All.bMin, EngRunTime_All.bSec); break;
 

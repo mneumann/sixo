@@ -68,6 +68,12 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.16  2012/05/16 21:06:57  tuberkel
+ * New FuelSensor:
+ * - now displayed & handled in Maindevice
+ * - if enabled: replaces 'FuelDistance'
+ * - works well with GPI-0..3 / NVRAM / Reboot / ImpRate = 0
+ *
  * Revision 3.15  2012/02/27 20:46:50  tuberkel
  * - all Coolride GPIs/GPOs correctly set by Eeprom value
  *
@@ -168,7 +174,8 @@
 extern UINT16               wMilliSecCounter;   /* valid values: 0h .. ffffh */
 extern BIKE_TYPE            gBikeType;          /* bike type (from eeprom) */
 extern COOLRIDECNTRL_TYPE   gCoolrideCntrl;     /* Coolride Control (from eeprom) */
-
+extern FUELSCNTRL_TYPE      gFuelSensCntrl;     /* FuelSensor Control flags (from eeprom) */
+extern UINT32               FuelSensImp;        /* Fuel sensor Impulses counter since last refuel (NVRAM!) */
 
 /* module global vars */
 KEYTIME   rgKeyControl[KEY_LAST];    /* protocol of duration & start time */
@@ -259,7 +266,7 @@ ERRCODE DigInDrv_Init(void)
     pu10 = 1;                       // activate M16C pull-ups for p4_0 .. p4_3
 
     /* setup additional GPI0..3 connected INT2..5 interrupts, common settings:
-        - all GPIO Int level set to 2
+        - all GPIx Int level set to 2
         - polarity flag to '0' (essential for 'both edges' setup in ifsr!)
         - INT4/INT5 have to enabled additionally in ifsr.bit6+7 !!!
         - request cause select set to 'both edges' to prepare for pulse width measurement */
@@ -283,10 +290,23 @@ ERRCODE DigInDrv_Init(void)
     /* initialize digital input filter table */
     DigInDrv_FilterInit();
 
-    /* Setup Coolride GPI Measurement (GPI0, High-active, 1 sec timeout) */
-    DigInDrv_GPI_SetupMeas( gCoolrideCntrl.flags.CoolrGPI, COOLR_PWMIN_LOGIC, COOLR_PWMIN_TO );
+    /* Setup Coolride GPI Measurement (if available) */
+    if ( gCoolrideCntrl.flags.CoolrAvail == TRUE )
+    {   DigInDrv_GPI_SetupMeas( gCoolrideCntrl.flags.CoolrGPI, COOLR_PWMIN_LOGIC, COOLR_PWMIN_TO );
+    }
 
-    INT_GLOB_ENABLE;             /* enable all ISRs */
+    /* FuelSensor GPI Measurement (if available) */
+    if ( gFuelSensCntrl.flags.FuelSAvail == TRUE ) 
+    {   
+        /* setup PWM measurement */
+        DigInDrv_GPI_SetupMeas( gFuelSensCntrl.flags.FuelSGPI, FUELS_PWMIN_LOGIC, FUELS_PWMIN_TO );
+        
+        /* read saved FuelSensImp from NVRAM and initialize adequate GPI-Counter for further use */
+        DigIntMeas[gFuelSensCntrl.flags.FuelSGPI].dwLHCounter = FuelSensImp;
+    }
+
+    /* enable all ISRs now */
+    INT_GLOB_ENABLE;             
 
     ODS(DBG_DRV,DBG_INFO,"DigInDrv_Init() done!");
     return ERR_OK;
@@ -747,14 +767,14 @@ UINT8   DigInDrv_FilterConvertTime(UINT16 wFilterTime)
     wFilterTime = MIN(wFilterTime, DIGFILTM_MAX);
     wFilterTime = MAX(wFilterTime, DIGFILTM_MIN);
 
-    // calculate incr/der value
+    // calculate incr/decr value
     rvalue = UINT8_MAX * MS_PER_TICK / wFilterTime;
 
     // limit result to UINT8
     if ( rvalue > UINT8_MAX )
-        rvalue = UINT8_MAX;    // indicates 'no filter', direct switch
+         rvalue = UINT8_MAX;    // indicates 'no filter', direct switch
     if ( rvalue == 0 )
-        rvalue = 1;            // indicates slowest possible filter
+         rvalue =  1;           // indicates slowest possible filter
     return ((UINT8) rvalue);
 }
 
