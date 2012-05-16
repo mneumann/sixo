@@ -9,6 +9,13 @@ Version Date        Feature
 ======= ==========  ======================================
 
 ======= ==========  ======================================
+v3.0.6  2012-05-16  JUST A BETA VERSION!
+> NEW:
+    + Fuel-Sensor - a new hardware extension
+    + Fuel-Sensor replaces FuelDistance in Maindevice
+    + Fuel-Sensor can be connected to GPI-0..3
+
+======= ==========  ======================================
 v3.0.5  2012-03-03
 > NEW:
     + Coolride Heatgrip Support - a new hardware extension
