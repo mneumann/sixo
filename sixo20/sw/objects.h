@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.4  2012/05/24 19:30:03  tuberkel
+ * Moved BMP-Logos to 'logos.c'
+ *
  * Revision 3.3  2012/02/21 20:58:15  tuberkel
  * all Setdevice ObjectNames reviewed
  *
@@ -647,11 +650,9 @@ ERRCODE Obj_Bool_MsgEntry(OBJ_BOOL      far * fpObject, MESSAGE msg );
 ERRCODE Obj_Bool_Show(    OBJ_BOOL      far * fpObject, UINT8 bUpdateMode );
 ERRCODE Obj_Bool_Init(    OBJ_BOOL_INIT   far * fpInitData );
 
-#define OBJ_BOOL_TWIDTH  2          // length of true/false indicator text in chars
-//#define OBJ_BOOL_TTRUE   "\x83\x84"   // state TRUE indicator dez 131+132 = CHAR_HOOK_L + R
-//#define OBJ_BOOL_TFALSE  "\x85\x86"   // state FALSE indicator
-#define OBJ_BOOL_TFALSE  "\x7f\x80"     // state TRUE indicator dez 127+128 = CHAR_HOOK_L + R
-#define OBJ_BOOL_TTRUE   "\x81\x82"     // state FALSE indicator dez 129+130 = CHAR_HOOK_L + R
+#define OBJ_BOOL_TWIDTH  2              // length of true/false indicator text in chars
+#define OBJ_BOOL_TFALSE  "\x7f\x80"     // '[x]' - TRUE indicator  - char dez 127+128  
+#define OBJ_BOOL_TTRUE   "\x81\x82"     // '[ ]' - FALSE indicator - char dez 129+130 
 
 
 

@@ -78,6 +78,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.12  2012/05/24 19:30:03  tuberkel
+ * Moved BMP-Logos to 'logos.c'
+ *
  * Revision 3.11  2012/05/16 21:06:57  tuberkel
  * New FuelSensor:
  * - now displayed & handled in Maindevice
@@ -187,6 +190,7 @@
 #include "timedate.h"
 #include "anain.h"
 #include "bitmaps.h"
+#include "logos.h"
 #include "surveill.h"
 #include "resource.h"
 

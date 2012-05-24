@@ -70,6 +70,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.16  2012/05/24 19:30:03  tuberkel
+ * Moved BMP-Logos to 'logos.c'
+ *
  * Revision 3.15  2012/03/02 22:44:33  tuberkel
  * Surv_CheckDevice():
  * - VehicSim-Warning only if not debugging!
@@ -260,28 +263,28 @@ static TIME_TYPE    ClockTime;              // copy of RTC data
 /* NOTE: must be adequate to enum type SURVP_ID! */
 static const STRING szSurvParamDesc[] =
 {
-    RESTXT_STATE_ALLRIGHT    ,  // 00
-    RESTXT_STATE_OILTEMP     ,  // 01
-    RESTXT_STATE_WATERTEMP   ,  // 02
-    RESTXT_STATE_SURV_BATT_LOW ,  // 03
-    RESTXT_STATE_SURV_BATT_HIGH,  // 04
-    RESTXT_STATE_ALTERNATOR  ,  // 05
-    RESTXT_STATE_OILPRESS    ,  // 06
-    RESTXT_STATE_OILSWDEF    ,  // 07
-    RESTXT_STATE_ENGINE_COLD ,  // 08
-    RESTXT_STATE_FUEL8L      ,  // 09
-    RESTXT_STATE_FUEL4L      ,  // 10
-    RESTXT_STATE_ABS         ,  // 11
-    RESTXT_STATE_WATTEMPSW   ,  // 12
-    RESTXT_STATE_GLACED      ,  // 13
-    RESTXT_STATE_SERVICEKM   ,  // 14
-    RESTXT_STATE_SERVICEHOUR ,  // 15
-    RESTXT_STATE_SIMULATION  ,  // 16
-    RESTXT_STATE_HARDCOPY    ,  // 17
-    RESTXT_STATE_DLS_SUMMER  ,  // 18
-    RESTXT_STATE_DLS_WINTER  ,  // 19
-    RESTXT_STATE_RTC_BATT    ,  // 20
-    RESTXT_STATE_COOLRIDE       // 21
+    RESTXT_STATE_ALLRIGHT       ,  // 00
+    RESTXT_STATE_OILTEMP        ,  // 01
+    RESTXT_STATE_WATERTEMP      ,  // 02
+    RESTXT_STATE_SURV_BATT_LOW  ,  // 03
+    RESTXT_STATE_SURV_BATT_HIGH ,  // 04
+    RESTXT_STATE_ALTERNATOR     ,  // 05
+    RESTXT_STATE_OILPRESS       ,  // 06
+    RESTXT_STATE_OILSWDEF       ,  // 07
+    RESTXT_STATE_ENGINE_COLD    ,  // 08
+    RESTXT_STATE_FUEL8L         ,  // 09
+    RESTXT_STATE_FUEL4L         ,  // 10
+    RESTXT_STATE_ABS            ,  // 11
+    RESTXT_STATE_WATTEMPSW      ,  // 12
+    RESTXT_STATE_GLACED         ,  // 13
+    RESTXT_STATE_SERVICEKM      ,  // 14
+    RESTXT_STATE_SERVICEHOUR    ,  // 15
+    RESTXT_STATE_SIMULATION     ,  // 16
+    RESTXT_STATE_HARDCOPY       ,  // 17
+    RESTXT_STATE_DLS_SUMMER     ,  // 18
+    RESTXT_STATE_DLS_WINTER     ,  // 19
+    RESTXT_STATE_RTC_BATT       ,  // 20
+    RESTXT_STATE_COOLRIDE          // 21
 };
 
 // just for debug purpose

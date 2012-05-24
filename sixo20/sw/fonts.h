@@ -69,6 +69,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.1  2012/05/24 19:30:03  tuberkel
+ * Moved BMP-Logos to 'logos.c'
+ *
  * Revision 3.0  2010/11/07 12:49:48  tuberkel
  * V30 Preparations:
  * - new free defined characters (#127..#160)
@@ -98,13 +101,13 @@
 
 
 /* ascii character limits */
-#define ASCIIFIRST      32  // first STANDARD     ascii char
-#define ASCIILAST      126  // last  STANDARD     ascii char
-#define FREEASCIIFIRST 127  // first FREE DEFINED ascii char
-#define FREEASCIILAST  160  // last  FREE DEFINED ascii char
-#define EXTASCIIFIRST  161  // first EXTRA        ascii char
-#define SMALL_CROSS    164  // prepared '¤'
-#define EXTASCIILAST   255  // last  EXTRA        ascii char
+/* Note: Some fonts do not support free/extended ascii char range */
+#define ASCII_STD_FIRST      32     // first STANDARD     ascii char
+#define ASCII_STD_LAST      126     // last  STANDARD     ascii char
+#define ASCII_FREE_FIRST    127     // first FREE DEFINED ascii char
+#define ASCII_FREE_LAST     160     // last  FREE DEFINED ascii char
+#define ASCII_EXT_FIRST     161     // first EXTENDED     ascii char
+#define ASCII_EXT_LAST      255     // last  EXTENDED     ascii char
 
 
 /* free defined ascii chars (area #127..#160)

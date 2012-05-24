@@ -5,7 +5,7 @@
 # All Rights Reserved.
 #
 #	Notice	:	Don't edit.
-#	Date	:	2012 05(May) 16(Wednesday) PM.10.49
+#	Date	:	2012 05(May) 24(Thursday) PM.08.33
 #	Project	:	SIxO20
 ####################################################################
 
@@ -23,18 +23,18 @@ OUTDIR	=	.\outdir
 MKDIR	=	@-mkdir
 ABSFILE	=	$(PROJECT).x30
 ODINCMD	=	$(OUTDIR)
-TARGET	=	$(ABSFILE)
 LN	=	LN30
+TARGET	=	$(ABSFILE)
 ECHO	=	@-echo
 MKFILE	=	$(PROJECT).tmk
-TYPE	=	@-type
 PROJECT	=	SIxO20
-CFLAGS	=	-c -I. -silent -dir $(OUTDIR) -Wall -DDEBUG=0 -DKD30_USED=0 -DKD30_GUI_USED=0 -DGEARBOX=0 -DCOMPASSDRV=0 -finfo
-AFLAGS	=	-. -DDEBUG=0:KD30_USED=0:COMPASSDRV=0 -finfo -O$(OUTDIR)
+TYPE	=	@-type
 LFLAGS	=	-MS -L nc30lib -. -G -O $(OUTDIR)\$(TARGET)
-LIBFLAGS	=	-C
 UTLFLAGS	=	
+CFLAGS	=	-c -I. -silent -dir $(OUTDIR) -Wall -DDEBUG=1 -DKD30_USED=1 -DKD30_GUI_USED=1 -DGEARBOX=0 -DCOMPASSDRV=0 -finfo
 LMCFLAGS	=	-. -ID
+LIBFLAGS	=	-C
+AFLAGS	=	-. -DDEBUG=1:KD30_USED=1:COMPASSDRV=0 -finfo -O$(OUTDIR)
 .SUFFIXES: .a30 .r30 .c .x30 .lib
 .PHONY: all
 all: \
@@ -86,6 +86,7 @@ clean:
 	$(DELETE) $(OUTDIR)\$(PROJECT).*
 	$(DELETE) $(OUTDIR)\compassdrv.r30
 	$(DELETE) $(OUTDIR)\gpo.r30
+	$(DELETE) $(OUTDIR)\logos.r30
 .outdir\SIxO20.mot: \
 		.\$(MKFILE) \
 		$(OUTDIR)\$(TARGET) 
@@ -136,6 +137,7 @@ $(ODINCMD)\$(LNLIST): \
 	$(ECHO)\$(OUTDIR)\lapcdev.r30 >>	$(ODINCMD)\$(LNLIST)
 	$(ECHO)\$(OUTDIR)\compassdrv.r30 >>	$(ODINCMD)\$(LNLIST)
 	$(ECHO)\$(OUTDIR)\gpo.r30 >>	$(ODINCMD)\$(LNLIST)
+	$(ECHO)\$(OUTDIR)\logos.r30 >>	$(ODINCMD)\$(LNLIST)
 $(OUTDIR)\$(TARGET): \
 		$(ODINCMD)\$(LNLIST) \
 		$(OUTDIR)\ncrt0.r30 \
@@ -178,7 +180,8 @@ $(OUTDIR)\$(TARGET): \
 		$(OUTDIR)\hwtestdev.r30 \
 		$(OUTDIR)\lapcdev.r30 \
 		$(OUTDIR)\compassdrv.r30 \
-		$(OUTDIR)\gpo.r30 
+		$(OUTDIR)\gpo.r30 \
+		$(OUTDIR)\logos.r30 
 	$(LN) @$(ODINCMD)\$(LNLIST)
 $(OUTDIR)\anain.r30: \
 		.\anain.c \
@@ -455,6 +458,10 @@ $(OUTDIR)\led.r30: \
 		.\digoutdr.h \
 		.\sfr62p.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) led.c
+$(OUTDIR)\logos.r30: \
+		.\logos.c \
+		.\logos.h 
+	$(CC) $(MRCFLAGS) $(CFLAGS) logos.c
 $(OUTDIR)\main.r30: \
 		.\main.c \
 		.\standard.h \

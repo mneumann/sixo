@@ -69,6 +69,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.6  2012/05/24 19:30:03  tuberkel
+ * Moved BMP-Logos to 'logos.c'
+ *
  * Revision 3.5  2012/02/21 20:58:15  tuberkel
  * all Setdevice ObjectNames reviewed
  *
@@ -153,6 +156,7 @@
 #include "digindrv.h"
 #include "sysparam.h"
 #include "bitmaps.h"
+#include "logos.h"
 #include "measdrv.h"
 #include "vehicsim.h"
 

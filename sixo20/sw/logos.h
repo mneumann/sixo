@@ -7,10 +7,10 @@
  *
  *  --------------------------------------------------------------------
  *
- *  Created:        2001-10-25 by Ralf Schwarzer
- *  Project:        resources
- *  Module:         bitmaps definitions
- *  Purpose:        bitmap raw data resources API export header
+ *  Created:        2012-05-24 by Ralf Schwarzer
+ *  Project:        SIxO
+ *  Module:         display
+ *  Purpose:        bitmap raw data resources - logos
  *  Comments:
  *                  Currently a 128x64 (WxH) pixel display is supported.
  *                  This results in 8 pages a 8bit height. (=64 pixel H)
@@ -77,31 +77,42 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
- * Revision 3.2  2012/05/24 19:30:03  tuberkel
+ * Revision 3.1  2012/05/24 19:30:03  tuberkel
  * Moved BMP-Logos to 'logos.c'
  *
- * Revision 3.1  2012/01/21 19:52:49  tuberkel
- * Additional Logos for 'TeneristI and 'Coolride'
- *
- * Revision 3.0  2010/11/07 12:50:38  tuberkel
- * V30 Preparations:
- * - new Bike Logo enumtype
- *
- * Revision 2.1  2009/07/08 21:49:04  tuberkel
- * Changed contact data: Ralf Krizsan ==> Ralf Schwarzer
- *
- * Revision 2.0  2006/06/26 23:25:50  tuberkel
- * no message
- *
- * Revision 1.4  2006/03/18 08:43:16  Ralf
- * changed logo handling
  *
  *
  ************************************************************************ */
 
 
-#ifndef BITMAP_H
-#define BITMAP_H
+#ifndef LOGOS_H
+#define LOGOS_H
+
+// SIxO logos
+// Note:    these enums have to in the same order like
+//          the BMP pointers in fpBikeLogos[]!!!
+typedef enum
+{
+    eLogo_NKDEV,
+    eLogo_BMW,
+    eLogo_HUSQV,
+    eLogo_BAGHIRA,
+    eLogo_SIXO,
+    eLogo_AfricaTwin,
+    eLogo_BMW_1100GS,
+    eLogo_KTM,
+    eLogo_HUSQVRS,
+    eLogo_HPN,
+    eLogo_Motobau,
+    eLogo_vforce,
+    eLogo_teneristi,
+    eLogo_coolride
+} LOGO_TYPE;
 
 
-#endif // BITMAP_H
+
+#define BIKELOGO_ARRAYSIZE  14
+#define BIKELOGO_FIRST      0
+#define BIKELOGOG_LAST      (BIKELOGO_ARRAYSIZE-1)
+
+#endif // LOGOS_H
