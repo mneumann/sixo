@@ -11,21 +11,21 @@ Project Tagfile=
 Filter=
 Create Tagfile=0
 [Open Files]
-Open File0=S:\CVS\sixo\sixo20\sw\logos.c
-Open File Pos0=0
-Open File Line0=0
+Open File0=s:\CVS\sixo\sixo20\sw\maindev.c
+Open File Pos0=12400
+Open File Line0=10339
 Active File Index=0
-Open File Window Pos0=2,3,-1,-1,-4,-30,0,0,564,724
-Open File1=S:\CVS\sixo\sixo20\sw\logos.h
+Open File Window Pos0=2,3,-1,-1,-4,-30,176,232,735,956
+Open File1=s:\CVS\sixo\sixo20\sw\bitmaps.c
 Active File Display Mode=3
-Open File Pos1=0
-Open File Line1=0
-Open File Window Pos1=0,1,-1,-1,-4,-30,22,29,590,757
-Open File2=
+Open File Pos1=9253
+Open File Line1=8451
+Open File Window Pos1=0,1,-1,-1,-4,-30,198,261,761,989
+Open File2=s:\CVS\sixo\sixo20\sw\bitmaps.h
 Open File Pos2=0
-Open File Line2=0
-Open File Window Pos2=0,1,-1,-1,-4,-30,264,348,810,1117
-Open File3=S:\BMP_Converter_BAK\Icons_Pbm_gedreht\Fuel_from_16x16.pbm
+Open File Line2=2201
+Open File Window Pos2=0,1,-1,-1,-4,-30,220,290,783,1018
+Open File3=
 Open File Pos3=0
 Open File Line3=0
 Open File Window Pos3=2,3,-1,-1,-4,-30,286,377,832,1146
@@ -116,7 +116,7 @@ Open File Window Pos24=2,3,-1,-1,-4,-30,66,87,755,443
 Open File25=
 
 [File View]
-Current Select=Projektdateien\Resources\logos.c
+Current Select=Projektdateien\Resources\bitmaps.c
 
 [Files - Test]
 

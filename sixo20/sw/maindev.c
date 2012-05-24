@@ -68,6 +68,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.31  2012/05/24 21:14:29  tuberkel
+ * - Preparations for 3 new Fuel / Distance / Consumption Display-modes
+ * - not yet ready
+ *
  * Revision 3.30  2012/05/24 20:00:14  tuberkel
  * BMP renamed
  *
@@ -299,7 +303,6 @@ extern UINT32               FuelSensImp;                        /* Fuel sensor I
 /* bitmaps for main selection lower area */
 extern unsigned char far bmpEnduro_29x16[];     /* enduro symbol  */
 extern unsigned char far bmpRPM_16x16[];        /* big RPM symbol */
-extern unsigned char far bmpFuel_16x16[];       /* fuel symbol */
 
 /* bitmaps for info/warning/error display */
 extern unsigned char far bmpInfo_16x16[];       /* INFO symbol */
@@ -317,6 +320,20 @@ extern unsigned char far bmpRPM_8x8[];          /* RPM symbol samll */
 extern unsigned char far bmpFuel_8x8[];         /* fuel symbol small */
 extern unsigned char far bmpVertLine_2x20[];    /* vertical line to devide measurements */
 
+/* bitmaps for Coolride heat control */
+extern unsigned char far bmpHeatGrip_16x16[];       /* heatgrip icon */
+extern unsigned char far bmpHeatBarEmpty_19x8[];    /* heat bargraph - off */
+extern unsigned char far bmpHeatBarFull_19x8[];     /* heat bargraph - on */
+
+/* bitmaps for Fuel & Consumption */
+extern unsigned char far bmpFuel_16x16[];           /* icon 'fuel' */
+extern unsigned char far bmpToFuel_16x16[];         /* icon 'going to fuel station' */
+extern unsigned char far bmpFromFuel_16x16[];       /* icon 'coming from fuel station' */
+extern unsigned char far bmpToNeedle_16x16[];       /* icon 'going to act pos' */
+extern unsigned char far bmpFromNeedle_16x16[];     /* icon 'coming from act pos' */
+extern unsigned char far bmpLiterPer100_16x16[];    /* icon 'l/100' */
+extern unsigned char far bmpAverage_16x16[];        /* icon 'ø' */
+
 /* bitmaps for gear display  */
 extern unsigned char far bmp7Seg_0_16x16[];     /* 7 segment bitmaps for gear display */
 extern unsigned char far bmp7Seg_1_16x16[];
@@ -328,11 +345,6 @@ extern unsigned char far bmp7Seg_6_16x16[];
 extern unsigned char far bmp7Seg_7_16x16[];
 extern unsigned char far bmp7Seg_8_16x16[];
 extern unsigned char far bmp7Seg_9_16x16[];
-
-/* bitmaps for Coolride heat control */
-extern unsigned char far bmpHeatGrip_16x16[];       /* heatgrip icon */
-extern unsigned char far bmpHeatBarEmpty_19x8[];    /* heat bargraph - off */
-extern unsigned char far bmpHeatBarFull_19x8[];     /* heat bargraph - on */
 
 
 
@@ -351,35 +363,65 @@ static CHAR        szSpeed[4] = "0";           /* buffer for current speed, max.
 /* lower area mode  */
 /* =================================================== */
 
+
+/* ------------------------------------ */
 /* lower area mode 1: Rounds Per Minute */
 static OBJ_STEXT    RPMTxtObj;                  /* rpm text '00000' object */
 static OBJ_STEXT    RPMDescTxtObj;              /* rpm descriptor 'U/Min' (or RPM for DE) text object */
 static CHAR         szRPM[6] = "0";             /* buffer current eng speed, max. string '13500' */
 static OBJ_BMP      RPMBmpObj;                  /* symbol to indicate RPM */
 
-/* lower area mode 2: Fuel Distance */
+/* ------------------------------------ */
+/* lower area mode 2+3 common: 'Distance & Liters from/to last/next refueling' */
 static OBJ_STEXT    FuelDistTxtObj;             /* fuel distance text object */
-static CHAR         szFuelDist[10] = "0,0";     /* buffer to contain fuel distance, max. string '9999999,9' */
-static OBJ_BMP      FuelDistBmpObj;             /* symbol to indicate fuel distance display mode */
+static OBJ_STEXT    FuelLiterTxtObj;            /* fuel liter text object */
+static CHAR         szFuelDist[10] = "0";       /* buffer to contain distance, max. '9999' km */
+static CHAR         szFuelLiter[10]= "0";       /* buffer to contain fuel,     max. '99,9' l */
 
+/* ------------------------------------ */
+/* lower area mode 2: 'Distance & Liters from last refueling' */
+static OBJ_BMP      FromNeedleBmpObj;           /* bitmap 'From act. position to..' */
+static OBJ_BMP      ToFuelBmpObj;               /* bitmap '..to fuel station' */
+
+/* ------------------------------------ */
+/* lower area mode 3: 'Distance & Liters to next refueling' */
+static OBJ_BMP      FromFuelBmpObj;             /* bitmap 'From fuel station to..' */
+static OBJ_BMP      ToNeedleBmpObj;             /* bitmap '..to act position' */
+
+/* ------------------------------------ */
+/* lower area mode 4: Fuel Consumption (only if Fuel Sensor available) */
+static OBJ_BMP      FuelBmpObj;                 /* bitmap 'fuel station'  */
+static OBJ_BMP      LiterPer100ActBmpObj;       /* bitmap for actuel  'l/100' */
+static OBJ_BMP      LiterPer100AvrBmpObj;       /* bitmap for average 'l/100' */
+static OBJ_BMP      AverageBmpObj;              /* bitmap 'average' */
+static OBJ_STEXT    FuelConsActTxtObj;          /* fuel consumption (actual) text object */
+static OBJ_STEXT    FuelConsAvrTxtObj;          /* fuel consumption (average) text object */
+static CHAR         szFuelConsAct[10] = "--,-"; /* buffer to contain fuel consumption (actual)  max. '99,9' l/100 */
+static CHAR         szFuelConsAvr[10] = "--,-"; /* buffer to contain fuel consumption (average) max. '99,9' l/100 */
+
+/* ------------------------------------ */
 /* lower area mode 3: Vehicle Distance */
 static OBJ_STEXT    VehDistTxtObj;              /* vehicle distance text object */
 static CHAR         szVehDist[10] = "0,0";      /* buffer to contain fuel distance, max. string '9999999,9' */
 static OBJ_BMP      VehDistBmpObj;              /* symbol to indicate vehicle distance display mode */
 
+/* ------------------------------------ */
 /* lower area mode 4: TripCounter 1 Distance */
 static OBJ_STEXT    Trip1DescTxtObj;            /* tripcounter1 descriptor text object 'T1' */
 static OBJ_STEXT    Trip1DistTxtObj;            /* tripcounter1 distance text object */
 static CHAR         szTrip1Dist[10] = "0,0";    /* buffer to contain tripcounter1 distance, max. string '9999,9' */
 
+/* ------------------------------------ */
 /* lower area mode 5: TripCounter 2 Distance */
 static OBJ_STEXT    Trip2DescTxtObj;            /* tripcounter1 descriptor text object 'T2' */
 static OBJ_STEXT    Trip2DistTxtObj;            /* tripcounter2 distance text object */
 static CHAR         szTrip2Dist[10] = "0,0";    /* buffer to contain tripcounter2 distance, max. string '9999,9' */
 
+/* ------------------------------------ */
 /* lower area mode 2..5: common distance descriptor */
 static OBJ_STEXT    DistDescTxtObj;             /* COMMON vehicle & fuel distance decriptor for 'km' or 'mi' */
 
+/* ------------------------------------ */
 /* lower area mode 6: Max Speed */
 static OBJ_STEXT    SpeedMaxDescTxtObj;         /* SpeedMax descriptor text object for 'v(max)' */
 static OBJ_STEXT    SpeedMaxUnitTxtObj;         /* speed max desciptor text object 'km/h' or 'mi/h' */
@@ -387,11 +429,13 @@ static OBJ_STEXT    SpeedMaxTxtObj;             /* SpeedMax descriptor text obje
 static CHAR         szSpeedMax[4] = "  0";      /* buffer to contain SpeedMax, max. string '999' km/h*/
 extern SPEED_TYPE   Speed_Max;                  /* prepared value */
 
+/* ------------------------------------ */
 /* lower area mode 7: Coolride Heat Control */
 static OBJ_BMP      HeatGripIconBmpObj;         /* symbol to indicate heat at handgrip */
 static OBJ_BMP      HeatBarBmpObj;              /* empty/full bar icon - for multiple use */
 #define MD_HEATBARPARTS 5                       /* number of bargrapgh parts */
 
+/* ------------------------------------ */
 /* lower area: Date & Time Display */
 static OBJ_STEXT    TimeDateTxtObj;             /* time & date output opbject */
 static CHAR         szTimeDate[22] = "Mo 01.01.01  00:00:00";   /* buffer for timedate string */
@@ -414,6 +458,7 @@ static INT8         SurvShowVehState = 0;       /* != 0 if vehicle state is to b
 #if(GEARBOX==1)
 static OBJ_BMP      GearSymbolBmpObj;           /* selected gear indicator */
 #endif
+
 
 
 
@@ -486,7 +531,6 @@ static const OBJ_BMP_INIT BmpObjInit[] =
 
     /* selected info icons */
     /* --------------------------- -- --- --- --- --------------------- -------- ----- */
-    { &FuelDistBmpObj,              0, 38, 16, 16, bmpFuel_16x16,       DPLNORM, FALSE },
     { &VehDistBmpObj,               0, 38, 29, 16, bmpEnduro_29x16,     DPLNORM, FALSE },
     { &RPMBmpObj,                   0, 38, 16, 16, bmpRPM_16x16,        DPLNORM, FALSE },
 
@@ -513,7 +557,19 @@ static const OBJ_BMP_INIT BmpObjInit[] =
     { &MonVoltageBmpObj,           71, 37,  8,  8, bmpBattery_8x8,      DPLNORM, FALSE },
     { &MonOilTempBmpObj,           71, 46,  8,  8, bmpOil_8x8,          DPLNORM, FALSE },
     { &MonRPMBmpObj,               71, 46,  8,  8, bmpRPM_8x8,          DPLNORM, FALSE },
-    { &MonVertLineBmpObj,          64, 36,  2, 24, bmpVertLine_2x20,    DPLNORM, FALSE }
+    { &MonVertLineBmpObj,          64, 36,  2, 24, bmpVertLine_2x20,    DPLNORM, FALSE },
+
+    /* fuel consumption symbols  */
+    /* --------------------------- -- --- --- --- --------------------- -------- ----- */
+    { &FuelBmpObj,                  0, 38, 16, 16, bmpFuel_16x16,       DPLNORM, FALSE },
+    { &ToFuelBmpObj,                0, 38, 16, 16, bmpToFuel_16x16,     DPLNORM, FALSE },
+    { &LiterPer100ActBmpObj,       52, 38, 16, 16, bmpLiterPer100_16x16,DPLNORM, FALSE },
+    { &FromNeedleBmpObj,           71, 38, 16, 16, bmpFromNeedle_16x16, DPLNORM, FALSE },
+    { &AverageBmpObj,              71, 38, 16, 16, bmpAverage_16x16,    DPLNORM, FALSE },
+    { &ToNeedleBmpObj,            112, 38, 16, 16, bmpToNeedle_16x16,   DPLNORM, FALSE },
+    { &FromFuelBmpObj,            112, 38, 16, 16, bmpFromFuel_16x16,   DPLNORM, FALSE },
+    { &LiterPer100AvrBmpObj,      112, 38, 16, 16, bmpLiterPer100_16x16,DPLNORM, FALSE }    
+
     /* --------------------------- -- --- --- --- --------------------- -------- ----- */
 };
 #define BMPOBJECTLISTSIZE   (sizeof(BmpObjInit)/sizeof(OBJ_BMP_INIT))
@@ -657,7 +713,7 @@ static const void far * ObjectList_Fuel[] =
 
     // objects - shown in 'MD_FUEL' mode only
     (void far *) &FuelDistTxtObj,
-    (void far *) &FuelDistBmpObj,
+    (void far *) &FuelBmpObj,
     (void far *) &DistDescTxtObj        // common for Veh/Fuel/Trip1/Trip2
 };
 #define OBJLIST_FUEL_CNT (sizeof(ObjectList_Fuel)/sizeof(OBJ_STATE)/sizeof(void far *))
@@ -832,7 +888,7 @@ static const void far * ObjectList[] =
 
     // objects - shown in 'MD_FUEL' mode only
     (void far *) &FuelDistTxtObj,
-    (void far *) &FuelDistBmpObj,
+    (void far *) &FuelBmpObj,
 
     // objects - shown in 'MD_VEHDIST' mode only
     (void far *) &VehDistTxtObj,
@@ -1040,7 +1096,7 @@ void MainDev_Show(BOOL fShow)
                     MainDev_UpdFuelSensor();
                     Obj_TextSt_Show( &FuelDistTxtObj );
                     Obj_TextSt_Show( &DistDescTxtObj );
-                    Obj_Bmp_Show( &FuelDistBmpObj );
+                    Obj_Bmp_Show( &FuelBmpObj );
                     break;
                 case MD_VEHDIST:
                     Obj_TextSt_Show( &VehDistTxtObj );
