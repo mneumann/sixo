@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.11  2012/05/24 20:00:14  tuberkel
+ * BMP renamed
+ *
  * Revision 3.10  2012/02/27 23:16:09  tuberkel
  * - Compass: Information moved from gDeviceFlags3  ==> gCompassCntrl
  * - CompassDrv corrected
@@ -216,8 +219,10 @@ extern DEVFLAGS3_TYPE       gDeviceFlags3;          /* device parameter set 3 */
 extern BIKE_TYPE            gBikeType;              /* bike type selecetion */
 extern COMPASSCNTL_TYPE     gCompassCntrl;          /* compass display mode */
 
-extern const unsigned char far * rgCompassTop144x8[];   /* external bitmaps */
-extern const unsigned char far * rgCompassBot144x8[];
+
+/* external bitmaps */
+extern const unsigned char far * bmpCompassTop_144x8[];   
+extern const unsigned char far * bmpCompassBot_144x8[];
 
 
 
@@ -474,8 +479,8 @@ ERRCODE TripCDev_MsgEntry(MESSAGE GivenMsg)
                             szDevName[MSG_SENDER_ID(GivenMsg)],
                             szDevName[DEVID_TRIPCOUNT]) */;
                 TripCntDev.fFocused = TRUE;                             /* set our focus */
-                TripCDev_Show(TRUE);                                   /* show our screen */
-                gDeviceFlags1.flags.ActDevNr = DEVID_TRIPCOUNT;          /* save device# for restore */
+                TripCDev_Show(TRUE);                                    /* show our screen */
+                gDeviceFlags1.flags.ActDevNr = DEVID_TRIPCOUNT;         /* save device# for restore */
                 RValue = ERR_MSG_PROCESSED;
              }
              else
@@ -525,8 +530,8 @@ ERRCODE TripCDev_MsgEntry(MESSAGE GivenMsg)
                     &&(MSG_KEY_DURATION(GivenMsg) < KEYTM_PRESSED_SHORT              ) )
                 {
                     /* give focus immediatly to next screen */
-                    TripCntDev.fFocused = FALSE;                              /* clear our focus */
-                    TripCDev_Show(FALSE);                                    /* clear our screen */
+                    TripCntDev.fFocused = FALSE;                        /* clear our focus */
+                    TripCDev_Show(FALSE);                               /* clear our screen */
 
                     // special MOTOBAU behaviour
                     #if(BIKE_MOTOBAU==1)
@@ -543,7 +548,7 @@ ERRCODE TripCDev_MsgEntry(MESSAGE GivenMsg)
             case MSG_KEY_OK:
             case MSG_KEY_UP:
             case MSG_KEY_DOWN:
-                RValue = TripCDev_MsgEntry_Keys(GivenMsg);          /* used for Ok, Up, Down: */
+                RValue = TripCDev_MsgEntry_Keys(GivenMsg);              /* used for Ok, Up, Down: */
                 break;
 
             /* trigger time / date screen update only */
@@ -590,35 +595,35 @@ ERRCODE TripCDev_MsgEntry_Keys(MESSAGE GivenMsg)
     MESSAGE     NewMsg;
     DIST_TYPE   TripCnt;
 
-    MsgId = MSG_ID(GivenMsg);                   /* get message id */
+    MsgId = MSG_ID(GivenMsg);                                       /* get message id */
     switch (MsgId)
     {
         case MSG_KEY_OK:
-            if (MSG_KEY_TRANSITION(GivenMsg) == KEYTRANS_PRESSED )      // just pressed?
+            if (MSG_KEY_TRANSITION(GivenMsg) == KEYTRANS_PRESSED )  /* just pressed? */
             {
                 /* clear big trip counter (here: TripCntB) any way */
-                TripCnt.km = 0;                         /* clear local counter */
-                MeasSetTripCnt(eTRIPC_B, &TripCnt);     /* copy to TripCnt B */
+                TripCnt.km = 0;                                     /* clear local counter */
+                MeasSetTripCnt(eTRIPC_B, &TripCnt);                 /* copy to TripCnt B */
             }
-            if (MSG_KEY_DURATION(GivenMsg) > KEYTM_PRESSED_LONG )                // pressed > 3 sec?
+            if (MSG_KEY_DURATION(GivenMsg) > KEYTM_PRESSED_LONG )   /* pressed > 3 sec? */
             {
                 /* check: long distance counter to be reseted? */
                 if (MeasGetTripCnt(eTRIPC_A, MR_DKM) > 0)
                 {
                     /* clear both trip counter the same time  */
-                    TripCnt.km = 0;                         /* clear local counter */
-                    MeasSetTripCnt(eTRIPC_B, &TripCnt);     /* copy to TripCnt B */
-                    MeasSetTripCnt(eTRIPC_A, &TripCnt);     /* copy to TripCnt A */
+                    TripCnt.km = 0;                                 /* clear local counter */
+                    MeasSetTripCnt(eTRIPC_B, &TripCnt);             /* copy to TripCnt B */
+                    MeasSetTripCnt(eTRIPC_A, &TripCnt);             /* copy to TripCnt A */
                     Beep_SignalOk();
                     LED_SignalOk();
                 }
             }
             break;
         case MSG_KEY_UP:                        /* increment smaller tripcounter (A) */
-            if (  (MSG_KEY_TRANSITION(GivenMsg) == KEYTRANS_PRESSED )   // just pressed?
-                ||(MSG_KEY_TRANSITION(GivenMsg) == KEYTRANS_ON      ) ) // key repetition rate active?
+            if (  (MSG_KEY_TRANSITION(GivenMsg) == KEYTRANS_PRESSED )   /* just pressed? */
+                ||(MSG_KEY_TRANSITION(GivenMsg) == KEYTRANS_ON      ) ) /* key repetition rate active? */
             {
-                UINT16 wIncrVal = TripCDev_ExpSpeed(GivenMsg);         /* get incr value = f(key press duration) */
+                UINT16 wIncrVal = TripCDev_ExpSpeed(GivenMsg);          /* get incr value = f(key press duration) */
                 MeasGetRawTripCnt(eTRIPC_A, &TripCnt);                  /* get current trip counter value */
                 if ((TripCnt.dkm + wIncrVal) < DIST_MAX_VEHIC)          /* no overflow? */
                 {
@@ -628,10 +633,10 @@ ERRCODE TripCDev_MsgEntry_Keys(MESSAGE GivenMsg)
             }
             break;
         case MSG_KEY_DOWN:                      /* decrement smaller tripcounter (A) */
-            if (  (MSG_KEY_TRANSITION(GivenMsg) == KEYTRANS_PRESSED )   // just pressed?
-                ||(MSG_KEY_TRANSITION(GivenMsg) == KEYTRANS_ON      ) ) // key repetition rate active?
+            if (  (MSG_KEY_TRANSITION(GivenMsg) == KEYTRANS_PRESSED )   /* just pressed? */
+                ||(MSG_KEY_TRANSITION(GivenMsg) == KEYTRANS_ON      ) ) /* key repetition rate active? */
             {
-                UINT16 wDecrValue = TripCDev_ExpSpeed(GivenMsg);       /* get decr value = f(key press duration) */
+                UINT16 wDecrValue = TripCDev_ExpSpeed(GivenMsg);        /* get decr value = f(key press duration) */
                 MeasGetRawTripCnt(eTRIPC_A, &TripCnt);                              /* get current trip counter value */
                 if (wDecrValue > TripCnt.dkm)                           /* too big to decr? */
                     wDecrValue = TripCnt.dkm;                           /*-> clip to ensure reset to zero! */
@@ -797,11 +802,11 @@ void TripCDev_UpdCompassBargr(void)
 
     tPixelCoord.wXPos = 0;
     tPixelCoord.wYPos = 0;
-    tBitmap.fpucBitmap = (UINT8 far*)( ((UINT32)rgCompassTop144x8) + ((UINT32)usOffset) );
+    tBitmap.fpucBitmap = (UINT8 far*)( ((UINT32)bmpCompassTop_144x8) + ((UINT32)usOffset) );
     DisplPrintABitmap( &tBitmap, &tPixelCoord, DPLNORM );
 
     tPixelCoord.wYPos = 25;
-    tBitmap.fpucBitmap = (UINT8 far*)( ((UINT32)rgCompassBot144x8) + ((UINT32)usOffset) );
+    tBitmap.fpucBitmap = (UINT8 far*)( ((UINT32)bmpCompassBot_144x8) + ((UINT32)usOffset) );
     DisplPrintABitmap( &tBitmap, &tPixelCoord, DPLNORM );
 
     //--------- delete values of major lines  ---------

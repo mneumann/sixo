@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.1  2012/05/24 20:00:14  tuberkel
+ * BMP renamed
+ *
  * Revision 3.0  2010/11/07 12:28:57  tuberkel
  * V30 Preparations - no changes
  *
@@ -116,7 +119,7 @@ typedef enum        /* simulator state */
 } PSIM_STATE;
 
 
-typedef struct      /* simualtor control data*/
+typedef struct      /* simulator control data*/
 {
     BOOL        fActive;            /* switch on/off */
     PSIM_STATE  eMode;              /* constant / accelerated mode */

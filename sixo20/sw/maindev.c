@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.30  2012/05/24 20:00:14  tuberkel
+ * BMP renamed
+ *
  * Revision 3.29  2012/05/16 21:06:57  tuberkel
  * New FuelSensor:
  * - now displayed & handled in Maindevice
@@ -167,7 +170,7 @@
  *
  * Revision 3.1  2011/05/29 20:57:19  tuberkel
  * - Error/Warning/Info Bitmap Objects simplified
- * - Bitmap rgEmptySymbol16x16 to clear Error/Warning/Info icon
+ * - Bitmap bmpEmpty_16x16 to clear Error/Warning/Info icon
  * - Monitor Infos arranged & extended
  * - Gearbox Symbol removable
  *
@@ -294,42 +297,42 @@ extern UINT32               FuelSensImp;                        /* Fuel sensor I
 
 
 /* bitmaps for main selection lower area */
-extern unsigned char far rgEnduroSymbol29x16[];     /* enduro symbol  */
-extern unsigned char far rgRPMSymbo16x16[];         /* big RPM symbol */
-extern unsigned char far rgFuelSymbo16x16[];        /* fuel symbol */
+extern unsigned char far bmpEnduro_29x16[];     /* enduro symbol  */
+extern unsigned char far bmpRPM_16x16[];        /* big RPM symbol */
+extern unsigned char far bmpFuel_16x16[];       /* fuel symbol */
 
 /* bitmaps for info/warning/error display */
-extern unsigned char far rgInfoSymbol16x16[];       /* INFO symbol */
-extern unsigned char far rgWarningSymbol16x16[];    /* WARNING symbol */
-extern unsigned char far rgErrorSymbol16x16[];      /* ERROR symbol */
-extern unsigned char far rgEmptySymbol16x16[];      /* EMPTY symbol (just to clear) */
+extern unsigned char far bmpInfo_16x16[];       /* INFO symbol */
+extern unsigned char far bmpWarning_16x16[];    /* WARNING symbol */
+extern unsigned char far bmpError_16x16[];      /* ERROR symbol */
+extern unsigned char far bmpEmpty_16x16[];      /* EMPTY symbol (just to clear) */
 
 /* bitmaps for monitor/measuremnt data  */
-extern unsigned char far rgOilSymbol8x8[];          /* oil symbol */
-extern unsigned char far rgWaterSymbol8x8[];        /* water symbol */
-extern unsigned char far rgTempSymbol8x8[];         /* temperature symbol */
-extern unsigned char far rgBatterySymbol8x8[];      /* battery symbol */
-extern unsigned char far rgClockSymbol8x8[];        /* clock symbol */
-extern unsigned char far rgRPMSymbol8x8[];          /* RPM symbol samll */
-extern unsigned char far rgFuelSymbol8x8[];         /* fuel symbol small */
-extern unsigned char far rgVertLine_2x20[];         /* vertical line to devide measurements */
+extern unsigned char far bmpOil_8x8[];          /* oil symbol */
+extern unsigned char far bmpWater_8x8[];        /* water symbol */
+extern unsigned char far bmpTemp_8x8[];         /* temperature symbol */
+extern unsigned char far bmpBattery_8x8[];      /* battery symbol */
+extern unsigned char far rgClockSymbol8x8[];    /* clock symbol */
+extern unsigned char far bmpRPM_8x8[];          /* RPM symbol samll */
+extern unsigned char far bmpFuel_8x8[];         /* fuel symbol small */
+extern unsigned char far bmpVertLine_2x20[];    /* vertical line to devide measurements */
 
 /* bitmaps for gear display  */
-extern unsigned char far rg7Seg_0_16x16[];          /* 7 segment bitmaps for gear display */
-extern unsigned char far rg7Seg_1_16x16[];
-extern unsigned char far rg7Seg_2_16x16[];
-extern unsigned char far rg7Seg_3_16x16[];
-extern unsigned char far rg7Seg_4_16x16[];
-extern unsigned char far rg7Seg_5_16x16[];
-extern unsigned char far rg7Seg_6_16x16[];
-extern unsigned char far rg7Seg_7_16x16[];
-extern unsigned char far rg7Seg_8_16x16[];
-extern unsigned char far rg7Seg_9_16x16[];
+extern unsigned char far bmp7Seg_0_16x16[];     /* 7 segment bitmaps for gear display */
+extern unsigned char far bmp7Seg_1_16x16[];
+extern unsigned char far bmp7Seg_2_16x16[];
+extern unsigned char far bmp7Seg_3_16x16[];
+extern unsigned char far bmp7Seg_4_16x16[];
+extern unsigned char far bmp7Seg_5_16x16[];
+extern unsigned char far bmp7Seg_6_16x16[];
+extern unsigned char far bmp7Seg_7_16x16[];
+extern unsigned char far bmp7Seg_8_16x16[];
+extern unsigned char far bmp7Seg_9_16x16[];
 
 /* bitmaps for Coolride heat control */
-extern unsigned char far rgHeatGrip16x16[];
-extern unsigned char far rgHeatBarEmpty19x8[];
-extern unsigned char far rgHeatBarFull19x8[];
+extern unsigned char far bmpHeatGrip_16x16[];       /* heatgrip icon */
+extern unsigned char far bmpHeatBarEmpty_19x8[];    /* heat bargraph - off */
+extern unsigned char far bmpHeatBarFull_19x8[];     /* heat bargraph - on */
 
 
 
@@ -419,47 +422,47 @@ static OBJ_BMP      GearSymbolBmpObj;           /* selected gear indicator */
 /* =================================================== */
 
 /* measure data vertical devider */
-static OBJ_BMP    MonVertLineBmpObj;
+static OBJ_BMP      MonVertLineBmpObj;
 
 /* measure data 1: temperature from external air / internal NTC sensor */
-static OBJ_BMP    MonAmbientTempBmpObj;
-static OBJ_STEXT   MonAmbientTempTxtObj;
-static OBJ_STEXT   MonAmbientTempDescTxtObj;
+static OBJ_BMP      MonAmbientTempBmpObj;
+static OBJ_STEXT    MonAmbientTempTxtObj;
+static OBJ_STEXT    MonAmbientTempDescTxtObj;
 static CHAR         szTemp[5];
 
 /* measure data 2: battery voltage */
-static OBJ_BMP    MonVoltageBmpObj;
-static OBJ_STEXT   MonVoltageTxtObj;
-static OBJ_STEXT   MonVoltageDescTxtObj;
+static OBJ_BMP      MonVoltageBmpObj;
+static OBJ_STEXT    MonVoltageTxtObj;
+static OBJ_STEXT    MonVoltageDescTxtObj;
 static CHAR         szVoltage[5];
 
 /* measure data 3: motor oil temperature */
-static OBJ_STEXT   MonOilTempTxtObj;
-static OBJ_STEXT   MonOilTempDescTxtObj;
-static OBJ_BMP    MonOilTempBmpObj;
+static OBJ_STEXT    MonOilTempTxtObj;
+static OBJ_STEXT    MonOilTempDescTxtObj;
+static OBJ_BMP      MonOilTempBmpObj;
 static CHAR         szOilTemp[5];
 
 /* measure data 4: motor RPM (used, if no oil temp sensor connected) */
-static OBJ_STEXT   MonRPMTxtObj;
-static OBJ_STEXT   MonRPMDescTxtObj;
-static OBJ_BMP    MonRPMBmpObj;
+static OBJ_STEXT    MonRPMTxtObj;
+static OBJ_STEXT    MonRPMDescTxtObj;
+static OBJ_BMP      MonRPMBmpObj;
 
 /* measure data 5: water temperature */
-static OBJ_STEXT   MonWaterTempTxtObj;
-static OBJ_STEXT   MonWaterTempDescTxtObj;
+static OBJ_STEXT    MonWaterTempTxtObj;
+static OBJ_STEXT    MonWaterTempDescTxtObj;
 static CHAR         szWaterTemp[5];
-static OBJ_BMP    MonWaterTempBmpObj;
+static OBJ_BMP      MonWaterTempBmpObj;
 
 /* measure data 5: fuel distance (used, if water temp sensor not available) */
-static OBJ_STEXT   MonFuelTxtObj;
-static OBJ_STEXT   MonFuelDescTxtObj;
-static OBJ_BMP    MonFuelBmpObj;
+static OBJ_STEXT    MonFuelTxtObj;
+static OBJ_STEXT    MonFuelDescTxtObj;
+static OBJ_BMP      MonFuelBmpObj;
 
 
 
 
 /* ============================================================= */
-/* internal prototypes */
+/* internal function prototypes */
 void    MainDev_Show_Monitor            (BOOL fShow);
 void    MainDev_Show_Heatgrip           (BOOL fShow);
 ERRCODE MainDev_MsgEntry_StateMachine   (MESSAGE Msg);
@@ -483,34 +486,34 @@ static const OBJ_BMP_INIT BmpObjInit[] =
 
     /* selected info icons */
     /* --------------------------- -- --- --- --- --------------------- -------- ----- */
-    { &FuelDistBmpObj,              0, 38, 16, 16, rgFuelSymbo16x16,     DPLNORM, FALSE },
-    { &VehDistBmpObj,               0, 38, 29, 16, rgEnduroSymbol29x16,  DPLNORM, FALSE },
-    { &RPMBmpObj,                   0, 38, 16, 16, rgRPMSymbo16x16,      DPLNORM, FALSE },
+    { &FuelDistBmpObj,              0, 38, 16, 16, bmpFuel_16x16,       DPLNORM, FALSE },
+    { &VehDistBmpObj,               0, 38, 29, 16, bmpEnduro_29x16,     DPLNORM, FALSE },
+    { &RPMBmpObj,                   0, 38, 16, 16, bmpRPM_16x16,        DPLNORM, FALSE },
 
     /* Coolride Heat Control - Symbol & Bar icons (HeatBarBmpObj gets 5x moved & changed!)*/
     /* --------------------------- -- --- --- --- --------------------- -------- ----- */
-    { &HeatGripIconBmpObj,          2, 38, 16, 16, rgHeatGrip16x16,      DPLNORM, FALSE },
-    { &HeatBarBmpObj,              24, 40, 19,  8, rgHeatBarEmpty19x8,   DPLNORM, OC_DISPL | OC_DYN },
+    { &HeatGripIconBmpObj,          2, 38, 16, 16, bmpHeatGrip_16x16,   DPLNORM, FALSE },
+    { &HeatBarBmpObj,              24, 40, 19,  8, bmpHeatBarEmpty_19x8,DPLNORM, OC_DISPL | OC_DYN },
 
     /* Gear Symbol */
     /* --------------------------- -- --- --- --- --------------------- -------- ----- */
     #if(GEARBOX==1)
-    { &GearSymbolBmpObj,            0,  0, 16, 16, rg7Seg_0_16x16,       DPLNORM, FALSE },
+    { &GearSymbolBmpObj,            0,  0, 16, 16, bmp7Seg_0_16x16,     DPLNORM, FALSE },
     #endif
 
     /* error status icons */
     /* --------------------------- -- --- --- --- --------------------- -------- ----- */
-    { &VehStateBmpObj,              1, 17, 16, 16, rgEmptySymbol16x16,   DPLNORM, FALSE },
+    { &VehStateBmpObj,              1, 17, 16, 16, bmpEmpty_16x16,      DPLNORM, FALSE },
 
     /* monitor symbols  */
     /* --------------------------- -- --- --- --- --------------------- -------- ----- */
-    { &MonAmbientTempBmpObj,        2, 37,  8,  8, rgTempSymbol8x8,      DPLNORM, FALSE },
-    { &MonWaterTempBmpObj,          2, 46,  8,  8, rgWaterSymbol8x8,     DPLNORM, FALSE },
-    { &MonFuelBmpObj,               2, 46,  8,  8, rgFuelSymbol8x8,      DPLNORM, FALSE },
-    { &MonVoltageBmpObj,           71, 37,  8,  8, rgBatterySymbol8x8,   DPLNORM, FALSE },
-    { &MonOilTempBmpObj,           71, 46,  8,  8, rgOilSymbol8x8,       DPLNORM, FALSE },
-    { &MonRPMBmpObj,               71, 46,  8,  8, rgRPMSymbol8x8,       DPLNORM, FALSE },
-    { &MonVertLineBmpObj,          64, 36,  2, 24, rgVertLine_2x20,      DPLNORM, FALSE }
+    { &MonAmbientTempBmpObj,        2, 37,  8,  8, bmpTemp_8x8,         DPLNORM, FALSE },
+    { &MonWaterTempBmpObj,          2, 46,  8,  8, bmpWater_8x8,        DPLNORM, FALSE },
+    { &MonFuelBmpObj,               2, 46,  8,  8, bmpFuel_8x8,         DPLNORM, FALSE },
+    { &MonVoltageBmpObj,           71, 37,  8,  8, bmpBattery_8x8,      DPLNORM, FALSE },
+    { &MonOilTempBmpObj,           71, 46,  8,  8, bmpOil_8x8,          DPLNORM, FALSE },
+    { &MonRPMBmpObj,               71, 46,  8,  8, bmpRPM_8x8,          DPLNORM, FALSE },
+    { &MonVertLineBmpObj,          64, 36,  2, 24, bmpVertLine_2x20,    DPLNORM, FALSE }
     /* --------------------------- -- --- --- --- --------------------- -------- ----- */
 };
 #define BMPOBJECTLISTSIZE   (sizeof(BmpObjInit)/sizeof(OBJ_BMP_INIT))
@@ -1090,16 +1093,16 @@ void MainDev_Show(BOOL fShow)
             // SIMULATION ONLY: selected gear - show all gears every second */
             #if(GEARBOX==1)
             switch ( wSecCounter % 10 )
-            {   case 0: GearSymbolBmpObj.Data.fpucBitmap = rg7Seg_0_16x16; break;
-                case 1: GearSymbolBmpObj.Data.fpucBitmap = rg7Seg_1_16x16; break;
-                case 2: GearSymbolBmpObj.Data.fpucBitmap = rg7Seg_2_16x16; break;
-                case 3: GearSymbolBmpObj.Data.fpucBitmap = rg7Seg_3_16x16; break;
-                case 4: GearSymbolBmpObj.Data.fpucBitmap = rg7Seg_4_16x16; break;
-                case 5: GearSymbolBmpObj.Data.fpucBitmap = rg7Seg_5_16x16; break;
-                case 6: GearSymbolBmpObj.Data.fpucBitmap = rg7Seg_6_16x16; break;
-                case 7: GearSymbolBmpObj.Data.fpucBitmap = rg7Seg_7_16x16; break;
-                case 8: GearSymbolBmpObj.Data.fpucBitmap = rg7Seg_8_16x16; break;
-                case 9: GearSymbolBmpObj.Data.fpucBitmap = rg7Seg_9_16x16; break;
+            {   case 0: GearSymbolBmpObj.Data.fpucBitmap = bmp7Seg_0_16x16; break;
+                case 1: GearSymbolBmpObj.Data.fpucBitmap = bmp7Seg_1_16x16; break;
+                case 2: GearSymbolBmpObj.Data.fpucBitmap = bmp7Seg_2_16x16; break;
+                case 3: GearSymbolBmpObj.Data.fpucBitmap = bmp7Seg_3_16x16; break;
+                case 4: GearSymbolBmpObj.Data.fpucBitmap = bmp7Seg_4_16x16; break;
+                case 5: GearSymbolBmpObj.Data.fpucBitmap = bmp7Seg_5_16x16; break;
+                case 6: GearSymbolBmpObj.Data.fpucBitmap = bmp7Seg_6_16x16; break;
+                case 7: GearSymbolBmpObj.Data.fpucBitmap = bmp7Seg_7_16x16; break;
+                case 8: GearSymbolBmpObj.Data.fpucBitmap = bmp7Seg_8_16x16; break;
+                case 9: GearSymbolBmpObj.Data.fpucBitmap = bmp7Seg_9_16x16; break;
             }
             Obj_Bmp_Show( &GearSymbolBmpObj );
             #endif
@@ -1160,24 +1163,24 @@ void MainDev_Show(BOOL fShow)
 void MainDev_Show_Icon(void)
 {
     /* default: no/empty icon */
-    VehStateBmpObj.Data.fpucBitmap = rgEmptySymbol16x16;
+    VehStateBmpObj.Data.fpucBitmap = bmpEmpty_16x16;
 
     /* which icon has to be used: Info / Warning / Error ? */
     if      ( Surv_ListGetCount( eSURVST_ERROR ) )
-        VehStateBmpObj.Data.fpucBitmap = rgErrorSymbol16x16;
+        VehStateBmpObj.Data.fpucBitmap = bmpError_16x16;
     else if ( Surv_ListGetCount( eSURVST_WARNING) )
-        VehStateBmpObj.Data.fpucBitmap = rgWarningSymbol16x16;
+        VehStateBmpObj.Data.fpucBitmap = bmpWarning_16x16;
     else if ( Surv_ListGetCount( eSURVST_INFO  ) )
-    {   VehStateBmpObj.Data.fpucBitmap = rgInfoSymbol16x16;
+    {   VehStateBmpObj.Data.fpucBitmap = bmpInfo_16x16;
     }
 
     /* Check: No icon shown? -> Heatgrip-icon needed?
        Note: Only if not already shown in MD_HEATGRIP state */
     if (  ( gCoolrideCntrl.flags.CoolrAvail == TRUE                )
-        &&( VehStateBmpObj.Data.fpucBitmap  == rgEmptySymbol16x16  )     // no other icon used?
+        &&( VehStateBmpObj.Data.fpucBitmap  == bmpEmpty_16x16  )     // no other icon used?
         &&( MDObj.wDevState                 != MD_HEATGRIP         )     // not already shown below?
         &&( DigInDrv_GPI_GetMeas(gCoolrideCntrl.flags.CoolrGPI)->ucPWM > 0 ) )   // PWM is active?
-    {   VehStateBmpObj.Data.fpucBitmap = rgHeatGrip16x16;
+    {   VehStateBmpObj.Data.fpucBitmap = bmpHeatGrip_16x16;
     }
 
     /* show the selected bmp */
@@ -1339,8 +1342,8 @@ void MainDev_Show_Heatgrip(BOOL fInitial)
            Note: ucPwmCmp level always 5% higher to
                  assure 10% detection accuracy */
         if ( ucPwmCurr > ucPwmCmp )
-             objBmp.Data.fpucBitmap = rgHeatBarFull19x8;
-        else objBmp.Data.fpucBitmap = rgHeatBarEmpty19x8;
+             objBmp.Data.fpucBitmap = bmpHeatBarFull_19x8;
+        else objBmp.Data.fpucBitmap = bmpHeatBarEmpty_19x8;
 
         /* show the modified bmp object */
         Obj_Bmp_Show( &objBmp );
@@ -1385,10 +1388,10 @@ ERRCODE MainDev_MsgEntry(MESSAGE GivenMsg)
                         "%s wants to have focus from %s!",
                         szDevName[MSG_SENDER_ID(GivenMsg)],
                         szDevName[DEVID_MAIN]);
-                MSG_BUILD_SETFOCUS(NewMsg,DEVID_MAIN,MSG_SENDER_ID(GivenMsg));   /* build answer message */
-                RValue = MsgQPostMsg(NewMsg, MSGQ_PRIO_LOW);                     /* send answer message */
-                MDObj.fFocused = FALSE;                                     /* clear our focus */
-                MainDev_Show(FALSE);                                           /* clear our screen */
+                MSG_BUILD_SETFOCUS(NewMsg,DEVID_MAIN,MSG_SENDER_ID(GivenMsg));  /* build answer message */
+                RValue = MsgQPostMsg(NewMsg, MSGQ_PRIO_LOW);                    /* send answer message */
+                MDObj.fFocused = FALSE;                                         /* clear our focus */
+                MainDev_Show(FALSE);                                            /* clear our screen */
                 RValue = ERR_MSG_PROCESSED;
             }
         } break;
@@ -1411,10 +1414,10 @@ ERRCODE MainDev_MsgEntry(MESSAGE GivenMsg)
                             "FOCUS: %s -> %s!",
                             szDevName[MSG_SENDER_ID(GivenMsg)],
                             szDevName[DEVID_MAIN]) */;
-                MDObj.fFocused = TRUE;                             /* set our focus */
-                MainDev_Show(TRUE);                                   /* show our screen */
-                gDeviceFlags1.flags.ActDevNr = DEVID_MAIN;               /* save device# for restore */
-                SurvShowVehState = 0;                                   /* reset lower VehicleStateString state */
+                MDObj.fFocused = TRUE;                              /* set our focus */
+                MainDev_Show(TRUE);                                 /* show our screen */
+                gDeviceFlags1.flags.ActDevNr = DEVID_MAIN;          /* save device# for restore */
+                SurvShowVehState = 0;                               /* reset lower VehicleStateString state */
                 RValue = ERR_MSG_PROCESSED;
              }
              else
@@ -1471,9 +1474,9 @@ ERRCODE MainDev_MsgEntry(MESSAGE GivenMsg)
                     &&(MSG_KEY_DURATION(GivenMsg) < KEYTM_PRESSED_SHORT              ) )
                 {
                     /* give focus immediatly to next screen */
-                    MDObj.fFocused = FALSE;                              /* clear our focus */
+                    MDObj.fFocused = FALSE;                                 /* clear our focus */
                     MainDev_Show(FALSE);                                    /* clear our screen */
-                    MSG_BUILD_SETFOCUS(NewMsg, DEVID_MAIN, DEVID_TRIPCOUNT);  /* next: TripCounter */
+                    MSG_BUILD_SETFOCUS(NewMsg, DEVID_MAIN, DEVID_TRIPCOUNT);/* next: TripCounter */
                     MsgQPostMsg(NewMsg, MSGQ_PRIO_LOW);
                     RValue = ERR_MSG_PROCESSED;
                 }
@@ -1604,7 +1607,7 @@ ERRCODE MainDev_MsgEntry_VehDistRst(MESSAGE Msg)
                 release the key which would repeat the distance reset */
         if (  ( MsgId == MSG_KEY_OK                          )      /* OK key?  */
             &&( MSG_KEY_TRANSITION(Msg) == KEYTRANS_RELEASED )      /* right now released* */
-            &&( MSG_KEY_DURATION(Msg) > KEYTM_PRESSED_VLONG              )      /* has just shortly been pressed? */
+            &&( MSG_KEY_DURATION(Msg) > KEYTM_PRESSED_VLONG  )      /* has just shortly been pressed? */
             &&( fLocked == TRUE                              ) )    /* is not already active? */
         {
             fLocked = FALSE;                // Re-enable another Reset of distances
@@ -1612,10 +1615,10 @@ ERRCODE MainDev_MsgEntry_VehDistRst(MESSAGE Msg)
         }
 
         /* user presses OK Button > 2 sec: focus & start edit */
-        else if (  ( MsgId == MSG_KEY_OK                    )    /* [OK] pressed? */
-                 &&( MSG_KEY_TRANSITION(Msg) == KEYTRANS_ON )    /* still pressed? */
-                 &&( MSG_KEY_DURATION(Msg) > KEYTM_PRESSED_VLONG        )    /* longer than 2 sec.? */
-                 &&( fLocked == FALSE                       ) )  /* key released since last reset? */
+        else if (  ( MsgId == MSG_KEY_OK                        )    /* [OK] pressed? */
+                 &&( MSG_KEY_TRANSITION(Msg) == KEYTRANS_ON     )    /* still pressed? */
+                 &&( MSG_KEY_DURATION(Msg) > KEYTM_PRESSED_VLONG)    /* longer than 2 sec.? */
+                 &&( fLocked == FALSE                           ) )  /* key released since last reset? */
         {
             DIST_TYPE Dist;
             Dist.dkm = 0;               /* reset distance value */
@@ -1664,9 +1667,9 @@ ERRCODE MainDev_MsgEntry_VehDistRst(MESSAGE Msg)
  *********************************************************************** */
 ERRCODE MainDev_MsgEntry_VehState(MESSAGE Msg)
 {
-    MESSAGE_ID  MsgId   = MSG_ID(Msg);              /* get message id */
-    ERRCODE     RValue  = ERR_MSG_NOT_PROCESSED;    /* return value */
-    MESSAGE     NewMsg;                             /* to generate show/hide messages */
+    MESSAGE_ID  MsgId   = MSG_ID(Msg);                          /* get message id */
+    ERRCODE     RValue  = ERR_MSG_NOT_PROCESSED;                /* return value */
+    MESSAGE     NewMsg;                                         /* to generate show/hide messages */
 
     /* [OK] pressed+released shortly'? -> ITS FOR US! -> show 'Vehicle State' instead of TimeDate! */
     if (  ( MsgId == MSG_KEY_OK                          )      /* OK key?  */
@@ -1677,9 +1680,9 @@ ERRCODE MainDev_MsgEntry_VehState(MESSAGE Msg)
         /* Coolride-Extension: If available & in MD_HEATGRIP state: stimulate Coolride Input! */
         if ( MDObj.wDevState == MD_HEATGRIP )
         {
-            GPO_SignalCoolRide();       // generate Coolride key input
-            LED_SignalAck();             // LED acknowledge for user
-            Beep_SignalAck();            // Beeper acknowledge for user (if not disabled by user)
+            GPO_SignalCoolRide();           // generate Coolride key input
+            LED_SignalAck();                // LED acknowledge for user
+            Beep_SignalAck();               // Beeper acknowledge for user (if not disabled by user)
             //GPO_SetNewState( eGPO_1,  COOLR_KEYOUT_SIGNAL );  // JUST FOR TESTs: additionally activate other GPO
         }
         else
@@ -1699,18 +1702,18 @@ ERRCODE MainDev_MsgEntry_VehState(MESSAGE Msg)
     /* Received special Message to SHOW Vehicle state? */
     else if ( MsgId == MSG_VEHSTATE_SHOW )
     {
-        SurvShowVehState = 1;                       /* change view right now! */
-        MainDev_Show(TRUE);                       /* don't wait until REFRESH, show right now! */
+        SurvShowVehState = 1;                           /* change view right now! */
+        MainDev_Show(TRUE);                             /* don't wait until REFRESH, show right now! */
         ODS( DBG_SYS, DBG_INFO, "MainDev: SHOW VehicleState!");
-        RValue = ERR_MSG_PROCESSED;                 /* processed! */
+        RValue = ERR_MSG_PROCESSED;                     /* processed! */
     }
 
     /* Received special Message to HIDE Vehicle state? */
     else if ( MsgId == MSG_VEHSTATE_HIDE )
     {
-        SurvShowVehState = 0;                       /* change view right now! */
+        SurvShowVehState = 0;                           /* change view right now! */
         ODS( DBG_SYS, DBG_INFO, "MainDev: HIDE VehicleState!");
-        RValue = ERR_MSG_PROCESSED;                 /* processed! */
+        RValue = ERR_MSG_PROCESSED;                     /* processed! */
     }
     else RValue = ERR_MSG_NOT_PROCESSED;
 
@@ -1762,11 +1765,11 @@ void MainDev_UpdMeasVal(void)
  *********************************************************************** */
 void MainDev_UpdTimeDate(void)
 {
-    CHAR    szBuffer[15];                           // text buffer
+    CHAR    szBuffer[15];                               // text buffer
 
     // check conditions to display timedate */
-    if (  ( MDObj.fScreenInit == TRUE  )       // screen is ready?
-        &&( SurvShowVehState       == FALSE ) )     // no vehicle state string active?
+    if (  ( MDObj.fScreenInit == TRUE  )                // screen is ready?
+        &&( SurvShowVehState       == FALSE ) )         // no vehicle state string active?
     {
         /* generate complete date/time string (21 chars!):
             DE: 'Mo 01.01.01  00:00:00'
@@ -1774,7 +1777,7 @@ void MainDev_UpdTimeDate(void)
         TimeDate_GetString( RESENUM_WWDDMMYY,  szBuffer );
         strcpy(szTimeDate, szBuffer);
         strcat(szTimeDate, " ");
-        TimeDate_GetString( RESENUM_HHMMSS,  szBuffer );  // returns 7! chars!!!
+        TimeDate_GetString( RESENUM_HHMMSS,  szBuffer );// returns 7! chars!!!
         strcat(szTimeDate, szBuffer);
         Obj_TextSt_Show( &TimeDateTxtObj );
     }
