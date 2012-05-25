@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.35  2012/05/25 22:29:59  tuberkel
+ * simplified Monitor descriptor usage
+ *
  * Revision 3.34  2012/05/25 20:46:01  tuberkel
  * Intermediate Version:
  * - Fuel-Consumption reviewed
@@ -395,8 +398,7 @@ static CHAR         szFuelLiter[10]=  " 0,0l";  /* buffer to contain fuel,     m
 
 /* ------------------------------------ */
 /* lower area mode 4: Fuel Consumption (only if Fuel Sensor available) */
-static OBJ_BMP      LiterPer100ActBmpObj;       /* bitmap for actuel  'l/100' */
-static OBJ_BMP      LiterPer100AvrBmpObj;       /* bitmap for average 'l/100' */
+static OBJ_BMP      LiterPer100BmpObj;       /* bitmap for actuel  'l/100' */
 static OBJ_BMP      AverageBmpObj;              /* bitmap 'average' */
 static OBJ_STEXT    FuelConsActTxtObj;          /* fuel consumption (actual) text object */
 static OBJ_STEXT    FuelConsAvrTxtObj;          /* fuel consumption (average) text object */
@@ -473,37 +475,32 @@ static OBJ_BMP      MonVertLineBmpObj;
 /* measure data 1: temperature from external air / internal NTC sensor */
 static OBJ_BMP      MonAmbientTempBmpObj;
 static OBJ_STEXT    MonAmbientTempTxtObj;
-static OBJ_STEXT    MonAmbientTempDescTxtObj;
-static CHAR         szTemp[5];
+static CHAR         szMonAmbientTemp[8];
 
 /* measure data 2: battery voltage */
 static OBJ_BMP      MonVoltageBmpObj;
 static OBJ_STEXT    MonVoltageTxtObj;
-static OBJ_STEXT    MonVoltageDescTxtObj;
-static CHAR         szVoltage[5];
+static CHAR         szMonBattVolt[8];
 
 /* measure data 3: motor oil temperature */
-static OBJ_STEXT    MonOilTempTxtObj;
-static OBJ_STEXT    MonOilTempDescTxtObj;
 static OBJ_BMP      MonOilTempBmpObj;
-static CHAR         szOilTemp[5];
+static OBJ_STEXT    MonOilTempTxtObj;
+static CHAR         szMonOilTemp[8];
 
 /* measure data 4: motor RPM (used, if no oil temp sensor connected) */
-static OBJ_STEXT    MonRPMTxtObj;
-static OBJ_STEXT    MonRPMDescTxtObj;
 static OBJ_BMP      MonRPMBmpObj;
+static OBJ_STEXT    MonRPMTxtObj;
+static CHAR         szMonRPM[8];             
 
 /* measure data 5: water temperature */
-static OBJ_STEXT    MonWaterTempTxtObj;
-static OBJ_STEXT    MonWaterTempDescTxtObj;
-static CHAR         szWaterTemp[5];
 static OBJ_BMP      MonWaterTempBmpObj;
+static OBJ_STEXT    MonWaterTempTxtObj;
+static CHAR         szMonWaterTemp[8];
 
 /* measure data 5: fuel distance (used, if water temp sensor not available) */
-static OBJ_STEXT    MonFuelTxtObj;
-static OBJ_STEXT    MonFuelDescTxtObj;
-static OBJ_BMP      MonFuelBmpObj;
-
+static OBJ_BMP      MonFuelDistBmpObj;
+static OBJ_STEXT    MonFuelDistTxtObj;
+static CHAR         szMonFuelDist[8];
 
 
 
@@ -516,7 +513,8 @@ ERRCODE MainDev_MsgEntry_VehDistRst     (MESSAGE Msg);
 ERRCODE MainDev_MsgEntry_VehState       (MESSAGE Msg);
 void    MainDev_UpdTimeDate             (void);
 void    MainDev_UpdMeasVal              (void);
-void    MainDev_UpdFuel           (void);
+void    MainDev_UpdMonitor              (void);
+void    MainDev_UpdFuel                 (void);
 void    MainDev_ObjListInit             (void);
 void    MainDev_ShowHorLine             (void);
 void    MainDev_Show_VehStateIcon               (void);
@@ -554,7 +552,7 @@ static const OBJ_BMP_INIT BmpObjInit[] =
     /* --------------------------- -- --- --- --- --------------------- -------- ----- */
     { &MonAmbientTempBmpObj,        2, 37,  8,  8, bmpTemp_8x8,         DPLNORM, FALSE },
     { &MonWaterTempBmpObj,          2, 46,  8,  8, bmpWater_8x8,        DPLNORM, FALSE },
-    { &MonFuelBmpObj,               2, 46,  8,  8, bmpFuel_8x8,         DPLNORM, FALSE },
+    { &MonFuelDistBmpObj,               2, 46,  8,  8, bmpFuel_8x8,         DPLNORM, FALSE },
     { &MonVoltageBmpObj,           71, 37,  8,  8, bmpBattery_8x8,      DPLNORM, FALSE },
     { &MonOilTempBmpObj,           71, 46,  8,  8, bmpOil_8x8,          DPLNORM, FALSE },
     { &MonRPMBmpObj,               71, 46,  8,  8, bmpRPM_8x8,          DPLNORM, FALSE },
@@ -563,9 +561,8 @@ static const OBJ_BMP_INIT BmpObjInit[] =
     /* fuel consumption symbols  */
     /* --------------------------- -- --- --- --- --------------------- -------- ----- */
     { &FuelBmpObj,                  0, 38, 16, 16, bmpFuel_16x16,       DPLNORM, FALSE },
-    { &LiterPer100ActBmpObj,       16, 38, 16, 16, bmpLiterPer100_16x16,DPLNORM, FALSE },
+    { &LiterPer100BmpObj,       16, 38, 16, 16, bmpLiterPer100_16x16,DPLNORM, FALSE },
     { &AverageBmpObj,             114, 38, 16, 16, bmpAverage_16x16,    DPLNORM, FALSE },
-    { &LiterPer100AvrBmpObj,      214, 38, 16, 16, bmpLiterPer100_16x16,DPLNORM, FALSE }    
 
     /* --------------------------- -- --- --- --- --------------------- -------- ----- */
 };
@@ -607,19 +604,12 @@ static const OBJ_STEXT_INIT TextObjInit[] =
     /* Monitor Device Information */
     /* pObject                  X    Y  Font            H  Width  Align     Format    string ptr            State      */
     /* ----------------------- ---- --- -------------- --- ----- --------- ---------- -----------------     ---------- */
-    { &MonAmbientTempTxtObj,    18, 38, DPLFONT_6X8,    1,  4, TXT_RIGHT,  TXT_NORM, szTemp,                OC_DISPL | OC_DYN   },
-    { &MonAmbientTempDescTxtObj,48, 38, DPLFONT_6X8,    1,  2, TXT_RIGHT,  TXT_NORM, RESTXT_DEGC_DESC,      OC_DISPL            },
-    { &MonWaterTempTxtObj,      18, 47, DPLFONT_6X8,    1,  4, TXT_RIGHT,  TXT_NORM, szWaterTemp,           OC_DISPL | OC_DYN   },
-    { &MonWaterTempDescTxtObj,  48, 47, DPLFONT_6X8,    1,  2, TXT_RIGHT,  TXT_NORM, RESTXT_DEGC_DESC,      OC_DISPL            },
-    { &MonFuelTxtObj,           18, 47, DPLFONT_6X8,    1,  4, TXT_RIGHT,  TXT_NORM, szFuelDist,            OC_DISPL | OC_DYN   },
-    { &MonFuelDescTxtObj,       48, 47, DPLFONT_6X8,    1,  2, TXT_RIGHT,  TXT_NORM, RESTXT_DIST_DESC,      OC_DISPL            },
-
-    { &MonVoltageTxtObj,        90, 38, DPLFONT_6X8,    1,  4, TXT_RIGHT,  TXT_NORM, szVoltage,             OC_DISPL | OC_DYN   },
-    { &MonVoltageDescTxtObj,   114, 38, DPLFONT_6X8,    1,  2, TXT_RIGHT,  TXT_NORM, RESTXT_VOLT_DESC,      OC_DISPL            },
-    { &MonOilTempTxtObj,        90, 47, DPLFONT_6X8,    1,  4, TXT_RIGHT,  TXT_NORM, szOilTemp,             OC_DISPL | OC_DYN   },
-    { &MonOilTempDescTxtObj,   114, 47, DPLFONT_6X8,    1,  2, TXT_RIGHT,  TXT_NORM, RESTXT_DEGC_DESC,      OC_DISPL            },
-    { &MonRPMTxtObj,            96, 47, DPLFONT_6X8,    1,  5, TXT_RIGHT,  TXT_NORM, szRPM,                 OC_DISPL | OC_DYN   },
-    { &MonRPMDescTxtObj,       114, 47, DPLFONT_6X8,    1,  2, TXT_RIGHT,  TXT_NORM, RESTXT_EMPTY_TXT,      OC_DISPL            },
+    { &MonAmbientTempTxtObj,    24, 38, DPLFONT_6X8,    1,  6, TXT_RIGHT,  TXT_NORM, szMonAmbientTemp,      OC_DISPL | OC_DYN   },
+    { &MonWaterTempTxtObj,      24, 47, DPLFONT_6X8,    1,  6, TXT_RIGHT,  TXT_NORM, szMonWaterTemp,        OC_DISPL | OC_DYN   },
+    { &MonFuelDistTxtObj,       24, 47, DPLFONT_6X8,    1,  6, TXT_RIGHT,  TXT_NORM, szMonFuelDist,         OC_DISPL | OC_DYN   },
+    { &MonVoltageTxtObj,        90, 38, DPLFONT_6X8,    1,  6, TXT_RIGHT,  TXT_NORM, szMonBattVolt,         OC_DISPL | OC_DYN   },
+    { &MonOilTempTxtObj,        90, 47, DPLFONT_6X8,    1,  6, TXT_RIGHT,  TXT_NORM, szMonOilTemp,          OC_DISPL | OC_DYN   },
+    { &MonRPMTxtObj,            90, 47, DPLFONT_6X8,    1,  6, TXT_RIGHT,  TXT_NORM, szMonRPM,              OC_DISPL | OC_DYN   },
 
     /* Time and Date OR Vehiclestate text (changed when KEY_OK is pressed) */
     /* pObject                  X    Y  Font            H  Width  Align     Format    string ptr            State      */
@@ -653,22 +643,16 @@ static const void far * ObjectList_Mon[] =
 
     // objects - shown in MD_MONITOR mode only
     (void far *) &MonVoltageTxtObj,
-    (void far *) &MonVoltageDescTxtObj,
     (void far *) &MonVoltageBmpObj,
     (void far *) &MonAmbientTempTxtObj,
-    (void far *) &MonAmbientTempDescTxtObj,
     (void far *) &MonAmbientTempBmpObj,
     (void far *) &MonWaterTempTxtObj,
-    (void far *) &MonWaterTempDescTxtObj,
     (void far *) &MonWaterTempBmpObj,
-    (void far *) &MonFuelTxtObj,
-    (void far *) &MonFuelDescTxtObj,
-    (void far *) &MonFuelBmpObj,
+    (void far *) &MonFuelDistTxtObj,
+    (void far *) &MonFuelDistBmpObj,
     (void far *) &MonOilTempBmpObj,
     (void far *) &MonOilTempTxtObj,
-    (void far *) &MonOilTempDescTxtObj,
     (void far *) &MonRPMTxtObj,
-    (void far *) &MonRPMDescTxtObj,
     (void far *) &MonRPMBmpObj,
     (void far *) &MonVertLineBmpObj
 };
@@ -761,8 +745,7 @@ static const void far * ObjectList_Fuel_Cons[] =
 
     // objects - shown in 'MD_FUEL_CONS' mode only
     (void far *) &FuelBmpObj,           // icon 'fuel'
-    (void far *) &LiterPer100ActBmpObj, // icon 'l/100'
-    (void far *) &LiterPer100AvrBmpObj, // icon 'l/100' (same, but another position)
+    (void far *) &LiterPer100BmpObj, // icon 'l/100'
     (void far *) &AverageBmpObj,        // icon 'average'
     (void far *) &FuelConsActTxtObj,    // actuel  fuel consumption in l/100
     (void far *) &FuelConsAvrTxtObj,    // average fuel consumption in l/100
@@ -906,22 +889,14 @@ static const void far * ObjectList[] =
 
     // objects - shown in MD_MONITOR mode only
     (void far *) &MonVoltageTxtObj,
-    (void far *) &MonVoltageDescTxtObj,
     (void far *) &MonVoltageBmpObj,
-
     (void far *) &MonAmbientTempTxtObj,
-    (void far *) &MonAmbientTempDescTxtObj,
     (void far *) &MonAmbientTempBmpObj,
-
     (void far *) &MonWaterTempTxtObj,
-    (void far *) &MonWaterTempDescTxtObj,
     (void far *) &MonWaterTempBmpObj,
-
     (void far *) &MonOilTempBmpObj,
     (void far *) &MonOilTempTxtObj,
-    (void far *) &MonOilTempDescTxtObj,
     (void far *) &MonRPMTxtObj,
-    (void far *) &MonRPMDescTxtObj,
     (void far *) &MonRPMBmpObj,
     (void far *) &MonVertLineBmpObj,
 
@@ -930,8 +905,7 @@ static const void far * ObjectList[] =
     (void far *) &FuelLiterTxtObj,
     (void far *) &FuelArrowRTxtObj,          
     (void far *) &FuelBmpObj,           
-    (void far *) &LiterPer100ActBmpObj,
-    (void far *) &LiterPer100AvrBmpObj,
+    (void far *) &LiterPer100BmpObj,
     (void far *) &AverageBmpObj,
     (void far *) &FuelConsActTxtObj,
     (void far *) &FuelConsAvrTxtObj,    
@@ -1159,24 +1133,20 @@ void MainDev_Show(BOOL fShow)
                     Obj_Bmp_Show( &RPMBmpObj );
                     break;
                 case MD_FUEL_FROM:
-                    MainDev_UpdFuel();
                     Obj_Bmp_Show(    &FuelBmpObj      );
                     Obj_TextSt_Show( &FuelArrowRTxtObj);                    
                     Obj_TextSt_Show( &FuelDistTxtObj  );
                     Obj_TextSt_Show( &FuelLiterTxtObj );
                     break;
                 case MD_FUEL_TO:
-                    MainDev_UpdFuel();
                     Obj_Bmp_Show(    &FuelBmpObj      );
                     Obj_TextSt_Show( &FuelArrowRTxtObj);                                        
                     Obj_TextSt_Show( &FuelDistTxtObj );
                     Obj_TextSt_Show( &FuelLiterTxtObj);
                     break;                
                 case MD_FUEL_CONS:
-                    MainDev_UpdFuel();                  
                     Obj_Bmp_Show(   &FuelBmpObj          );
-                    Obj_Bmp_Show(   &LiterPer100ActBmpObj);
-                    Obj_Bmp_Show(   &LiterPer100AvrBmpObj);
+                    Obj_Bmp_Show(   &LiterPer100BmpObj);
                     Obj_Bmp_Show(   &AverageBmpObj       );
                     Obj_TextSt_Show(&FuelConsActTxtObj   );
                     Obj_TextSt_Show(&FuelConsAvrTxtObj   );
@@ -1223,7 +1193,7 @@ void MainDev_Show(BOOL fShow)
             /* show lowest display line 'VehicleState' or 'TimeDate' */
             if (SurvShowVehState)
                  Obj_TextSt_Show( &SurvVehStateTxtObj );
-            // else MainDev_UpdTimeDate(); // NO UPDATE HERE, will be done by special update messages only!
+            // else MainDev_UpdTimeDate(); // NO UPDATE HERE, will be done by special update messages MSG_SECOND_GONE only!
 
             /* ---------------------------------------------------- */
             /* Show Info/Warning/Error Icon */
@@ -1252,17 +1222,14 @@ void MainDev_Show(BOOL fShow)
                 // show bigger parts
                 case MD_RPM:        Obj_TextSt_Show( &RPMTxtObj );          break;
                 case MD_FUEL_FROM:
-                    MainDev_UpdFuel();                   
                     Obj_TextSt_Show( &FuelDistTxtObj );
                     Obj_TextSt_Show( &FuelLiterTxtObj);
                     break;
                 case MD_FUEL_TO:
-                    MainDev_UpdFuel();
                     Obj_TextSt_Show( &FuelDistTxtObj );
                     Obj_TextSt_Show( &FuelLiterTxtObj);
                     break;                
                 case MD_FUEL_CONS:
-                    MainDev_UpdFuel();                  
                     Obj_TextSt_Show(&FuelConsActTxtObj   );
                     Obj_TextSt_Show(&FuelConsAvrTxtObj   );
                     break;
@@ -1359,15 +1326,13 @@ void MainDev_Show_Monitor(BOOL fComplete)
 
         /* ---------------------------------------------------- */
         // show internal/external temperature
-        Obj_Bmp_Show ( &MonAmbientTempBmpObj );
+        Obj_Bmp_Show   ( &MonAmbientTempBmpObj );
         Obj_TextSt_Show( &MonAmbientTempTxtObj );
-        Obj_TextSt_Show( &MonAmbientTempDescTxtObj );
 
         /* ---------------------------------------------------- */
         // show supply voltage
-        Obj_Bmp_Show ( &MonVoltageBmpObj );
+        Obj_Bmp_Show   ( &MonVoltageBmpObj );
         Obj_TextSt_Show( &MonVoltageTxtObj );
-        Obj_TextSt_Show( &MonVoltageDescTxtObj );
 
         /* ---------------------------------------------------- */
         // Automatic Display Switch between WaterTemp / FuelDistance
@@ -1375,14 +1340,12 @@ void MainDev_Show_Monitor(BOOL fComplete)
         //      use this so called 'Arnoldschen Elfenbeinturm' here! ;-)
         // Water temp available?
         if ( AnaInGetWatTemperature() > ANAIN_TEMP_SENSORDETECT )
-        {   Obj_Bmp_Show ( &MonWaterTempBmpObj     );
+        {   Obj_Bmp_Show   ( &MonWaterTempBmpObj     );
             Obj_TextSt_Show( &MonWaterTempTxtObj     );
-            Obj_TextSt_Show( &MonWaterTempDescTxtObj );
         }
         else /* display fuel distance if no water temp sensor connected */
-        {   Obj_TextSt_Show( &MonFuelTxtObj     );
-            Obj_TextSt_Show( &MonFuelDescTxtObj );
-            Obj_Bmp_Show ( &MonFuelBmpObj     );
+        {   Obj_Bmp_Show   ( &MonFuelDistBmpObj     );
+            Obj_TextSt_Show( &MonFuelDistTxtObj     );
         }
 
         /* ---------------------------------------------------- */
@@ -1393,12 +1356,10 @@ void MainDev_Show_Monitor(BOOL fComplete)
         if ( AnaInGetOilTemperature() > ANAIN_TEMP_SENSORDETECT )
         {   Obj_Bmp_Show ( &MonOilTempBmpObj );
             Obj_TextSt_Show( &MonOilTempTxtObj );
-            Obj_TextSt_Show( &MonOilTempDescTxtObj );
         }
         else /* display RPM if no oil temp sensor connected */
         {   Obj_Bmp_Show ( &MonRPMBmpObj );
             Obj_TextSt_Show( &MonRPMTxtObj );
-            Obj_TextSt_Show( &MonRPMDescTxtObj );
         }
     }
     else
@@ -1418,15 +1379,13 @@ void MainDev_Show_Monitor(BOOL fComplete)
         // Water temp available?
         if ( AnaInGetWatTemperature() > ANAIN_TEMP_SENSORDETECT )
         {   /* might have been changed! */
-            Obj_Bmp_Show ( &MonWaterTempBmpObj     );
-            Obj_TextSt_Show( &MonWaterTempTxtObj     );
-            Obj_TextSt_Show( &MonWaterTempDescTxtObj );
+            Obj_Bmp_Show   ( &MonWaterTempBmpObj );
+            Obj_TextSt_Show( &MonWaterTempTxtObj );
         }
         else
         {   /* might have been changed! */
-            Obj_TextSt_Show( &MonFuelTxtObj     );
-            Obj_TextSt_Show( &MonFuelDescTxtObj );
-            Obj_Bmp_Show ( &MonFuelBmpObj     );
+            Obj_Bmp_Show   ( &MonFuelDistBmpObj  );
+            Obj_TextSt_Show( &MonFuelDistTxtObj  );
         }
 
         // Automatic Display Switch between OilTemp / RPM
@@ -1435,15 +1394,13 @@ void MainDev_Show_Monitor(BOOL fComplete)
         // Oil temp available?
         if ( AnaInGetOilTemperature() > ANAIN_TEMP_SENSORDETECT )
         {   /* might have been changed! */
-            Obj_Bmp_Show ( &MonOilTempBmpObj     );
+            Obj_Bmp_Show   ( &MonOilTempBmpObj     );
             Obj_TextSt_Show( &MonOilTempTxtObj     );
-            Obj_TextSt_Show( &MonOilTempDescTxtObj );
         }
         else
         {   /* might have been changed! */
-            Obj_Bmp_Show ( &MonRPMBmpObj );
+            Obj_Bmp_Show   ( &MonRPMBmpObj );
             Obj_TextSt_Show( &MonRPMTxtObj );
-            Obj_TextSt_Show( &MonRPMDescTxtObj );
         }
     }
 }
@@ -1684,16 +1641,26 @@ ERRCODE MainDev_MsgEntry_StateMachine(MESSAGE Msg)
                             MDObj.Objects.ObjCount,
                             OS_DISPL | OS_SELECT | OS_EDIT );
 
-        MDObj.wDevState--;                                  /* previous state */
-        if (MDObj.wDevState == MD_FIRST)                    /* wrap around? */
-            MDObj.wDevState = (MD_LAST-1);
+        /* previous state */
+        MDObj.wDevState--;                                  
 
-        if (  ( MDObj.wDevState == MD_HEATGRIP )            /* jump over Coolride, if n.a.! */
+        /* wrap around? */
+        if (MDObj.wDevState == MD_FIRST)                    
+            MDObj.wDevState = (MD_LAST-1);
+        
+        /* jump over Coolride, if n.a.! */
+        if (  ( MDObj.wDevState == MD_HEATGRIP )            
             &&( gCoolrideCntrl.flags.CoolrAvail == FALSE ) )
             MDObj.wDevState--;
 
-        MDObj.fScreenInit   = FALSE;                        /* next time rebuild complete screen */
-        MainDev_Show(TRUE);                                 /* rebuild screen right now */
+        /* jump over Fuel Consumption, if n.a.! */
+        if (  ( MDObj.wDevState == MD_FUEL_CONS )            
+            &&( gFuelSensCntrl.flags.FuelSAvail == FALSE ) )
+            MDObj.wDevState--;
+
+        /* rebuild complete screen right now */
+        MDObj.fScreenInit   = FALSE;                        
+        MainDev_Show(TRUE);                                 
         RValue = ERR_MSG_PROCESSED;
         ODS1( DBG_SYS, DBG_INFO, "MainDevState: %u", MDObj.wDevState);
     }
@@ -1709,16 +1676,26 @@ ERRCODE MainDev_MsgEntry_StateMachine(MESSAGE Msg)
                             MDObj.Objects.ObjCount,
                             OS_DISPL | OS_SELECT | OS_EDIT );
 
-        MDObj.wDevState++;                                  /* next state */
-        if (  ( MDObj.wDevState == MD_HEATGRIP )            /* jump over Coolride, if n.a.! */
+        /* next state */
+        MDObj.wDevState++;                                         
+        
+        /* jump over Coolride, if n.a.! */
+        if (  ( MDObj.wDevState == MD_HEATGRIP )            
             &&( gCoolrideCntrl.flags.CoolrAvail == FALSE ) )
             MDObj.wDevState++;
 
-        if (MDObj.wDevState == MD_LAST)                     /* wrap around? */
+        /* jump over Fuel Consumption, if n.a.! */
+        if (  ( MDObj.wDevState == MD_FUEL_CONS )            
+            &&( gFuelSensCntrl.flags.FuelSAvail == FALSE ) )
+            MDObj.wDevState++;
+
+        /* wrap around? */
+        if (MDObj.wDevState == MD_LAST)                     
             MDObj.wDevState = (MD_FIRST+1);
 
-        MDObj.fScreenInit   = FALSE;                        /* next time rebuild complete screen */
-        MainDev_Show(TRUE);                                 /* rebuild screen right now */
+        /* rebuild complete screen right now */
+        MDObj.fScreenInit   = FALSE;                        
+        MainDev_Show(TRUE);                                 
         RValue = ERR_MSG_PROCESSED;
         ODS1( DBG_SYS, DBG_INFO, "MainDevState: %u", MDObj.wDevState);
     }
@@ -1886,7 +1863,7 @@ void MainDev_UpdMeasVal(void)
 {
     UINT16  wWheelSpeed;
 
-    /* update of all displayable values */
+    /* update speed & distances */
     wWheelSpeed = MeasGetWheelSpeed(MR_KM_PER_H);
     sprintf( szSpeed,        "%3u",      wWheelSpeed);
     sprintf( szRPM,          "%5u",      MeasGetEngineSpeed(MR_RPM_R10));
@@ -1895,14 +1872,54 @@ void MainDev_UpdMeasVal(void)
     sprintf( szTrip2Dist,    "%4u%c%1u", MeasGetTripCnt( eTRIPC_D, MR_KM_ONLY), RESTXT_DEC_SEPARATOR, MeasGetTripCnt( eTRIPC_D, MR_HM_ONLY));
     sprintf( szSpeedMax,     "%3u",      Speed_Max);
 
-    /* analog input values are already formated */
-    if ( AnaInGetAirTemperature() > ANAIN_TEMP_SENSORDETECT )
-         AnaInFormatTemperature(AnaInGetAirTemperature(), szTemp, sizeof(szTemp));  // use external air temp if available
-    else AnaInFormatTemperature(AnaInGetTemperature(),    szTemp, sizeof(szTemp));  // use internal device temp else
-    AnaInFormatTemperature(AnaInGetWatTemperature(), szWaterTemp, sizeof(szWaterTemp));
-    AnaInFormatVoltage    (AnaInGetVoltage(),        szVoltage,   sizeof(szVoltage));
-    AnaInFormatTemperature(AnaInGetOilTemperature(), szOilTemp,   sizeof(szOilTemp));
+    /* update complete monitor measurement stuff */
+    MainDev_UpdMonitor();
+    
+    /* update complete fuel measurement stuff */
+    MainDev_UpdFuel();    
+    
 }
+
+
+
+/***********************************************************************
+ *  FUNCTION:       MainDev_UpdMonitor
+ *  DESCRIPTION:    Separate handling of Monitor data
+ *  PARAMETER:      -
+ *  RETURN:         -
+ *  COMMENT:        -
+ *********************************************************************** */
+void MainDev_UpdMonitor(void)
+{               
+    CHAR    szBuff[10];
+    
+    /* check current display state */
+    if (MDObj.wDevState == MD_MONITOR)
+    {
+        /* update monitor fuel distance anyway */    
+        sprintf( szMonFuelDist,  "%3u %s", MeasGetFuelDist(MR_KM_ONLY), RESTXT_DIST_DESC );            
+        
+        /* update temperatures (use external air temp if available, else internal) */
+        sprintf( szMonRPM,       "%5u",      MeasGetEngineSpeed(MR_RPM_R10));            
+        if ( AnaInGetAirTemperature() > ANAIN_TEMP_SENSORDETECT )
+        {   AnaInFormatTemperature(AnaInGetAirTemperature(), szBuff, sizeof(szBuff));  
+        }
+        else 
+        {   AnaInFormatTemperature(AnaInGetTemperature(),    szBuff, sizeof(szBuff));  
+        }
+        sprintf( (char far *)szMonAmbientTemp, "%s %s", (char far *)szBuff, (char far *)RESTXT_DEGC_DESC );    
+        AnaInFormatTemperature(AnaInGetWatTemperature(),szBuff, sizeof(szBuff));
+        sprintf( (char far *)szMonWaterTemp, "%s %s", (char far *)szBuff, (char far *)RESTXT_DEGC_DESC );        
+        AnaInFormatTemperature(AnaInGetOilTemperature(), szBuff,   sizeof(szBuff));
+        sprintf( (char far *)szMonOilTemp, "%s %s", (char far *)szBuff, (char far *)RESTXT_DEGC_DESC );            
+        
+        /* update voltage  */
+        AnaInFormatVoltage(AnaInGetVoltage(), szBuff, sizeof(szBuff));    
+        sprintf( (char far *)szMonBattVolt, "%s  %s", (char far *)szBuff, (char far *)RESTXT_VOLT_DESC );                    
+    }
+}
+
+
 
 
 
@@ -1946,7 +1963,7 @@ void MainDev_UpdTimeDate(void)
  *                  position.
  *********************************************************************** */
 void MainDev_UpdFuel(void)
-{
+{               
     /* check current display state */
     switch (MDObj.wDevState)
     {
@@ -2024,9 +2041,6 @@ void MainDev_UpdFuel(void)
         default: 
             break;    
     }
-    
-   
-    
 }
 
 
