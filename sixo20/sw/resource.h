@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.9  2012/05/25 20:28:51  tuberkel
+ * new RESTXT_MAIN_ARROW_R
+ *
  * Revision 3.8  2012/02/26 10:11:52  tuberkel
  * - All GearInfo Settings available
  *
@@ -246,10 +249,13 @@
 
 /* language settings */
 #define RESTXT_SET_LANG_WIDTH       2       // use 2 chars for language selection
-#define RESTXT_SET_LANG_CNT         3       // currentyl 3 langauages selectable
+#define RESTXT_SET_LANG_CNT         3       // currently 3 languages selectable
 #define RESTXT_SET_LANG_DE          "DE"
 #define RESTXT_SET_LANG_EN          "EN"
 #define RESTXT_SET_LANG_NL          "NL"
+
+/* main device strings */
+#define RESTXT_MAIN_ARROW_R         "\x8e"  // big right arrow to indicate to/from refuel
 
 
 /* --------------------------------------------------------- */
