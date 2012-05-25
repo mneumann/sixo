@@ -68,6 +68,11 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.33  2012/05/25 20:29:22  tuberkel
+ * Intermediate Version:
+ * - 3 new Fuel-Display-mode
+ * - Dummy Only
+ *
  * Revision 3.32  2012/05/25 11:06:23  tuberkel
  * Intermediate Version:
  * - supporting 3 new Fuel-Display-mode
@@ -334,10 +339,6 @@ extern unsigned char far bmpHeatBarFull_19x8[];     /* heat bargraph - on */
 
 /* bitmaps for Fuel & Consumption */
 extern unsigned char far bmpFuel_16x16[];           /* icon 'fuel' */
-extern unsigned char far bmpToFuel_16x16[];         /* icon 'going to fuel station' */
-extern unsigned char far bmpFromFuel_16x16[];       /* icon 'coming from fuel station' */
-extern unsigned char far bmpToNeedle_16x16[];       /* icon 'going to act pos' */
-extern unsigned char far bmpFromNeedle_16x16[];     /* icon 'coming from act pos' */
 extern unsigned char far bmpLiterPer100_16x16[];    /* icon 'l/100' */
 extern unsigned char far bmpAverage_16x16[];        /* icon 'ø' */
 
@@ -379,25 +380,16 @@ static CHAR         szRPM[6] = "0";             /* buffer current eng speed, max
 static OBJ_BMP      RPMBmpObj;                  /* symbol to indicate RPM */
 
 /* ------------------------------------ */
-/* lower area mode 2+3 common: 'Distance & Liters from/to last/next refueling' */
+/* lower area mode 2+3+4 common: 'Distance & Liters from/to last/next refueling' */
+static OBJ_BMP      FuelBmpObj;                 /* bitmap 'fuel station'  */
+static OBJ_STEXT    FuelArrowRTxtObj;           /* Arror-Right to indicate 'to'/'from' refueling  */
 static OBJ_STEXT    FuelDistTxtObj;             /* fuel distance text object, e.g. '849km' */
 static OBJ_STEXT    FuelLiterTxtObj;            /* fuel liter text object, e.g. '19,2L' */
 static CHAR         szFuelDist[10] = "   0km";  /* buffer to contain distance, max. '9999km' */
 static CHAR         szFuelLiter[10]=  " 0,0l";  /* buffer to contain fuel,     max. '99,9l' l */
 
 /* ------------------------------------ */
-/* lower area mode 2: 'Distance & Liters from last refueling' */
-static OBJ_BMP      FromNeedleBmpObj;           /* bitmap 'From act. position to..' */
-static OBJ_BMP      ToFuelBmpObj;               /* bitmap '..to fuel station' */
-
-/* ------------------------------------ */
-/* lower area mode 3: 'Distance & Liters to next refueling' */
-static OBJ_BMP      FromFuelBmpObj;             /* bitmap 'From fuel station to..' */
-static OBJ_BMP      ToNeedleBmpObj;             /* bitmap '..to act position' */
-
-/* ------------------------------------ */
 /* lower area mode 4: Fuel Consumption (only if Fuel Sensor available) */
-static OBJ_BMP      FuelBmpObj;                 /* bitmap 'fuel station'  */
 static OBJ_BMP      LiterPer100ActBmpObj;       /* bitmap for actuel  'l/100' */
 static OBJ_BMP      LiterPer100AvrBmpObj;       /* bitmap for average 'l/100' */
 static OBJ_BMP      AverageBmpObj;              /* bitmap 'average' */
@@ -437,7 +429,7 @@ extern SPEED_TYPE   Speed_Max;                  /* prepared value */
 /* lower area mode 7: Coolride Heat Control */
 static OBJ_BMP      HeatGripIconBmpObj;         /* symbol to indicate heat at handgrip */
 static OBJ_BMP      HeatBarBmpObj;              /* empty/full bar icon - for multiple use */
-#define MD_HEATBARPARTS 5                       /* number of bargrapgh parts */
+#define MD_HEATBARPARTS 5                       /* number of bargraph parts */
 
 /* ------------------------------------ */
 /* lower area: Date & Time Display */
@@ -519,10 +511,10 @@ ERRCODE MainDev_MsgEntry_VehDistRst     (MESSAGE Msg);
 ERRCODE MainDev_MsgEntry_VehState       (MESSAGE Msg);
 void    MainDev_UpdTimeDate             (void);
 void    MainDev_UpdMeasVal              (void);
-void    MainDev_UpdFuelSensor           (void);
+void    MainDev_UpdFuel           (void);
 void    MainDev_ObjListInit             (void);
 void    MainDev_ShowHorLine             (void);
-void    MainDev_Show_Icon               (void);
+void    MainDev_Show_VehStateIcon               (void);
 
 
 
@@ -566,13 +558,9 @@ static const OBJ_BMP_INIT BmpObjInit[] =
     /* fuel consumption symbols  */
     /* --------------------------- -- --- --- --- --------------------- -------- ----- */
     { &FuelBmpObj,                  0, 38, 16, 16, bmpFuel_16x16,       DPLNORM, FALSE },
-    { &FromNeedleBmpObj,            0, 38, 16, 16, bmpFromNeedle_16x16, DPLNORM, FALSE },
-    { &FromFuelBmpObj,              0, 38, 16, 16, bmpFromFuel_16x16,   DPLNORM, FALSE },    
-    { &ToFuelBmpObj,              112, 38, 16, 16, bmpToFuel_16x16,     DPLNORM, FALSE },
-    { &ToNeedleBmpObj,            112, 38, 16, 16, bmpToNeedle_16x16,   DPLNORM, FALSE },
     { &LiterPer100ActBmpObj,       52, 38, 16, 16, bmpLiterPer100_16x16,DPLNORM, FALSE },
-    { &AverageBmpObj,              71, 38, 16, 16, bmpAverage_16x16,    DPLNORM, FALSE },
-    { &LiterPer100AvrBmpObj,      112, 38, 16, 16, bmpLiterPer100_16x16,DPLNORM, FALSE }    
+    { &AverageBmpObj,              68, 38, 16, 16, bmpAverage_16x16,    DPLNORM, FALSE },
+    { &LiterPer100AvrBmpObj,      114, 38, 16, 16, bmpLiterPer100_16x16,DPLNORM, FALSE }    
 
     /* --------------------------- -- --- --- --- --------------------- -------- ----- */
 };
@@ -605,10 +593,11 @@ static const OBJ_STEXT_INIT TextObjInit[] =
     { &SpeedMaxUnitTxtObj,      94, 38, DPLFONT_8X16,   1,  4, TXT_LEFT,   TXT_NORM, RESTXT_SPEEDMAX_UNIT,  OC_DISPL            },
     { &SpeedMaxTxtObj,          44, 38, DPLFONT_14X16,  1,  3, TXT_RIGHT,  TXT_NORM, szSpeedMax,            OC_DISPL | OC_DYN   },
     
-    { &FuelDistTxtObj,          24, 38, DPLFONT_8X16,   1,  5, TXT_RIGHT,  TXT_NORM, szFuelDist,            OC_DISPL | OC_DYN   },
-    { &FuelLiterTxtObj,         70, 38, DPLFONT_8X16,   1,  5, TXT_RIGHT,  TXT_NORM, szFuelLiter,           OC_DISPL | OC_DYN   },
+    { &FuelArrowRTxtObj,         0, 38, DPLFONT_8X16,   1,  1, TXT_RIGHT,  TXT_NORM, RESTXT_MAIN_ARROW_R,   OC_DISPL            },   
+    { &FuelDistTxtObj,          28, 38, DPLFONT_8X16,   1,  6, TXT_RIGHT,  TXT_NORM, szFuelDist,            OC_DISPL | OC_DYN   },
+    { &FuelLiterTxtObj,         88, 38, DPLFONT_8X16,   1,  5, TXT_RIGHT,  TXT_NORM, szFuelLiter,           OC_DISPL | OC_DYN   },
     { &FuelConsActTxtObj,       20, 38, DPLFONT_8X16,   1,  4, TXT_RIGHT,  TXT_NORM, szFuelConsAct,         OC_DISPL | OC_DYN   },
-    { &FuelConsAvrTxtObj,       85, 38, DPLFONT_8X16,   1,  4, TXT_RIGHT,  TXT_NORM, szFuelConsAvr,         OC_DISPL | OC_DYN   },
+    { &FuelConsAvrTxtObj,       82, 38, DPLFONT_8X16,   1,  4, TXT_RIGHT,  TXT_NORM, szFuelConsAvr,         OC_DISPL | OC_DYN   },
         
     /* Monitor Device Information */
     /* pObject                  X    Y  Font            H  Width  Align     Format    string ptr            State      */
@@ -720,10 +709,10 @@ static const void far * ObjectList_Fuel_From[] =
     (void far *) &SurvVehStateTxtObj,   // Vehicle State
 
     // objects - shown in 'MD_FUEL_FROM' mode only
+    (void far *) &FuelBmpObj,           // icon 'fuel'
+    (void far *) &FuelArrowRTxtObj,     // arrow left/right of fuel icon
     (void far *) &FuelDistTxtObj,       // fuel km
     (void far *) &FuelLiterTxtObj,      // fuel liters
-    (void far *) &FromFuelBmpObj,       // icon 'from refuel'
-    (void far *) &ToNeedleBmpObj        // icon 'to act pos'
 };
 #define OBJLIST_FUEL_FROM_CNT (sizeof(ObjectList_Fuel_From)/sizeof(OBJ_STATE)/sizeof(void far *))
 
@@ -743,10 +732,10 @@ static const void far * ObjectList_Fuel_To[] =
     (void far *) &SurvVehStateTxtObj,   // Vehicle State
 
     // objects - shown in 'MD_FUEL_TO' mode only
+    (void far *) &FuelBmpObj,           // icon 'fuel'
+    (void far *) &FuelArrowRTxtObj,     // arrow left/right of fuel icon   
     (void far *) &FuelDistTxtObj,       // fuel km
-    (void far *) &FuelLiterTxtObj,      // fuel liters
-    (void far *) &FromNeedleBmpObj,     // icon 'from act pos'
-    (void far *) &ToFuelBmpObj          // icon 'to refuel'         
+    (void far *) &FuelLiterTxtObj       // fuel liters
 };
 #define OBJLIST_FUEL_TO_CNT (sizeof(ObjectList_Fuel_To)/sizeof(OBJ_STATE)/sizeof(void far *))
 
@@ -933,11 +922,8 @@ static const void far * ObjectList[] =
 
     // objects for our three Fuel Modes MD_FUEL_FROM / MD_FUEL_TO / MD_FUEL_CONS 
     (void far *) &FuelDistTxtObj,       
-    (void far *) &FuelLiterTxtObj,      
-    (void far *) &FromNeedleBmpObj,
-    (void far *) &ToFuelBmpObj,
-    (void far *) &FromFuelBmpObj,
-    (void far *) &ToNeedleBmpObj,
+    (void far *) &FuelLiterTxtObj,
+    (void far *) &FuelArrowRTxtObj,          
     (void far *) &FuelBmpObj,           
     (void far *) &LiterPer100ActBmpObj,
     (void far *) &LiterPer100AvrBmpObj,
@@ -952,10 +938,6 @@ static const void far * ObjectList[] =
     (void far *) &RPMTxtObj,
     (void far *) &RPMDescTxtObj,
     (void far *) &RPMBmpObj,
-
-    // objects - shown in 'MD_FUEL' mode only
-    (void far *) &FuelDistTxtObj,
-    (void far *) &FuelBmpObj,
 
     // objects - shown in 'MD_VEHDIST' mode only
     (void far *) &VehDistTxtObj,
@@ -1154,7 +1136,7 @@ void MainDev_Show(BOOL fShow)
 
             /* ---------------------------------------------------- */
             /* Show Info/Warning/Error Icon */
-            MainDev_Show_Icon();
+            MainDev_Show_VehStateIcon();
 
             /* ---------------------------------------------------- */
             // selected gear */
@@ -1172,21 +1154,21 @@ void MainDev_Show(BOOL fShow)
                     Obj_Bmp_Show( &RPMBmpObj );
                     break;
                 case MD_FUEL_FROM:
-                    MainDev_UpdFuelSensor();
-                    Obj_TextSt_Show( &FuelDistTxtObj );
-                    Obj_TextSt_Show( &FuelLiterTxtObj);
-                    Obj_Bmp_Show( &FromFuelBmpObj    );
-                    Obj_Bmp_Show( &ToNeedleBmpObj    );
+                    MainDev_UpdFuel();
+                    Obj_Bmp_Show(    &FuelBmpObj      );
+                    Obj_TextSt_Show( &FuelArrowRTxtObj);                    
+                    Obj_TextSt_Show( &FuelDistTxtObj  );
+                    Obj_TextSt_Show( &FuelLiterTxtObj );
                     break;
                 case MD_FUEL_TO:
-                    MainDev_UpdFuelSensor();
+                    MainDev_UpdFuel();
+                    Obj_Bmp_Show(    &FuelBmpObj      );
+                    Obj_TextSt_Show( &FuelArrowRTxtObj);                                        
                     Obj_TextSt_Show( &FuelDistTxtObj );
                     Obj_TextSt_Show( &FuelLiterTxtObj);
-                    Obj_Bmp_Show( &FromNeedleBmpObj  );
-                    Obj_Bmp_Show( &ToFuelBmpObj      );
                     break;                
                 case MD_FUEL_CONS:
-                    MainDev_UpdFuelSensor();                  
+                    MainDev_UpdFuel();                  
                     Obj_Bmp_Show(   &FuelBmpObj          );
                     Obj_Bmp_Show(   &LiterPer100ActBmpObj);
                     Obj_Bmp_Show(   &LiterPer100AvrBmpObj);
@@ -1240,7 +1222,7 @@ void MainDev_Show(BOOL fShow)
 
             /* ---------------------------------------------------- */
             /* Show Info/Warning/Error Icon */
-            MainDev_Show_Icon();
+            MainDev_Show_VehStateIcon();
 
             // SIMULATION ONLY: selected gear - show all gears every second */
             #if(GEARBOX==1)
@@ -1265,17 +1247,17 @@ void MainDev_Show(BOOL fShow)
                 // show bigger parts
                 case MD_RPM:        Obj_TextSt_Show( &RPMTxtObj );          break;
                 case MD_FUEL_FROM:
-                    MainDev_UpdFuelSensor();
+                    MainDev_UpdFuel();                   
                     Obj_TextSt_Show( &FuelDistTxtObj );
                     Obj_TextSt_Show( &FuelLiterTxtObj);
                     break;
                 case MD_FUEL_TO:
-                    MainDev_UpdFuelSensor();
+                    MainDev_UpdFuel();
                     Obj_TextSt_Show( &FuelDistTxtObj );
                     Obj_TextSt_Show( &FuelLiterTxtObj);
                     break;                
                 case MD_FUEL_CONS:
-                    MainDev_UpdFuelSensor();                  
+                    MainDev_UpdFuel();                  
                     Obj_TextSt_Show(&FuelConsActTxtObj   );
                     Obj_TextSt_Show(&FuelConsAvrTxtObj   );
                     break;
@@ -1317,13 +1299,13 @@ void MainDev_Show(BOOL fShow)
 
 
 /***********************************************************************
- *  FUNCTION:       MainDev_Show_Icon
+ *  FUNCTION:       MainDev_Show_VehStateIcon
  *  DESCRIPTION:    Shows the most relevant icon (if any)
  *  PARAMETER:      -
  *  RETURN:         -
  *  COMMENT:        Just switches the Bitmap raw data to the adequate ressource
  *********************************************************************** */
-void MainDev_Show_Icon(void)
+void MainDev_Show_VehStateIcon(void)
 {
     /* default: no/empty icon */
     VehStateBmpObj.Data.fpucBitmap = bmpEmpty_16x16;
@@ -1950,13 +1932,15 @@ void MainDev_UpdTimeDate(void)
 
 
 /***********************************************************************
- *  FUNCTION:       MainDev_UpdFuelSensor
+ *  FUNCTION:       MainDev_UpdFuel
  *  DESCRIPTION:    Separate handling of FuelSensor data
  *  PARAMETER:      -
  *  RETURN:         -
- *  COMMENT:        Just a hack right now.
+ *  COMMENT:        We use the 'Fuel' & 'Arrow' icon for multiple
+ *                  view mode, so we move them a little bit to correct
+ *                  position.
  *********************************************************************** */
-void MainDev_UpdFuelSensor(void)
+void MainDev_UpdFuel(void)
 {
     /* check current display state */
     switch (MDObj.wDevState)
@@ -1971,6 +1955,10 @@ void MainDev_UpdFuelSensor(void)
             //sprintf( szFuelDist,  "%3ukm",     MeasGetFuelDist(MR_KM_ONLY));            
             sprintf( szFuelDist,  "%3ukm", 411 );            
             sprintf( szFuelLiter, "%2u%c%1ul", wFuel_l, RESTXT_DEC_SEPARATOR, wFuel_dl );            
+            
+            /* update position of fuel icon & arrow */
+            FuelBmpObj.Org.wXPos        = 0;            
+            FuelArrowRTxtObj.Org.wXPos  = 18;
         } break;                
 
         /*------------------------------------------- */
@@ -1983,19 +1971,23 @@ void MainDev_UpdFuelSensor(void)
             //sprintf( szFuelDist,  "%3ukm",     MeasGetFuelDist(MR_KM_ONLY));            
             sprintf( szFuelDist,  "%3ukm", 8 );            
             sprintf( szFuelLiter, "%2u%c%1ul", wFuel_l, RESTXT_DEC_SEPARATOR, wFuel_dl );                        
+            
+            /* update position of fuel icon & arrow */
+            FuelArrowRTxtObj.Org.wXPos  = 0;            
+            FuelBmpObj.Org.wXPos        = 8;                       
         } break;                
     
         /*------------------------------------------- */
         /* update fuel consumption (only if fuel sensor available) */            
         case MD_FUEL_CONS:
-        {   
-            UINT32 dwFuelCons = 0;      // Fuel Consumption in Milli-Liters
-            UINT8  bFuelCons_Liter;     // Fuel Consumption - left comma part (liters only)
-            UINT16 wFuelCons_ml;        // Fuel Consumption - right comma part (ml only)            
-            
+        {              
             /* check: FuelSensor available? */
             if ( gFuelSensCntrl.flags.FuelSAvail == TRUE ) 
             {                          
+                UINT32 dwFuelCons = 0;      // Fuel Consumption in Milli-Liters
+                UINT8  bFuelCons_Liter;     // Fuel Consumption - left comma part (liters only)
+                UINT16 wFuelCons_ml;        // Fuel Consumption - right comma part (ml only)            
+                
                 /* get a fresh fuel consumption value 
                    NOTE: a) 'GPIx.dwLHCounter' has been initilized by NVRAM value at init time
                          b) 'FuelSensImp' is implicitely saved back into NVRAM (for next init time) */
@@ -2015,7 +2007,10 @@ void MainDev_UpdFuelSensor(void)
                 else        
                 {   /* Missing FuelSensor parameter! -> prevent division by Zero! */
                     sprintf( szFuelDist, " --.---" );
-                }        
+                }       
+                
+                /* update position of fuel icon & arrow */
+                FuelBmpObj.Org.wXPos = 0;                             
             }            
         } break;
         

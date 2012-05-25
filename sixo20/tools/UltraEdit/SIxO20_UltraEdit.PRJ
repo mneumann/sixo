@@ -12,14 +12,14 @@ Filter=
 Create Tagfile=0
 [Open Files]
 Open File0=s:\CVS\sixo\sixo20\sw\maindev.c
-Open File Pos0=12400
-Open File Line0=10339
+Open File Pos0=89790
+Open File Line0=89162
 Active File Index=0
 Open File Window Pos0=2,3,-1,-1,-4,-30,176,232,735,956
 Open File1=s:\CVS\sixo\sixo20\sw\bitmaps.c
 Active File Display Mode=3
 Open File Pos1=9253
-Open File Line1=8451
+Open File Line1=8424
 Open File Window Pos1=0,1,-1,-1,-4,-30,198,261,761,989
 Open File2=s:\CVS\sixo\sixo20\sw\bitmaps.h
 Open File Pos2=0
@@ -116,7 +116,7 @@ Open File Window Pos24=2,3,-1,-1,-4,-30,66,87,755,443
 Open File25=
 
 [File View]
-Current Select=Projektdateien\Resources\bitmaps.c
+Current Select=Offene Dateien\
 
 [Files - Test]
 
