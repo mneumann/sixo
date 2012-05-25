@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.36  2012/05/25 22:38:30  tuberkel
+ * small fixes
+ *
  * Revision 3.35  2012/05/25 22:29:59  tuberkel
  * simplified Monitor descriptor usage
  *
@@ -512,9 +515,9 @@ ERRCODE MainDev_MsgEntry_StateMachine   (MESSAGE Msg);
 ERRCODE MainDev_MsgEntry_VehDistRst     (MESSAGE Msg);
 ERRCODE MainDev_MsgEntry_VehState       (MESSAGE Msg);
 void    MainDev_UpdTimeDate             (void);
-void    MainDev_UpdMeasVal              (void);
-void    MainDev_UpdMonitor              (void);
-void    MainDev_UpdFuel                 (void);
+void    MainDev_UpdMeas              (void);
+void    MainDev_UpdMeas_Mon              (void);
+void    MainDev_UpdMeas_Fuel                 (void);
 void    MainDev_ObjListInit             (void);
 void    MainDev_ShowHorLine             (void);
 void    MainDev_Show_VehStateIcon               (void);
@@ -1088,7 +1091,7 @@ void MainDev_Show(BOOL fShow)
     if (fShow == TRUE)
     {
         /* update of all displayable values */
-        MainDev_UpdMeasVal();
+        MainDev_UpdMeas();
 
         /* ------------------------------------------ */
         /* do we have to repaint all? */
@@ -1852,14 +1855,14 @@ ERRCODE MainDev_MsgEntry_VehState(MESSAGE Msg)
 
 
 /***********************************************************************
- *  FUNCTION:       MainDev_UpdMeasVal
+ *  FUNCTION:       MainDev_UpdMeas
  *  DESCRIPTION:    Just Update/Refresh all values that might be
  *                  displayed inside the display
  *  PARAMETER:      -
  *  RETURN:         -
  *  COMMENT:        -
  *********************************************************************** */
-void MainDev_UpdMeasVal(void)
+void MainDev_UpdMeas(void)
 {
     UINT16  wWheelSpeed;
 
@@ -1873,23 +1876,23 @@ void MainDev_UpdMeasVal(void)
     sprintf( szSpeedMax,     "%3u",      Speed_Max);
 
     /* update complete monitor measurement stuff */
-    MainDev_UpdMonitor();
+    MainDev_UpdMeas_Mon();
     
     /* update complete fuel measurement stuff */
-    MainDev_UpdFuel();    
+    MainDev_UpdMeas_Fuel();    
     
 }
 
 
 
 /***********************************************************************
- *  FUNCTION:       MainDev_UpdMonitor
+ *  FUNCTION:       MainDev_UpdMeas_Mon
  *  DESCRIPTION:    Separate handling of Monitor data
  *  PARAMETER:      -
  *  RETURN:         -
  *  COMMENT:        -
  *********************************************************************** */
-void MainDev_UpdMonitor(void)
+void MainDev_UpdMeas_Mon(void)
 {               
     CHAR    szBuff[10];
     
@@ -1915,7 +1918,7 @@ void MainDev_UpdMonitor(void)
         
         /* update voltage  */
         AnaInFormatVoltage(AnaInGetVoltage(), szBuff, sizeof(szBuff));    
-        sprintf( (char far *)szMonBattVolt, "%s  %s", (char far *)szBuff, (char far *)RESTXT_VOLT_DESC );                    
+        sprintf( (char far *)szMonBattVolt, "%s %s", (char far *)szBuff, (char far *)RESTXT_VOLT_DESC );                    
     }
 }
 
@@ -1929,7 +1932,7 @@ void MainDev_UpdMonitor(void)
  *                  to synchronize display to RTC seconds
  *  PARAMETER:      -
  *  RETURN:         -
- *  COMMENT:        -
+ *  COMMENT:        Will be called by special message MSG_SECOND_GONE.
  *********************************************************************** */
 void MainDev_UpdTimeDate(void)
 {
@@ -1954,7 +1957,7 @@ void MainDev_UpdTimeDate(void)
 
 
 /***********************************************************************
- *  FUNCTION:       MainDev_UpdFuel
+ *  FUNCTION:       MainDev_UpdMeas_Fuel
  *  DESCRIPTION:    Separate handling of FuelSensor data
  *  PARAMETER:      -
  *  RETURN:         -
@@ -1962,7 +1965,7 @@ void MainDev_UpdTimeDate(void)
  *                  view mode, so we move them a little bit to correct
  *                  position.
  *********************************************************************** */
-void MainDev_UpdFuel(void)
+void MainDev_UpdMeas_Fuel(void)
 {               
     /* check current display state */
     switch (MDObj.wDevState)
