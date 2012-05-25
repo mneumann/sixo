@@ -68,6 +68,11 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.34  2012/05/25 20:46:01  tuberkel
+ * Intermediate Version:
+ * - Fuel-Consumption reviewed
+ * - still Dummy Only
+ *
  * Revision 3.33  2012/05/25 20:29:22  tuberkel
  * Intermediate Version:
  * - 3 new Fuel-Display-mode
@@ -558,9 +563,9 @@ static const OBJ_BMP_INIT BmpObjInit[] =
     /* fuel consumption symbols  */
     /* --------------------------- -- --- --- --- --------------------- -------- ----- */
     { &FuelBmpObj,                  0, 38, 16, 16, bmpFuel_16x16,       DPLNORM, FALSE },
-    { &LiterPer100ActBmpObj,       52, 38, 16, 16, bmpLiterPer100_16x16,DPLNORM, FALSE },
-    { &AverageBmpObj,              68, 38, 16, 16, bmpAverage_16x16,    DPLNORM, FALSE },
-    { &LiterPer100AvrBmpObj,      114, 38, 16, 16, bmpLiterPer100_16x16,DPLNORM, FALSE }    
+    { &LiterPer100ActBmpObj,       16, 38, 16, 16, bmpLiterPer100_16x16,DPLNORM, FALSE },
+    { &AverageBmpObj,             114, 38, 16, 16, bmpAverage_16x16,    DPLNORM, FALSE },
+    { &LiterPer100AvrBmpObj,      214, 38, 16, 16, bmpLiterPer100_16x16,DPLNORM, FALSE }    
 
     /* --------------------------- -- --- --- --- --------------------- -------- ----- */
 };
@@ -596,7 +601,7 @@ static const OBJ_STEXT_INIT TextObjInit[] =
     { &FuelArrowRTxtObj,         0, 38, DPLFONT_8X16,   1,  1, TXT_RIGHT,  TXT_NORM, RESTXT_MAIN_ARROW_R,   OC_DISPL            },   
     { &FuelDistTxtObj,          28, 38, DPLFONT_8X16,   1,  6, TXT_RIGHT,  TXT_NORM, szFuelDist,            OC_DISPL | OC_DYN   },
     { &FuelLiterTxtObj,         88, 38, DPLFONT_8X16,   1,  5, TXT_RIGHT,  TXT_NORM, szFuelLiter,           OC_DISPL | OC_DYN   },
-    { &FuelConsActTxtObj,       20, 38, DPLFONT_8X16,   1,  4, TXT_RIGHT,  TXT_NORM, szFuelConsAct,         OC_DISPL | OC_DYN   },
+    { &FuelConsActTxtObj,       38, 38, DPLFONT_8X16,   1,  4, TXT_RIGHT,  TXT_NORM, szFuelConsAct,         OC_DISPL | OC_DYN   },
     { &FuelConsAvrTxtObj,       82, 38, DPLFONT_8X16,   1,  4, TXT_RIGHT,  TXT_NORM, szFuelConsAvr,         OC_DISPL | OC_DYN   },
         
     /* Monitor Device Information */
