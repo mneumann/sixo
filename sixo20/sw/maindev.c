@@ -68,6 +68,11 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.32  2012/05/25 11:06:23  tuberkel
+ * Intermediate Version:
+ * - supporting 3 new Fuel-Display-mode
+ * - Dummy Only
+ *
  * Revision 3.31  2012/05/24 21:14:29  tuberkel
  * - Preparations for 3 new Fuel / Distance / Consumption Display-modes
  * - not yet ready
@@ -262,7 +267,9 @@ typedef enum
 
     MD_MONITOR,     /* monitor sub screen (tempereatures, voltage...) */
     MD_RPM,         /* show engine speed RPM */
-    MD_FUEL,        /* show fuel distance */
+    MD_FUEL_FROM,   /* show fuel distance/liter since last refuel */
+    MD_FUEL_TO,     /* show fuel distance/liter until next refuel */
+    MD_FUEL_CONS,   /* show fuel consumption (only if fuel sensor available) */
     MD_TRIP1,       /* show TripCounter1 distance */
     MD_TRIP2,       /* show TripCounter2 distance */
     MD_VEHDIST,     /* show vehicle overall distance */
@@ -367,16 +374,16 @@ static CHAR        szSpeed[4] = "0";           /* buffer for current speed, max.
 /* ------------------------------------ */
 /* lower area mode 1: Rounds Per Minute */
 static OBJ_STEXT    RPMTxtObj;                  /* rpm text '00000' object */
-static OBJ_STEXT    RPMDescTxtObj;              /* rpm descriptor 'U/Min' (or RPM for DE) text object */
+static OBJ_STEXT    RPMDescTxtObj;              /* rpm descriptor 'U/Min' (or RPM for EN) text object */
 static CHAR         szRPM[6] = "0";             /* buffer current eng speed, max. string '13500' */
 static OBJ_BMP      RPMBmpObj;                  /* symbol to indicate RPM */
 
 /* ------------------------------------ */
 /* lower area mode 2+3 common: 'Distance & Liters from/to last/next refueling' */
-static OBJ_STEXT    FuelDistTxtObj;             /* fuel distance text object */
-static OBJ_STEXT    FuelLiterTxtObj;            /* fuel liter text object */
-static CHAR         szFuelDist[10] = "0";       /* buffer to contain distance, max. '9999' km */
-static CHAR         szFuelLiter[10]= "0";       /* buffer to contain fuel,     max. '99,9' l */
+static OBJ_STEXT    FuelDistTxtObj;             /* fuel distance text object, e.g. '849km' */
+static OBJ_STEXT    FuelLiterTxtObj;            /* fuel liter text object, e.g. '19,2L' */
+static CHAR         szFuelDist[10] = "   0km";  /* buffer to contain distance, max. '9999km' */
+static CHAR         szFuelLiter[10]=  " 0,0l";  /* buffer to contain fuel,     max. '99,9l' l */
 
 /* ------------------------------------ */
 /* lower area mode 2: 'Distance & Liters from last refueling' */
@@ -400,29 +407,26 @@ static CHAR         szFuelConsAct[10] = "--,-"; /* buffer to contain fuel consum
 static CHAR         szFuelConsAvr[10] = "--,-"; /* buffer to contain fuel consumption (average) max. '99,9' l/100 */
 
 /* ------------------------------------ */
-/* lower area mode 3: Vehicle Distance */
+/* lower area mode 5: Vehicle Distance */
+static OBJ_STEXT    DistDescTxtObj;             /* COMMON vehicle & fuel distance decriptor for 'km' or 'mi' */
 static OBJ_STEXT    VehDistTxtObj;              /* vehicle distance text object */
 static CHAR         szVehDist[10] = "0,0";      /* buffer to contain fuel distance, max. string '9999999,9' */
 static OBJ_BMP      VehDistBmpObj;              /* symbol to indicate vehicle distance display mode */
 
 /* ------------------------------------ */
-/* lower area mode 4: TripCounter 1 Distance */
+/* lower area mode 6: TripCounter 1 Distance */
 static OBJ_STEXT    Trip1DescTxtObj;            /* tripcounter1 descriptor text object 'T1' */
 static OBJ_STEXT    Trip1DistTxtObj;            /* tripcounter1 distance text object */
 static CHAR         szTrip1Dist[10] = "0,0";    /* buffer to contain tripcounter1 distance, max. string '9999,9' */
 
 /* ------------------------------------ */
-/* lower area mode 5: TripCounter 2 Distance */
+/* lower area mode 7: TripCounter 2 Distance */
 static OBJ_STEXT    Trip2DescTxtObj;            /* tripcounter1 descriptor text object 'T2' */
 static OBJ_STEXT    Trip2DistTxtObj;            /* tripcounter2 distance text object */
 static CHAR         szTrip2Dist[10] = "0,0";    /* buffer to contain tripcounter2 distance, max. string '9999,9' */
 
 /* ------------------------------------ */
-/* lower area mode 2..5: common distance descriptor */
-static OBJ_STEXT    DistDescTxtObj;             /* COMMON vehicle & fuel distance decriptor for 'km' or 'mi' */
-
-/* ------------------------------------ */
-/* lower area mode 6: Max Speed */
+/* lower area mode 8: Max Speed */
 static OBJ_STEXT    SpeedMaxDescTxtObj;         /* SpeedMax descriptor text object for 'v(max)' */
 static OBJ_STEXT    SpeedMaxUnitTxtObj;         /* speed max desciptor text object 'km/h' or 'mi/h' */
 static OBJ_STEXT    SpeedMaxTxtObj;             /* SpeedMax descriptor text object for '110.0' */
@@ -562,12 +566,12 @@ static const OBJ_BMP_INIT BmpObjInit[] =
     /* fuel consumption symbols  */
     /* --------------------------- -- --- --- --- --------------------- -------- ----- */
     { &FuelBmpObj,                  0, 38, 16, 16, bmpFuel_16x16,       DPLNORM, FALSE },
-    { &ToFuelBmpObj,                0, 38, 16, 16, bmpToFuel_16x16,     DPLNORM, FALSE },
-    { &LiterPer100ActBmpObj,       52, 38, 16, 16, bmpLiterPer100_16x16,DPLNORM, FALSE },
-    { &FromNeedleBmpObj,           71, 38, 16, 16, bmpFromNeedle_16x16, DPLNORM, FALSE },
-    { &AverageBmpObj,              71, 38, 16, 16, bmpAverage_16x16,    DPLNORM, FALSE },
+    { &FromNeedleBmpObj,            0, 38, 16, 16, bmpFromNeedle_16x16, DPLNORM, FALSE },
+    { &FromFuelBmpObj,              0, 38, 16, 16, bmpFromFuel_16x16,   DPLNORM, FALSE },    
+    { &ToFuelBmpObj,              112, 38, 16, 16, bmpToFuel_16x16,     DPLNORM, FALSE },
     { &ToNeedleBmpObj,            112, 38, 16, 16, bmpToNeedle_16x16,   DPLNORM, FALSE },
-    { &FromFuelBmpObj,            112, 38, 16, 16, bmpFromFuel_16x16,   DPLNORM, FALSE },
+    { &LiterPer100ActBmpObj,       52, 38, 16, 16, bmpLiterPer100_16x16,DPLNORM, FALSE },
+    { &AverageBmpObj,              71, 38, 16, 16, bmpAverage_16x16,    DPLNORM, FALSE },
     { &LiterPer100AvrBmpObj,      112, 38, 16, 16, bmpLiterPer100_16x16,DPLNORM, FALSE }    
 
     /* --------------------------- -- --- --- --- --------------------- -------- ----- */
@@ -592,7 +596,6 @@ static const OBJ_STEXT_INIT TextObjInit[] =
     { &RPMTxtObj,               22, 38, DPLFONT_14X16,  1,  5, TXT_RIGHT,  TXT_NORM, szRPM,                 OC_DISPL | OC_DYN   },
     { &RPMDescTxtObj,           96, 38, DPLFONT_8X16,   1,  5, TXT_LEFT,   TXT_NORM, RESTXT_RPM_DESC,       OC_DISPL            },
     { &DistDescTxtObj,         106, 38, DPLFONT_8X16,   1,  2, TXT_LEFT,   TXT_NORM, RESTXT_DIST_DESC,      OC_DISPL            },
-    { &FuelDistTxtObj,          24, 38, DPLFONT_14X16,  1,  6, TXT_RIGHT,  TXT_NORM, szFuelDist,            OC_DISPL | OC_DYN   },
     { &VehDistTxtObj,           46, 38, DPLFONT_8X16,   1,  6, TXT_RIGHT,  TXT_NORM, szVehDist,             OC_DISPL | OC_DYN   },
     { &Trip1DescTxtObj,          4, 38, DPLFONT_8X16,   1,  2, TXT_LEFT,   TXT_NORM, RESTXT_TRIP1DESC,      OC_DISPL            },
     { &Trip1DistTxtObj,         24, 38, DPLFONT_14X16,  1,  6, TXT_RIGHT,  TXT_NORM, szTrip1Dist,           OC_DISPL | OC_DYN   },
@@ -601,7 +604,12 @@ static const OBJ_STEXT_INIT TextObjInit[] =
     { &SpeedMaxDescTxtObj,       4, 38, DPLFONT_8X16,   1,  3, TXT_LEFT,   TXT_NORM, RESTXT_SPEEDMAX_DESC,  OC_DISPL            },
     { &SpeedMaxUnitTxtObj,      94, 38, DPLFONT_8X16,   1,  4, TXT_LEFT,   TXT_NORM, RESTXT_SPEEDMAX_UNIT,  OC_DISPL            },
     { &SpeedMaxTxtObj,          44, 38, DPLFONT_14X16,  1,  3, TXT_RIGHT,  TXT_NORM, szSpeedMax,            OC_DISPL | OC_DYN   },
-
+    
+    { &FuelDistTxtObj,          24, 38, DPLFONT_8X16,   1,  5, TXT_RIGHT,  TXT_NORM, szFuelDist,            OC_DISPL | OC_DYN   },
+    { &FuelLiterTxtObj,         70, 38, DPLFONT_8X16,   1,  5, TXT_RIGHT,  TXT_NORM, szFuelLiter,           OC_DISPL | OC_DYN   },
+    { &FuelConsActTxtObj,       20, 38, DPLFONT_8X16,   1,  4, TXT_RIGHT,  TXT_NORM, szFuelConsAct,         OC_DISPL | OC_DYN   },
+    { &FuelConsAvrTxtObj,       85, 38, DPLFONT_8X16,   1,  4, TXT_RIGHT,  TXT_NORM, szFuelConsAvr,         OC_DISPL | OC_DYN   },
+        
     /* Monitor Device Information */
     /* pObject                  X    Y  Font            H  Width  Align     Format    string ptr            State      */
     /* ----------------------- ---- --- -------------- --- ----- --------- ---------- -----------------     ---------- */
@@ -697,8 +705,8 @@ static const void far * ObjectList_Rpm[] =
 
 
 // ---------------------------------------------------------------------
-// Main device State 'MD_FUEL' Settings - Screen Focus Order
-static const void far * ObjectList_Fuel[] =
+// Main device State 'MD_FUEL_FROM' Settings - Screen Focus Order
+static const void far * ObjectList_Fuel_From[] =
 {
     // objects - shown in every mode
     (void far *) &SpeedTxtObj,          // current speed
@@ -711,12 +719,61 @@ static const void far * ObjectList_Fuel[] =
     (void far *) &TimeDateTxtObj,       // Date & Time
     (void far *) &SurvVehStateTxtObj,   // Vehicle State
 
-    // objects - shown in 'MD_FUEL' mode only
-    (void far *) &FuelDistTxtObj,
-    (void far *) &FuelBmpObj,
-    (void far *) &DistDescTxtObj        // common for Veh/Fuel/Trip1/Trip2
+    // objects - shown in 'MD_FUEL_FROM' mode only
+    (void far *) &FuelDistTxtObj,       // fuel km
+    (void far *) &FuelLiterTxtObj,      // fuel liters
+    (void far *) &FromFuelBmpObj,       // icon 'from refuel'
+    (void far *) &ToNeedleBmpObj        // icon 'to act pos'
 };
-#define OBJLIST_FUEL_CNT (sizeof(ObjectList_Fuel)/sizeof(OBJ_STATE)/sizeof(void far *))
+#define OBJLIST_FUEL_FROM_CNT (sizeof(ObjectList_Fuel_From)/sizeof(OBJ_STATE)/sizeof(void far *))
+
+// ---------------------------------------------------------------------
+// Main device State 'MD_FUEL_TO' Settings - Screen Focus Order
+static const void far * ObjectList_Fuel_To[] =
+{
+    // objects - shown in every mode
+    (void far *) &SpeedTxtObj,          // current speed
+    (void far *) &SpeedDescATxtObj,     // speed descriptor A
+    (void far *) &SpeedDescBTxtObj,     // speed descriptor A
+    #if(GEARBOX==1)
+    (void far *) &GearSymbolBmpObj,     // gearbox state
+    #endif
+    (void far *) &VehStateBmpObj,       // Vehicle State Icon
+    (void far *) &TimeDateTxtObj,       // Date & Time
+    (void far *) &SurvVehStateTxtObj,   // Vehicle State
+
+    // objects - shown in 'MD_FUEL_TO' mode only
+    (void far *) &FuelDistTxtObj,       // fuel km
+    (void far *) &FuelLiterTxtObj,      // fuel liters
+    (void far *) &FromNeedleBmpObj,     // icon 'from act pos'
+    (void far *) &ToFuelBmpObj          // icon 'to refuel'         
+};
+#define OBJLIST_FUEL_TO_CNT (sizeof(ObjectList_Fuel_To)/sizeof(OBJ_STATE)/sizeof(void far *))
+
+// ---------------------------------------------------------------------
+// Main device State 'MD_FUEL_CONS' Settings - Screen Focus Order
+static const void far * ObjectList_Fuel_Cons[] =
+{
+    // objects - shown in every mode
+    (void far *) &SpeedTxtObj,          // current speed
+    (void far *) &SpeedDescATxtObj,     // speed descriptor A
+    (void far *) &SpeedDescBTxtObj,     // speed descriptor A
+    #if(GEARBOX==1)
+    (void far *) &GearSymbolBmpObj,     // gearbox state
+    #endif
+    (void far *) &VehStateBmpObj,       // Vehicle State Icon
+    (void far *) &TimeDateTxtObj,       // Date & Time
+    (void far *) &SurvVehStateTxtObj,   // Vehicle State
+
+    // objects - shown in 'MD_FUEL_CONS' mode only
+    (void far *) &FuelBmpObj,           // icon 'fuel'
+    (void far *) &LiterPer100ActBmpObj, // icon 'l/100'
+    (void far *) &LiterPer100AvrBmpObj, // icon 'l/100' (same, but another position)
+    (void far *) &AverageBmpObj,        // icon 'average'
+    (void far *) &FuelConsActTxtObj,    // actuel  fuel consumption in l/100
+    (void far *) &FuelConsAvrTxtObj,    // average fuel consumption in l/100
+};
+#define OBJLIST_FUEL_CONS_CNT (sizeof(ObjectList_Fuel_Cons)/sizeof(OBJ_STATE)/sizeof(void far *))
 
 
 // ---------------------------------------------------------------------
@@ -866,10 +923,6 @@ static const void far * ObjectList[] =
     (void far *) &MonWaterTempDescTxtObj,
     (void far *) &MonWaterTempBmpObj,
 
-    (void far *) &MonFuelTxtObj,
-    (void far *) &MonFuelDescTxtObj,
-    (void far *) &MonFuelBmpObj,
-
     (void far *) &MonOilTempBmpObj,
     (void far *) &MonOilTempTxtObj,
     (void far *) &MonOilTempDescTxtObj,
@@ -878,7 +931,21 @@ static const void far * ObjectList[] =
     (void far *) &MonRPMBmpObj,
     (void far *) &MonVertLineBmpObj,
 
-    // common object for Veh/Fuel/Trip1/Trip2
+    // objects for our three Fuel Modes MD_FUEL_FROM / MD_FUEL_TO / MD_FUEL_CONS 
+    (void far *) &FuelDistTxtObj,       
+    (void far *) &FuelLiterTxtObj,      
+    (void far *) &FromNeedleBmpObj,
+    (void far *) &ToFuelBmpObj,
+    (void far *) &FromFuelBmpObj,
+    (void far *) &ToNeedleBmpObj,
+    (void far *) &FuelBmpObj,           
+    (void far *) &LiterPer100ActBmpObj,
+    (void far *) &LiterPer100AvrBmpObj,
+    (void far *) &AverageBmpObj,
+    (void far *) &FuelConsActTxtObj,
+    (void far *) &FuelConsAvrTxtObj,    
+    
+    // common object for Veh/Trip1/Trip2
     (void far *) &DistDescTxtObj,
 
     // objects - shown in MD_RPM mode only
@@ -976,40 +1043,52 @@ ERRCODE MainDev_Init(void)
 void MainDev_ObjListInit(void)
 {
     // Setup screen object list: Monitor display settings
-    MDCntrl.List[MD_MONITOR].ObjList       = ObjectList_Mon;
-    MDCntrl.List[MD_MONITOR].ObjCount      = OBJLIST_MON_CNT;
-    MDCntrl.List[MD_MONITOR].FirstSelObj   = DevObjGetFirstSelectable(&MDObj, ObjectList_Mon, OBJLIST_MON_CNT);
-    MDCntrl.List[MD_MONITOR].LastSelObj    = DevObjGetLastSelectable (&MDObj, ObjectList_Mon, OBJLIST_MON_CNT);
+    MDCntrl.List[MD_MONITOR].ObjList        = ObjectList_Mon;
+    MDCntrl.List[MD_MONITOR].ObjCount       = OBJLIST_MON_CNT;
+    MDCntrl.List[MD_MONITOR].FirstSelObj    = DevObjGetFirstSelectable(&MDObj, ObjectList_Mon, OBJLIST_MON_CNT);
+    MDCntrl.List[MD_MONITOR].LastSelObj     = DevObjGetLastSelectable (&MDObj, ObjectList_Mon, OBJLIST_MON_CNT);
 
     // Setup screen object list: RPM display settings
-    MDCntrl.List[MD_RPM].ObjList       = ObjectList_Mon;
-    MDCntrl.List[MD_RPM].ObjCount      = OBJLIST_RPM_CNT;
-    MDCntrl.List[MD_RPM].FirstSelObj   = DevObjGetFirstSelectable(&MDObj, ObjectList_Rpm, OBJLIST_RPM_CNT);
-    MDCntrl.List[MD_RPM].LastSelObj    = DevObjGetLastSelectable (&MDObj, ObjectList_Rpm, OBJLIST_RPM_CNT);
+    MDCntrl.List[MD_RPM].ObjList            = ObjectList_Mon;
+    MDCntrl.List[MD_RPM].ObjCount           = OBJLIST_RPM_CNT;
+    MDCntrl.List[MD_RPM].FirstSelObj        = DevObjGetFirstSelectable(&MDObj, ObjectList_Rpm, OBJLIST_RPM_CNT);
+    MDCntrl.List[MD_RPM].LastSelObj         = DevObjGetLastSelectable (&MDObj, ObjectList_Rpm, OBJLIST_RPM_CNT);
 
-    // Setup screen object list: Fuel display settings
-    MDCntrl.List[MD_FUEL].ObjList       = ObjectList_Mon;
-    MDCntrl.List[MD_FUEL].ObjCount      = OBJLIST_FUEL_CNT;
-    MDCntrl.List[MD_FUEL].FirstSelObj   = DevObjGetFirstSelectable(&MDObj, ObjectList_Fuel, OBJLIST_FUEL_CNT);
-    MDCntrl.List[MD_FUEL].LastSelObj    = DevObjGetLastSelectable (&MDObj, ObjectList_Fuel, OBJLIST_FUEL_CNT);
+    // Setup screen object list: Fuel km/liter SINCE LAST refuel display settings
+    MDCntrl.List[MD_FUEL_FROM].ObjList      = ObjectList_Mon;
+    MDCntrl.List[MD_FUEL_FROM].ObjCount     = OBJLIST_FUEL_FROM_CNT;
+    MDCntrl.List[MD_FUEL_FROM].FirstSelObj  = DevObjGetFirstSelectable(&MDObj, ObjectList_Fuel_From, OBJLIST_FUEL_FROM_CNT);
+    MDCntrl.List[MD_FUEL_FROM].LastSelObj   = DevObjGetLastSelectable (&MDObj, ObjectList_Fuel_From, OBJLIST_FUEL_FROM_CNT);
+
+    // Setup screen object list: Fuel km/liter UNTIL NEXT refuel display settings
+    MDCntrl.List[MD_FUEL_TO].ObjList        = ObjectList_Mon;
+    MDCntrl.List[MD_FUEL_TO].ObjCount       = OBJLIST_FUEL_TO_CNT;
+    MDCntrl.List[MD_FUEL_TO].FirstSelObj    = DevObjGetFirstSelectable(&MDObj, ObjectList_Fuel_To, OBJLIST_FUEL_TO_CNT);
+    MDCntrl.List[MD_FUEL_TO].LastSelObj     = DevObjGetLastSelectable (&MDObj, ObjectList_Fuel_To, OBJLIST_FUEL_TO_CNT);
+
+    // Setup screen object list: Fuel consumption display settings
+    MDCntrl.List[MD_FUEL_CONS].ObjList      = ObjectList_Mon;
+    MDCntrl.List[MD_FUEL_CONS].ObjCount     = OBJLIST_FUEL_CONS_CNT;
+    MDCntrl.List[MD_FUEL_CONS].FirstSelObj  = DevObjGetFirstSelectable(&MDObj, ObjectList_Fuel_To, OBJLIST_FUEL_CONS_CNT);
+    MDCntrl.List[MD_FUEL_CONS].LastSelObj   = DevObjGetLastSelectable (&MDObj, ObjectList_Fuel_To, OBJLIST_FUEL_CONS_CNT);
 
     // Setup screen object list: Tripcounter1 display settings
-    MDCntrl.List[MD_TRIP1].ObjList       = ObjectList_Mon;
-    MDCntrl.List[MD_TRIP1].ObjCount      = OBJLIST_TRIP1_CNT;
-    MDCntrl.List[MD_TRIP1].FirstSelObj   = DevObjGetFirstSelectable(&MDObj, ObjectList_Trip1, OBJLIST_TRIP1_CNT);
-    MDCntrl.List[MD_TRIP1].LastSelObj    = DevObjGetLastSelectable (&MDObj, ObjectList_Trip1, OBJLIST_TRIP1_CNT);
+    MDCntrl.List[MD_TRIP1].ObjList          = ObjectList_Mon;
+    MDCntrl.List[MD_TRIP1].ObjCount         = OBJLIST_TRIP1_CNT;
+    MDCntrl.List[MD_TRIP1].FirstSelObj      = DevObjGetFirstSelectable(&MDObj, ObjectList_Trip1, OBJLIST_TRIP1_CNT);
+    MDCntrl.List[MD_TRIP1].LastSelObj       = DevObjGetLastSelectable (&MDObj, ObjectList_Trip1, OBJLIST_TRIP1_CNT);
 
     // Setup screen object list: Tripcounter2 display settings
-    MDCntrl.List[MD_TRIP2].ObjList       = ObjectList_Mon;
-    MDCntrl.List[MD_TRIP2].ObjCount      = OBJLIST_TRIP2_CNT;
-    MDCntrl.List[MD_TRIP2].FirstSelObj   = DevObjGetFirstSelectable(&MDObj, ObjectList_Trip2, OBJLIST_TRIP2_CNT);
-    MDCntrl.List[MD_TRIP2].LastSelObj    = DevObjGetLastSelectable (&MDObj, ObjectList_Trip2, OBJLIST_TRIP2_CNT);
+    MDCntrl.List[MD_TRIP2].ObjList          = ObjectList_Mon;
+    MDCntrl.List[MD_TRIP2].ObjCount         = OBJLIST_TRIP2_CNT;
+    MDCntrl.List[MD_TRIP2].FirstSelObj      = DevObjGetFirstSelectable(&MDObj, ObjectList_Trip2, OBJLIST_TRIP2_CNT);
+    MDCntrl.List[MD_TRIP2].LastSelObj       = DevObjGetLastSelectable (&MDObj, ObjectList_Trip2, OBJLIST_TRIP2_CNT);
 
     // Setup screen object list: Vehicle Distance display settings
-    MDCntrl.List[MD_VEHDIST].ObjList       = ObjectList_Mon;
-    MDCntrl.List[MD_VEHDIST].ObjCount      = OBJLIST_VEHDIST_CNT;
-    MDCntrl.List[MD_VEHDIST].FirstSelObj   = DevObjGetFirstSelectable(&MDObj, ObjectList_VehDist, OBJLIST_VEHDIST_CNT);
-    MDCntrl.List[MD_VEHDIST].LastSelObj    = DevObjGetLastSelectable (&MDObj, ObjectList_VehDist, OBJLIST_VEHDIST_CNT);
+    MDCntrl.List[MD_VEHDIST].ObjList        = ObjectList_Mon;
+    MDCntrl.List[MD_VEHDIST].ObjCount       = OBJLIST_VEHDIST_CNT;
+    MDCntrl.List[MD_VEHDIST].FirstSelObj    = DevObjGetFirstSelectable(&MDObj, ObjectList_VehDist, OBJLIST_VEHDIST_CNT);
+    MDCntrl.List[MD_VEHDIST].LastSelObj     = DevObjGetLastSelectable (&MDObj, ObjectList_VehDist, OBJLIST_VEHDIST_CNT);
 
     // Setup screen object list: SpeedMax display settings
     MDCntrl.List[MD_SPEEDMAX].ObjList       = ObjectList_Mon;
@@ -1092,11 +1171,28 @@ void MainDev_Show(BOOL fShow)
                     Obj_TextSt_Show( &RPMDescTxtObj );
                     Obj_Bmp_Show( &RPMBmpObj );
                     break;
-                case MD_FUEL:
+                case MD_FUEL_FROM:
                     MainDev_UpdFuelSensor();
                     Obj_TextSt_Show( &FuelDistTxtObj );
-                    Obj_TextSt_Show( &DistDescTxtObj );
-                    Obj_Bmp_Show( &FuelBmpObj );
+                    Obj_TextSt_Show( &FuelLiterTxtObj);
+                    Obj_Bmp_Show( &FromFuelBmpObj    );
+                    Obj_Bmp_Show( &ToNeedleBmpObj    );
+                    break;
+                case MD_FUEL_TO:
+                    MainDev_UpdFuelSensor();
+                    Obj_TextSt_Show( &FuelDistTxtObj );
+                    Obj_TextSt_Show( &FuelLiterTxtObj);
+                    Obj_Bmp_Show( &FromNeedleBmpObj  );
+                    Obj_Bmp_Show( &ToFuelBmpObj      );
+                    break;                
+                case MD_FUEL_CONS:
+                    MainDev_UpdFuelSensor();                  
+                    Obj_Bmp_Show(   &FuelBmpObj          );
+                    Obj_Bmp_Show(   &LiterPer100ActBmpObj);
+                    Obj_Bmp_Show(   &LiterPer100AvrBmpObj);
+                    Obj_Bmp_Show(   &AverageBmpObj       );
+                    Obj_TextSt_Show(&FuelConsActTxtObj   );
+                    Obj_TextSt_Show(&FuelConsAvrTxtObj   );
                     break;
                 case MD_VEHDIST:
                     Obj_TextSt_Show( &VehDistTxtObj );
@@ -1168,9 +1264,20 @@ void MainDev_Show(BOOL fShow)
             {
                 // show bigger parts
                 case MD_RPM:        Obj_TextSt_Show( &RPMTxtObj );          break;
-                case MD_FUEL:       
+                case MD_FUEL_FROM:
                     MainDev_UpdFuelSensor();
-                    Obj_TextSt_Show( &FuelDistTxtObj );     
+                    Obj_TextSt_Show( &FuelDistTxtObj );
+                    Obj_TextSt_Show( &FuelLiterTxtObj);
+                    break;
+                case MD_FUEL_TO:
+                    MainDev_UpdFuelSensor();
+                    Obj_TextSt_Show( &FuelDistTxtObj );
+                    Obj_TextSt_Show( &FuelLiterTxtObj);
+                    break;                
+                case MD_FUEL_CONS:
+                    MainDev_UpdFuelSensor();                  
+                    Obj_TextSt_Show(&FuelConsActTxtObj   );
+                    Obj_TextSt_Show(&FuelConsAvrTxtObj   );
                     break;
                 case MD_TRIP1:      Obj_TextSt_Show( &Trip1DistTxtObj );    break;
                 case MD_TRIP2:      Obj_TextSt_Show( &Trip2DistTxtObj );    break;
@@ -1653,10 +1760,11 @@ ERRCODE MainDev_MsgEntry_VehDistRst(MESSAGE Msg)
     static BOOL fLocked = FALSE;                    /* TRUE = key not yet relases */
 
     // check: main device in state to reset anything?
-    if (   ( MDObj.wDevState == MD_FUEL  )
-         ||( MDObj.wDevState == MD_TRIP1 )
-         ||( MDObj.wDevState == MD_TRIP2 )
-         ||( MDObj.wDevState == MD_SPEEDMAX) )
+    if (   ( MDObj.wDevState == MD_FUEL_FROM )
+         ||( MDObj.wDevState == MD_FUEL_TO   )
+         ||( MDObj.wDevState == MD_TRIP1     )
+         ||( MDObj.wDevState == MD_TRIP2     )
+         ||( MDObj.wDevState == MD_SPEEDMAX  ) )
     {
         /* [OK] pressed+released long'? -> ITS FOR US! -> Re-enable Reset of distances!
           Note: This code shall prevent a 'flickering info led' if the user doesn't
@@ -1680,7 +1788,8 @@ ERRCODE MainDev_MsgEntry_VehDistRst(MESSAGE Msg)
             Dist.dkm = 0;               /* reset distance value */
             switch (MDObj.wDevState) /* set into memory */
             {
-                case MD_FUEL:   
+                case MD_FUEL_FROM:   
+                case MD_FUEL_TO:   
                     MeasSetFuelDist( &Dist );                      
                     /* check: Reset FuelConsumption too? */
                     if ( gFuelSensCntrl.flags.FuelSAvail == TRUE ) 
@@ -1794,7 +1903,6 @@ void MainDev_UpdMeasVal(void)
     wWheelSpeed = MeasGetWheelSpeed(MR_KM_PER_H);
     sprintf( szSpeed,        "%3u",      wWheelSpeed);
     sprintf( szRPM,          "%5u",      MeasGetEngineSpeed(MR_RPM_R10));
-    sprintf( szFuelDist,     "%4u%c%1u", MeasGetFuelDist(MR_KM_ONLY), RESTXT_DEC_SEPARATOR, MeasGetFuelDist(MR_HM_ONLY));
     sprintf( szVehDist,      "%06lu",    MeasGetVehicDist(MR_KM));
     sprintf( szTrip1Dist,    "%4u%c%1u", MeasGetTripCnt( eTRIPC_C, MR_KM_ONLY), RESTXT_DEC_SEPARATOR, MeasGetTripCnt( eTRIPC_C, MR_HM_ONLY));
     sprintf( szTrip2Dist,    "%4u%c%1u", MeasGetTripCnt( eTRIPC_D, MR_KM_ONLY), RESTXT_DEC_SEPARATOR, MeasGetTripCnt( eTRIPC_D, MR_HM_ONLY));
@@ -1850,42 +1958,75 @@ void MainDev_UpdTimeDate(void)
  *********************************************************************** */
 void MainDev_UpdFuelSensor(void)
 {
-    UINT32 dwFuelCons = 0;      // Fuel Consumption in Milli-Liters
-    UINT8  bFuelCons_Liter;     // Fuel Consumption - left comma part (liters only)
-    UINT16 wFuelCons_ml;        // Fuel Consumption - right comma part (ml only)
-    
-    /* check: FuelSensor available? */
-    if ( gFuelSensCntrl.flags.FuelSAvail == TRUE ) 
-    {              
-        /* assure 'l' descriptor instead of 'km' */
-        DistDescTxtObj.szText = "l";
-     
-        /* get a fresh fuel consumption value 
-           NOTE: a) 'dwLHCounter' has been initilized by NVRAM value at init time
-                 b) 'FuelSensImp' is implicitely saved back into NVRAM (for next init time) */
-        FuelSensImp = DigInDrv_GPI_GetMeas(gFuelSensCntrl.flags.FuelSGPI)->dwLHCounter;
-        
-        /* convert FuelImpulses into 'Liters.MilliLiters' */
-        if ( gFuelSensCntrl.FuelSImpulseRate > 0 )
+    /* check current display state */
+    switch (MDObj.wDevState)
+    {
+        /*------------------------------------------- */
+        /* update distance & liters SINCE LAST refuel */
+        case MD_FUEL_FROM:
         {
-            dwFuelCons = (1000 * FuelSensImp) / gFuelSensCntrl.FuelSImpulseRate;
-            bFuelCons_Liter = (UINT8) ( dwFuelCons / 1000L );
-            wFuelCons_ml    = (UINT16)( dwFuelCons - ((UINT32)bFuelCons_Liter * 1000L) );
-            
-            /* update fuel consumption string (max. 10 chars) */
-            sprintf( szFuelDist, "%2u.%03u", bFuelCons_Liter, wFuelCons_ml );
-        }
-        else        
-        {   /* Missing FuelSensor parameter! -> prevent division by Zero! */
-            sprintf( szFuelDist, " --.---" );
-        }        
-    }
-    else
-    {   // nothing todo - just 'Fuel-Distance' as is 
-        /* assure 'km' descriptor instead of 'l' */
-        DistDescTxtObj.szText = "km";
+            UINT16 wFuel    = 182;      // TEST in dezi liter
+            UINT8  wFuel_l  = wFuel/10; 
+            UINT8  wFuel_dl = wFuel - (wFuel_l*10); 
+            //sprintf( szFuelDist,  "%3ukm",     MeasGetFuelDist(MR_KM_ONLY));            
+            sprintf( szFuelDist,  "%3ukm", 411 );            
+            sprintf( szFuelLiter, "%2u%c%1ul", wFuel_l, RESTXT_DEC_SEPARATOR, wFuel_dl );            
+        } break;                
+
+        /*------------------------------------------- */
+        /* update distance & liters UNTIL NEXT refuel */            
+        case MD_FUEL_TO:
+        {
+            UINT16 wFuel    = 24;      // TEST in dezi liter
+            UINT8  wFuel_l  = wFuel/10; 
+            UINT8  wFuel_dl = wFuel - (wFuel_l*10); 
+            //sprintf( szFuelDist,  "%3ukm",     MeasGetFuelDist(MR_KM_ONLY));            
+            sprintf( szFuelDist,  "%3ukm", 8 );            
+            sprintf( szFuelLiter, "%2u%c%1ul", wFuel_l, RESTXT_DEC_SEPARATOR, wFuel_dl );                        
+        } break;                
     
+        /*------------------------------------------- */
+        /* update fuel consumption (only if fuel sensor available) */            
+        case MD_FUEL_CONS:
+        {   
+            UINT32 dwFuelCons = 0;      // Fuel Consumption in Milli-Liters
+            UINT8  bFuelCons_Liter;     // Fuel Consumption - left comma part (liters only)
+            UINT16 wFuelCons_ml;        // Fuel Consumption - right comma part (ml only)            
+            
+            /* check: FuelSensor available? */
+            if ( gFuelSensCntrl.flags.FuelSAvail == TRUE ) 
+            {                          
+                /* get a fresh fuel consumption value 
+                   NOTE: a) 'GPIx.dwLHCounter' has been initilized by NVRAM value at init time
+                         b) 'FuelSensImp' is implicitely saved back into NVRAM (for next init time) */
+                FuelSensImp = DigInDrv_GPI_GetMeas(gFuelSensCntrl.flags.FuelSGPI)->dwLHCounter;
+                
+                /* convert FuelImpulses into 'Liters.MilliLiters' */
+                if ( gFuelSensCntrl.FuelSImpulseRate > 0 )
+                {
+                    dwFuelCons = (1000 * FuelSensImp) / gFuelSensCntrl.FuelSImpulseRate;
+                    bFuelCons_Liter = (UINT8) ( dwFuelCons / 1000L );
+                    wFuelCons_ml    = (UINT16)( dwFuelCons - ((UINT32)bFuelCons_Liter * 1000L) );
+                    
+                    /* update fuel consumption string (max. 10 chars) */
+                    sprintf( szFuelConsAct, "%2u%c%1u", bFuelCons_Liter, RESTXT_DEC_SEPARATOR, wFuelCons_ml );
+                    sprintf( szFuelConsAvr, "%2u%c%1u", bFuelCons_Liter, RESTXT_DEC_SEPARATOR, wFuelCons_ml );
+                }
+                else        
+                {   /* Missing FuelSensor parameter! -> prevent division by Zero! */
+                    sprintf( szFuelDist, " --.---" );
+                }        
+            }            
+        } break;
+        
+        /*------------------------------------------- */
+        /* any other Maindevice-State: nothing to do here ... */
+        default: 
+            break;    
     }
+    
+   
+    
 }
 
 
