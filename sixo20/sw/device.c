@@ -16,7 +16,7 @@
  *
  *                  Devices in this systems context are single and autark
  *                  working modules to solve a special feature, f.e. the
- *                  'TripCounter' or the 'MainMenu'.
+ *                  'NV_TripCom_Aounter' or the 'MainMenu'.
  *
  *  --------------------------------------------------------------------
  *
@@ -73,6 +73,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.5  2012/05/27 16:01:37  tuberkel
+ * All Eeprom/Nvram Variables renamed
+ *
  * Revision 3.4  2012/02/21 20:58:15  tuberkel
  * all Setdevice ObjectNames reviewed
  *
@@ -133,8 +136,8 @@
 extern  UINT16  wMilliSecCounter;       // valid values: 0h .. ffffh
 extern  UINT16  wSecCounter;            // valid values: 0h .. ffffh
 
-extern DPLFLAGS_TYPE    gDisplayFlags;  //orginal display values
-extern DEVFLAGS1_TYPE    gDeviceFlags1;   //system parameters
+extern DPLFLAGS_TYPE    EE_DisplFlags;  //orginal display values
+extern DEVFLAGS1_TYPE    EE_DevFlags_1;   //system parameters
 extern UINT32           dwSystemTime;   // high resolution long  distance timer, ms,  max. 49 days
 
 
@@ -147,7 +150,7 @@ const STRING szDevName[] =
     "AllDevices",
     "MainDev",
     "IntroDev",
-    "TripCDev",
+    "NV_TripCom_ADev",
     "SetDev",
     "StatDev",
     "LapCDev",
@@ -199,13 +202,13 @@ ERRCODE DevCyclicRefresh(void)
                  This assures, that backlight is correctly handled while
                  editing the backlight mode, and at init time the backlight is
                  ON for at least n seconds. */
-        if (  (gDeviceFlags1.flags.ActDevNr != DEVID_SET   )
-            &&(gDeviceFlags1.flags.ActDevNr != DEVID_HWTEST)
+        if (  (EE_DevFlags_1.flags.ActDevNr != DEVID_SET   )
+            &&(EE_DevFlags_1.flags.ActDevNr != DEVID_HWTEST)
             &&(dwSystemTime                >  3000        ) )
         {
             /* support backlight automatic */
-            LCDDrvSetBacklightLevel(    DisplBacklightCheckOn(gDisplayFlags.flags.BacklOnLevel),
-                                        gDisplayFlags.flags.BacklLev );
+            LCDDrvSetBacklightLevel(    DisplBacklightCheckOn(EE_DisplFlags.flags.BacklOnLevel),
+                                        EE_DisplFlags.flags.BacklLev );
         }
     }
     return ERR_OK;

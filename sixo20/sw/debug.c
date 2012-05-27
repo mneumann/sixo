@@ -69,6 +69,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.4  2012/05/27 16:01:36  tuberkel
+ * All Eeprom/Nvram Variables renamed
+ *
  * Revision 3.3  2012/02/26 12:24:55  tuberkel
  * - moved all Eeprom Vlaues physically into 'sysparam' module
  *
@@ -102,8 +105,8 @@
 // externals
 extern  UINT16          wMilliSecCounter;   /* valid values: 0h .. ffffh */
 extern  UINT16          wSecCounter;        /* valid values: 0h .. ffffh */
-extern  DBGFILT_TYPE    gDebugFilter;       /* default off, use DebugSetFilterDetails() to change */
-extern  DBGDETDIR_TYPE  gDebugDetails;      /* default uart, use DebugSetFilterDetails() to change */
+extern  DBGFILT_TYPE    EE_DbgFilter;       /* default off, use DebugSetFilterDetails() to change */
+extern  DBGDETDIR_TYPE  EE_DbgDetails;      /* default uart, use DebugSetFilterDetails() to change */
 
 
 //unsigned char szDispDbgBuff[DBG_DISPLAYCOLUMN][DBG_DISPLAYLINES];
@@ -134,8 +137,8 @@ ERRCODE DebugSetFilterDetails(DBGFILT_TYPE bFilter, DBGDETDIR_TYPE bDetails)
 
     //ODS2(DBG_SYS, DBG_INFO, "DebugSetFilterDetails(): Filter: 0x%x Details: 0x%x", bFilter, bDetails);
     /* store global copy */
-    gDebugFilter = bFilter;
-    gDebugDetails = bDetails;
+    EE_DbgFilter = bFilter;
+    EE_DbgDetails = bDetails;
 
     /* ----------------------------------------------------------- */
     /* print out debug DEVICE SETTINGS in plain text */
@@ -144,7 +147,7 @@ ERRCODE DebugSetFilterDetails(DBGFILT_TYPE bFilter, DBGDETDIR_TYPE bDetails)
     szFilter[0] = 0x0;              /* clear ouput buffer */
 
     /* check for validity */
-    if ((0xf0 & gDebugFilter.byte) == 0x0)
+    if ((0xf0 & EE_DbgFilter.byte) == 0x0)
     {
         szDevice = "NO DEVICES";
         strcat( (STRING) szFilter, (STRING) szDevice);
@@ -154,7 +157,7 @@ ERRCODE DebugSetFilterDetails(DBGFILT_TYPE bFilter, DBGDETDIR_TYPE bDetails)
         /* check all device bits */
         for ( i = 0; i < 4; i++ )
         {
-            switch (cMask & gDebugFilter.byte)
+            switch (cMask & EE_DbgFilter.byte)
             {
                 case DBG_USER:
                     szDevice = "DBG_USER";
@@ -194,7 +197,7 @@ ERRCODE DebugSetFilterDetails(DBGFILT_TYPE bFilter, DBGDETDIR_TYPE bDetails)
     szFilter[0] = 0x0;              /* clear ouput buffer */
 
     /* check for validity */
-    if ((0x0f & gDebugFilter.byte) == 0x0)
+    if ((0x0f & EE_DbgFilter.byte) == 0x0)
     {
         szLevel = "NO LEVEL";
         strcat( (STRING) szFilter, (STRING) szLevel);
@@ -203,7 +206,7 @@ ERRCODE DebugSetFilterDetails(DBGFILT_TYPE bFilter, DBGDETDIR_TYPE bDetails)
     {
         for ( i = 0; i < 4; i++ )
         {
-            switch (cMask & gDebugFilter.byte)
+            switch (cMask & EE_DbgFilter.byte)
             {
                 case DBG_FATAL:
                     szLevel = "DBG_FATAL";
@@ -242,7 +245,7 @@ ERRCODE DebugSetFilterDetails(DBGFILT_TYPE bFilter, DBGDETDIR_TYPE bDetails)
     szFilter[0] = 0x0;              /* clear ouput buffer */
 
     /* check for validity */
-    if ((0x0f & gDebugDetails.byte) == 0x0)
+    if ((0x0f & EE_DbgDetails.byte) == 0x0)
     {
         szDetails = "NO DETAILS";
         strcat( (STRING) szFilter, (STRING) szDetails);
@@ -251,7 +254,7 @@ ERRCODE DebugSetFilterDetails(DBGFILT_TYPE bFilter, DBGDETDIR_TYPE bDetails)
     {
         for ( i = 0; i < 4; i++ )
         {
-            switch (cMask & gDebugDetails.byte)
+            switch (cMask & EE_DbgDetails.byte)
             {
                 case DBG_LVL:
                     szDetails = "DBG_LVL";
@@ -401,8 +404,8 @@ ERRCODE DebugPrint( UINT8 chLevel, STRING szText, UINT16 wSrcLine, STRING szSrcF
     fReentranceLock = TRUE;                 /* no more calls to myself allowed */
 
     /* filter debug level & device */
-    if (  ((gDebugFilter.byte & (chLevel & 0x0f)) == 0)      /* check level */
-        ||((gDebugFilter.byte & (chLevel & 0xf0)) == 0) )    /* check device */
+    if (  ((EE_DbgFilter.byte & (chLevel & 0x0f)) == 0)      /* check level */
+        ||((EE_DbgFilter.byte & (chLevel & 0xf0)) == 0) )    /* check device */
     {
         ErrorCode =  ERR_OK;                /* ignore, no output */
         goto DebugPrintExit;
@@ -412,7 +415,7 @@ ERRCODE DebugPrint( UINT8 chLevel, STRING szText, UINT16 wSrcLine, STRING szSrcF
        device, level, filename+line, timestamp */
 
     /* build the level */
-    if (gDebugDetails.byte & DBG_LVL)
+    if (EE_DbgDetails.byte & DBG_LVL)
     {
         szDbgText = DbgTextBuffer;              /* init */
         switch (chLevel & 0x0f)
@@ -438,7 +441,7 @@ ERRCODE DebugPrint( UINT8 chLevel, STRING szText, UINT16 wSrcLine, STRING szSrcF
     } /* if DBG_LVL */
 
     /* build the device */
-    if (gDebugDetails.byte & DBG_DEV)
+    if (EE_DbgDetails.byte & DBG_DEV)
     {
         szDbgText = DbgTextBuffer;
         switch (chLevel & 0xf0)
@@ -464,7 +467,7 @@ ERRCODE DebugPrint( UINT8 chLevel, STRING szText, UINT16 wSrcLine, STRING szSrcF
     } /* if DBG_DEV */
 
     /* build the time info */
-    if (gDebugDetails.byte & DBG_TIM)
+    if (EE_DbgDetails.byte & DBG_TIM)
     {
         szDbgText = DbgTextBuffer;
         /* get time stamp, ms without seconds */
@@ -478,7 +481,7 @@ ERRCODE DebugPrint( UINT8 chLevel, STRING szText, UINT16 wSrcLine, STRING szSrcF
     }
 
     /* build the source info */
-    if (gDebugDetails.byte & DBG_SRC)
+    if (EE_DbgDetails.byte & DBG_SRC)
     {
         szDbgText = DbgTextBuffer;
         /* skip the path info, if any */
@@ -535,14 +538,14 @@ ERRCODE DebugOut(STRING szDbgText)
     STRING szEmptyLine = "                                ";
 
     /* printf() to PC debug out via uart */
-    if ( (gDebugDetails.byte & DBG_UART) )
+    if ( (EE_DbgDetails.byte & DBG_UART) )
     {
         if (printf(szDbgText) == EOF)
             ErrorCode = 1;  /* error */
     }
 
     /* printf to SIxOs display */
-    if ( (gDebugDetails.byte & DBG_DSPL) )
+    if ( (EE_DbgDetails.byte & DBG_DSPL) )
     {
         /* calculate ouput position */
         DPLFONT DbgFont = DPLFONT_4X6;

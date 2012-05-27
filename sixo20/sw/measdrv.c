@@ -75,6 +75,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.5  2012/05/27 16:01:40  tuberkel
+ * All Eeprom/Nvram Variables renamed
+ *
  * Revision 3.4  2012/02/04 22:25:49  tuberkel
  * LEDs renamed
  *
@@ -105,7 +108,7 @@
  * no message
  *
  * Revision 1.10  2006/03/18 09:02:22  Ralf
- * - TripCounter improved to 4 different counters
+ * - NV_TripCom_Aounter improved to 4 different counters
  *
  *
  ************************************************************************ */
@@ -126,15 +129,15 @@
 
 /* external symbols */
 extern  UINT16      wMilliSecCounter;   /* valid values: 0h .. ffffh */
-extern  UINT16      wWheelSize;         /* wheel size in mm, to be read from eeprom */
-extern  UINT8       gbWheelImpulse;     /* wheel impulses per revolution */
+extern  UINT16      EE_WheelSize;         /* wheel size in mm, to be read from eeprom */
+extern  UINT8       EE_Wheel_ImpPRev;     /* wheel impulses per revolution */
 
-extern  DIST_TYPE   VehicDist;          /* vehicle distance */
-extern  DIST_TYPE   TripA;              /* TripCounter A */
-extern  DIST_TYPE   TripB;              /* TripCounter B */
-extern  DIST_TYPE   TripC;              /* TripCounter C */
-extern  DIST_TYPE   TripD;              /* TripCounter D */
-extern  DIST_TYPE   FuelDist;           /* fuel distance */
+extern  DIST_TYPE   NV_VehicDist;          /* vehicle distance */
+extern  DIST_TYPE   NV_TripCnt_A;              /* NV_TripCom_Aounter A */
+extern  DIST_TYPE   NV_TripCnt_B;              /* NV_TripCom_Aounter B */
+extern  DIST_TYPE   NV_TripCom_A;              /* NV_TripCom_Aounter C */
+extern  DIST_TYPE   NV_TripCom_B;              /* NV_TripCom_Aounter D */
+extern  DIST_TYPE   NV_FuelDist;           /* fuel distance */
 
 
 /* dedicated measurement values for low/high pass filter depending on current speed */
@@ -408,13 +411,13 @@ void WheelSensor_ISR(void)
     PIN_TESTPAD11_TOGGLE;                 /* toggle port pin (debug only) */
 
     /* --------------------------------------------------------------------------------- */
-    /* wheel revolution prescaler - gbWheelImpulse
+    /* wheel revolution prescaler - EE_Wheel_ImpPRev
        NOTE: Some wheel sensors provide more than 1 impulses/revolution.
              This can be supported by software be setting up the 'gwWheelImpulse'
              up 99 Imp/rev.
              BUT: This has to be set up in hardware too, because of the
              WHEEL input low pass filter (see forum for details). */
-    if ( ++bImpPrescaler < gbWheelImpulse )
+    if ( ++bImpPrescaler < EE_Wheel_ImpPRev )
     {   return;         // do nothing, just wait for next ISR trigger to continue sum of impulses
     }
     bImpPrescaler = 0;  // reset prescaler to restart again...
@@ -445,25 +448,25 @@ void WheelSensor_ISR(void)
 
     /* --------------------------------------------------------------------------------- */
     /* distance calculations stuff --------- */
-    wWheelDist += wWheelSize;                   /* add to wheel distance in mm */
+    wWheelDist += EE_WheelSize;                   /* add to wheel distance in mm */
     if (wWheelDist > MM_OVFL)                   /* check millimeter overflow */
     {
         /* 10 meter overflow detected! */
         wWheelDist -= MM_OVFL;                  /* take rest(!) for next calculations */
 
         /* check and increment all distance counters */
-        if (VehicDist.dkm < DIST_MAX_VEHIC)
-            VehicDist.dkm++;                    /* overall vehicle distance */
-        if (TripA.dkm < DIST_MAX_TRIP)
-            TripA.dkm++;                        /* TripA distance */
-        if (TripB.dkm < DIST_MAX_TRIP)
-            TripB.dkm++;                        /* TripB distance */
-        if (TripC.dkm < DIST_MAX_TRIP)
-            TripC.dkm++;                        /* TripC distance */
-        if (TripD.dkm < DIST_MAX_TRIP)
-            TripD.dkm++;                        /* TripD distance */
-        if (FuelDist.dkm < DIST_MAX_FUEL)
-            FuelDist.dkm++;                     /* FuelDist distance calculations */
+        if (NV_VehicDist.dkm < DIST_MAX_VEHIC)
+            NV_VehicDist.dkm++;                    /* overall vehicle distance */
+        if (NV_TripCnt_A.dkm < DIST_MAX_TRIP)
+            NV_TripCnt_A.dkm++;                        /* NV_TripCnt_A distance */
+        if (NV_TripCnt_B.dkm < DIST_MAX_TRIP)
+            NV_TripCnt_B.dkm++;                        /* NV_TripCnt_B distance */
+        if (NV_TripCom_A.dkm < DIST_MAX_TRIP)
+            NV_TripCom_A.dkm++;                        /* NV_TripCom_A distance */
+        if (NV_TripCom_B.dkm < DIST_MAX_TRIP)
+            NV_TripCom_B.dkm++;                        /* NV_TripCom_B distance */
+        if (NV_FuelDist.dkm < DIST_MAX_FUEL)
+            NV_FuelDist.dkm++;                     /* NV_FuelDist distance calculations */
     }
 }
 

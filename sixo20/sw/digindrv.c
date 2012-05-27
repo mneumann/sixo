@@ -68,10 +68,13 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.17  2012/05/27 16:01:37  tuberkel
+ * All Eeprom/Nvram Variables renamed
+ *
  * Revision 3.16  2012/05/16 21:06:57  tuberkel
  * New FuelSensor:
  * - now displayed & handled in Maindevice
- * - if enabled: replaces 'FuelDistance'
+ * - if enabled: replaces 'NV_FuelDistance'
  * - works well with GPI-0..3 / NVRAM / Reboot / ImpRate = 0
  *
  * Revision 3.15  2012/02/27 20:46:50  tuberkel
@@ -172,10 +175,10 @@
 
 /* external vars */
 extern UINT16               wMilliSecCounter;   /* valid values: 0h .. ffffh */
-extern BIKE_TYPE            gBikeType;          /* bike type (from eeprom) */
-extern COOLRIDECNTRL_TYPE   gCoolrideCntrl;     /* Coolride Control (from eeprom) */
-extern FUELSCNTRL_TYPE      gFuelSensCntrl;     /* FuelSensor Control flags (from eeprom) */
-extern UINT32               FuelSensImp;        /* Fuel sensor Impulses counter since last refuel (NVRAM!) */
+extern BIKE_TYPE            EE_BikeType;          /* bike type (from eeprom) */
+extern COOLRIDECNTRL_TYPE   EE_CoolrideCtrl;     /* Coolride Control (from eeprom) */
+extern FUELSCNTRL_TYPE      EE_FuelSensCtrl;     /* FuelSensor Control flags (from eeprom) */
+extern UINT32               NV_FuelSensImp;        /* Fuel sensor Impulses counter since last refuel (NVRAM!) */
 
 /* module global vars */
 KEYTIME   rgKeyControl[KEY_LAST];    /* protocol of duration & start time */
@@ -291,18 +294,18 @@ ERRCODE DigInDrv_Init(void)
     DigInDrv_FilterInit();
 
     /* Setup Coolride GPI Measurement (if available) */
-    if ( gCoolrideCntrl.flags.CoolrAvail == TRUE )
-    {   DigInDrv_GPI_SetupMeas( gCoolrideCntrl.flags.CoolrGPI, COOLR_PWMIN_LOGIC, COOLR_PWMIN_TO );
+    if ( EE_CoolrideCtrl.flags.CoolrAvail == TRUE )
+    {   DigInDrv_GPI_SetupMeas( EE_CoolrideCtrl.flags.CoolrGPI, COOLR_PWMIN_LOGIC, COOLR_PWMIN_TO );
     }
 
     /* FuelSensor GPI Measurement (if available) */
-    if ( gFuelSensCntrl.flags.FuelSAvail == TRUE ) 
+    if ( EE_FuelSensCtrl.flags.FuelSAvail == TRUE ) 
     {   
         /* setup PWM measurement */
-        DigInDrv_GPI_SetupMeas( gFuelSensCntrl.flags.FuelSGPI, FUELS_PWMIN_LOGIC, FUELS_PWMIN_TO );
+        DigInDrv_GPI_SetupMeas( EE_FuelSensCtrl.flags.FuelSGPI, FUELS_PWMIN_LOGIC, FUELS_PWMIN_TO );
         
-        /* read saved FuelSensImp from NVRAM and initialize adequate GPI-Counter for further use */
-        DigIntMeas[gFuelSensCntrl.flags.FuelSGPI].dwLHCounter = FuelSensImp;
+        /* read saved NV_FuelSensImp from NVRAM and initialize adequate GPI-Counter for further use */
+        DigIntMeas[EE_FuelSensCtrl.flags.FuelSGPI].dwLHCounter = NV_FuelSensImp;
     }
 
     /* enable all ISRs now */
@@ -718,7 +721,7 @@ void    DigInDrv_FilterInit(void)
     }
 
     // add bike specific filter settings
-    switch(gBikeType)
+    switch(EE_BikeType)
     {
         case eBIKE_F650:
         {

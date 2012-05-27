@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.3  2012/05/27 16:01:42  tuberkel
+ * All Eeprom/Nvram Variables renamed
+ *
  * Revision 3.2  2012/02/10 23:45:22  tuberkel
  * - Survelannce HeatGrip <Info> - if active
  * - Surveillance-API reviewed
@@ -163,8 +166,8 @@
 /* settings device strings */
 #define RESTXT_SET_WHEELSIZE_DESC    "Wheel:"
 #define RESTXT_SET_WHEELSIZE_UNIT    "mm"
-#define RESTXT_SET_CCFNOM_DESC       "Ign:"
-#define RESTXT_SET_CCFNOM_UNIT       "/"
+#define RESTXT_SET_EE_CCFNOM_DESC       "Ign:"
+#define RESTXT_SET_EE_CCFNOM_UNIT       "/"
 #define RESTXT_SET_LCD_BL_DESC       "Display A:"
 #define RESTXT_SET_LCD_BR_DESC       "B:"
 #define RESTXT_SET_LCD_CNT_DESC      "C:"
@@ -174,7 +177,7 @@
 
 #define RESTXT_SET_BIKE_DESC         "Bike:"
 #define RESTXT_SET_COMPCAL           "Cmp:"
-#define RESTXT_SET_TRIPCNTFL         "TripCnt:"
+#define RESTXT_SET_TRIPCNTFL         "NV_TripCom_Ant:"
 
 #define RESTXT_SET_SERVKM            "Serv. Due:"
 

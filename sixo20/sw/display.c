@@ -77,6 +77,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.4  2012/05/27 16:01:38  tuberkel
+ * All Eeprom/Nvram Variables renamed
+ *
  * Revision 3.3  2012/02/27 23:06:37  tuberkel
  * - SysPar- API changed
  *
@@ -112,7 +115,7 @@ extern unsigned char far rgNumber24x32[];
 
 /* external symbols */
 extern UINT16           wMilliSecCounter;   // for cyclic LCD module checks
-extern DPLFLAGS_TYPE    gDisplayFlags;      // display control structure from eeprom
+extern DPLFLAGS_TYPE    EE_DisplFlags;      // display control structure from eeprom
 
 
 
@@ -661,11 +664,11 @@ void DisplSetParms(void)
     BOOL bBackLightOn;
 
     //set contrast level
-    LCDDrvSetContrastLevel( gDisplayFlags.flags.ContrLev );
+    LCDDrvSetContrastLevel( EE_DisplFlags.flags.ContrLev );
 
     //backlight on/off and level
-    LCDDrvSetBacklightLevel(    DisplBacklightCheckOn (gDisplayFlags.flags.BacklOnLevel),
-                                gDisplayFlags.flags.BacklLev );
+    LCDDrvSetBacklightLevel(    DisplBacklightCheckOn (EE_DisplFlags.flags.BacklOnLevel),
+                                EE_DisplFlags.flags.BacklLev );
 
 }
 

@@ -69,6 +69,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.6  2012/05/27 16:01:42  tuberkel
+ * All Eeprom/Nvram Variables renamed
+ *
  * Revision 3.5  2012/02/21 20:58:15  tuberkel
  * all Setdevice ObjectNames reviewed
  *
@@ -216,7 +219,7 @@ static const OBJ_SLCT_INIT SelectObjInit[] =
 /* external symbols */
 extern UINT16           wMilliSecCounter;       // valid values: 0h .. ffffh
 extern STRING far       szDevName[];            // device names
-extern DEVFLAGS1_TYPE    gDeviceFlags1;           /* system parameters */
+extern DEVFLAGS1_TYPE    EE_DevFlags_1;           /* system parameters */
 
 
 /* this devices object focus handling - list of all objects */
@@ -393,7 +396,7 @@ ERRCODE TestScreen_MsgEntry(MESSAGE GivenMsg)
                             szDevName[DEVID_TESTSCREEN]) */ ;
                 TestScreen_Dev.fFocused = TRUE;                          /* set our focus */
                 TestScreen_Show(FALSE);                                  /* show our screen */
-                gDeviceFlags1.flags.ActDevNr = DEVID_TESTSCREEN;               /* save device# for restore */
+                EE_DevFlags_1.flags.ActDevNr = DEVID_TESTSCREEN;               /* save device# for restore */
                 RValue = ERR_MSG_PROCESSED;
              }
              else

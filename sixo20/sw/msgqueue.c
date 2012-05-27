@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.5  2012/05/27 16:01:42  tuberkel
+ * All Eeprom/Nvram Variables renamed
+ *
  * Revision 3.4  2012/02/06 20:54:14  tuberkel
  * Just renamed all 'Devices' function prefixes for better readability
  *
@@ -400,7 +403,7 @@ ERRCODE MsgQPumpMsg(MESSAGE_ID bID)
           //    use function prototype 'MSGENTRYFCT' from msgqeue.h
           //
           if (err == ERR_MSG_NOT_PROCESSED)
-            err = TripCDev_MsgEntry(msg);         /* trip counter device */
+            err = NV_TripCom_ADev_MsgEntry(msg);         /* trip counter device */
 
           if (err == ERR_MSG_NOT_PROCESSED)
             err = MainDev_MsgEntry(msg);      /* main device */

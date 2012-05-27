@@ -69,6 +69,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.11  2012/05/27 16:01:42  tuberkel
+ * All Eeprom/Nvram Variables renamed
+ *
  * Revision 3.10  2012/05/15 20:11:35  tuberkel
  * FuelSensor: BasicSettings enabled & ok (not yet displayed)
  *
@@ -151,7 +154,7 @@
  * no message
  *
  * Revision 1.15  2006/03/18 08:59:22  Ralf
- * - TripCounter improved to 4 different counters
+ * - NV_TripCom_Aounter improved to 4 different counters
  *
  *
  ************************************************************************ */
@@ -210,7 +213,7 @@ typedef union TAG_SWVERS_TYPE
           a) EEPR_MAGICNUM_VAL not found!
                 - a never used hardware
                 - initialize COMPLETE eeprom/nvram
-          b) EEPR_MAGICNUM_VAL ok, but Eeprom gSWID != DEF_SWID_NUMBER!
+          b) EEPR_MAGICNUM_VAL ok, but Eeprom EE_SWID != DEF_SWID_NUMBER!
                 - a software update is detected
                 - initialize PARTIAL eeprom/nvram
                 - NVRAM_SEC + EEPROM_SEC will NOT be changed!
@@ -256,7 +259,7 @@ typedef union
     UINT8           byte;
     struct
     {
-        unsigned char   TripCLongDistUp :1;     /* TripCounterLongDist: 1=upside (like roadbook), 0=downside */
+        unsigned char   NV_TripCom_ALongDistUp :1;     /* NV_TripCom_AounterLongDist: 1=upside (like roadbook), 0=downside */
         unsigned char   BeeperAvail     :1;     /* Beeper:              1=available, 0=not available */
         unsigned char   DLS_Auto        :1;     /* DaylightSavingAuto:  1=on (automatic on), 0=Off */
         unsigned char   DLS_Active      :1;     /* DaylightSavingActive: 1=CEST active (CentralEurpSummerTime active), 0=Off */
@@ -408,10 +411,10 @@ typedef enum
     PID_VEHIC_KM = PID_NVRAM_START,         // vehicle overall distance km struct
     PID_HOURS_ALL,                          // engine running overall
     PID_HOURS_SERV,                         // engine running since last service
-    PID_TRIP_A_KM,                          // TripA distance km struct (for trip counter)
-    PID_TRIP_B_KM,                          // TripB distance km struct (for trip counter)
-    PID_TRIP_C_KM,                          // TripC distance km struct (for common use)
-    PID_TRIP_D_KM,                          // TripD distance km struct (for common use)
+    PID_TRIP_A_KM,                          // NV_TripCnt_A distance km struct (for trip counter)
+    PID_TRIP_B_KM,                          // NV_TripCnt_B distance km struct (for trip counter)
+    PID_TRIP_C_KM,                          // NV_TripCom_A distance km struct (for common use)
+    PID_TRIP_D_KM,                          // NV_TripCom_B distance km struct (for common use)
     PID_SPEED_AVR_M,                        // average speed of time in motion only (no pauses)
     PID_SPEED_AVR_P,                        // average speed of time with pauses
     PID_FUEL_KM,                            // distance since last refuel (km struct)
@@ -422,7 +425,7 @@ typedef enum
     /* EEPROM area Parameter IDs */
     PID_SWVERSION = PID_EEPROM_START,       // software version number byte
     PID_WHEELSIZE,                          // wheel size
-    PID_RPM_CCF,                            // rpm cylinder correcture factor
+    PID_CCF,                            // rpm cylinder correcture factor
     PID_DEVFLAGS1,                          // device flags 1 (e.g. current device shown)
     PID_DPLFL,                              // bit flags for display status
     PID_DBGFILTFL,                          // bit flags for debug status

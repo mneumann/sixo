@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.12  2012/05/27 16:01:39  tuberkel
+ * All Eeprom/Nvram Variables renamed
+ *
  * Revision 3.11  2012/02/21 20:58:15  tuberkel
  * all Setdevice ObjectNames reviewed
  *
@@ -190,7 +193,7 @@ extern UINT16  wMilliSecCounter;                // valid values: 0h .. ffffh
 extern UINT16  wSecCounter;                     // valid values: 0h .. ffffh
 
 extern STRING far           szDevName[];        /* device names */
-extern DEVFLAGS1_TYPE       gDeviceFlags1;      /* system parameters */
+extern DEVFLAGS1_TYPE       EE_DevFlags_1;      /* system parameters */
 
 
 /* local objects */
@@ -621,7 +624,7 @@ ERRCODE HWTDev_MsgEntry(MESSAGE GivenMsg)
                             szDevName[DEVID_HWTEST]) */ ;
                 HWTestDev.fFocused = TRUE;                         /* set our focus */
                 HWTDev_Show(TRUE);                            /* show our screen */
-                gDeviceFlags1.flags.ActDevNr = DEVID_HWTEST;        /* save device# for restore */
+                EE_DevFlags_1.flags.ActDevNr = DEVID_HWTEST;        /* save device# for restore */
                 RValue = ERR_MSG_PROCESSED;
              }
              else

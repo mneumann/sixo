@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.9  2012/05/27 16:01:41  tuberkel
+ * All Eeprom/Nvram Variables renamed
+ *
  * Revision 3.8  2012/02/21 20:58:15  tuberkel
  * all Setdevice ObjectNames reviewed
  *
@@ -173,34 +176,34 @@
 /* external symbols */
 extern UINT16               wMilliSecCounter;           /* valid values: 0h .. ffffh */
 extern STRING far           szDevName[];                /* device names */
-extern DEVFLAGS1_TYPE        gDeviceFlags1;               /* system parameters */
+extern DEVFLAGS1_TYPE        EE_DevFlags_1;               /* system parameters */
 
-extern BIKE_TYPE        gBikeType;          /* bike type selcetion */
+extern BIKE_TYPE        EE_BikeType;          /* bike type selcetion */
 
-extern UINT16       Volt_Min;
-extern far UINT16   Volt_Min_def;
-extern UINT16       Volt_Max;
-extern far UINT16   Volt_Max_def;
-extern INT16        TAir_Min;           // NOTE:    We have to declare the default values
-extern INT16 far    TAir_Min_def;       //          with 'far', because they are defined
-extern INT16        TAir_Max;           //          as 'const' in ROM in another module.
-extern INT16 far    TAir_Max_def;
-extern INT16        TOil_Min;
-extern INT16 far    TOil_Min_def;
-extern INT16        TOil_Max;
-extern INT16 far    TOil_Max_def;
-extern INT16        TWat_Min;
-extern INT16 far    TWat_Min_def;
-extern INT16        TWat_Max;
-extern INT16 far    TWat_Max_def;
+extern UINT16       EE_Volt_Min;
+extern far UINT16   EE_Volt_Min_def;
+extern UINT16       EE_Volt_Max;
+extern far UINT16   EE_Volt_Max_def;
+extern INT16        EE_TAir_Min;           // NOTE:    We have to declare the default values
+extern INT16 far    EE_TAir_Min_def;       //          with 'far', because they are defined
+extern INT16        EE_TAir_Max;           //          as 'const' in ROM in another module.
+extern INT16 far    EE_TAir_Max_def;
+extern INT16        EE_TOil_Min;
+extern INT16 far    EE_TOil_Min_def;
+extern INT16        EE_TOil_Max;
+extern INT16 far    EE_TOil_Max_def;
+extern INT16        EE_TWat_Min;
+extern INT16 far    EE_TWat_Min_def;
+extern INT16        EE_TWat_Max;
+extern INT16 far    EE_TWat_Max_def;
 
-extern SPEED_TYPE       Speed_Max;
-extern SPEED_TYPE  far  Speed_Max_def;
-extern RPM_TYPE         RPM_Max;
-extern RPM_TYPE    far  RPM_Max_def;
+extern SPEED_TYPE       EE_SpeedMax;
+extern SPEED_TYPE  far  EE_SpeedMax_def;
+extern RPM_TYPE         EE_RPM_Max;
+extern RPM_TYPE    far  EE_RPM_Max_def;
 
-extern TIME_TYPE_LD  EngRunTime_Srv;
-extern TIME_TYPE_LD  EngRunTime_All;
+extern TIME_TYPE_LD  NV_EngRunTime_Srv;
+extern TIME_TYPE_LD  NV_EngRunTime_All;
 
 
 
@@ -495,7 +498,7 @@ ERRCODE MonDev_MsgEntry(MESSAGE GivenMsg)
                             szDevName[DEVID_MONITOR]) */ ;
                 MonitorScreenDev.fFocused = TRUE;                         /* set our focus */
                 MonDev_Show(TRUE);                                  /* show our screen */
-                gDeviceFlags1.flags.ActDevNr = DEVID_MONITOR;              /* save device# for restore */
+                EE_DevFlags_1.flags.ActDevNr = DEVID_MONITOR;              /* save device# for restore */
                 RValue = ERR_MSG_PROCESSED;
              }
              else
@@ -609,8 +612,8 @@ void MonDev_UpdateStrings ( void )
 
         // air temperature string   |Luft: 10°C (10..35°C)|
         AnaInFormatTemperature( AnaInGetAirTemperature(), szDataBuff,     sizeof(szDataBuff));
-        AnaInFormatTemperature( TAir_Min,                 szDataBuff_Min, sizeof(szDataBuff_Min));
-        AnaInFormatTemperature( TAir_Max,                 szDataBuff_Max, sizeof(szDataBuff_Max));
+        AnaInFormatTemperature( EE_TAir_Min,                 szDataBuff_Min, sizeof(szDataBuff_Min));
+        AnaInFormatTemperature( EE_TAir_Max,                 szDataBuff_Max, sizeof(szDataBuff_Max));
         sprintf (   (char far *)szAirTemp,
                     "%s%s\x8f %s\x8f\x8c %s\x8f\x8b",   // \x8f = °C, \x8c = Down-Arrow, \x8b = Up-Arrow,
                     RESTXT_STAT_TEMP_AIR,
@@ -620,8 +623,8 @@ void MonDev_UpdateStrings ( void )
 
         // oil temperature string   |Öl:  105°C  (..130°C)|
         AnaInFormatTemperature( AnaInGetOilTemperature(), szDataBuff,     sizeof(szDataBuff));
-        AnaInFormatTemperature( TOil_Min,                 szDataBuff_Min, sizeof(szDataBuff_Min));
-        AnaInFormatTemperature( TOil_Max,                 szDataBuff_Max, sizeof(szDataBuff_Max));
+        AnaInFormatTemperature( EE_TOil_Min,                 szDataBuff_Min, sizeof(szDataBuff_Min));
+        AnaInFormatTemperature( EE_TOil_Max,                 szDataBuff_Max, sizeof(szDataBuff_Max));
         sprintf (   (char far *)szOilTemp,
                     "%s%s\x8f %s\x8f\x8c %s\x8f\x8b",     // \x8f = °C, \x8c = Down-Arrow, \x8b = Up-Arrow,
                     //"%s%s\x8f       %s\x8f\x8b",            // Minimum disabled
@@ -632,8 +635,8 @@ void MonDev_UpdateStrings ( void )
 
         // water temperature string |H2O:  80°C  (..105°C)|
         AnaInFormatTemperature( AnaInGetWatTemperature(), szDataBuff,     sizeof(szDataBuff));
-        AnaInFormatTemperature( TWat_Min,                   szDataBuff_Min, sizeof(szDataBuff_Min));
-        AnaInFormatTemperature( TWat_Max,                   szDataBuff_Max, sizeof(szDataBuff_Max));
+        AnaInFormatTemperature( EE_TWat_Min,                   szDataBuff_Min, sizeof(szDataBuff_Min));
+        AnaInFormatTemperature( EE_TWat_Max,                   szDataBuff_Max, sizeof(szDataBuff_Max));
         sprintf (   (char far *)szWatTemp,
                     "%s%s\x8f %s\x8f\x8c %s\x8f\x8b",     // \x8f = °C, \x8c = Down-Arrow, \x8b = Up-Arrow,
                     //"%s%s\x8f       %s\x8f\x8b",            // Minimum disabled
@@ -646,23 +649,23 @@ void MonDev_UpdateStrings ( void )
         sprintf (   (char far *) szRPMmax,
                     "%-10s%5u %s",
                     RESTXT_STAT_RPMMAX_DESC,
-                    RPM_Max,
+                    EE_RPM_Max,
                     RESTXT_STAT_RPMMAX_UNIT );
 
          // v max string             |v-max:      195 km/h |
         sprintf (   (char far *) szVmax,
                     "%-10s%5u %s ",
                     RESTXT_STAT_VMAX_DESC,
-                    Speed_Max,
+                    EE_SpeedMax,
                     RESTXT_STAT_VMAX_UNIT );
 
         // runtime string           |Serv. 65h  Ges. 1295h|
         sprintf (   (char far *) szRunTime,
                     "%s%3uh  %s%5uh",
                     RESTXT_STAT_H_SERV,
-                    EngRunTime_Srv.wHour,
+                    NV_EngRunTime_Srv.wHour,
                     RESTXT_STAT_H_ALL,
-                    EngRunTime_All.wHour );
+                    NV_EngRunTime_All.wHour );
     }
     #else // BIKE_MOTOBAU
     {
@@ -686,7 +689,7 @@ void MonDev_UpdateStrings ( void )
 
         // water temperature string |Wasser  112°C | 130°C|
         AnaInFormatTemperature( AnaInGetWatTemperature(), szDataBuff,     sizeof(szDataBuff));
-        AnaInFormatTemperature( TWat_Max,                 szDataBuff_Max, sizeof(szDataBuff_Max));
+        AnaInFormatTemperature( EE_TWat_Max,                 szDataBuff_Max, sizeof(szDataBuff_Max));
         sprintf (   (char far *)szWatTemp,
                     "%s%3s%s | %3s%s",
                     RESTXT_MON_TEMP_WAT,
@@ -697,7 +700,7 @@ void MonDev_UpdateStrings ( void )
 
         // oil temperature string   |Öl       80°C | 140°C|
         AnaInFormatTemperature( AnaInGetOilTemperature(), szDataBuff,     sizeof(szDataBuff));
-        AnaInFormatTemperature( TOil_Max,                 szDataBuff_Max, sizeof(szDataBuff_Max));
+        AnaInFormatTemperature( EE_TOil_Max,                 szDataBuff_Max, sizeof(szDataBuff_Max));
         sprintf (   (char far *)szOilTemp,
                     "%s%3s%s | %3s%s",
                     RESTXT_MON_TEMP_OIL,
@@ -708,7 +711,7 @@ void MonDev_UpdateStrings ( void )
 
         // battery string:    |Batt.   14,0V | 15,9V|
         AnaInFormatVoltage( AnaInGetVoltage(), szDataBuff, sizeof(szDataBuff));
-        AnaInFormatVoltage( Volt_Max, szDataBuff_Max, sizeof(szDataBuff_Max));
+        AnaInFormatVoltage( EE_Volt_Max, szDataBuff_Max, sizeof(szDataBuff_Max));
         sprintf (   (char far *)szBatt,
                     "%s%4s%s | %4s%s",
                     RESTXT_MON_BATT,
@@ -759,21 +762,21 @@ ERRCODE MonDev_MsgEntry_Reset(MESSAGE Msg)
         ODS( DBG_SYS, DBG_INFO, "Reset all Min/Max values!");
 
         // using default values from 'sysparam.c'
-        TAir_Min = TAir_Min_def;
-        TAir_Max = TAir_Max_def;
-        TOil_Min = TOil_Min_def;
-        TOil_Max = TOil_Max_def;
-        TWat_Min = TWat_Min_def;
-        TWat_Max = TWat_Max_def;
+        EE_TAir_Min = EE_TAir_Min_def;
+        EE_TAir_Max = EE_TAir_Max_def;
+        EE_TOil_Min = EE_TOil_Min_def;
+        EE_TOil_Max = EE_TOil_Max_def;
+        EE_TWat_Min = EE_TWat_Min_def;
+        EE_TWat_Max = EE_TWat_Max_def;
 
         /* special MOTOBAU behaviour */
         #if(BIKE_MOTOBAU==1)
-        {   Speed_Max = Speed_Max_def;
-            RPM_Max   = RPM_Max_def;
+        {   EE_SpeedMax = EE_SpeedMax_def;
+            EE_RPM_Max   = EE_RPM_Max_def;
         }
         #else // BIKE_MOTOBAU
-        {   Volt_Min = Volt_Min_def;          /* standard behaviour */
-            Volt_Max = Volt_Max_def;
+        {   EE_Volt_Min = EE_Volt_Min_def;          /* standard behaviour */
+            EE_Volt_Max = EE_Volt_Max_def;
         }
         #endif // BIKE_MOTOBAU
         Beep_SignalOk();                   /* beep ok */

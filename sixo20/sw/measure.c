@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.3  2012/05/27 16:01:40  tuberkel
+ * All Eeprom/Nvram Variables renamed
+ *
  * Revision 3.2  2012/02/26 12:24:55  tuberkel
  * - moved all Eeprom Vlaues physically into 'sysparam' module
  *
@@ -92,7 +95,7 @@
  * no message
  *
  * Revision 1.7  2006/03/18 08:50:43  Ralf
- * - TripCounter improved to 4 different counters
+ * - NV_TripCom_Aounter improved to 4 different counters
  *
  * Revision 1.6  2006/02/18 14:53:39  Ralf
  * - system parameter handling completely reviewed (--> table!)
@@ -119,17 +122,17 @@
 
 /* external symbols (taken from eeprom/nvram) */
 extern  UINT16      wMilliSecCounter;   /* valid values: 0h .. ffffh */
-extern  UINT16      wWheelSize;         /* wheel size in mm */
-extern  UINT16      gbWheelImpulse;     /* wheel impulses per revolution */
-extern  CCF_TYPE    CCF;                /* RPM cylinder correcture factor */
-extern  DIST_TYPE   VehicDist;          /* vehicle distance */
-extern  DIST_TYPE   TripA;              /* TripCounter A */
-extern  DIST_TYPE   TripB;              /* TripCounter B */
-extern  DIST_TYPE   TripC;              /* TripCounter C */
-extern  DIST_TYPE   TripD;              /* TripCounter D */
-extern  DIST_TYPE   FuelDist  ;         /* fuel distance */
-extern  SPEED_TYPE  Speed_AvrM;         /* average speed in motion only */
-extern  SPEED_TYPE  Speed_AvrP;         /* average speed incl. pauses */
+extern  UINT16      EE_WheelSize;         /* wheel size in mm */
+extern  UINT16      EE_Wheel_ImpPRev;     /* wheel impulses per revolution */
+extern  CCF_TYPE    EE_CCF;                /* RPM cylinder correcture factor */
+extern  DIST_TYPE   NV_VehicDist;          /* vehicle distance */
+extern  DIST_TYPE   NV_TripCnt_A;              /* NV_TripCom_Aounter A */
+extern  DIST_TYPE   NV_TripCnt_B;              /* NV_TripCom_Aounter B */
+extern  DIST_TYPE   NV_TripCom_A;              /* NV_TripCom_Aounter C */
+extern  DIST_TYPE   NV_TripCom_B;              /* NV_TripCom_Aounter D */
+extern  DIST_TYPE   NV_FuelDist  ;         /* fuel distance */
+extern  SPEED_TYPE  NV_Speed_AvrM;         /* average speed in motion only */
+extern  SPEED_TYPE  NV_Speed_AvrP;         /* average speed incl. pauses */
 
 
 
@@ -171,7 +174,7 @@ UINT16 MeasGetWheelSpeed(MEASUNITS_TYPE eUnit)
         return 0;
 
     /* get the current base value */
-    dwScratch = ((UINT32)wWheelSize * 18) / wWheelPeriod;
+    dwScratch = ((UINT32)EE_WheelSize * 18) / wWheelPeriod;
 
     /* check: slow vehicle speed < ? */
     if (dwScratch < SLOW_WHEELSPEED)
@@ -183,23 +186,23 @@ UINT16 MeasGetWheelSpeed(MEASUNITS_TYPE eUnit)
     {
         case MR_KM_PER_H:
         {
-            dwScratch = ((UINT32)wWheelSize * 18) / wWheelPeriod;
+            dwScratch = ((UINT32)EE_WheelSize * 18) / wWheelPeriod;
         } break;
         case MR_HM_PER_H:
         {
-            dwScratch = ((UINT32)wWheelSize * 180) / wWheelPeriod;
+            dwScratch = ((UINT32)EE_WheelSize * 180) / wWheelPeriod;
         } break;
         case MR_M_PER_S:
         {
-            dwScratch = ((UINT32)wWheelSize * 5) / wWheelPeriod;
+            dwScratch = ((UINT32)EE_WheelSize * 5) / wWheelPeriod;
         } break;
         case MR_DM_PER_S:
         {
-            dwScratch = ((UINT32)wWheelSize * 50) / wWheelPeriod;
+            dwScratch = ((UINT32)EE_WheelSize * 50) / wWheelPeriod;
         } break;
         case MR_CM_PER_S:
         {
-            dwScratch = ((UINT32)wWheelSize * 500) / wWheelPeriod;
+            dwScratch = ((UINT32)EE_WheelSize * 500) / wWheelPeriod;
         } break;
         default:
         {
@@ -237,22 +240,22 @@ UINT16 MeasGetWheelSpeed(MEASUNITS_TYPE eUnit)
  *                  OR Error Code
  *  COMMENT:        Uses this calculation, based on 10 µsec/digit of
  *                  RPM sensors period time and the 'Cylinder-Correctur-
- *                  Factor' (CCF):
+ *                  Factor' (EE_CCF):
  *
  *                         # of ignitions per round
- *                  CCF = --------------------------------------
+ *                  EE_CCF = --------------------------------------
  *                         # of cylinders sharing this ignition
  *
  *
- *                              const 6.000.000 * CCF (Cylinder-Factor)
+ *                              const 6.000.000 * EE_CCF (Cylinder-Factor)
  *                  n [1/Min] = ---------------------------------------
  *                                   RP (RPM period) [10µs]
  *
- *                               c * CCF     c  * CCF(Nom)
+ *                               c * EE_CCF     c  * EE_CCF(Nom)
  *                            = --------- = ----------------
- *                                 RP        RP * CCF(Denom)
+ *                                 RP        RP * EE_CCF(Denom)
  *
- *                  n [1/Min] = (c * CCF-Nom) / (RP * CCF-Denom) [1/Min]
+ *                  n [1/Min] = (c * EE_CCF-Nom) / (RP * EE_CCF-Denom) [1/Min]
  *
  *********************************************************************** */
 UINT16 MeasGetEngineSpeed(MEASUNITS_TYPE eUnit)
@@ -270,7 +273,7 @@ UINT16 MeasGetEngineSpeed(MEASUNITS_TYPE eUnit)
         return 0;
 
     /* get the RPM base value (units: rounds per minute) */
-    dwScratch = (dwConst * CCF.nibble.nom) / ((UINT32)wRPMPeriod * (UINT32)CCF.nibble.denom);
+    dwScratch = (dwConst * EE_CCF.nibble.nom) / ((UINT32)wRPMPeriod * (UINT32)EE_CCF.nibble.denom);
 
     /* check: Low engine speed, but higher than engine start sequence? */
     if (  (dwScratch < SLOW_ENGSPEED_H)
@@ -279,7 +282,7 @@ UINT16 MeasGetEngineSpeed(MEASUNITS_TYPE eUnit)
         /* get a more averaged filter value */
         wRPMPeriod = MeasDrvGetRPMPeriod(FALSE);
         /* do calculations again */
-        dwScratch = (dwConst * CCF.nibble.nom) / ((UINT32)wRPMPeriod * (UINT32)CCF.nibble.denom);
+        dwScratch = (dwConst * EE_CCF.nibble.nom) / ((UINT32)wRPMPeriod * (UINT32)EE_CCF.nibble.denom);
     }
 
 
@@ -328,18 +331,18 @@ UINT16 MeasGetEngineSpeed(MEASUNITS_TYPE eUnit)
 
 
 /***********************************************************************
- *  FUNCTION:       MeasGetFuelDist
+ *  FUNCTION:       MeasGetNV_FuelDist
  *  DESCRIPTION:    interface to get the current fuel distance counter value
  *  PARAMETER:      eUnits      type of return value
  *  RETURN:         formated distance value
  *  COMMENT:        -
  *********************************************************************** */
-UINT16 MeasGetFuelDist( MEASUNITS_TYPE eUnits )
+UINT16 MeasGetNV_FuelDist( MEASUNITS_TYPE eUnits )
 {
     DIST_TYPE ResultDist;
 
     /* get formated value */
-    GetFormatedDist( &FuelDist, &ResultDist, eUnits);
+    GetFormatedDist( &NV_FuelDist, &ResultDist, eUnits);
     switch (eUnits)
     {
         case MR_KM_ONLY:    return ResultDist.km_o;  break;
@@ -351,111 +354,111 @@ UINT16 MeasGetFuelDist( MEASUNITS_TYPE eUnits )
 }
 
 /***********************************************************************
- *  FUNCTION:       MeasGetRawFuelDist
+ *  FUNCTION:       MeasGetRawNV_FuelDist
  *  DESCRIPTION:    interface to get unformated current fuel distance counter value
  *  PARAMETER:      -
  *  RETURN:         ERR_OK
  *  COMMENT:        -
  *********************************************************************** */
-ERRCODE MeasGetRawFuelDist(DIST_TYPE far * fpDist)
+ERRCODE MeasGetRawNV_FuelDist(DIST_TYPE far * fpDist)
 {
     INT_GLOB_DISABLE;
-    *fpDist = FuelDist;
+    *fpDist = NV_FuelDist;
     INT_GLOB_ENABLE;
     return ERR_OK;
 }
 
 /***********************************************************************
- *  FUNCTION:       MeasSetFuelDist
+ *  FUNCTION:       MeasSetNV_FuelDist
  *  DESCRIPTION:    Set the current fuel distance counter value
  *  PARAMETER:      far ptr     to src buffer
  *  RETURN:         ERR_OK
  *  COMMENT:        -
  *********************************************************************** */
-ERRCODE MeasSetFuelDist(DIST_TYPE far * fpDist)
+ERRCODE MeasSetNV_FuelDist(DIST_TYPE far * fpDist)
 {
     INT_GLOB_DISABLE;
-    FuelDist = *fpDist;
+    NV_FuelDist = *fpDist;
     INT_GLOB_ENABLE;
     return ERR_OK;
 }
 
 
 /***********************************************************************
- *  FUNCTION:       MeasGetVehicDist
+ *  FUNCTION:       MeasGetNV_VehicDist
  *  DESCRIPTION:    interface to get the current vehicle distance counter value
  *  PARAMETER:      eUnits      type of return value
  *  RETURN:         formated distance value
  *  COMMENT:        -
  *********************************************************************** */
-DIST_TYPE MeasGetVehicDist( MEASUNITS_TYPE eUnits )
+DIST_TYPE MeasGetNV_VehicDist( MEASUNITS_TYPE eUnits )
 {
     DIST_TYPE ResultDist;
 
     /* get formated value */
-    GetFormatedDist( &VehicDist, &ResultDist, eUnits);
+    GetFormatedDist( &NV_VehicDist, &ResultDist, eUnits);
     return ResultDist;
 }
 
 /***********************************************************************
- *  FUNCTION:       MeasGetRawVehicDist
+ *  FUNCTION:       MeasGetRawNV_VehicDist
  *  DESCRIPTION:    interface to get unformated current vehicle distance counter value
  *  PARAMETER:      -
  *  RETURN:         ERR_OK
  *  COMMENT:        -
  *********************************************************************** */
-ERRCODE MeasGetRawVehicDist(DIST_TYPE far * fpDist)
+ERRCODE MeasGetRawNV_VehicDist(DIST_TYPE far * fpDist)
 {
     INT_GLOB_DISABLE;
-    *fpDist = VehicDist;
+    *fpDist = NV_VehicDist;
     INT_GLOB_ENABLE;
     return ERR_OK;
 }
 
 
 /***********************************************************************
- *  FUNCTION:       MeasSetVehicDist
+ *  FUNCTION:       MeasSetNV_VehicDist
  *  DESCRIPTION:    Set the current vehicle distance counter value
  *  PARAMETER:      far ptr     to src buffer
  *  RETURN:         error code
  *  COMMENT:        -
  *********************************************************************** */
-ERRCODE MeasSetVehicDist(DIST_TYPE far * fpDist)
+ERRCODE MeasSetNV_VehicDist(DIST_TYPE far * fpDist)
 {
     INT_GLOB_DISABLE;
-    VehicDist = *fpDist;
+    NV_VehicDist = *fpDist;
     INT_GLOB_ENABLE;
     return ERR_OK;
 }
 
 
 /***********************************************************************
- *  FUNCTION:       MeasGetTripCnt
+ *  FUNCTION:       MeasGetNV_TripCom_Ant
  *  DESCRIPTION:    interface to get the current trip counter value
- *  PARAMETER:      eTripCntID      tripcounter to be read
+ *  PARAMETER:      eNV_TripCom_AntID      tripcounter to be read
  *                  eUnits          type of return value
  *  RETURN:         formated distance value
  *  COMMENT:        -
  *********************************************************************** */
-UINT16 MeasGetTripCnt( TRIPC_ID eTripCntID, MEASUNITS_TYPE eUnits )
+UINT16 MeasGetNV_TripCom_Ant( TRIPC_ID eNV_TripCom_AntID, MEASUNITS_TYPE eUnits )
 {
     DIST_TYPE   ResultDist;
-    DIST_TYPE * pTripCnt = 0x0;
+    DIST_TYPE * pNV_TripCom_Ant = 0x0;
 
     /* select trip counter */
-    switch (eTripCntID)
+    switch (eNV_TripCom_AntID)
     {
-        case eTRIPC_A: pTripCnt = &TripA; break;
-        case eTRIPC_B: pTripCnt = &TripB; break;
-        case eTRIPC_C: pTripCnt = &TripC; break;
-        case eTRIPC_D: pTripCnt = &TripD; break;
-        default: ODS1(DBG_MEAS,DBG_ERROR,"Illegal TripCounter ID [%u]!", eTripCntID);
+        case eTRIPC_A: pNV_TripCom_Ant = &NV_TripCnt_A; break;
+        case eTRIPC_B: pNV_TripCom_Ant = &NV_TripCnt_B; break;
+        case eTRIPC_C: pNV_TripCom_Ant = &NV_TripCom_A; break;
+        case eTRIPC_D: pNV_TripCom_Ant = &NV_TripCom_B; break;
+        default: ODS1(DBG_MEAS,DBG_ERROR,"Illegal NV_TripCom_Aounter ID [%u]!", eNV_TripCom_AntID);
             return (0);
             break;
     }
 
     /* get formated value */
-    GetFormatedDist( pTripCnt, &ResultDist, eUnits);
+    GetFormatedDist( pNV_TripCom_Ant, &ResultDist, eUnits);
     switch (eUnits)
     {
         case MR_KM:         return ResultDist.km; break;
@@ -473,25 +476,25 @@ UINT16 MeasGetTripCnt( TRIPC_ID eTripCntID, MEASUNITS_TYPE eUnits )
 
 
 /***********************************************************************
- *  FUNCTION:       MeasGetRawTripCnt
+ *  FUNCTION:       MeasGetRawNV_TripCom_Ant
  *  DESCRIPTION:    interface to get unformated current Trip counter value
- *  PARAMETER:      eTripCntID      tripcounter ID to be read
+ *  PARAMETER:      eNV_TripCom_AntID      tripcounter ID to be read
  *                  fpDist          trip counter return value
  *  RETURN:         ERR_OK
  *  COMMENT:        -
  *********************************************************************** */
-ERRCODE MeasGetRawTripCnt( TRIPC_ID eTripCntID, DIST_TYPE far * fpDist)
+ERRCODE MeasGetRawNV_TripCom_Ant( TRIPC_ID eNV_TripCom_AntID, DIST_TYPE far * fpDist)
 {
     INT_GLOB_DISABLE;
 
     /* select trip counter */
-    switch (eTripCntID)
+    switch (eNV_TripCom_AntID)
     {
-        case eTRIPC_A: *fpDist = TripA; break;
-        case eTRIPC_B: *fpDist = TripB; break;
-        case eTRIPC_C: *fpDist = TripC; break;
-        case eTRIPC_D: *fpDist = TripD; break;
-        default: ODS1(DBG_MEAS,DBG_ERROR,"Illegal TripCounter ID [%u]!", eTripCntID);
+        case eTRIPC_A: *fpDist = NV_TripCnt_A; break;
+        case eTRIPC_B: *fpDist = NV_TripCnt_B; break;
+        case eTRIPC_C: *fpDist = NV_TripCom_A; break;
+        case eTRIPC_D: *fpDist = NV_TripCom_B; break;
+        default: ODS1(DBG_MEAS,DBG_ERROR,"Illegal NV_TripCom_Aounter ID [%u]!", eNV_TripCom_AntID);
             return (0);
             break;
     }
@@ -501,24 +504,24 @@ ERRCODE MeasGetRawTripCnt( TRIPC_ID eTripCntID, DIST_TYPE far * fpDist)
 
 
 /***********************************************************************
- *  FUNCTION:       MeasSetTripCnt
+ *  FUNCTION:       MeasSetNV_TripCom_Ant
  *  DESCRIPTION:    Set the current tripcounter value
- *  PARAMETER:      eTripCntID      tripcounter ID to be set
+ *  PARAMETER:      eNV_TripCom_AntID      tripcounter ID to be set
  *                  fpDist          trip counter set value
  *  RETURN:         error code
  *  COMMENT:        -
  *********************************************************************** */
-ERRCODE MeasSetTripCnt( TRIPC_ID eTripCntID, DIST_TYPE far * fpDist)
+ERRCODE MeasSetNV_TripCom_Ant( TRIPC_ID eNV_TripCom_AntID, DIST_TYPE far * fpDist)
 {
     INT_GLOB_DISABLE;
     /* select trip counter */
-    switch (eTripCntID)
+    switch (eNV_TripCom_AntID)
     {
-        case eTRIPC_A: TripA = *fpDist; break;
-        case eTRIPC_B: TripB = *fpDist; break;
-        case eTRIPC_C: TripC = *fpDist; break;
-        case eTRIPC_D: TripD = *fpDist; break;
-        default: ODS1(DBG_MEAS,DBG_ERROR,"Illegal TripCounter ID [%u]!", eTripCntID);
+        case eTRIPC_A: NV_TripCnt_A = *fpDist; break;
+        case eTRIPC_B: NV_TripCnt_B = *fpDist; break;
+        case eTRIPC_C: NV_TripCom_A = *fpDist; break;
+        case eTRIPC_D: NV_TripCom_B = *fpDist; break;
+        default: ODS1(DBG_MEAS,DBG_ERROR,"Illegal NV_TripCom_Aounter ID [%u]!", eNV_TripCom_AntID);
             return (0);
             break;
     }

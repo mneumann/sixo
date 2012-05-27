@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.8  2012/05/27 16:01:36  tuberkel
+ * All Eeprom/Nvram Variables renamed
+ *
  * Revision 3.7  2012/02/11 09:12:06  tuberkel
  * BugFix: Beeper use donly if enbaled by user
  * New: Beep_SignalAck()
@@ -140,7 +143,7 @@
 /* global symbols */
 
 /* external symbols */
-extern DEVFLAGS2_TYPE   gDeviceFlags2;  // device parameters
+extern DEVFLAGS2_TYPE   EE_DevFlags_2;  // device parameters
 
 
 
@@ -181,7 +184,7 @@ ERRCODE Beep_SetNewState(UINT16 wOn_ms, UINT16 wOff_ms, UINT16 wDur_ms )
     ERRCODE RValue = ERR_OK;
 
     /* Beeper enabled by user */
-    if ( gDeviceFlags2.flags.BeeperAvail == TRUE )
+    if ( EE_DevFlags_2.flags.BeeperAvail == TRUE )
     {
         /* ok - now map to the driver function */
         RValue = DigOutDrv_SetNewState( eDIGOUT_BEEP, wOn_ms, wOff_ms, wDur_ms );
@@ -220,7 +223,7 @@ BOOL Beep_GetState( void )
 void Beep_SignalOk(void)
 {
     /* Beeper enabled by user */
-    if ( gDeviceFlags2.flags.BeeperAvail == TRUE )
+    if ( EE_DevFlags_2.flags.BeeperAvail == TRUE )
     {
         /* setup Beeper PWM! */
         Beep_SetNewState(1, 0, 600 );
@@ -238,7 +241,7 @@ void Beep_SignalOk(void)
 void Beep_SignalAck(void)
 {
     /* Beeper enabled by user */
-    if ( gDeviceFlags2.flags.BeeperAvail == TRUE )
+    if ( EE_DevFlags_2.flags.BeeperAvail == TRUE )
     {
         /* setup Beeper PWM! */
         Beep_SetNewState(1, 0, 300 );
@@ -258,7 +261,7 @@ void Beep_SignalAck(void)
 void Beep_SignalEsc(void)
 {
     /* Beeper enabled by user */
-    if ( gDeviceFlags2.flags.BeeperAvail == TRUE )
+    if ( EE_DevFlags_2.flags.BeeperAvail == TRUE )
     {
         /* setup Beeper PWM! */
         Beep_SetNewState( 50, 50, 1000 );

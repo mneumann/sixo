@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.31  2012/05/27 16:01:42  tuberkel
+ * All Eeprom/Nvram Variables renamed
+ *
  * Revision 3.30  2012/05/15 20:11:35  tuberkel
  * FuelSensor: BasicSettings enabled & ok (not yet displayed)
  *
@@ -75,7 +78,7 @@
  * Extensions: all - except Coolride - disabled for next Release
  *
  * Revision 3.28  2012/02/27 23:05:46  tuberkel
- * - Compass: Information moved from gDeviceFlags3  ==> gCompassCntrl
+ * - Compass: Information moved from EE_DevFlags_3  ==> EE_CompassCtrl
  * - CompassDrv corrected
  * - SysPar- API changed
  *
@@ -199,7 +202,7 @@
  *
  * Revision 2.7  2009/06/21 21:23:18  tuberkel
  * Changes by AN and SCHW:
- * - new Compass layout inside TripCounter Module
+ * - new Compass layout inside NV_TripCom_Aounter Module
  * - can be disabled via user settings 'Tripcounter/upperlower:
  * Bitcoded:
  * - bit0: LongDistance:     1=upside (like roadbook), 0=downside
@@ -325,7 +328,7 @@ static OBJ_STEXT        STxtObj_HL_Ext1;
 // ----------------------------------------------------------------
 // externals
 extern STRING far           szDevName[];        // device names
-extern DEVFLAGS1_TYPE       gDeviceFlags1;      // system parameters
+extern DEVFLAGS1_TYPE       EE_DevFlags_1;      // system parameters
 extern unsigned char        szSWVersion[];      // formated sw version
 extern UINT16               wMilliSecCounter;   // valid values: 0h .. ffffh
 
@@ -347,7 +350,7 @@ static UINT32   dwEditBuffer;               // 32 bit edit buffer
 
 // ----------------------------------------------------------------
 // BikeType:
-extern BIKE_TYPE    gBikeType;                      // BikeType (from eeprom)
+extern BIKE_TYPE    EE_BikeType;                      // BikeType (from eeprom)
 static OBJ_SELECT   SlctObj_BikeType;               // BikeType - edit object
 static BIKE_TYPE    LocalBikeType;                  // local edit buffer
 static const STRING pszSelectBike[RESTXT_SET_BIKE_CNT] =
@@ -359,51 +362,51 @@ static const STRING pszSelectBike[RESTXT_SET_BIKE_CNT] =
                         };
 
 // ------------------------------------------
-// CylinderCorrectureFactor CCF:
-// Note: CCF is a bitfield structure - can therefore NOT directly be adressed by edit objects,
-//       So we need local copy 'CCFNom'/'CCFDenom' to compare/save changes!
-extern CCF_TYPE CCF;                        // CCF value (with Nom/Denom nibbles) from eeprom (can not be address
-static UINT8    CCFNom;                     // copy of CCF.Nom as reference for edit object
-static UINT8    CCFDenom;                   // copy of CCF.Denom as reference for edit object
-static OBJ_NUM  NumObj_CCFNom;              // nominator edit object
-static OBJ_NUM  NumObj_CCFDenom;            // denominator edit object
+// CylinderCorrectureFactor EE_CCF:
+// Note: EE_CCF is a bitfield structure - can therefore NOT directly be adressed by edit objects,
+//       So we need local copy 'EE_CCFNom'/'EE_CCFDenom' to compare/save changes!
+extern CCF_TYPE EE_CCF;                        // EE_CCF value (with Nom/Denom nibbles) from eeprom (can not be address
+static UINT8    EE_CCFNom;                     // copy of EE_CCF.Nom as reference for edit object
+static UINT8    EE_CCFDenom;                   // copy of EE_CCF.Denom as reference for edit object
+static OBJ_NUM  NumObj_EE_CCFNom;              // nominator edit object
+static OBJ_NUM  NumObj_EE_CCFDenom;            // denominator edit object
 
 // ------------------------------------------
 // WheelSize / WheelImpulse objects
-extern UINT16   wWheelSize;                 // wheel size from eeprom in mm
+extern UINT16   EE_WheelSize;                 // wheel size from eeprom in mm
 static OBJ_NUM  NumObj_WheelSize;           // wheel size edit object
-extern UINT8    gbWheelImpulse;             // wheel impulse from eeprom
+extern UINT8    EE_Wheel_ImpPRev;             // wheel impulse from eeprom
 static OBJ_NUM  NumObj_WheelImpuls;         // wheel impulse edit object
 
 // ------------------------------------------
 // EngineRunTime objects:
-extern TIME_TYPE_LD EngRunTime_Srv;         // engine runtime in h - since last service (NVRAM, 4 bytes)
-extern TIME_TYPE_LD EngRunTime_All;         // engine runtime in h - overall (NVRAM, 4 bytes)
+extern TIME_TYPE_LD NV_EngRunTime_Srv;         // engine runtime in h - since last service (NVRAM, 4 bytes)
+extern TIME_TYPE_LD NV_EngRunTime_All;         // engine runtime in h - overall (NVRAM, 4 bytes)
 static OBJ_NUM      NumObj_EngRunSrv;       // EnginRunTime Service - edit object
 static OBJ_NUM      NumObj_EngRunAll;       // EnginRunTime All     - edit object
 
 // ------------------------------------------
 // Vehicle / Service km objects:
-// Note: 'VehicDist' is Interrupt-driven and API protected - can therefore NOT directly be adressed by edit objects,
-//       So we need local copy 'VehicDist' to compare/save changes!
-extern DIST_TYPE    gNextServKm;            // Next km-Service (from eeprom)
+// Note: 'NV_VehicDist' is Interrupt-driven and API protected - can therefore NOT directly be adressed by edit objects,
+//       So we need local copy 'NV_VehicDist' to compare/save changes!
+extern DIST_TYPE    EE_NextSrvKm;            // Next km-Service (from eeprom)
 static UINT32       dwServKm;               // original vehicle distance in km only
-static DIST_TYPE    VehicDist;              // VehicDist-Copy returned by Measurement API
-static UINT32       dwVehicDist;            // VehicDist-Copy - in km only
+static DIST_TYPE    NV_VehicDist;              // NV_VehicDist-Copy returned by Measurement API
+static UINT32       dwNV_VehicDist;            // NV_VehicDist-Copy - in km only
 static OBJ_NUM      NumObj_ServKm;          // Serv-km  - edit object
-static OBJ_NUM      NumObj_VehicDist;       // Vehic-km - edit object
+static OBJ_NUM      NumObj_NV_VehicDist;       // Vehic-km - edit object
 
 // ----------------------------------------------------------------
 // TankCapacity / FuelConsumption objects:
-extern UINT16       gwFuelCap;              // FuelCapacity in 1/10 liters (from eeprom)
-extern UINT8        gbFuelCons;             // FuelConsumption in 1/10 l/100 km (from eeprom)
+extern UINT16       EE_FuelCap;              // FuelCapacity in 1/10 liters (from eeprom)
+extern UINT8        EE_FuelConsUser;             // FuelConsumption in 1/10 l/100 km (from eeprom)
 static OBJ_NUM      NumObj_TankCap;         // FuelCapacity    - edit object
 static OBJ_NUM      NumObj_FuelCons;        // FuelConsumption - edit object
 
 // ----------------------------------------------------------------
 // BikeLogo (NOTE: All entries derived from 'LOGO_TYPE')
-extern UINT8        gbLogoDelay;            // StartLogoDelay (from eeprom)
-extern UINT8        gLogoSelection;         // BikeLogo (from eeprom)
+extern UINT8        EE_LogoDelay;            // StartLogoDelay (from eeprom)
+extern UINT8        EE_LogoSelect;         // BikeLogo (from eeprom)
 static OBJ_NUM      NumObj_LogoDelay;       // StartLogoDelay - edit object
 static OBJ_SELECT   SlctObj_Logo;           // BikeLogo - edit object
 static const STRING pszSelectLogo[RESTXT_SET_LOGO_CNT] =
@@ -433,9 +436,9 @@ static const STRING pszSelectLogo[RESTXT_SET_LOGO_CNT] =
 
 // ----------------------------------------------------------------
 // DisplayControl objects:
-// Note: 'gDisplayFlags' is a bitfield structure - can therefore NOT directly be adressed by edit objects,
+// Note: 'EE_DisplFlags' is a bitfield structure - can therefore NOT directly be adressed by edit objects,
 //       So we need local copies to compare/save changes!
-extern DPLFLAGS_TYPE  gDisplayFlags;        // All Display Control Flags (from eeprom)
+extern DPLFLAGS_TYPE  EE_DisplFlags;        // All Display Control Flags (from eeprom)
 
 // ----------------------------------------------------------------
 // LCD settings
@@ -453,7 +456,7 @@ static OBJ_STEXT    STxtObj_Led_Desc;       // static text 'LED'
 static OBJ_NUM      NumObj_LEDDimm;         // LED Dimmer - edit object
 static UINT8        bLEDDimmLev;            // LED Dimmer - local edit value
 static OBJ_NUM      NumObj_RPMFlash;        // LED RPM-High-Flash - edit object,
-extern RPM_TYPE     RPM_Flash;              // LED RPM-High-Flash, 1 RPM/bit (from EEPROM)
+extern RPM_TYPE     EE_RPM_Flash;              // LED RPM-High-Flash, 1 RPM/bit (from EEPROM)
 static OBJ_SELECT   SlctObj_LEDWM;          // LED WarningMode - edit object
 static BOOL         fLedWarnMode;           // LED WarningMode - copy eeprom value
 static const STRING pszSelectLedWM[RESTXT_SET_LEDWM_CNT] =
@@ -471,10 +474,10 @@ static const STRING pszSelectLedWM[RESTXT_SET_LEDWM_CNT] =
 
 // ----------------------------------------------------------------
 // Device Flags 2+3:
-// Note: 'gDeviceFlags2/3' are a bitfield structure - can therefore NOT directly be adressed by edit objects,
+// Note: 'EE_DevFlags_2/3' are a bitfield structure - can therefore NOT directly be adressed by edit objects,
 //       So we need local copies to compare/save changes!
-extern DEVFLAGS2_TYPE       gDeviceFlags2;
-extern DEVFLAGS3_TYPE       gDeviceFlags3;
+extern DEVFLAGS2_TYPE       EE_DevFlags_2;
+extern DEVFLAGS3_TYPE       EE_DevFlags_3;
 
 // ----------------------------------------------------------------
 // Date objects
@@ -510,7 +513,7 @@ BOOL                gfDaylightSave;         // Copy of eeprom value.struct eleme
 // ----------------------------------------------------------------
 // Language Selection
 static OBJ_SELECT   SlctObj_Lang;           // Language - edit object
-extern UINT8        gLanguage;              // Language (from eeprom
+extern UINT8        EE_LangSelect;              // Language (from eeprom
 static const STRING pszSelectLang[RESTXT_SET_LANG_CNT] =
                         {   RESTXT_SET_LANG_DE,
                             RESTXT_SET_LANG_EN,
@@ -518,9 +521,9 @@ static const STRING pszSelectLang[RESTXT_SET_LANG_CNT] =
                         };
 
 // ----------------------------------------------------------------
-// TripCounterDisplayMode (up/down)
-static OBJ_SELECT   SlctObj_TripCntLUp;     // TripCounterDisplayMode - edit object
-static BOOL         fTripCntLongUp;         // TripCounterDisplayMode - copy of eeprom value
+// NV_TripCom_AounterDisplayMode (up/down)
+static OBJ_SELECT   SlctObj_NV_TripCom_AntLUp;     // NV_TripCom_AounterDisplayMode - edit object
+static BOOL         fNV_TripCom_AntLongUp;         // NV_TripCom_AounterDisplayMode - copy of eeprom value
 static const STRING pszSelectTrip[RESTXT_SET_TRIP_CNT] =
                         {   RESTXT_SET_TRIP_VST,
                             RESTXT_SET_TRIP_VSB
@@ -546,7 +549,7 @@ static OBJ_BOOL     BoolObj_ScrDmp;         // Hardcopy - edit object
 BOOL                gfHardcopy;             // Hardcopy On/off switch (copy of eeprom)
 
 // ----------------------------------------------------------------
-// Beeper Control (taken from gDeviceFlags2 )
+// Beeper Control (taken from EE_DevFlags_2 )
 static OBJ_BOOL     BoolObj_BeepCtrl;       // Beeper On/off - edit object
 BOOL                gfBeepCtrl;             // Beeper On/off switch (copy of eeprom)
 
@@ -558,7 +561,7 @@ BOOL                gfEepromReset;          // Eeprom Reset
 // ----------------------------------------------------------------
 // SIxO DebugOut Control daylight saving value (on/off, from eeprom)
 static OBJ_NUM      NumObj_DbgOut;          // SIxO-DebugOut control - edit object
-extern DBGFILT_TYPE gDebugFilter;           // SIxO-DebugOut control (level & module, from eeprom
+extern DBGFILT_TYPE EE_DbgFilter;           // SIxO-DebugOut control (level & module, from eeprom
 
 
 
@@ -568,7 +571,7 @@ extern DBGFILT_TYPE gDebugFilter;           // SIxO-DebugOut control (level & mo
 
 // ----------------------------------------------------------------
 // COMPASS OBJECTS
-extern COMPASSCNTL_TYPE     gCompassCntrl;      // Eeprom value
+extern COMPASSCNTL_TYPE     EE_CompassCtrl;      // Eeprom value
 static UINT8                bCompassDispl;      // to support enum display mode
 static OBJ_SELECT           SlctObj_CompassD;   // compass calibration state object
 static const STRING pszSelectCompD[RESTXT_SET_COMPD_CNT] =
@@ -594,22 +597,22 @@ BOOL            gfCompAvail;                // local value
 
 // ----------------------------------------------------------------
 // COOLRIDE HEATGRIP OBJECTS
-extern COOLRIDECNTRL_TYPE   gCoolrideCntrl; // Eeprom saved Coolride Control Flags
+extern COOLRIDECNTRL_TYPE   EE_CoolrideCtrl; // Eeprom saved Coolride Control Flags
 static OBJ_BOOL BoolObj_CoolrAvail;         // main switch to enable 'Coolride' extension
 static OBJ_NUM  NumObj_CoolrIn;             // Number of SIxO-GPI - to measure PWM of heatgrip
 static OBJ_NUM  NumObj_CoolrOut;            // Number of SIxO-GPO - to provide Key-Action to Coolride
-BOOL            gfCoolrAvail;               // parts of the 'gCoolrideCntrl' structure
+BOOL            gfCoolrAvail;               // parts of the 'EE_CoolrideCtrl' structure
 UINT8           gbCoolrGPI;
 UINT8           gbCoolrGPO;
 
 // ----------------------------------------------------------------
 // FUEL SENSOR OBJECTS
-extern FUELSCNTRL_TYPE gFuelSensCntrl;   // Eeprom saved Control flags
-extern UINT32   FuelSensImp;                // NVram Fuel sensor Impulses counter since last refuel 
+extern FUELSCNTRL_TYPE EE_FuelSensCtrl;   // Eeprom saved Control flags
+extern UINT32   NV_FuelSensImp;                // NVram Fuel sensor Impulses counter since last refuel 
 static OBJ_BOOL BoolObj_FuelSAvail;         // main switch to enable 'FuelSensor' extension
 static OBJ_NUM  NumObj_FuelSIn;             // Number of SIxO-GPI - to count impulses of fuel sensor
 static OBJ_NUM  NumObj_FuelSImp;            // Number of Impulses/Liter of fuel sensor
-BOOL            gfFuelSensAvail;            // parts of the 'gFuelSensCntrl' structure
+BOOL            gfFuelSensAvail;            // parts of the 'EE_FuelSensCtrl' structure
 UINT8           gbFuelSGPI;                 // edit value for GPI
 UINT16          gwFuelSImp;                 // edit value for Impulse/Litre
 
@@ -717,13 +720,13 @@ static const OBJ_SLCT_INIT SlctObj_InitList[] =
     /* ------------------ ------ ------ ------------ ----- ----------------------------- ------------------     --------------- ---------------------------- ----------------  ------------------------ --------------------------------- */
     { &SlctObj_BikeType,    C01,   R2,  DPLFONT_6X8,   12, (UINT8 far *)&LocalBikeType,  RESTXT_SET_BIKE_CNT,   &bEditBuffer,   RESTXT_SET_BIKE_DESC,        pszSelectBike,    RESTXT_SET_BIKE_WIDTH,   OC_DISPL | OC_SELECT | OC_EDIT   },
     /* ------------------ ------ ------ ------------ ----- ----------------------------- ------------------     --------------- ---------------------------- ----------------  ------------------------ --------------------------------- */
-    { &SlctObj_TripCntLUp,  C01,   R4,  DPLFONT_6X8,   12, (UINT8 far *)&fTripCntLongUp, RESTXT_SET_TRIP_CNT,   &bEditBuffer,   RESTXT_SET_TRIP_DESC,        pszSelectTrip,    RESTXT_SET_TRIP_WIDTH,   OC_DISPL | OC_SELECT | OC_EDIT   },
-    { &SlctObj_Lang,        C01,   R5,  DPLFONT_6X8,   12, (UINT8 far *)&gLanguage,      RESTXT_SET_LANG_CNT,   &bEditBuffer,   RESTXT_SET_LANG_DESC,        pszSelectLang,    RESTXT_SET_LANG_WIDTH,   OC_DISPL                         },
+    { &SlctObj_NV_TripCom_AntLUp,  C01,   R4,  DPLFONT_6X8,   12, (UINT8 far *)&fNV_TripCom_AntLongUp, RESTXT_SET_TRIP_CNT,   &bEditBuffer,   RESTXT_SET_TRIP_DESC,        pszSelectTrip,    RESTXT_SET_TRIP_WIDTH,   OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &SlctObj_Lang,        C01,   R5,  DPLFONT_6X8,   12, (UINT8 far *)&EE_LangSelect,      RESTXT_SET_LANG_CNT,   &bEditBuffer,   RESTXT_SET_LANG_DESC,        pszSelectLang,    RESTXT_SET_LANG_WIDTH,   OC_DISPL                         },
     { &SlctObj_Metric,      C01,   R6,  DPLFONT_6X8,   12, (UINT8 far *)&fMetric,        RESTXT_SET_METRIC_CNT, &bEditBuffer,   RESTXT_SET_METRIC_DESC,      pszSelectMetric,  RESTXT_SET_METRIC_WIDTH, OC_DISPL                         },
     /* ------------------ ------ ------ ------------ ----- ----------------------------- ------------------     --------------- ---------------------------- ----------------  ------------------------ --------------------------------- */
     { &SlctObj_LEDWM,       C05,   R6,  DPLFONT_6X8,   17, (UINT8 far *)&fLedWarnMode,   RESTXT_SET_LEDWM_CNT,  &bEditBuffer,   RESTXT_SET_LEDWM_DESC,       pszSelectLedWM,   RESTXT_SET_LEDWM_WIDTH,  OC_DISPL | OC_SELECT | OC_EDIT   },
     /* ------------------ ------ ------ ------------ ----- ----------------------------- ------------------     --------------- ---------------------------- ----------------  ------------------------ --------------------------------- */
-    { &SlctObj_Logo,        C01,   R7,  DPLFONT_6X8,   12, (UINT8 far *)&gLogoSelection, RESTXT_SET_LOGO_CNT,   &bEditBuffer,   RESTXT_SET_LOGO_DESC,        pszSelectLogo,    RESTXT_SET_LOGO_WIDTH,   OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &SlctObj_Logo,        C01,   R7,  DPLFONT_6X8,   12, (UINT8 far *)&EE_LogoSelect, RESTXT_SET_LOGO_CNT,   &bEditBuffer,   RESTXT_SET_LOGO_DESC,        pszSelectLogo,    RESTXT_SET_LOGO_WIDTH,   OC_DISPL | OC_SELECT | OC_EDIT   },
     /* ------------------ ------ ------ ------------ ----- ----------------------------- ------------------     --------------- ---------------------------- ----------------  ------------------------ --------------------------------- */
     { &SlctObj_CompassD,    C11,   R2,  DPLFONT_6X8,    5, (UINT8 far *)&bCompassDispl,  RESTXT_SET_COMPD_CNT,  &bEditBuffer,   RESTXT_SET_COMPD_DESC,       pszSelectCompD,   RESTXT_SET_COMPD_WIDTH,  OC_DISPL | OC_SELECT | OC_EDIT   },
     { &SlctObj_CompassC,    C17,   R2,  DPLFONT_6X8,    5, (UINT8 far *)&bCompassCal,    RESTXT_SET_COMPC_CNT,  &bEditBuffer,   RESTXT_SET_COMPC_DESC,       pszSelectCompC,   RESTXT_SET_COMPC_WIDTH,  OC_DISPL | OC_SELECT | OC_EDIT   },
@@ -743,17 +746,17 @@ static const OBJ_NUM_INIT NumObj_InitList[] =
     /* VEHICLE SETTINGS */
     /* fpObject           OrgX    OrgY  Font         Width  pNumber                 pWorkNumber     Type   Min  Max    Step DplType  Mode     C  zDescr                      zUnit                       L   Capabilities                     */
     /* ------------------ ------ ------ ------------ ----- -----------------------  --------------- ------ ---- ------- --- -------  -------- - ---------------------------- --------------------------- -- ----------------------------------- */
-    { &NumObj_CCFNom,       C15,   R2,  DPLFONT_6X8,     6, &CCFNom,                &bEditBuffer,   eUCHAR, 1L,     9L,  0L, eDez,   eColumn, 0, RESTXT_SET_CCFNOM_DESC,     RESTXT_SET_CCFNOM_UNIT,     1,  OC_DISPL | OC_SELECT | OC_EDIT   },
-    { &NumObj_CCFDenom,     C21,   R2,  DPLFONT_6X8,     1, &CCFDenom,              &bEditBuffer,   eUCHAR, 1L,     9L,  0L, eDez,   eColumn, 0, RESTXT_EMPTY_TXT,           RESTXT_EMPTY_TXT,           1,  OC_DISPL | OC_SELECT | OC_EDIT   },
-    { &NumObj_WheelSize,    C01,   R3,  DPLFONT_6X8,    12, &wWheelSize,            &wEditBuffer,   eUINT,  0L,  9999L,  0L, eDez,   eColumn, 0, RESTXT_SET_WHEELSIZE_DESC,  RESTXT_SET_WHEELSIZE_UNIT,  4,  OC_DISPL | OC_SELECT | OC_EDIT   },
-    { &NumObj_WheelImpuls,  C16,   R3,  DPLFONT_6X8,     6, &gbWheelImpulse,        &wEditBuffer,   eUCHAR, 1L,    99L,  0L, eDez,   eColumn, 0, RESTXT_SET_WHEELIMP_DESC,   RESTXT_EMPTY_TXT,           2,  OC_DISPL | OC_SELECT | OC_EDIT   },
-    { &NumObj_VehicDist,    C01,   R4,  DPLFONT_6X8,    12, &dwVehicDist,           &dwEditBuffer,  eULONG, 0L,999999L,  0L, eDez,   eColumn, 0, RESTXT_SET_VEHICKM_DESC,    RESTXT_SET_VEHICKM_UNIT,    6,  OC_DISPL | OC_SELECT | OC_EDIT   },
-    { &NumObj_EngRunAll,    C16,   R4,  DPLFONT_6X8,     6, &EngRunTime_All.wHour,  &wEditBuffer,   eUINT,  0L, 65535L,  0L, eDez,   eColumn, 0, RESTXT_EMPTY_TXT,           RESTXT_SET_ERT_UNIT,        5,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &NumObj_EE_CCFNom,       C15,   R2,  DPLFONT_6X8,     6, &EE_CCFNom,                &bEditBuffer,   eUCHAR, 1L,     9L,  0L, eDez,   eColumn, 0, RESTXT_SET_EE_CCFNOM_DESC,     RESTXT_SET_EE_CCFNOM_UNIT,     1,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &NumObj_EE_CCFDenom,     C21,   R2,  DPLFONT_6X8,     1, &EE_CCFDenom,              &bEditBuffer,   eUCHAR, 1L,     9L,  0L, eDez,   eColumn, 0, RESTXT_EMPTY_TXT,           RESTXT_EMPTY_TXT,           1,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &NumObj_WheelSize,    C01,   R3,  DPLFONT_6X8,    12, &EE_WheelSize,            &wEditBuffer,   eUINT,  0L,  9999L,  0L, eDez,   eColumn, 0, RESTXT_SET_WHEELSIZE_DESC,  RESTXT_SET_WHEELSIZE_UNIT,  4,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &NumObj_WheelImpuls,  C16,   R3,  DPLFONT_6X8,     6, &EE_Wheel_ImpPRev,        &wEditBuffer,   eUCHAR, 1L,    99L,  0L, eDez,   eColumn, 0, RESTXT_SET_WHEELIMP_DESC,   RESTXT_EMPTY_TXT,           2,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &NumObj_NV_VehicDist,    C01,   R4,  DPLFONT_6X8,    12, &dwNV_VehicDist,           &dwEditBuffer,  eULONG, 0L,999999L,  0L, eDez,   eColumn, 0, RESTXT_SET_VEHICKM_DESC,    RESTXT_SET_VEHICKM_UNIT,    6,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &NumObj_EngRunAll,    C16,   R4,  DPLFONT_6X8,     6, &NV_EngRunTime_All.wHour,  &wEditBuffer,   eUINT,  0L, 65535L,  0L, eDez,   eColumn, 0, RESTXT_EMPTY_TXT,           RESTXT_SET_ERT_UNIT,        5,  OC_DISPL | OC_SELECT | OC_EDIT   },
     { &NumObj_ServKm,       C01,   R5,  DPLFONT_6X8,    12, &dwServKm,              &dwEditBuffer,  eULONG, 0L,999999L,  0L, eDez,   eColumn, 0, RESTXT_SET_SERVKM_DESC,     RESTXT_SET_VEHICKM_UNIT,    6,  OC_DISPL | OC_SELECT | OC_EDIT   },
-    { &NumObj_EngRunSrv,    C16,   R5,  DPLFONT_6X8,     6, &EngRunTime_Srv.wHour,  &wEditBuffer,   eUINT,  0L, 65535L,  0L, eDez,   eColumn, 0, RESTXT_EMPTY_TXT,           RESTXT_SET_ERT_UNIT,        5,  OC_DISPL | OC_SELECT | OC_EDIT   },
-    { &NumObj_TankCap,      C01,   R6,  DPLFONT_6X8,    12, &gwFuelCap,             &dwEditBuffer,  eUINT,  0L,   999L,  0L, eDez,   eColumn, 1, RESTXT_SET_TANKCAP_DESC,    RESTXT_SET_TANKCAP_UNIT,    4,  OC_DISPL                         },
-    { &NumObj_FuelCons,     C15,   R6,  DPLFONT_6X8,     7, &gbFuelCons,            &bEditBuffer,   eUCHAR, 0L,   255L,  0L, eDez,   eColumn, 1, RESTXT_SET_FUELCONS_DESC,   RESTXT_SET_FUELCONS_UNIT,   4,  OC_DISPL                         },
-    { &NumObj_LogoDelay,    C18,   R7,  DPLFONT_6X8,     4, &gbLogoDelay,           &bEditBuffer,   eUCHAR, 0L,    99L,  0L, eDez,   eColumn, 1, "",                         RESTXT_SET_LOGODELAY_UNIT,  3,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &NumObj_EngRunSrv,    C16,   R5,  DPLFONT_6X8,     6, &NV_EngRunTime_Srv.wHour,  &wEditBuffer,   eUINT,  0L, 65535L,  0L, eDez,   eColumn, 0, RESTXT_EMPTY_TXT,           RESTXT_SET_ERT_UNIT,        5,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &NumObj_TankCap,      C01,   R6,  DPLFONT_6X8,    12, &EE_FuelCap,             &dwEditBuffer,  eUINT,  0L,   999L,  0L, eDez,   eColumn, 1, RESTXT_SET_TANKCAP_DESC,    RESTXT_SET_TANKCAP_UNIT,    4,  OC_DISPL                         },
+    { &NumObj_FuelCons,     C15,   R6,  DPLFONT_6X8,     7, &EE_FuelConsUser,            &bEditBuffer,   eUCHAR, 0L,   255L,  0L, eDez,   eColumn, 1, RESTXT_SET_FUELCONS_DESC,   RESTXT_SET_FUELCONS_UNIT,   4,  OC_DISPL                         },
+    { &NumObj_LogoDelay,    C18,   R7,  DPLFONT_6X8,     4, &EE_LogoDelay,           &bEditBuffer,   eUCHAR, 0L,    99L,  0L, eDez,   eColumn, 1, "",                         RESTXT_SET_LOGODELAY_UNIT,  3,  OC_DISPL | OC_SELECT | OC_EDIT   },
 
     /* DEVICE SETTINGS */
     /* fpObject           OrgX    OrgY  Font         Width  pNumber                 pWorkNumber     Type   Min  Max    Step DplType  Mode     C  zDescr                      zUnit                       L   Capabilities                     */
@@ -765,7 +768,7 @@ static const OBJ_NUM_INIT NumObj_InitList[] =
     { &NumObj_ClkDate,      C01,   R3,  DPLFONT_6X8,     8, &bDate,                 &bEditBuffer,   eUCHAR, 1L,    31L,  0L, eDez,   eColumn, 0, RESTXT_SET_RTC_DATE,        RESTXT_EMPTY_TXT,           2,  OC_DISPL | OC_SELECT | OC_EDIT   },
     { &NumObj_ClkMonth,     C09,   R3,  DPLFONT_6X8,     3, &bMonth,                &bEditBuffer,   eUCHAR, 1L,    12L,  0L, eDez,   eColumn, 0, RESTXT_DAYSEPERATOR,        RESTXT_EMPTY_TXT,           2,  OC_DISPL | OC_SELECT | OC_EDIT   },
     { &NumObj_ClkYear,      C12,   R3,  DPLFONT_6X8,     3, &bYear,                 &bEditBuffer,   eUCHAR, 0L,    99L,  0L, eDez,   eColumn, 0, RESTXT_DAYSEPERATOR,        RESTXT_EMPTY_TXT,           2,  OC_DISPL | OC_SELECT | OC_EDIT   },
-    { &NumObj_DbgOut,       C01,   R7,  DPLFONT_6X8,    12, &gDebugFilter,          &bEditBuffer,   eUCHAR, 0L,   255L,  0L, eHex,   eColumn, 0, RESTXT_DBGOUTDESCR,         RESTXT_EMPTY_TXT,           2,  OC_DISPL                         },
+    { &NumObj_DbgOut,       C01,   R7,  DPLFONT_6X8,    12, &EE_DbgFilter,          &bEditBuffer,   eUCHAR, 0L,   255L,  0L, eHex,   eColumn, 0, RESTXT_DBGOUTDESCR,         RESTXT_EMPTY_TXT,           2,  OC_DISPL                         },
 
     /* LED/LCD SETTINGS */
     /* fpObject           OrgX    OrgY  Font         Width  pNumber                 pWorkNumber     Type   Min  Max    Step DplType  Mode     C  zDescr                      zUnit                       L   Capabilities                     */
@@ -774,7 +777,7 @@ static const OBJ_NUM_INIT NumObj_InitList[] =
     { &NumObj_BacklLvl,     C05,   R3,  DPLFONT_6X8,    17, &bBacklLev,             &bEditBuffer,   eUCHAR, 0L,    63L,  1L, eDez,   eStep,   0, RESTXT_SET_LCD_BR_DESC,     RESTXT_EMPTY_TXT,           2,  OC_DISPL | OC_SELECT | OC_EDIT   },
     { &NumObj_ContrLvl,     C05,   R4,  DPLFONT_6X8,    17, &bContrLev,             &bEditBuffer,   eUCHAR, 0L,    63L,  1L, eDez,   eStep,   0, RESTXT_SET_LCD_CNT_DESC,    RESTXT_EMPTY_TXT,           2,  OC_DISPL | OC_SELECT | OC_EDIT   },
     { &NumObj_LEDDimm,      C05,   R5,  DPLFONT_6X8,    17, &bLEDDimmLev,           &bEditBuffer,   eUCHAR, 0L,     7L,  1L, eDez,   eStep,   0, RESTXT_SET_LED_DIM_DESC,    RESTXT_EMPTY_TXT,           1,  OC_DISPL | OC_SELECT             },
-    { &NumObj_RPMFlash,     C05,   R7,  DPLFONT_6X8,    17, &RPM_Flash,             &wEditBuffer,   eUINT,  0L, 30000L,  0L, eDez,   eColumn, 0, RESTXT_SET_RPMFL_DESC,      RESTXT_EMPTY_TXT,           5,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &NumObj_RPMFlash,     C05,   R7,  DPLFONT_6X8,    17, &EE_RPM_Flash,             &wEditBuffer,   eUINT,  0L, 30000L,  0L, eDez,   eColumn, 0, RESTXT_SET_RPMFL_DESC,      RESTXT_EMPTY_TXT,           5,  OC_DISPL | OC_SELECT | OC_EDIT   },
 
     /* EXTENSIONS SETTINGS */
     /* fpObject           OrgX    OrgY  Font         Width  pNumber                 pWorkNumber     Type   Min  Max    Step DplType  Mode     C  zDescr                      zUnit                       L   Capabilities                     */
@@ -804,11 +807,11 @@ static const void far * ObjectList_Veh[] =
 {
     (void far *) &STxtObj_HL_Vehicle,   // 0 - Headline (not selectable)
     (void far *) &SlctObj_BikeType,     // 01
-    (void far *) &NumObj_CCFNom,        // 02
-    (void far *) &NumObj_CCFDenom,      // 03
+    (void far *) &NumObj_EE_CCFNom,        // 02
+    (void far *) &NumObj_EE_CCFDenom,      // 03
     (void far *) &NumObj_WheelSize,     // 04
     (void far *) &NumObj_WheelImpuls,   // 05
-    (void far *) &NumObj_VehicDist,     // 06
+    (void far *) &NumObj_NV_VehicDist,     // 06
     (void far *) &NumObj_EngRunAll,     // 07
     (void far *) &NumObj_ServKm,        // 08
     (void far *) &NumObj_EngRunSrv,     // 09
@@ -834,7 +837,7 @@ static const void far * ObjectList_Dev[] =
     (void far *) &NumObj_ClkMonth,      // 06
     (void far *) &NumObj_ClkYear,       // 07
     (void far *) &BoolObj_DLSave,       // 08
-    (void far *) &SlctObj_TripCntLUp,   // 09
+    (void far *) &SlctObj_NV_TripCom_AntLUp,   // 09
     (void far *) &BoolObj_BeepCtrl,     // 10
     (void far *) &SlctObj_Lang,         // 11
     (void far *) &BoolObj_VehSim,       // 12
@@ -1072,7 +1075,7 @@ ERRCODE SetDev_MsgEntry(MESSAGE GivenMsg)
                 SetDev_Show(TRUE);                                    // show our screen immediatly
                 SDObj.fScreenInit = TRUE;                           // reset init state
                 SDObj.fFocused    = TRUE;                           // set our focus
-                gDeviceFlags1.flags.ActDevNr = DEVID_SET;                // save device# for restore
+                EE_DevFlags_1.flags.ActDevNr = DEVID_SET;                // save device# for restore
                 RValue = ERR_MSG_PROCESSED;
              }
              else
@@ -1161,8 +1164,8 @@ ERRCODE SetDev_MsgEntry(MESSAGE GivenMsg)
                    only if Backlight-Switch and -Level object not in edit mode */
                 if (  (NumObj_BacklOL.State.bits.fEditActive    == FALSE)
                     &&(NumObj_BacklLvl.State.bits.fEditActive == FALSE) )
-                    LCDDrvSetBacklightLevel(    DisplBacklightCheckOn(gDisplayFlags.flags.BacklOnLevel),
-                                                gDisplayFlags.flags.BacklLev );
+                    LCDDrvSetBacklightLevel(    DisplBacklightCheckOn(EE_DisplFlags.flags.BacklOnLevel),
+                                                EE_DisplFlags.flags.BacklLev );
                 SetDev_Show(TRUE);
                 RValue = ERR_MSG_PROCESSED;
                 break;
@@ -1189,30 +1192,30 @@ void SetDev_CheckChanges_Vehicle( void )
     // ============================================================
 
     // Bike TYPE changed? ------------------
-    if ( gBikeType != LocalBikeType )
-    {    gBikeType  = LocalBikeType;                // save that new value
+    if ( EE_BikeType != LocalBikeType )
+    {    EE_BikeType  = LocalBikeType;                // save that new value
         // essential: reset all vehicle states to 'all right' too! */
         Surv_ResetAllParameters();
         // essential: adapt vehicle specific digital filter settings too! */
         DigInDrv_FilterInit();
     }
 
-    // CCF value was changed? ----------------------
-    if (  (CCF.nibble.nom   != CCFNom  )
-        ||(CCF.nibble.denom != CCFDenom) )
-    {   CCF.nibble.nom   = CCFNom;              // save global -> auto eeprom update!
-        CCF.nibble.denom = CCFDenom;
+    // EE_CCF value was changed? ----------------------
+    if (  (EE_CCF.nibble.nom   != EE_CCFNom  )
+        ||(EE_CCF.nibble.denom != EE_CCFDenom) )
+    {   EE_CCF.nibble.nom   = EE_CCFNom;              // save global -> auto eeprom update!
+        EE_CCF.nibble.denom = EE_CCFDenom;
     }
 
     // Service km changed? -------------------
-    if( gNextServKm.km != dwServKm )
-    {   gNextServKm.km  = dwServKm;             // give back km into dkm structure
+    if( EE_NextSrvKm.km != dwServKm )
+    {   EE_NextSrvKm.km  = dwServKm;             // give back km into dkm structure
     }
 
     // Vehicle Distance changed? -------------------
-    if( VehicDist.km != dwVehicDist )
-    {   VehicDist.km = dwVehicDist * 100L;          // give back km into dkm structure
-        MeasSetVehicDist( &VehicDist );             // save into system variable -> auto eeprom update!
+    if( NV_VehicDist.km != dwNV_VehicDist )
+    {   NV_VehicDist.km = dwNV_VehicDist * 100L;          // give back km into dkm structure
+        MeasSetNV_VehicDist( &NV_VehicDist );             // save into system variable -> auto eeprom update!
     }
 
     // RPM flash setting changed? ------------------
@@ -1252,38 +1255,38 @@ void SetDev_CheckChanges_Device( void )
     }
 
     // Beeper Usage was changed? -----------------
-    if( gDeviceFlags2.flags.BeeperAvail != gfBeepCtrl )         // saved with changes?
-    {   gDeviceFlags2.flags.BeeperAvail  = gfBeepCtrl;          // save global -> auto eeprom update!
+    if( EE_DevFlags_2.flags.BeeperAvail != gfBeepCtrl )         // saved with changes?
+    {   EE_DevFlags_2.flags.BeeperAvail  = gfBeepCtrl;          // save global -> auto eeprom update!
     }
 
     // Daylight Saving was changed? -----------------
     // NOTE:    We do not change current time here! We interprete current time
     //          as being correct right now, independently of switching DLS on/off.
     //          BUT we update the USGAE of the CEST flag for further automatic checking.
-    if( gDeviceFlags2.flags.DLS_Auto != gfDaylightSave )// saved with changes?
+    if( EE_DevFlags_2.flags.DLS_Auto != gfDaylightSave )// saved with changes?
     {
-        gDeviceFlags2.flags.DLS_Auto  = gfDaylightSave; // save global -> auto eeprom update!
+        EE_DevFlags_2.flags.DLS_Auto  = gfDaylightSave; // save global -> auto eeprom update!
         TimeDate_UpdateCEST();                                  // update update CEST state here too!
     }
 
     // VehicleSimulation was changed? -----------------
-    if( gDeviceFlags2.flags.VehicSimul  != gfVehicSimulation )  // saved with changes?
-    {   gDeviceFlags2.flags.VehicSimul   = gfVehicSimulation;   // save global -> auto eeprom update!
+    if( EE_DevFlags_2.flags.VehicSimul  != gfVehicSimulation )  // saved with changes?
+    {   EE_DevFlags_2.flags.VehicSimul   = gfVehicSimulation;   // save global -> auto eeprom update!
     }
 
     // Hardcopy Usage was changed? -----------------
-    if( gDeviceFlags2.flags.Hardcopy  != gfHardcopy )           // saved with changes?
-    {   gDeviceFlags2.flags.Hardcopy   = gfHardcopy;            // save global -> auto eeprom update!
+    if( EE_DevFlags_2.flags.Hardcopy  != gfHardcopy )           // saved with changes?
+    {   EE_DevFlags_2.flags.Hardcopy   = gfHardcopy;            // save global -> auto eeprom update!
     }
 
-    // TripCntFlag was changed? -----------------
-    if( gDeviceFlags2.flags.TripCLongDistUp != fTripCntLongUp )     // compare bits only
-    {   gDeviceFlags2.flags.TripCLongDistUp  = fTripCntLongUp;      // save global -> auto eeprom update!
+    // NV_TripCom_AntFlag was changed? -----------------
+    if( EE_DevFlags_2.flags.NV_TripCom_ALongDistUp != fNV_TripCom_AntLongUp )     // compare bits only
+    {   EE_DevFlags_2.flags.NV_TripCom_ALongDistUp  = fNV_TripCom_AntLongUp;      // save global -> auto eeprom update!
     }
 
     // Metric was changed? -----------------
-    if( gDeviceFlags2.flags.Metric != fMetric )                     // compare bits only
-    {   gDeviceFlags2.flags.Metric  = fMetric;                      // save global -> auto eeprom update!
+    if( EE_DevFlags_2.flags.Metric != fMetric )                     // compare bits only
+    {   EE_DevFlags_2.flags.Metric  = fMetric;                      // save global -> auto eeprom update!
     }
 }
 
@@ -1347,8 +1350,8 @@ void SetDev_CheckChanges_TimeDate( void )
     {   RTCTimeCopy.bHour = bHour;                              // copy changes
         TimeDate_SetTime( &RTCTimeCopy );                       // save changes in RTC (and correct it)
         bHour = RTCTimeCopy.bHour;                              // read back (corrected) value
-        if( gDeviceFlags2.flags.DLS_Auto == TRUE )      // DaylightSaving Automatic enabled?
-        {   gDeviceFlags2.flags.DLS_Active = TimeDate_GetCEST();// set CEST state too
+        if( EE_DevFlags_2.flags.DLS_Auto == TRUE )      // DaylightSaving Automatic enabled?
+        {   EE_DevFlags_2.flags.DLS_Active = TimeDate_GetCEST();// set CEST state too
         }
     }
     else
@@ -1399,13 +1402,13 @@ void SetDev_CheckChanges_LCDLED( void )
     // ============================================================
 
     // Backlight on/off and Level ------------------
-    if( gDisplayFlags.flags.BacklOnLevel != bBacklOnLevel )     // saved with changes?
-    {   gDisplayFlags.flags.BacklOnLevel = bBacklOnLevel;       // save global -> auto eeprom update!
+    if( EE_DisplFlags.flags.BacklOnLevel != bBacklOnLevel )     // saved with changes?
+    {   EE_DisplFlags.flags.BacklOnLevel = bBacklOnLevel;       // save global -> auto eeprom update!
     }
 
     // BacklightLevel was changed? -----------------
-    if( gDisplayFlags.flags.BacklLev != bBacklLev )             // saved with changes?
-    {   gDisplayFlags.flags.BacklLev = bBacklLev;               // save global -> auto eeprom update!
+    if( EE_DisplFlags.flags.BacklLev != bBacklLev )             // saved with changes?
+    {   EE_DisplFlags.flags.BacklLev = bBacklLev;               // save global -> auto eeprom update!
     }
 
     // NOTE: As BacklightSwitch and -Level are to be set in one
@@ -1413,34 +1416,34 @@ void SetDev_CheckChanges_LCDLED( void )
     // BacklightSwitch in edit mode? -----------
     if( NumObj_BacklOL.State.bits.fEditActive == TRUE )               // edit mode active?
     {   LCDDrvSetBacklightLevel( DisplBacklightCheckOn(bEditBuffer),  // use CURRENT EDIT VALUE of BacklightOnlevel!!!
-                                 gDisplayFlags.flags.BacklLev );
+                                 EE_DisplFlags.flags.BacklLev );
     }
     else
     {  // BacklightLevel in edit mode? -----------
        if( NumObj_BacklLvl.State.bits.fEditActive == TRUE )         // NO: edit mode level active?
-       {    LCDDrvSetBacklightLevel(  DisplBacklightCheckOn(gDisplayFlags.flags.BacklOnLevel),
+       {    LCDDrvSetBacklightLevel(  DisplBacklightCheckOn(EE_DisplFlags.flags.BacklOnLevel),
                                       bEditBuffer );                // use CURRENT EDIT VALUE of BacklightLevel!!!
        }
        else
        {    // ELSE: Set current Backlight-Switch-Level with current backlight level
-            LCDDrvSetBacklightLevel(  DisplBacklightCheckOn(gDisplayFlags.flags.BacklOnLevel),
-                                      gDisplayFlags.flags.BacklLev ); //set global values
+            LCDDrvSetBacklightLevel(  DisplBacklightCheckOn(EE_DisplFlags.flags.BacklOnLevel),
+                                      EE_DisplFlags.flags.BacklLev ); //set global values
        }
     }
 
     // LED Warning Mode was changed? -----------------
-    if( gDeviceFlags2.flags.LedWarnMode != fLedWarnMode )           // compare bits only
-    {   gDeviceFlags2.flags.LedWarnMode  = fLedWarnMode;            // save global -> auto eeprom update!
+    if( EE_DevFlags_2.flags.LedWarnMode != fLedWarnMode )           // compare bits only
+    {   EE_DevFlags_2.flags.LedWarnMode  = fLedWarnMode;            // save global -> auto eeprom update!
     }
 
     // Display Contrast changed? --------------------
-    if( gDisplayFlags.flags.ContrLev != bContrLev ){            // saved with changes?
-        gDisplayFlags.flags.ContrLev = bContrLev;               // save global -> auto eeprom update!
+    if( EE_DisplFlags.flags.ContrLev != bContrLev ){            // saved with changes?
+        EE_DisplFlags.flags.ContrLev = bContrLev;               // save global -> auto eeprom update!
     }
 
     // Display Contrast in edit mode? --------------
     if( NumObj_ContrLvl.State.bits.fEditActive == FALSE ){      // edit mode NOT active?
-        LCDDrvSetContrastLevel( gDisplayFlags.flags.ContrLev ); // set global contrast value
+        LCDDrvSetContrastLevel( EE_DisplFlags.flags.ContrLev ); // set global contrast value
     }
     else{
         LCDDrvSetContrastLevel(bEditBuffer);                    // execute changes immediatly!
@@ -1466,7 +1469,7 @@ void SetDev_CheckChanges_Extension( void )
 
     // Compass Display Mode was changed ?
     if ( SlctObj_CompassD.State.bits.fEditActive == FALSE ) // edit mode NOT active?
-    {   gCompassCntrl.flags.CompassDisplay = bCompassDispl; // just assure eeprom value equals local copy
+    {   EE_CompassCtrl.flags.CompassDisplay = bCompassDispl; // just assure eeprom value equals local copy
     }
 
     // -------------------------------------------------------
@@ -1524,21 +1527,21 @@ void SetDev_CheckChanges_Extension( void )
 
     // Coolride enable/disable changed?
     if ( BoolObj_CoolrAvail.State.bits.fEditActive == FALSE )   // edit mode NOT active?
-    {   gCoolrideCntrl.flags.CoolrAvail = gfCoolrAvail;         // just assure eeprom value equals local copy
+    {   EE_CoolrideCtrl.flags.CoolrAvail = gfCoolrAvail;         // just assure eeprom value equals local copy
     }
 
     // Coolride GPO Settings changed?
     if ( NumObj_CoolrOut.State.bits.fEditActive == FALSE )  // edit mode NOT active?
-    {   gCoolrideCntrl.flags.CoolrGPO = gbCoolrGPO;         // just assure eeprom value equals local copy
+    {   EE_CoolrideCtrl.flags.CoolrGPO = gbCoolrGPO;         // just assure eeprom value equals local copy
     }
 
     // Coolride GPI Settings changed?
     if ( NumObj_CoolrIn.State.bits.fEditActive == FALSE )   // edit mode NOT active?
     {   // check: GPI has been changed?
-        if (gCoolrideCntrl.flags.CoolrGPI != gbCoolrGPI)
+        if (EE_CoolrideCtrl.flags.CoolrGPI != gbCoolrGPI)
         {   // save new value & initialize new GPI with valid Coolride-PWM-Measurement settings
-            gCoolrideCntrl.flags.CoolrGPI = gbCoolrGPI;
-            DigInDrv_GPI_SetupMeas( gCoolrideCntrl.flags.CoolrGPI, COOLR_PWMIN_LOGIC, COOLR_PWMIN_TO );
+            EE_CoolrideCtrl.flags.CoolrGPI = gbCoolrGPI;
+            DigInDrv_GPI_SetupMeas( EE_CoolrideCtrl.flags.CoolrGPI, COOLR_PWMIN_LOGIC, COOLR_PWMIN_TO );
         }
     }
 
@@ -1548,21 +1551,21 @@ void SetDev_CheckChanges_Extension( void )
 
     // FuelSensor enable/disable changed?
     if ( BoolObj_FuelSAvail.State.bits.fEditActive == FALSE )   // edit mode NOT active?
-    {   gFuelSensCntrl.flags.FuelSAvail = gfFuelSensAvail;      // just assure eeprom value equals local copy
+    {   EE_FuelSensCtrl.flags.FuelSAvail = gfFuelSensAvail;      // just assure eeprom value equals local copy
     }
 
     // FuelSensor ImpulsRate changed?
     if ( NumObj_FuelSImp.State.bits.fEditActive == FALSE )      // edit mode NOT active?
-    {   gFuelSensCntrl.FuelSImpulseRate = gwFuelSImp;           // just assure eeprom value equals local copy
+    {   EE_FuelSensCtrl.FuelSImpulseRate = gwFuelSImp;           // just assure eeprom value equals local copy
     }
 
     // FuelSensor GPI Settings changed?
     if ( NumObj_FuelSIn.State.bits.fEditActive == FALSE )   // edit mode NOT active?
     {   // check: GPI has been changed?
-        if (gFuelSensCntrl.flags.FuelSGPI != gbFuelSGPI );
+        if (EE_FuelSensCtrl.flags.FuelSGPI != gbFuelSGPI );
         {   // save new value & initialize new GPI with valid FuelSensor-PWM-Measurement settings
-            gFuelSensCntrl.flags.FuelSGPI = gbFuelSGPI;
-            DigInDrv_GPI_SetupMeas( gFuelSensCntrl.flags.FuelSGPI, FUELS_PWMIN_LOGIC, FUELS_PWMIN_TO );
+            EE_FuelSensCtrl.flags.FuelSGPI = gbFuelSGPI;
+            DigInDrv_GPI_SetupMeas( EE_FuelSensCtrl.flags.FuelSGPI, FUELS_PWMIN_LOGIC, FUELS_PWMIN_TO );
         }
     }
 
@@ -1587,7 +1590,7 @@ void SetDev_CheckChanges_Extension( void )
  *                  is doing!
  *
  *                  Note that file-local-copies of global data (e.g.
- *                  local 'CCFNom' of 'CCF.nibble.nom' are changed by
+ *                  local 'EE_CCFNom' of 'EE_CCF.nibble.nom' are changed by
  *                  edit object only if 'Save' button was pressed! So,
  *                  while edit process is still active, these local values
  *                  won't change!
@@ -1624,7 +1627,7 @@ void SetDev_CheckChanges( void )
  *                  is doing!
  *
  *                  Note that file-local-copies of global data (e.g.
- *                  local 'CCFNom' of 'CCF.nibble.nom') are changed by
+ *                  local 'EE_CCFNom' of 'EE_CCF.nibble.nom') are changed by
  *                  edit object only if 'Save' button was pressed! So,
  *                  while edit process is still active, these local values
  *                  won't change!
@@ -1643,20 +1646,20 @@ void SetDev_ValuesUpdate(void)
     // ============================================================
 
     // Cylinder Correctur Factor
-    if (NumObj_CCFNom.State.bits.fEditActive == FALSE)
-        CCFNom = CCF.nibble.nom;
-    if (NumObj_CCFDenom.State.bits.fEditActive == FALSE)
-        CCFDenom = CCF.nibble.denom;
+    if (NumObj_EE_CCFNom.State.bits.fEditActive == FALSE)
+        EE_CCFNom = EE_CCF.nibble.nom;
+    if (NumObj_EE_CCFDenom.State.bits.fEditActive == FALSE)
+        EE_CCFDenom = EE_CCF.nibble.denom;
 
     // vehicle km
-    if (NumObj_VehicDist.State.bits.fEditActive == FALSE)
-    {   VehicDist = MeasGetVehicDist(MR_KM);            // get fresh value
-        dwVehicDist = VehicDist.km;                     // get km only
+    if (NumObj_NV_VehicDist.State.bits.fEditActive == FALSE)
+    {   NV_VehicDist = MeasGetNV_VehicDist(MR_KM);            // get fresh value
+        dwNV_VehicDist = NV_VehicDist.km;                     // get km only
     }
 
     // service km
     if (NumObj_ServKm.State.bits.fEditActive == FALSE)
-    {   dwServKm = gNextServKm.km;                      // get km only
+    {   dwServKm = EE_NextSrvKm.km;                      // get km only
     }
 
     // ============================================================
@@ -1664,33 +1667,33 @@ void SetDev_ValuesUpdate(void)
     // ============================================================
 
     // tripcounter state
-    if (SlctObj_TripCntLUp.State.bits.fEditActive == FALSE)
-    {   fTripCntLongUp = gDeviceFlags2.flags.TripCLongDistUp;
+    if (SlctObj_NV_TripCom_AntLUp.State.bits.fEditActive == FALSE)
+    {   fNV_TripCom_AntLongUp = EE_DevFlags_2.flags.NV_TripCom_ALongDistUp;
     }
 
     // metric state
     if (SlctObj_Metric.State.bits.fEditActive == FALSE)
-    {   fMetric = gDeviceFlags2.flags.Metric;
+    {   fMetric = EE_DevFlags_2.flags.Metric;
     }
 
     // BeeperUsage
     if( BoolObj_BeepCtrl.State.bits.fEditActive == FALSE)
-    {   gfBeepCtrl = gDeviceFlags2.flags.BeeperAvail;
+    {   gfBeepCtrl = EE_DevFlags_2.flags.BeeperAvail;
     }
 
     // DaylightSaving Usage
     if( BoolObj_DLSave.State.bits.fEditActive == FALSE)
-    {   gfDaylightSave = gDeviceFlags2.flags.DLS_Auto;
+    {   gfDaylightSave = EE_DevFlags_2.flags.DLS_Auto;
     }
 
     // Vehicle Simulation
     if( BoolObj_VehSim.State.bits.fEditActive == FALSE)
-    {   gfVehicSimulation = gDeviceFlags2.flags.VehicSimul;
+    {   gfVehicSimulation = EE_DevFlags_2.flags.VehicSimul;
     }
 
     // Hardcopy Usage
     if( BoolObj_ScrDmp.State.bits.fEditActive == FALSE)
-    {   gfHardcopy = gDeviceFlags2.flags.Hardcopy;
+    {   gfHardcopy = EE_DevFlags_2.flags.Hardcopy;
     }
 
     // ============================================================
@@ -1725,16 +1728,16 @@ void SetDev_ValuesUpdate(void)
 
     // Led Warning Mode state
     if (SlctObj_LEDWM.State.bits.fEditActive == FALSE)
-    {   fLedWarnMode    = gDeviceFlags2.flags.LedWarnMode;
+    {   fLedWarnMode    = EE_DevFlags_2.flags.LedWarnMode;
     }
 
     // Backlight Level
     if (NumObj_BacklOL.State.bits.fEditActive == FALSE)
-        bBacklOnLevel   = gDisplayFlags.flags.BacklOnLevel;
+        bBacklOnLevel   = EE_DisplFlags.flags.BacklOnLevel;
     if (NumObj_BacklLvl.State.bits.fEditActive == FALSE)
-        bBacklLev       = gDisplayFlags.flags.BacklLev;
+        bBacklLev       = EE_DisplFlags.flags.BacklLev;
     if (NumObj_ContrLvl.State.bits.fEditActive == FALSE)
-        bContrLev       = gDisplayFlags.flags.ContrLev;
+        bContrLev       = EE_DisplFlags.flags.ContrLev;
 
     // ============================================================
     // EXTENSIONS SETTINGS
@@ -1752,29 +1755,29 @@ void SetDev_ValuesUpdate(void)
 
     // Coolride enable/disable changed?
     if ( BoolObj_CoolrAvail.State.bits.fEditActive == FALSE )   // edit mode NOT active?
-        gfCoolrAvail    = gCoolrideCntrl.flags.CoolrAvail;
+        gfCoolrAvail    = EE_CoolrideCtrl.flags.CoolrAvail;
 
     // Coolride GPO Settings changed?
     if ( NumObj_CoolrOut.State.bits.fEditActive == FALSE )      // edit mode NOT active?
-        gbCoolrGPO      = gCoolrideCntrl.flags.CoolrGPO;
+        gbCoolrGPO      = EE_CoolrideCtrl.flags.CoolrGPO;
 
     // Coolride GPI Settings changed?
     if ( NumObj_CoolrIn.State.bits.fEditActive == FALSE )       // edit mode NOT active?
-        gbCoolrGPI      = gCoolrideCntrl.flags.CoolrGPI;
+        gbCoolrGPI      = EE_CoolrideCtrl.flags.CoolrGPI;
 
     // FuelSensor enable/disable changed?
     if ( BoolObj_FuelSAvail.State.bits.fEditActive == FALSE )   // edit mode NOT active?
-    {   gfFuelSensAvail = gFuelSensCntrl.flags.FuelSAvail;      
+    {   gfFuelSensAvail = EE_FuelSensCtrl.flags.FuelSAvail;      
     }
 
     // FuelSensor ImpulsRate changed?
     if ( NumObj_FuelSImp.State.bits.fEditActive == FALSE )      // edit mode NOT active?
-    {   gwFuelSImp = gFuelSensCntrl.FuelSImpulseRate;           
+    {   gwFuelSImp = EE_FuelSensCtrl.FuelSImpulseRate;           
     }
 
     // FuelSensor GPI Settings changed?
     if ( NumObj_FuelSIn.State.bits.fEditActive == FALSE )       // edit mode NOT active?
-    {   gbFuelSGPI = gFuelSensCntrl.flags.FuelSGPI;
+    {   gbFuelSGPI = EE_FuelSensCtrl.flags.FuelSGPI;
     }
     
 }
@@ -1793,30 +1796,30 @@ void SetDev_ValuesUpdate(void)
 void SetDev_ValuesInit(void)
 {
     // cylinder correctur factor
-    CCFNom          = CCF.nibble.nom;
-    CCFDenom        = CCF.nibble.denom;
+    EE_CCFNom          = EE_CCF.nibble.nom;
+    EE_CCFDenom        = EE_CCF.nibble.denom;
 
     // display
-    bBacklOnLevel   = gDisplayFlags.flags.BacklOnLevel;
-    bBacklLev       = gDisplayFlags.flags.BacklLev;
-    bContrLev       = gDisplayFlags.flags.ContrLev;
+    bBacklOnLevel   = EE_DisplFlags.flags.BacklOnLevel;
+    bBacklLev       = EE_DisplFlags.flags.BacklLev;
+    bContrLev       = EE_DisplFlags.flags.ContrLev;
 
     // bike type
-    LocalBikeType   = gBikeType;
+    LocalBikeType   = EE_BikeType;
 
     // compass state & display mode
     bCompassCal     = 0;
-    bCompassDispl   = gCompassCntrl.flags.CompassDisplay;
+    bCompassDispl   = EE_CompassCtrl.flags.CompassDisplay;
 
     // Coolride settings
-    gfCoolrAvail    = gCoolrideCntrl.flags.CoolrAvail;
-    gbCoolrGPO      = gCoolrideCntrl.flags.CoolrGPO;
-    gbCoolrGPI      = gCoolrideCntrl.flags.CoolrGPI;
+    gfCoolrAvail    = EE_CoolrideCtrl.flags.CoolrAvail;
+    gbCoolrGPO      = EE_CoolrideCtrl.flags.CoolrGPO;
+    gbCoolrGPI      = EE_CoolrideCtrl.flags.CoolrGPI;
     
     // FuelSensor settings
-    gfFuelSensAvail = gFuelSensCntrl.flags.FuelSAvail;      
-    gwFuelSImp      = gFuelSensCntrl.FuelSImpulseRate;           
-    gbFuelSGPI      = gFuelSensCntrl.flags.FuelSGPI;   
+    gfFuelSensAvail = EE_FuelSensCtrl.flags.FuelSAvail;      
+    gwFuelSImp      = EE_FuelSensCtrl.FuelSImpulseRate;           
+    gbFuelSGPI      = EE_FuelSensCtrl.flags.FuelSGPI;   
 
     // time/date
     TimeDate_GetDate( &RTCDateCopy );       // get current date

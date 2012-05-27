@@ -120,7 +120,7 @@
 
 
 //global display status
-extern DPLFLAGS_TYPE    gDisplayFlags;      // just to get actual init settings
+extern DPLFLAGS_TYPE    EE_DisplFlags;      // just to get actual init settings
 
 
 

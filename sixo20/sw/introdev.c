@@ -69,6 +69,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.7  2012/05/27 16:01:39  tuberkel
+ * All Eeprom/Nvram Variables renamed
+ *
  * Revision 3.6  2012/05/24 19:30:03  tuberkel
  * Moved BMP-Logos to 'logos.c'
  *
@@ -165,10 +168,10 @@
 /* external symbols */
 extern UINT16           wMilliSecCounter;   /* valid values: 0h .. ffffh */
 extern STRING far       szDevName[];        /* device names */
-extern DEVFLAGS1_TYPE   gDeviceFlags1;      /* system parameters */
-extern SWVERS_TYPE      gSWID;              /* software id from eeprom */
-extern UINT8            gLogoSelection;     /* selected logo */
-extern BIKE_TYPE        gBikeType;          /* bike type selcetion */
+extern DEVFLAGS1_TYPE   EE_DevFlags_1;      /* system parameters */
+extern SWVERS_TYPE      EE_SWID;              /* software id from eeprom */
+extern UINT8            EE_LogoSelect;     /* selected logo */
+extern BIKE_TYPE        EE_BikeType;          /* bike type selcetion */
 extern unsigned char    szSWVersion[];      /* formated sw version */
 
 /* local device data */
@@ -281,7 +284,7 @@ void IntroDev_Show(BOOL fShow)
             SixoLogoBmpObj.Data.fpucBitmap = (unsigned char far *)fpBikeLogos[eLogo_Motobau];   // fixed to MOTOBAU logo
         #else // BIKE_MOTOBAU
             // use the logo selected by user
-            SixoLogoBmpObj.Data.fpucBitmap = (unsigned char far *)fpBikeLogos[gLogoSelection];
+            SixoLogoBmpObj.Data.fpucBitmap = (unsigned char far *)fpBikeLogos[EE_LogoSelect];
         #endif // BIKE_MOTOBAU
 
         /* NOTE:    Lower screen part is reserved for software + bike
@@ -378,7 +381,7 @@ ERRCODE IntroDev_MsgEntry(MESSAGE GivenMsg)
                             szDevName[DEVID_INTRO]) */ ;
                 IntroScreenDev.fFocused = TRUE;                         /* set our focus */
                 IntroDev_Show(TRUE);                                  /* show our screen */
-                gDeviceFlags1.flags.ActDevNr = DEVID_INTRO;              /* save device# for restore */
+                EE_DevFlags_1.flags.ActDevNr = DEVID_INTRO;              /* save device# for restore */
                 RValue = ERR_MSG_PROCESSED;
              }
              else
@@ -473,9 +476,9 @@ ERRCODE IntroDev_ChangeLogo(MESSAGE Msg)
         &&(MSG_KEY_DURATION(Msg) > KEYTM_PRESSED_VLONG       )                /* pressed 'long'? */
         &&( (wActTime - wLastChange) > CHANGE_LOGO_DELAY) )              /* delay? */
     {
-        if ( gLogoSelection > BIKELOGO_FIRST)
-             gLogoSelection--;
-        else gLogoSelection = BIKELOGOG_LAST;       // set to last element
+        if ( EE_LogoSelect > BIKELOGO_FIRST)
+             EE_LogoSelect--;
+        else EE_LogoSelect = BIKELOGOG_LAST;       // set to last element
         TimerGetSys_msec(wLastChange);
         RValue = ERR_MSG_PROCESSED;
     }
@@ -483,9 +486,9 @@ ERRCODE IntroDev_ChangeLogo(MESSAGE Msg)
              &&(MSG_KEY_DURATION(Msg) > KEYTM_PRESSED_VLONG        )           /* pressed 'long'? */
              &&( (wActTime - wLastChange) > CHANGE_LOGO_DELAY ) )         /* delay? */
     {
-        if ( gLogoSelection < BIKELOGOG_LAST )
-             gLogoSelection++;
-        else gLogoSelection = BIKELOGO_FIRST;       // st to first element
+        if ( EE_LogoSelect < BIKELOGOG_LAST )
+             EE_LogoSelect++;
+        else EE_LogoSelect = BIKELOGO_FIRST;       // st to first element
         TimerGetSys_msec(wLastChange);
         RValue = ERR_MSG_PROCESSED;
     }

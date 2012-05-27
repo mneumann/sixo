@@ -78,13 +78,16 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.13  2012/05/27 16:01:42  tuberkel
+ * All Eeprom/Nvram Variables renamed
+ *
  * Revision 3.12  2012/05/24 19:30:03  tuberkel
  * Moved BMP-Logos to 'logos.c'
  *
  * Revision 3.11  2012/05/16 21:06:57  tuberkel
  * New FuelSensor:
  * - now displayed & handled in Maindevice
- * - if enabled: replaces 'FuelDistance'
+ * - if enabled: replaces 'NV_FuelDistance'
  * - works well with GPI-0..3 / NVRAM / Reboot / ImpRate = 0
  *
  * Revision 3.10  2012/05/15 20:11:35  tuberkel
@@ -216,7 +219,7 @@ extern far BOOL     fRTCDefect;         /* surveillance RTC defect detection */
                 - the LOCAL COMPARE value to detect changes automatically
                 - the DEFAULT value to initialize the NVRAM/EEPROM data
 
-    FUNCTION:   The data configured in 'rgSysParControllist' will be
+    FUNCTION:   The data configured in 'rgSysParControl' will be
                 scanned for any changes cyclicely and with some delay,
                     a) to reduce system load and
                     b) to automatically save any change,
@@ -230,199 +233,199 @@ extern far BOOL     fRTCDefect;         /* surveillance RTC defect detection */
 
 // -------------------------------------------------
 // display flags
-        DPLFLAGS_TYPE   gDisplayFlags;                     // original value
-static  DPLFLAGS_TYPE   gDisplayFlags_cmp;                 // compare value
-const   DPLFLAGS_TYPE   gDisplayFlags_def = DEF_DPLFLAGS;  // default value
+        DPLFLAGS_TYPE   EE_DisplFlags;                     // original value
+static  DPLFLAGS_TYPE   EE_DisplFlags_cmp;                 // compare value
+const   DPLFLAGS_TYPE   EE_DisplFlags_def = DEF_DPLFLAGS;  // default value
 
 // -------------------------------------------------
 // debug filter flags
-        DBGFILT_TYPE    gDebugFilter;                      // original value
-static  DBGFILT_TYPE    gDebugFilter_cmp;                  // compare value
-const   DBGFILT_TYPE    gDebugFilter_def = DEF_DBGFILT;    // default value
-        DBGDETDIR_TYPE  gDebugDetails;
-static  DBGDETDIR_TYPE  gDebugDetails_cmp;
-const   DBGDETDIR_TYPE  gDebugDetails_def = DEF_DBGDETDIR;
+        DBGFILT_TYPE    EE_DbgFilter;                      // original value
+static  DBGFILT_TYPE    EE_DbgFilter_cmp;                  // compare value
+const   DBGFILT_TYPE    EE_DbgFilter_def = DEF_DBGFILT;    // default value
+        DBGDETDIR_TYPE  EE_DbgDetails;
+static  DBGDETDIR_TYPE  EE_DbgDetails_cmp;
+const   DBGDETDIR_TYPE  EE_DbgDetails_def = DEF_DBGDETDIR;
 
 // -------------------------------------------------
 /* device flags 1+2+3 */
-       DEVFLAGS1_TYPE   gDeviceFlags1;
-static DEVFLAGS1_TYPE   DeviceFlags1_cmp;
-const  DEVFLAGS1_TYPE   DeviceFlags1_def = DEF_DEVFLAGS1;
-       DEVFLAGS2_TYPE   gDeviceFlags2;
-static DEVFLAGS2_TYPE   DeviceFlags2_cmp;
-const  DEVFLAGS2_TYPE   DeviceFlags2_def = DEF_DEVFLAGS2;
-       DEVFLAGS3_TYPE   gDeviceFlags3;
-static DEVFLAGS3_TYPE   DeviceFlags3_cmp;
-const  DEVFLAGS3_TYPE   DeviceFlags3_def = DEF_DEVFLAGS3;
+       DEVFLAGS1_TYPE   EE_DevFlags_1;
+static DEVFLAGS1_TYPE   EE_DevFlags_1_cmp;
+const  DEVFLAGS1_TYPE   EE_DevFlags_1_def = DEF_DEVFLAGS1;
+       DEVFLAGS2_TYPE   EE_DevFlags_2;
+static DEVFLAGS2_TYPE   EE_DevFlags_2_cmp;
+const  DEVFLAGS2_TYPE   EE_DevFlags_2_def = DEF_DEVFLAGS2;
+       DEVFLAGS3_TYPE   EE_DevFlags_3;
+static DEVFLAGS3_TYPE   EE_DevFlags_3_cmp;
+const  DEVFLAGS3_TYPE   EE_DevFlags_3_def = DEF_DEVFLAGS3;
 
 // -------------------------------------------------
 /* Software ID (would never change at application run time) */
-       SWVERS_TYPE gSWID;
-static SWVERS_TYPE gSWID_cmp;
-const  SWVERS_TYPE gSWID_def = DEF_SWID_NUMBER;
+       SWVERS_TYPE EE_SWID;
+static SWVERS_TYPE EE_SWID_cmp;
+const  SWVERS_TYPE EE_SWID_def = DEF_SWID_NUMBER;
        unsigned char szSWVersion[64];       /* buffer to contain formated sw id */
 
 // -------------------------------------------------
 /* Bike Logo & Type */
-       UINT8 gLogoSelection;
-static UINT8 gLogoSelection_cmp;
+       UINT8 EE_LogoSelect;
+static UINT8 EE_LogoSelect_cmp;
 #if(BIKE_MOTOBAU==1)
-const  UINT8 gLogoSelection_def = eLogo_Motobau;
+const  UINT8 EE_LogoSelect_def = eLogo_Motobau;
 #else // BIKE_MOTOBAU
-const  UINT8 gLogoSelection_def = eLogo_SIXO;
+const  UINT8 EE_LogoSelect_def = eLogo_SIXO;
 #endif // BIKE_MOTOBAU
-       BIKE_TYPE gBikeType;
-static BIKE_TYPE gBikeType_cmp;
-const  BIKE_TYPE gBikeType_def = eBIKE_STANDARD;
+       BIKE_TYPE EE_BikeType;
+static BIKE_TYPE EE_BikeType_cmp;
+const  BIKE_TYPE EE_BikeType_def = eBIKE_STANDARD;
 
 // -------------------------------------------------
 // WheelSize & Impulses
-       UINT16 wWheelSize;                       // original value in mm
-static UINT16 wWheelSize_cmp;                   // compare value
-const  UINT16 wWheelSize_def = DEF_WHEELSIZE;   // default value
-       UINT8 gbWheelImpulse;                    // wheel impulses/revolution
-static UINT8 bWheelImpulse_cmp;
-const  UINT8 bWheelImpulse_def = 1;
+       UINT16 EE_WheelSize;                       // original value in mm
+static UINT16 EE_WheelSize_cmp;                   // compare value
+const  UINT16 EE_WheelSize_def = DEF_WHEELSIZE;   // default value
+       UINT8 EE_Wheel_ImpPRev;                    // wheel impulses/revolution
+static UINT8 EE_Wheel_ImpPRev_cmp;
+const  UINT8 EE_Wheel_ImpPRev_def = 1;
 
 // -------------------------------------------------
 // RPM cylinder correcture factor
-       CCF_TYPE CCF;
-static CCF_TYPE CCF_cmp;
-const  CCF_TYPE CCF_def = DEF_CCF_NOM | DEF_CCF_DENOM;
+       CCF_TYPE EE_CCF;
+static CCF_TYPE EE_CCF_cmp;
+const  CCF_TYPE EE_CCF_def = DEF_EE_CCF_NOM | DEF_EE_CCF_DENOM;
 
 // -------------------------------------------------
 // distances
-       DIST_TYPE    VehicDist;
-static DIST_TYPE    VehicDist_cmp;
-const  DIST_TYPE    VehicDist_def = 0L;
-       DIST_TYPE    TripA;
-static DIST_TYPE    TripA_cmp;
-const  DIST_TYPE    TripA_def = 0L;
-       DIST_TYPE    TripB;
-static DIST_TYPE    TripB_cmp;
-const  DIST_TYPE    TripB_def = 0L;
-       DIST_TYPE    TripC;
-static DIST_TYPE    TripC_cmp;
-const  DIST_TYPE    TripC_def = 0L;
-       DIST_TYPE    TripD;
-static DIST_TYPE    TripD_cmp;
-const  DIST_TYPE    TripD_def = 0L;
-       DIST_TYPE    gNextServKm;
-static DIST_TYPE    gNextServKm_cmp;
-const  DIST_TYPE    gNextServKm_def = 0L;
-       DIST_TYPE    FuelDist;
-static DIST_TYPE    FuelDist_cmp;
-const  DIST_TYPE    FuelDist_def = 0L;
+       DIST_TYPE    NV_VehicDist;
+static DIST_TYPE    NV_VehicDist_cmp;
+const  DIST_TYPE    NV_VehicDist_def = 0L;
+       DIST_TYPE    NV_TripCnt_A;
+static DIST_TYPE    NV_TripCnt_A_cmp;
+const  DIST_TYPE    NV_TripCnt_A_def = 0L;
+       DIST_TYPE    NV_TripCnt_B;
+static DIST_TYPE    NV_TripCnt_B_cmp;
+const  DIST_TYPE    NV_TripCnt_B_def = 0L;
+       DIST_TYPE    NV_TripCom_A;
+static DIST_TYPE    NV_TripCom_A_cmp;
+const  DIST_TYPE    NV_TripCom_A_def = 0L;
+       DIST_TYPE    NV_TripCom_B;
+static DIST_TYPE    NV_TripCom_B_cmp;
+const  DIST_TYPE    NV_TripCom_B_def = 0L;
+       DIST_TYPE    EE_NextSrvKm;
+static DIST_TYPE    EE_NextSrvKm_cmp;
+const  DIST_TYPE    EE_NextSrvKm_def = 0L;
+       DIST_TYPE    NV_FuelDist;
+static DIST_TYPE    NV_FuelDist_cmp;
+const  DIST_TYPE    NV_FuelDist_def = 0L;
 
 // -------------------------------------------------
 // Speed statistics
-       SPEED_TYPE   Speed_Max;
-static SPEED_TYPE   Speed_Max_cmp;
-const  SPEED_TYPE   Speed_Max_def = 0;
-       SPEED_TYPE   Speed_AvrM;
-static SPEED_TYPE   Speed_AvrM_cmp;
-const  SPEED_TYPE   Speed_AvrM_def = 0;
-       SPEED_TYPE   Speed_AvrP;
-static SPEED_TYPE   Speed_AvrP_cmp;
-const  SPEED_TYPE   Speed_AvrP_def = 0;
+       SPEED_TYPE   EE_SpeedMax;
+static SPEED_TYPE   EE_SpeedMax_cmp;
+const  SPEED_TYPE   EE_SpeedMax_def = 0;
+       SPEED_TYPE   NV_Speed_AvrM;
+static SPEED_TYPE   NV_Speed_AvrM_cmp;
+const  SPEED_TYPE   NV_Speed_AvrM_def = 0;
+       SPEED_TYPE   NV_Speed_AvrP;
+static SPEED_TYPE   NV_Speed_AvrP_cmp;
+const  SPEED_TYPE   NV_Speed_AvrP_def = 0;
 
 // -------------------------------------------------
 /* Engine speed parameters */
-       RPM_TYPE     RPM_Flash;
-static RPM_TYPE     RPM_Flash_cmp;
-const  RPM_TYPE     RPM_Flash_def = 0;
-       RPM_TYPE     RPM_Max;
-static RPM_TYPE     RPM_Max_cmp;
-const  RPM_TYPE     RPM_Max_def = 0;
+       RPM_TYPE     EE_RPM_Flash;
+static RPM_TYPE     EE_RPM_Flash_cmp;
+const  RPM_TYPE     EE_RPM_Flash_def = 0;
+       RPM_TYPE     EE_RPM_Max;
+static RPM_TYPE     EE_RPM_Max_cmp;
+const  RPM_TYPE     EE_RPM_Max_def = 0;
 
 // -------------------------------------------------
 /* Engine RunTime statistics */
-       TIME_TYPE_LD EngRunTime_Srv;
-static TIME_TYPE_LD EngRunTime_Srv_cmp;
-const  TIME_TYPE_LD EngRunTime_Srv_def = 0L;
-       TIME_TYPE_LD EngRunTime_All;
-static TIME_TYPE_LD EngRunTime_All_cmp;
-const  TIME_TYPE_LD EngRunTime_All_def = 0L;
+       TIME_TYPE_LD NV_EngRunTime_Srv;
+static TIME_TYPE_LD NV_EngRunTime_Srv_cmp;
+const  TIME_TYPE_LD NV_EngRunTime_Srv_def = 0L;
+       TIME_TYPE_LD NV_EngRunTime_All;
+static TIME_TYPE_LD NV_EngRunTime_All_cmp;
+const  TIME_TYPE_LD NV_EngRunTime_All_def = 0L;
 
 // -------------------------------------------------
 /* voltages */
-       UINT16       Volt_Min;
-static UINT16       Volt_Min_cmp;
-const  UINT16       Volt_Min_def = ANAIN_INVALID_U;
-       UINT16       Volt_Max;
-static UINT16       Volt_Max_cmp;
-const  UINT16       Volt_Max_def = ANAIN_INVALID_U;
+       UINT16       EE_Volt_Min;
+static UINT16       EE_Volt_Min_cmp;
+const  UINT16       EE_Volt_Min_def = ANAIN_INVALID_U;
+       UINT16       EE_Volt_Max;
+static UINT16       EE_Volt_Max_cmp;
+const  UINT16       EE_Volt_Max_def = ANAIN_INVALID_U;
 
 // -------------------------------------------------
 /* temperatures */
-       INT16        TAir_Min;
-static INT16        TAir_Min_cmp;
-const  INT16        TAir_Min_def = ANAIN_INVALID_S;
-       INT16        TAir_Max;
-static INT16        TAir_Max_cmp;
-const  INT16        TAir_Max_def = ANAIN_INVALID_S;
-       INT16        TOil_Min;
-static INT16        TOil_Min_cmp;
-const  INT16        TOil_Min_def = ANAIN_INVALID_S;
-       INT16        TOil_Max;
-static INT16        TOil_Max_cmp;
-const  INT16        TOil_Max_def = ANAIN_INVALID_S;
-       INT16        TWat_Min;
-static INT16        TWat_Min_cmp;
-const  INT16        TWat_Min_def = ANAIN_INVALID_S;
-       INT16        TWat_Max;
-static INT16        TWat_Max_cmp;
-const  INT16        TWat_Max_def = ANAIN_INVALID_S;
+       INT16        EE_TAir_Min;
+static INT16        EE_TAir_Min_cmp;
+const  INT16        EE_TAir_Min_def = ANAIN_INVALID_S;
+       INT16        EE_TAir_Max;
+static INT16        EE_TAir_Max_cmp;
+const  INT16        EE_TAir_Max_def = ANAIN_INVALID_S;
+       INT16        EE_TOil_Min;
+static INT16        EE_TOil_Min_cmp;
+const  INT16        EE_TOil_Min_def = ANAIN_INVALID_S;
+       INT16        EE_TOil_Max;
+static INT16        EE_TOil_Max_cmp;
+const  INT16        EE_TOil_Max_def = ANAIN_INVALID_S;
+       INT16        EE_TWat_Min;
+static INT16        EE_TWat_Min_cmp;
+const  INT16        EE_TWat_Min_def = ANAIN_INVALID_S;
+       INT16        EE_TWat_Max;
+static INT16        EE_TWat_Max_cmp;
+const  INT16        EE_TWat_Max_def = ANAIN_INVALID_S;
 
 // -------------------------------------------------
 /* lap counter */
-       TIME_TYPE_LL LapCntTime[LAPS_MAX];
-static TIME_TYPE_LL LapCntTime_cmp[LAPS_MAX];
-const  TIME_TYPE_LL LapCntTime_def = { 0, 0 };  // reset bMin & bSec
-       LCSTATE_TYPE LapCounterState;
-static LCSTATE_TYPE LapCounterState_cmp;
-const  LCSTATE_TYPE LapCounterState_def = 0;
+       TIME_TYPE_LL EE_LapCnt_Time[LAPS_MAX];
+static TIME_TYPE_LL EE_LapCnt_Time_cmp[LAPS_MAX];
+const  TIME_TYPE_LL EE_LapCnt_Time_def = { 0, 0 };  // reset bMin & bSec
+       LCSTATE_TYPE EE_LapCnt_State;
+static LCSTATE_TYPE EE_LapCnt_State_cmp;
+const  LCSTATE_TYPE EE_LapCnt_State_def = 0;
 
 // -------------------------------------------------
 /* Compass */
-       COMPASSCNTL_TYPE gCompassCntrl;
-static COMPASSCNTL_TYPE gCompassCntrl_cmp;
-const  COMPASSCNTL_TYPE gCompassCntrl_def  = 0;    // default: off
+       COMPASSCNTL_TYPE EE_CompassCtrl;
+static COMPASSCNTL_TYPE EE_CompassCtrl_cmp;
+const  COMPASSCNTL_TYPE EE_CompassCtrl_def  = 0;    // default: off
 
 // -------------------------------------------------
 /* Coolride Heatgrip */
-       COOLRIDECNTRL_TYPE     gCoolrideCntrl;
-static COOLRIDECNTRL_TYPE     gCoolrideCntrl_cmp;
-const  COOLRIDECNTRL_TYPE     gCoolrideCntrl_def = 0;    // default: off
+       COOLRIDECNTRL_TYPE     EE_CoolrideCtrl;
+static COOLRIDECNTRL_TYPE     EE_CoolrideCtrl_cmp;
+const  COOLRIDECNTRL_TYPE     EE_CoolrideCtrl_def = 0;    // default: off
 
 
 // -------------------------------------------------
 /* Language */
-       UINT8 gLanguage;         // eeprom value
-static UINT8 gLanguage_cmp;
-const  UINT8 gLanguage_def = 0; // default: DE
+       UINT8 EE_LangSelect;         // eeprom value
+static UINT8 EE_LangSelect_cmp;
+const  UINT8 EE_LangSelect_def = 0; // default: DE
 
 // -------------------------------------------------
 /* fuel handling */
-       UINT16               gwFuelCap;              // fuel tank size in 1/10 liters
-static UINT16               wFuelCap_cmp;
-const  UINT16               wFuelCap_def = 0;
-       UINT8                gbFuelCons;             // fuel consumption in 1/10 liter/100 km
+       UINT16               EE_FuelCap;              // fuel tank size in 1/10 liters
+static UINT16               EE_FuelCap_cmp;
+const  UINT16               EE_FuelCap_def = 0;
+       UINT8                EE_FuelConsUser;             // fuel consumption in 1/10 liter/100 km
 static UINT8                bFuelCons_cmp;
 const  UINT8                bFuelCons_def = 0;     
-       UINT32               FuelSensImp;            // Fuel sensor Impulses counter since last refuel (NVRAM!)
-static UINT32               FuelSensImp_cmp;
-const  UINT32               FuelSensImp_def;
-       FUELSCNTRL_TYPE      gFuelSensCntrl;         // fuel sensor control 
-static FUELSCNTRL_TYPE      gFuelSensCntrl_cmp;         
-const  FUELSCNTRL_TYPE      gFuelSensCntrl_def = 0;     
+       UINT32               NV_FuelSensImp;            // Fuel sensor Impulses counter since last refuel (NVRAM!)
+static UINT32               NV_FuelSensImp_cmp;
+const  UINT32               NV_FuelSensImp_def;
+       FUELSCNTRL_TYPE      EE_FuelSensCtrl;         // fuel sensor control 
+static FUELSCNTRL_TYPE      EE_FuelSensCtrl_cmp;         
+const  FUELSCNTRL_TYPE      EE_FuelSensCtrl_def = 0;     
 
 
 // -------------------------------------------------
 /* system start / boot screen */
-       UINT8  gbLogoDelay;      // Boot delay in 1/10 sec
-static UINT8  bLogoDelay_cmp;
-const  UINT8  bLogoDelay_def = 20;  // default: 2 sec. delay
+       UINT8  EE_LogoDelay;      // Boot delay in 1/10 sec
+static UINT8  EE_LogoDelay_cmp;
+const  UINT8  EE_LogoDelay_def = 20;  // default: 2 sec. delay
 
 
 
@@ -438,17 +441,17 @@ const SYSPARINFO_TYPE  rgSysParControl[] =
 {
     /*  Param ID            MemType    Offset   Size of type          addr of data        compare value           default value       */
     /*  ------------------- --------   ------ ----------------------- ------------------  ----------------------  ------------------- */
-    {   PID_VEHIC_KM,       NVRAM_SEC,    0,  sizeof(DIST_TYPE),      &VehicDist,         &VehicDist_cmp,         &VehicDist_def      },  // 4 bytes, vehicle overall distance
-    {   PID_HOURS_SERV,     NVRAM_SEC,    4,  sizeof(TIME_TYPE_LD),   &EngRunTime_Srv,    &EngRunTime_Srv_cmp,    &EngRunTime_Srv_def },  // 4 bytes, engine runtime since last service
-    {   PID_HOURS_ALL,      NVRAM_SEC,    8,  sizeof(TIME_TYPE_LD),   &EngRunTime_All,    &EngRunTime_All_cmp,    &EngRunTime_All_def },  // 4 bytes, engine runtime overall
-    {   PID_TRIP_A_KM,      NVRAM,       12,  sizeof(DIST_TYPE),      &TripA,             &TripA_cmp,             &TripA_def          },  // 4 bytes, TripCounter A distance
-    {   PID_TRIP_B_KM,      NVRAM,       16,  sizeof(DIST_TYPE),      &TripB,             &TripB_cmp,             &TripB_def          },  // 4 bytes, TripCounter B distance
-    {   PID_TRIP_C_KM,      NVRAM,       20,  sizeof(DIST_TYPE),      &TripC,             &TripC_cmp,             &TripC_def          },  // 4 bytes, TripCounter C distance
-    {   PID_TRIP_D_KM,      NVRAM,       24,  sizeof(DIST_TYPE),      &TripD,             &TripD_cmp,             &TripD_def          },  // 4 bytes, TripCounter D distance
-    {   PID_SPEED_AVR_M,    NVRAM,       28,  sizeof(SPEED_TYPE),     &Speed_AvrM,        &Speed_AvrM_cmp,        &Speed_AvrM_def     },  // 2 bytes, average speed EX-cluding pause times
-    {   PID_SPEED_AVR_P,    NVRAM,       30,  sizeof(SPEED_TYPE),     &Speed_AvrP,        &Speed_AvrP_cmp,        &Speed_AvrP_def     },  // 2 bytes, average speed IN-cluding pause times
-    {   PID_FUEL_KM,        NVRAM,       32,  sizeof(DIST_TYPE),      &FuelDist,          &FuelDist_cmp,          &FuelDist_def       },  // 4 bytes, distance since last refuel
-    {   PID_FUEL_SENSOR,    NVRAM,       36,  sizeof(UINT32),         &FuelSensImp,       &FuelSensImp_cmp,       &FuelSensImp_def    },  // 4 bytes, Fuel sensor Impulses counter since last refuel 
+    {   PID_VEHIC_KM,       NVRAM_SEC,    0,  sizeof(DIST_TYPE),      &NV_VehicDist,      &NV_VehicDist_cmp,      &NV_VehicDist_def      },  // 4 bytes, vehicle overall distance
+    {   PID_HOURS_SERV,     NVRAM_SEC,    4,  sizeof(TIME_TYPE_LD),   &NV_EngRunTime_Srv, &NV_EngRunTime_Srv_cmp, &NV_EngRunTime_Srv_def },  // 4 bytes, engine runtime since last service
+    {   PID_HOURS_ALL,      NVRAM_SEC,    8,  sizeof(TIME_TYPE_LD),   &NV_EngRunTime_All, &NV_EngRunTime_All_cmp, &NV_EngRunTime_All_def },  // 4 bytes, engine runtime overall
+    {   PID_TRIP_A_KM,      NVRAM,       12,  sizeof(DIST_TYPE),      &NV_TripCnt_A,      &NV_TripCnt_A_cmp,      &NV_TripCnt_A_def      },  // 4 bytes, NV_TripCom_Aounter A distance
+    {   PID_TRIP_B_KM,      NVRAM,       16,  sizeof(DIST_TYPE),      &NV_TripCnt_B,      &NV_TripCnt_B_cmp,      &NV_TripCnt_B_def      },  // 4 bytes, NV_TripCom_Aounter B distance
+    {   PID_TRIP_C_KM,      NVRAM,       20,  sizeof(DIST_TYPE),      &NV_TripCom_A,      &NV_TripCom_A_cmp,      &NV_TripCom_A_def      },  // 4 bytes, NV_TripCom_Aounter C distance
+    {   PID_TRIP_D_KM,      NVRAM,       24,  sizeof(DIST_TYPE),      &NV_TripCom_B,      &NV_TripCom_B_cmp,      &NV_TripCom_B_def      },  // 4 bytes, NV_TripCom_Aounter D distance
+    {   PID_SPEED_AVR_M,    NVRAM,       28,  sizeof(SPEED_TYPE),     &NV_Speed_AvrM,     &NV_Speed_AvrM_cmp,     &NV_Speed_AvrM_def     },  // 2 bytes, average speed EX-cluding pause times
+    {   PID_SPEED_AVR_P,    NVRAM,       30,  sizeof(SPEED_TYPE),     &NV_Speed_AvrP,     &NV_Speed_AvrP_cmp,     &NV_Speed_AvrP_def     },  // 2 bytes, average speed IN-cluding pause times
+    {   PID_FUEL_KM,        NVRAM,       32,  sizeof(DIST_TYPE),      &NV_FuelDist,       &NV_FuelDist_cmp,       &NV_FuelDist_def       },  // 4 bytes, distance since last refuel
+    {   PID_FUEL_SENSOR,    NVRAM,       36,  sizeof(UINT32),         &NV_FuelSensImp,    &NV_FuelSensImp_cmp,    &NV_FuelSensImp_def    },  // 4 bytes, Fuel sensor Impulses counter since last refuel 
                                        /* ^                                              */
                                        /* |                                              */
                                        /* +---  ATTENTION: MAX 56 BYTES NVRAM (RTC+Battery) AVAILABLE! */
@@ -457,55 +460,55 @@ const SYSPARINFO_TYPE  rgSysParControl[] =
 
     /*  Param ID            MemType    Offset   Size of type          addr of data        compare value           default value       */
     /*  ------------------- --------   ------ ----------------------- ------------------  ----------------------  ------------------- */
-    {   PID_SWVERSION,      EEPROM,      0,   sizeof(UINT16),         &gSWID,             &gSWID_cmp,             &gSWID_def          },  // 2 bytes, 4 software version nibbles
-    {   PID_WHEELSIZE,      EEPROM_SEC,  2,   sizeof(UINT16),         &wWheelSize,        &wWheelSize_cmp,        &wWheelSize_def     },  // 2 bytes, wheel circumcistence in mm
-    {   PID_RPM_CCF,        EEPROM_SEC,  4,   sizeof(CCF_TYPE),       &CCF,               &CCF_cmp,               &CCF_def            },  // 1 byte, two cylinder correcture factor nibbles
-    {   PID_DEVFLAGS1,      EEPROM,      5,   sizeof(DEVFLAGS1_TYPE), &gDeviceFlags1,     &DeviceFlags1_cmp,      &DeviceFlags1_def   },  // 1 byte, bitfield for system status
-    {   PID_DPLFL,          EEPROM_SEC,  6,   sizeof(DPLFLAGS_TYPE),  &gDisplayFlags,     &gDisplayFlags_cmp,     &gDisplayFlags_def  },  // 4 byte, bitfield for display control
-    {   PID_DBGFILTFL,      EEPROM,     10,   sizeof(DBGFILT_TYPE),   &gDebugFilter,      &gDebugFilter_cmp,      &gDebugFilter_def   },  // 1 byte, bitfield for debug filters
-    {   PID_DBGDETDIRFL,    EEPROM,     11,   sizeof(DBGDETDIR_TYPE), &gDebugDetails,     &gDebugDetails_cmp,     &gDebugDetails_def  },  // 1 byte, bitfield for debug details & direction
-    {   PID_LOGO,           EEPROM,     12,   sizeof(UINT8),          &gLogoSelection,    &gLogoSelection_cmp,    &gLogoSelection_def },  // 1 byte, number of currently selected logo
-    {   PID_DEVFLAGS2,      EEPROM,     13,   sizeof(DEVFLAGS2_TYPE), &gDeviceFlags2,     &DeviceFlags2_cmp,      &DeviceFlags2_def  },   // 1 byte, trip counter flags
-    {   PID_SPEED_MAX,      EEPROM,     14,   sizeof(SPEED_TYPE),     &Speed_Max,         &Speed_Max_cmp,         &Speed_Max_def      },  // 2 bytes, maximum vehicle speed
-    {   PID_RPM_MAX,        EEPROM,     16,   sizeof(RPM_TYPE),       &RPM_Max,           &RPM_Max_cmp,           &RPM_Max_def        },  // 2 bytes, maximum engine speed
-    {   PID_RPM_FLASH,      EEPROM,     18,   sizeof(RPM_TYPE),       &RPM_Flash,         &RPM_Flash_cmp,         &RPM_Flash_def      },  // 2 bytes, engine speed to enable flash
-    {   PID_VOLT_MIN,       EEPROM,     20,   sizeof(UINT16),         &Volt_Min,          &Volt_Min_cmp,          &Volt_Min_def       },  // 2 bytes, battery voltage minimum
-    {   PID_VOLT_MAX,       EEPROM,     22,   sizeof(UINT16),         &Volt_Max,          &Volt_Max_cmp,          &Volt_Max_def       },  // 2 bytes, battery voltage maximum
-    {   PID_TAIR_MIN,       EEPROM,     24,   sizeof(INT16),          &TAir_Min,          &TAir_Min_cmp,          &TAir_Min_def       },  // 2 bytes, air temperature minimum
-    {   PID_TAIR_MAX,       EEPROM,     26,   sizeof(INT16),          &TAir_Max,          &TAir_Max_cmp,          &TAir_Max_def       },  // 2 bytes, air temperature maximum
-    {   PID_TOIL_MIN,       EEPROM,     28,   sizeof(INT16),          &TOil_Min,          &TOil_Min_cmp,          &TOil_Min_def       },  // 2 bytes, oil temperature minimum
-    {   PID_TOIL_MAX,       EEPROM,     30,   sizeof(INT16),          &TOil_Max,          &TOil_Max_cmp,          &TOil_Max_def       },  // 2 bytes, oil temperature maximum
-    {   PID_TWAT_MIN,       EEPROM,     32,   sizeof(INT16),          &TWat_Min,          &TWat_Min_cmp,          &TWat_Min_def       },  // 2 bytes, water temperature minimum
-    {   PID_TWAT_MAX,       EEPROM,     34,   sizeof(INT16),          &TWat_Max,          &TWat_Max_cmp,          &TWat_Max_def       },  // 2 bytes, water temperature maximum
-    {   PID_BIKETYPE,       EEPROM,     36,   sizeof(UINT8),          &gBikeType,         &gBikeType_cmp,         &gBikeType_def      },  // 1 byte, definition of bike version (enum)
-    {   PID_SERV_KM,        EEPROM,     37,   sizeof(DIST_TYPE),      &gNextServKm,       &gNextServKm_cmp,       &gNextServKm_def    },  // 4 bytes, km, at which next service is required
-    {   PID_FUEL_CAP,       EEPROM,     41,   sizeof(UINT16),         &gwFuelCap,         &wFuelCap_cmp,          &wFuelCap_def       },  // 2 bytes, fuel reservoir in 1/10 liters
-    {   PID_FUEL_CONS,      EEPROM,     43,   sizeof(UINT8),          &gbFuelCons,        &bFuelCons_cmp,         &bFuelCons_def      },  // 1 byte,  fuel consumption in 1/10 l/100km
-    {   PID_BOOT_DELAY,     EEPROM,     44,   sizeof(UINT8),          &gbLogoDelay,       &bLogoDelay_cmp,        &bLogoDelay_def     },  // 1 byte,  delay in 1/10 s at power up
-    {   PID_WHEEL_IMP,      EEPROM,     45,   sizeof(UINT8),          &gbWheelImpulse,    &bWheelImpulse_cmp,     &bWheelImpulse_def  },  // 1 byte,  number of impulses/wheel rotation
-    {   PID_DEVFLAGS3,      EEPROM,     46,   sizeof(DEVFLAGS3_TYPE), &gDeviceFlags3,     &DeviceFlags3_cmp,      &DeviceFlags3_def   },  // 1 byte,  bitfield for system status
-    {   PID_COOLR_CNTRL,    EEPROM,     47,   sizeof(UINT8),          &gCoolrideCntrl,    &gCoolrideCntrl_cmp,    &gCoolrideCntrl_def },  // 1 byte,  bitfield for Coolride Heatgrip Control
-    {   PID_COMPS_CNTRL,    EEPROM,     48,   sizeof(UINT8),          &gCompassCntrl,     &gCompassCntrl_cmp,     &gCompassCntrl_def  },  // 1 byte,  bitfield for Compass Module Control
-    {   PID_LANGUAGE,       EEPROM,     49,   sizeof(UINT8),          &gLanguage,         &gLanguage_cmp,         &gLanguage_def      },  // 1 byte,  language indicator
-    {   PID_FUELS_CNTRL,    EEPROM,     50,   sizeof(FUELSCNTRL_TYPE),&gFuelSensCntrl,    &gFuelSensCntrl_cmp,    &gFuelSensCntrl_def },  // 4 byte,  bitfield for FuelSensor Control
+    {   PID_SWVERSION,      EEPROM,      0,   sizeof(UINT16),         &EE_SWID,           &EE_SWID_cmp,           &EE_SWID_def        },  // 2 bytes, 4 software version nibbles
+    {   PID_WHEELSIZE,      EEPROM_SEC,  2,   sizeof(UINT16),         &EE_WheelSize,      &EE_WheelSize_cmp,      &EE_WheelSize_def   },  // 2 bytes, wheel circumcistence in mm
+    {   PID_CCF,            EEPROM_SEC,  4,   sizeof(CCF_TYPE),       &EE_CCF,            &EE_CCF_cmp,            &EE_CCF_def         },  // 1 byte, two cylinder correcture factor nibbles
+    {   PID_DEVFLAGS1,      EEPROM,      5,   sizeof(DEVFLAGS1_TYPE), &EE_DevFlags_1,     &EE_DevFlags_1_cmp,     &EE_DevFlags_1_def  },  // 1 byte, bitfield for system status
+    {   PID_DPLFL,          EEPROM_SEC,  6,   sizeof(DPLFLAGS_TYPE),  &EE_DisplFlags,     &EE_DisplFlags_cmp,     &EE_DisplFlags_def  },  // 4 byte, bitfield for display control
+    {   PID_DBGFILTFL,      EEPROM,     10,   sizeof(DBGFILT_TYPE),   &EE_DbgFilter,      &EE_DbgFilter_cmp,      &EE_DbgFilter_def   },  // 1 byte, bitfield for debug filters
+    {   PID_DBGDETDIRFL,    EEPROM,     11,   sizeof(DBGDETDIR_TYPE), &EE_DbgDetails,     &EE_DbgDetails_cmp,     &EE_DbgDetails_def  },  // 1 byte, bitfield for debug details & direction
+    {   PID_LOGO,           EEPROM,     12,   sizeof(UINT8),          &EE_LogoSelect,     &EE_LogoSelect_cmp,     &EE_LogoSelect_def  },  // 1 byte, number of currently selected logo
+    {   PID_DEVFLAGS2,      EEPROM,     13,   sizeof(DEVFLAGS2_TYPE), &EE_DevFlags_2,     &EE_DevFlags_2_cmp,     &EE_DevFlags_2_def  },  // 1 byte, trip counter flags
+    {   PID_SPEED_MAX,      EEPROM,     14,   sizeof(SPEED_TYPE),     &EE_SpeedMax,       &EE_SpeedMax_cmp,       &EE_SpeedMax_def    },  // 2 bytes, maximum vehicle speed
+    {   PID_RPM_MAX,        EEPROM,     16,   sizeof(RPM_TYPE),       &EE_RPM_Max,        &EE_RPM_Max_cmp,        &EE_RPM_Max_def     },  // 2 bytes, maximum engine speed
+    {   PID_RPM_FLASH,      EEPROM,     18,   sizeof(RPM_TYPE),       &EE_RPM_Flash,      &EE_RPM_Flash_cmp,      &EE_RPM_Flash_def   },  // 2 bytes, engine speed to enable flash
+    {   PID_VOLT_MIN,       EEPROM,     20,   sizeof(UINT16),         &EE_Volt_Min,       &EE_Volt_Min_cmp,       &EE_Volt_Min_def    },  // 2 bytes, battery voltage minimum
+    {   PID_VOLT_MAX,       EEPROM,     22,   sizeof(UINT16),         &EE_Volt_Max,       &EE_Volt_Max_cmp,       &EE_Volt_Max_def    }, // 2 bytes, battery voltage maximum
+    {   PID_TAIR_MIN,       EEPROM,     24,   sizeof(INT16),          &EE_TAir_Min,       &EE_TAir_Min_cmp,       &EE_TAir_Min_def    },  // 2 bytes, air temperature minimum
+    {   PID_TAIR_MAX,       EEPROM,     26,   sizeof(INT16),          &EE_TAir_Max,       &EE_TAir_Max_cmp,       &EE_TAir_Max_def    },  // 2 bytes, air temperature maximum
+    {   PID_TOIL_MIN,       EEPROM,     28,   sizeof(INT16),          &EE_TOil_Min,       &EE_TOil_Min_cmp,       &EE_TOil_Min_def    },  // 2 bytes, oil temperature minimum
+    {   PID_TOIL_MAX,       EEPROM,     30,   sizeof(INT16),          &EE_TOil_Max,       &EE_TOil_Max_cmp,       &EE_TOil_Max_def    },  // 2 bytes, oil temperature maximum
+    {   PID_TWAT_MIN,       EEPROM,     32,   sizeof(INT16),          &EE_TWat_Min,       &EE_TWat_Min_cmp,       &EE_TWat_Min_def    },  // 2 bytes, water temperature minimum
+    {   PID_TWAT_MAX,       EEPROM,     34,   sizeof(INT16),          &EE_TWat_Max,       &EE_TWat_Max_cmp,       &EE_TWat_Max_def    },  // 2 bytes, water temperature maximum
+    {   PID_BIKETYPE,       EEPROM,     36,   sizeof(UINT8),          &EE_BikeType,       &EE_BikeType_cmp,       &EE_BikeType_def    },  // 1 byte, definition of bike version (enum)
+    {   PID_SERV_KM,        EEPROM,     37,   sizeof(DIST_TYPE),      &EE_NextSrvKm,      &EE_NextSrvKm_cmp,      &EE_NextSrvKm_def   },  // 4 bytes, km, at which next service is required
+    {   PID_FUEL_CAP,       EEPROM,     41,   sizeof(UINT16),         &EE_FuelCap,        &EE_FuelCap_cmp,        &EE_FuelCap_def     },  // 2 bytes, fuel reservoir in 1/10 liters
+    {   PID_FUEL_CONS,      EEPROM,     43,   sizeof(UINT8),          &EE_FuelConsUser,   &bFuelCons_cmp,         &bFuelCons_def      },  // 1 byte,  fuel consumption in 1/10 l/100km
+    {   PID_BOOT_DELAY,     EEPROM,     44,   sizeof(UINT8),          &EE_LogoDelay,      &EE_LogoDelay_cmp,      &EE_LogoDelay_def   },  // 1 byte,  delay in 1/10 s at power up
+    {   PID_WHEEL_IMP,      EEPROM,     45,   sizeof(UINT8),          &EE_Wheel_ImpPRev,  &EE_Wheel_ImpPRev_cmp,  &EE_Wheel_ImpPRev_def}, // 1 byte,  number of impulses/wheel rotation
+    {   PID_DEVFLAGS3,      EEPROM,     46,   sizeof(DEVFLAGS3_TYPE), &EE_DevFlags_3,     &EE_DevFlags_3_cmp,     &EE_DevFlags_3_def  },  // 1 byte,  bitfield for system status
+    {   PID_COOLR_CNTRL,    EEPROM,     47,   sizeof(UINT8),          &EE_CoolrideCtrl,   &EE_CoolrideCtrl_cmp,   &EE_CoolrideCtrl_def},  // 1 byte,  bitfield for Coolride Heatgrip Control
+    {   PID_COMPS_CNTRL,    EEPROM,     48,   sizeof(UINT8),          &EE_CompassCtrl,    &EE_CompassCtrl_cmp,    &EE_CompassCtrl_def },  // 1 byte,  bitfield for Compass Module Control
+    {   PID_LANGUAGE,       EEPROM,     49,   sizeof(UINT8),          &EE_LangSelect,     &EE_LangSelect_cmp,     &EE_LangSelect_def  },  // 1 byte,  language indicator
+    {   PID_FUELS_CNTRL,    EEPROM,     50,   sizeof(FUELSCNTRL_TYPE),&EE_FuelSensCtrl,   &EE_FuelSensCtrl_cmp,   &EE_FuelSensCtrl_def }, // 4 byte,  bitfield for FuelSensor Control
     
-    {   PID_LAPCSTAT,       EEPROM,    136,   sizeof(LCSTATE_TYPE),   &LapCounterState,   &LapCounterState_cmp,   &LapCounterState_def},  // 1 bytes, lap counter status
-    {   PID_LAPC_0 ,        EEPROM,    137,   sizeof(TIME_TYPE_LL),   &LapCntTime[0 ],    &LapCntTime_cmp[0 ],    &LapCntTime_def     },  // 2 bytes, lap counter time struct
-    {   PID_LAPC_1 ,        EEPROM,    139,   sizeof(TIME_TYPE_LL),   &LapCntTime[1 ],    &LapCntTime_cmp[1 ],    &LapCntTime_def     },  // 2 bytes, lap counter time struct
-    {   PID_LAPC_2 ,        EEPROM,    141,   sizeof(TIME_TYPE_LL),   &LapCntTime[2 ],    &LapCntTime_cmp[2 ],    &LapCntTime_def     },  // 2 bytes, lap counter time struct
-    {   PID_LAPC_3 ,        EEPROM,    143,   sizeof(TIME_TYPE_LL),   &LapCntTime[3 ],    &LapCntTime_cmp[3 ],    &LapCntTime_def     },  // 2 bytes, lap counter time struct
-    {   PID_LAPC_4 ,        EEPROM,    145,   sizeof(TIME_TYPE_LL),   &LapCntTime[4 ],    &LapCntTime_cmp[4 ],    &LapCntTime_def     },  // 2 bytes, lap counter time struct
-    {   PID_LAPC_5 ,        EEPROM,    147,   sizeof(TIME_TYPE_LL),   &LapCntTime[5 ],    &LapCntTime_cmp[5 ],    &LapCntTime_def     },  // 2 bytes, lap counter time struct
-    {   PID_LAPC_6 ,        EEPROM,    149,   sizeof(TIME_TYPE_LL),   &LapCntTime[6 ],    &LapCntTime_cmp[6 ],    &LapCntTime_def     },  // 2 bytes, lap counter time struct
-    {   PID_LAPC_7 ,        EEPROM,    151,   sizeof(TIME_TYPE_LL),   &LapCntTime[7 ],    &LapCntTime_cmp[7 ],    &LapCntTime_def     },  // 2 bytes, lap counter time struct
-    {   PID_LAPC_8 ,        EEPROM,    153,   sizeof(TIME_TYPE_LL),   &LapCntTime[8 ],    &LapCntTime_cmp[8 ],    &LapCntTime_def     },  // 2 bytes, lap counter time struct
-    {   PID_LAPC_9 ,        EEPROM,    155,   sizeof(TIME_TYPE_LL),   &LapCntTime[9 ],    &LapCntTime_cmp[9 ],    &LapCntTime_def     },  // 2 bytes, lap counter time struct
-    {   PID_LAPC_10,        EEPROM,    157,   sizeof(TIME_TYPE_LL),   &LapCntTime[10],    &LapCntTime_cmp[10],    &LapCntTime_def     },  // 2 bytes, lap counter time struct
-    {   PID_LAPC_11,        EEPROM,    159,   sizeof(TIME_TYPE_LL),   &LapCntTime[11],    &LapCntTime_cmp[11],    &LapCntTime_def     },  // 2 bytes, lap counter time struct
-    {   PID_LAPC_12,        EEPROM,    161,   sizeof(TIME_TYPE_LL),   &LapCntTime[12],    &LapCntTime_cmp[12],    &LapCntTime_def     },  // 2 bytes, lap counter time struct
-    {   PID_LAPC_13,        EEPROM,    163,   sizeof(TIME_TYPE_LL),   &LapCntTime[13],    &LapCntTime_cmp[13],    &LapCntTime_def     },  // 2 bytes, lap counter time struct
-    {   PID_LAPC_14,        EEPROM,    165,   sizeof(TIME_TYPE_LL),   &LapCntTime[14],    &LapCntTime_cmp[14],    &LapCntTime_def     },  // 2 bytes, lap counter time struct
-    {   PID_LAPC_15,        EEPROM,    167,   sizeof(TIME_TYPE_LL),   &LapCntTime[15],    &LapCntTime_cmp[15],    &LapCntTime_def     },  // 2 bytes, lap counter time struct
+    {   PID_LAPCSTAT,       EEPROM,    136,   sizeof(LCSTATE_TYPE),   &EE_LapCnt_State,   &EE_LapCnt_State_cmp,   &EE_LapCnt_State_def},  // 1 bytes, lap counter status
+    {   PID_LAPC_0 ,        EEPROM,    137,   sizeof(TIME_TYPE_LL),   &EE_LapCnt_Time[0 ],&EE_LapCnt_Time_cmp[0 ],&EE_LapCnt_Time_def },  // 2 bytes, lap counter time struct
+    {   PID_LAPC_1 ,        EEPROM,    139,   sizeof(TIME_TYPE_LL),   &EE_LapCnt_Time[1 ],&EE_LapCnt_Time_cmp[1 ],&EE_LapCnt_Time_def },  // 2 bytes, lap counter time struct
+    {   PID_LAPC_2 ,        EEPROM,    141,   sizeof(TIME_TYPE_LL),   &EE_LapCnt_Time[2 ],&EE_LapCnt_Time_cmp[2 ],&EE_LapCnt_Time_def },  // 2 bytes, lap counter time struct
+    {   PID_LAPC_3 ,        EEPROM,    143,   sizeof(TIME_TYPE_LL),   &EE_LapCnt_Time[3 ],&EE_LapCnt_Time_cmp[3 ],&EE_LapCnt_Time_def },  // 2 bytes, lap counter time struct
+    {   PID_LAPC_4 ,        EEPROM,    145,   sizeof(TIME_TYPE_LL),   &EE_LapCnt_Time[4 ],&EE_LapCnt_Time_cmp[4 ],&EE_LapCnt_Time_def },  // 2 bytes, lap counter time struct
+    {   PID_LAPC_5 ,        EEPROM,    147,   sizeof(TIME_TYPE_LL),   &EE_LapCnt_Time[5 ],&EE_LapCnt_Time_cmp[5 ],&EE_LapCnt_Time_def },  // 2 bytes, lap counter time struct
+    {   PID_LAPC_6 ,        EEPROM,    149,   sizeof(TIME_TYPE_LL),   &EE_LapCnt_Time[6 ],&EE_LapCnt_Time_cmp[6 ],&EE_LapCnt_Time_def },  // 2 bytes, lap counter time struct
+    {   PID_LAPC_7 ,        EEPROM,    151,   sizeof(TIME_TYPE_LL),   &EE_LapCnt_Time[7 ],&EE_LapCnt_Time_cmp[7 ],&EE_LapCnt_Time_def },  // 2 bytes, lap counter time struct
+    {   PID_LAPC_8 ,        EEPROM,    153,   sizeof(TIME_TYPE_LL),   &EE_LapCnt_Time[8 ],&EE_LapCnt_Time_cmp[8 ],&EE_LapCnt_Time_def },  // 2 bytes, lap counter time struct
+    {   PID_LAPC_9 ,        EEPROM,    155,   sizeof(TIME_TYPE_LL),   &EE_LapCnt_Time[9 ],&EE_LapCnt_Time_cmp[9 ],&EE_LapCnt_Time_def },  // 2 bytes, lap counter time struct
+    {   PID_LAPC_10,        EEPROM,    157,   sizeof(TIME_TYPE_LL),   &EE_LapCnt_Time[10],&EE_LapCnt_Time_cmp[10],&EE_LapCnt_Time_def },  // 2 bytes, lap counter time struct
+    {   PID_LAPC_11,        EEPROM,    159,   sizeof(TIME_TYPE_LL),   &EE_LapCnt_Time[11],&EE_LapCnt_Time_cmp[11],&EE_LapCnt_Time_def },  // 2 bytes, lap counter time struct
+    {   PID_LAPC_12,        EEPROM,    161,   sizeof(TIME_TYPE_LL),   &EE_LapCnt_Time[12],&EE_LapCnt_Time_cmp[12],&EE_LapCnt_Time_def },  // 2 bytes, lap counter time struct
+    {   PID_LAPC_13,        EEPROM,    163,   sizeof(TIME_TYPE_LL),   &EE_LapCnt_Time[13],&EE_LapCnt_Time_cmp[13],&EE_LapCnt_Time_def },  // 2 bytes, lap counter time struct
+    {   PID_LAPC_14,        EEPROM,    165,   sizeof(TIME_TYPE_LL),   &EE_LapCnt_Time[14],&EE_LapCnt_Time_cmp[14],&EE_LapCnt_Time_def },  // 2 bytes, lap counter time struct
+    {   PID_LAPC_15,        EEPROM,    167,   sizeof(TIME_TYPE_LL),   &EE_LapCnt_Time[15],&EE_LapCnt_Time_cmp[15],&EE_LapCnt_Time_def },  // 2 bytes, lap counter time struct
                                       /* ^                                                 */
                                       /* |                                                 */
                                       /* +---  ATTENTION: MAX 1024 BYTES EEPROM AVAILABLE! */
@@ -658,8 +661,8 @@ ERRCODE SysPar_WriteSysParam (const PARAM_ID_TYPE eParamID, void far * fpGivenPa
  *  FUNCTION:       SysPar_SetDefaults
  *  DESCRIPTION:    Re-Write all nvram/eeprom parameters with default
  *                  data.
- *  PARAMETER:      fComplete  TRUE:  overwrites WHEELSIZE & CCF & VehicDist too
- *                             FALSE: leaves WHEELSIZE & CCF & VehicDist unchanged
+ *  PARAMETER:      fComplete  TRUE:  overwrites WHEELSIZE & EE_CCF & NV_VehicDist too
+ *                             FALSE: leaves WHEELSIZE & EE_CCF & NV_VehicDist unchanged
  *  RETURN:         error code
  *  COMMENT:        - To be used after first power up or while
  *                    reseting to 'factory defaults'
@@ -854,25 +857,25 @@ ERRCODE SysPar_InitSystemPar (void)
     SysPar_SetupSWVersionStr();
 
     // check: invalid NVRAM parameters? (may be caused by battery defect)
-    if ( VehicDist.km > DIST_MAX_VEHIC )    // invalid?
-    {   VehicDist.km = 0;
+    if ( NV_VehicDist.km > DIST_MAX_VEHIC )    // invalid?
+    {   NV_VehicDist.km = 0;
         fRTCDefect = TRUE;
-        ODS(DBG_SYS,DBG_WARNING,"Invalid 'VehicDist', RTC-Battery defect?" );
+        ODS(DBG_SYS,DBG_WARNING,"Invalid 'NV_VehicDist', RTC-Battery defect?" );
     }
-    if ( TripA.dkm > DIST_MAX_TRIP )        // invalid?
-         TripA.dkm = 0;
-    if ( TripB.dkm > DIST_MAX_TRIP )        // invalid?
-         TripB.dkm = 0;
-    if ( TripC.dkm > DIST_MAX_TRIP )        // invalid?
-         TripC.dkm = 0;
-    if ( TripD.dkm > DIST_MAX_TRIP )        // invalid?
-         TripD.dkm = 0;
-    if ( FuelDist.km > DIST_MAX_VEHIC )     // invalid?
-         FuelDist.km = 0;
-    if ( EngRunTime_All.wHour > SURV_ENGRTIME_ALL_MAX )
-         EngRunTime_All.wHour = 0;
-    if ( EngRunTime_Srv.wHour > SURV_ENGRTIME_SRV_MAX )
-         EngRunTime_Srv.wHour = 0;
+    if ( NV_TripCnt_A.dkm > DIST_MAX_TRIP )        // invalid?
+         NV_TripCnt_A.dkm = 0;
+    if ( NV_TripCnt_B.dkm > DIST_MAX_TRIP )        // invalid?
+         NV_TripCnt_B.dkm = 0;
+    if ( NV_TripCom_A.dkm > DIST_MAX_TRIP )        // invalid?
+         NV_TripCom_A.dkm = 0;
+    if ( NV_TripCom_B.dkm > DIST_MAX_TRIP )        // invalid?
+         NV_TripCom_B.dkm = 0;
+    if ( NV_FuelDist.km > DIST_MAX_VEHIC )     // invalid?
+         NV_FuelDist.km = 0;
+    if ( NV_EngRunTime_All.wHour > SURV_ENGRTIME_ALL_MAX )
+         NV_EngRunTime_All.wHour = 0;
+    if ( NV_EngRunTime_Srv.wHour > SURV_ENGRTIME_SRV_MAX )
+         NV_EngRunTime_Srv.wHour = 0;
 
 
     return RValue;
@@ -925,7 +928,7 @@ void SysPar_SetupSWVersionStr( void )
 {
     /* get formated sw version */
     szSWVersion[0] = 0x0;
-    sprintf( szSWVersion, "V%u.%u.%u", gSWID.Fields.apl, gSWID.Fields.swv, gSWID.Fields.bld);
+    sprintf( szSWVersion, "V%u.%u.%u", EE_SWID.Fields.apl, EE_SWID.Fields.swv, EE_SWID.Fields.bld);
 
     /* insert language */
     strcat ( szSWVersion, "-");
@@ -963,85 +966,85 @@ void SysPar_DebugOutParameter( const PARAM_ID_TYPE PID )
 {
     switch (PID)                    /* choice of system parameter to be saved */
     {
-        case PID_VEHIC_KM:      ODS2(DBG_SYS,DBG_INFO, "- NV VehicDist:  %6lu,%.2lu km",    VehicDist.dkm/100L, VehicDist.dkm-(VehicDist.dkm/100L)*100); break;
-        case PID_TRIP_A_KM:     ODS2(DBG_SYS,DBG_INFO, "- NV TripA:      %6lu,%.2lu km",    TripA.dkm/100L, TripA.dkm-(TripA.dkm/100L)*100); break;
-        case PID_TRIP_B_KM:     ODS2(DBG_SYS,DBG_INFO, "- NV TripB:      %6lu,%.2lu km",    TripB.dkm/100L, TripB.dkm-(TripB.dkm/100L)*100); break;
-        case PID_TRIP_C_KM:     ODS2(DBG_SYS,DBG_INFO, "- NV TripC:      %6lu,%.2lu km",    TripC.dkm/100L, TripC.dkm-(TripC.dkm/100L)*100); break;
-        case PID_TRIP_D_KM:     ODS2(DBG_SYS,DBG_INFO, "- NV TripD:      %6lu,%.2lu km",    TripD.dkm/100L, TripD.dkm-(TripD.dkm/100L)*100); break;
-        case PID_SPEED_AVR_M:   ODS2(DBG_SYS,DBG_INFO, "- NV Speed_AvrM: %6u,%.2u km/h",    Speed_AvrM/100, Speed_AvrM-(Speed_AvrM/100)*100); break;
-        case PID_SPEED_AVR_P:   ODS2(DBG_SYS,DBG_INFO, "- NV Speed_AvrP: %6u,%.2u km/h",    Speed_AvrP/100, Speed_AvrP-(Speed_AvrP/100)*100); break;
-        case PID_FUEL_KM:       ODS2(DBG_SYS,DBG_INFO, "- NV FuelDist:   %6lu,%.2lu km",    FuelDist.dkm/100L, FuelDist.dkm-(FuelDist.dkm/100L)*100); break;
-        case PID_FUEL_SENSOR:   ODS1(DBG_SYS,DBG_INFO, "- NV FuelSens:   %6lu Imp.",        FuelSensImp); break;
-        case PID_HOURS_SERV:    ODS3(DBG_SYS,DBG_INFO, "- NV EngTimeSrv: %2u:%02u:%02u",    EngRunTime_Srv.wHour, EngRunTime_Srv.bMin, EngRunTime_Srv.bSec); break;
-        case PID_HOURS_ALL:     ODS3(DBG_SYS,DBG_INFO, "- NV EngTimeAll: %2u:%02u:%02u",    EngRunTime_All.wHour, EngRunTime_All.bMin, EngRunTime_All.bSec); break;
+        case PID_VEHIC_KM:      ODS2(DBG_SYS,DBG_INFO, "- NV NV_VehicDist:  %6lu,%.2lu km",    NV_VehicDist.dkm/100L, NV_VehicDist.dkm-(NV_VehicDist.dkm/100L)*100); break;
+        case PID_TRIP_A_KM:     ODS2(DBG_SYS,DBG_INFO, "- NV NV_TripCnt_A:      %6lu,%.2lu km",    NV_TripCnt_A.dkm/100L, NV_TripCnt_A.dkm-(NV_TripCnt_A.dkm/100L)*100); break;
+        case PID_TRIP_B_KM:     ODS2(DBG_SYS,DBG_INFO, "- NV NV_TripCnt_B:      %6lu,%.2lu km",    NV_TripCnt_B.dkm/100L, NV_TripCnt_B.dkm-(NV_TripCnt_B.dkm/100L)*100); break;
+        case PID_TRIP_C_KM:     ODS2(DBG_SYS,DBG_INFO, "- NV NV_TripCom_A:      %6lu,%.2lu km",    NV_TripCom_A.dkm/100L, NV_TripCom_A.dkm-(NV_TripCom_A.dkm/100L)*100); break;
+        case PID_TRIP_D_KM:     ODS2(DBG_SYS,DBG_INFO, "- NV NV_TripCom_B:      %6lu,%.2lu km",    NV_TripCom_B.dkm/100L, NV_TripCom_B.dkm-(NV_TripCom_B.dkm/100L)*100); break;
+        case PID_SPEED_AVR_M:   ODS2(DBG_SYS,DBG_INFO, "- NV NV_Speed_AvrM: %6u,%.2u km/h",    NV_Speed_AvrM/100, NV_Speed_AvrM-(NV_Speed_AvrM/100)*100); break;
+        case PID_SPEED_AVR_P:   ODS2(DBG_SYS,DBG_INFO, "- NV NV_Speed_AvrP: %6u,%.2u km/h",    NV_Speed_AvrP/100, NV_Speed_AvrP-(NV_Speed_AvrP/100)*100); break;
+        case PID_FUEL_KM:       ODS2(DBG_SYS,DBG_INFO, "- NV NV_FuelDist:   %6lu,%.2lu km",    NV_FuelDist.dkm/100L, NV_FuelDist.dkm-(NV_FuelDist.dkm/100L)*100); break;
+        case PID_FUEL_SENSOR:   ODS1(DBG_SYS,DBG_INFO, "- NV FuelSens:   %6lu Imp.",        NV_FuelSensImp); break;
+        case PID_HOURS_SERV:    ODS3(DBG_SYS,DBG_INFO, "- NV EngTimeSrv: %2u:%02u:%02u",    NV_EngRunTime_Srv.wHour, NV_EngRunTime_Srv.bMin, NV_EngRunTime_Srv.bSec); break;
+        case PID_HOURS_ALL:     ODS3(DBG_SYS,DBG_INFO, "- NV EngTimeAll: %2u:%02u:%02u",    NV_EngRunTime_All.wHour, NV_EngRunTime_All.bMin, NV_EngRunTime_All.bSec); break;
 
-        case PID_SWVERSION:     ODS4(DBG_SYS,DBG_INFO, "- EE SW-ID:      %u.%u.%u.%c",      gSWID.Fields.apl, gSWID.Fields.swv, gSWID.Fields.bld, gSWID.Fields.spc+APLNUMCOFFS); break;
-        case PID_WHEELSIZE:     ODS1(DBG_SYS,DBG_INFO, "- EE WheelSize:  %6u mm",           wWheelSize); break;
-        case PID_RPM_CCF:       ODS2(DBG_SYS,DBG_INFO, "- EE CCF:        %u/%u",            CCF.nibble.nom, CCF.nibble.denom); break;
-        case PID_DEVFLAGS1:     ODS2(DBG_SYS,DBG_INFO, "- EE DevFlags1:  DEV:%s MAIND:%u",    szDevName[gDeviceFlags1.flags.ActDevNr], gDeviceFlags1.flags.MainDevState); break;
+        case PID_SWVERSION:     ODS4(DBG_SYS,DBG_INFO, "- EE SW-ID:      %u.%u.%u.%c",      EE_SWID.Fields.apl, EE_SWID.Fields.swv, EE_SWID.Fields.bld, EE_SWID.Fields.spc+APLNUMCOFFS); break;
+        case PID_WHEELSIZE:     ODS1(DBG_SYS,DBG_INFO, "- EE WheelSize:  %6u mm",           EE_WheelSize); break;
+        case PID_CCF:       ODS2(DBG_SYS,DBG_INFO, "- EE EE_CCF:        %u/%u",            EE_CCF.nibble.nom, EE_CCF.nibble.denom); break;
+        case PID_DEVFLAGS1:     ODS2(DBG_SYS,DBG_INFO, "- EE DevFlags1:  DEV:%s MAIND:%u",    szDevName[EE_DevFlags_1.flags.ActDevNr], EE_DevFlags_1.flags.MainDevState); break;
         case PID_DEVFLAGS2:     ODS8(DBG_SYS,DBG_INFO, "- EE DevFlags2:  TC:%u B:%u DL:%u DA:%u M:%u LW:%u VS:%u HC:%u",
-                                                                                            gDeviceFlags2.flags.TripCLongDistUp,
-                                                                                            gDeviceFlags2.flags.BeeperAvail,
-                                                                                            gDeviceFlags2.flags.DLS_Auto,
-                                                                                            gDeviceFlags2.flags.DLS_Active,
-                                                                                            gDeviceFlags2.flags.Metric,
-                                                                                            gDeviceFlags2.flags.LedWarnMode,
-                                                                                            gDeviceFlags2.flags.VehicSimul,
-                                                                                            gDeviceFlags2.flags.Hardcopy   ) ; break;
+                                                                                            EE_DevFlags_2.flags.NV_TripCom_ALongDistUp,
+                                                                                            EE_DevFlags_2.flags.BeeperAvail,
+                                                                                            EE_DevFlags_2.flags.DLS_Auto,
+                                                                                            EE_DevFlags_2.flags.DLS_Active,
+                                                                                            EE_DevFlags_2.flags.Metric,
+                                                                                            EE_DevFlags_2.flags.LedWarnMode,
+                                                                                            EE_DevFlags_2.flags.VehicSimul,
+                                                                                            EE_DevFlags_2.flags.Hardcopy   ) ; break;
         case PID_DPLFL:         ODS4(DBG_SYS,DBG_INFO, "- EE DplFlags:   C:%u BLL:%u BLOL:%u Inv:%u",
-                                                                                            gDisplayFlags.flags.ContrLev,
-                                                                                            gDisplayFlags.flags.BacklLev,
-                                                                                            gDisplayFlags.flags.BacklOnLevel,
-                                                                                            gDisplayFlags.flags.fDplInvers);  break;
-        case PID_DBGFILTFL:     ODS1(DBG_SYS,DBG_INFO, "- EE DbgFilter:  0x%x ", gDebugFilter); break;
-        case PID_DBGDETDIRFL:   ODS1(DBG_SYS,DBG_INFO, "- EE DbgDetail:  0x%x", gDebugDetails); break;
-        case PID_LOGO:          ODS1(DBG_SYS,DBG_INFO, "- EE Logo:       %u", gLogoSelection ) ; break;
-        case PID_SPEED_MAX:     ODS1(DBG_MEAS,DBG_INFO,"- EE Speed_Max:  %6u km/h", Speed_Max); break;
-        case PID_RPM_MAX:       ODS1(DBG_MEAS,DBG_INFO,"- EE RPM Max:    %6u RPM", RPM_Max); break;
-        case PID_RPM_FLASH:     ODS1(DBG_MEAS,DBG_INFO,"- EE RPM Flash:  %6u RPM", RPM_Flash); break;
-        case PID_VOLT_MIN:      ODS2(DBG_MEAS,DBG_INFO,"- EE Volt Min:   %3u,%.2u V", Volt_Min/100, Volt_Min-(Volt_Min/100)*100); break;
-        case PID_VOLT_MAX:      ODS2(DBG_MEAS,DBG_INFO,"- EE Volt Max:   %3u,%.2u V", Volt_Max/100, Volt_Max-(Volt_Max/100)*100); break;
-        case PID_TAIR_MIN:      ODS1(DBG_MEAS,DBG_INFO,"- EE TAIR Min:   %5i °C", TAir_Min); break;
-        case PID_TAIR_MAX:      ODS1(DBG_MEAS,DBG_INFO,"- EE TAIR Max:   %5i °C", TAir_Max); break;
-        case PID_TOIL_MIN:      ODS1(DBG_MEAS,DBG_INFO,"- EE TOIL Min:   %5i °C", TOil_Min); break;
-        case PID_TOIL_MAX:      ODS1(DBG_MEAS,DBG_INFO,"- EE TOIL Max:   %5i °C", TOil_Max); break;
-        case PID_TWAT_MIN:      ODS1(DBG_MEAS,DBG_INFO,"- EE TWAT Min:   %5i °C", TWat_Min); break;
-        case PID_TWAT_MAX:      ODS1(DBG_MEAS,DBG_INFO,"- EE TWAT Max:   %5i °C", TWat_Max); break;
-        case PID_BIKETYPE:      ODS1(DBG_SYS,DBG_INFO, "- EE BikeType:   %u", gBikeType ) ; break;
-        case PID_SERV_KM:       ODS1(DBG_SYS,DBG_INFO, "- EE Service:    %6lu km",  gNextServKm.km ); break;
-        case PID_FUEL_CAP:      ODS2(DBG_SYS,DBG_INFO, "- EE Fuel Cap:   %4u,%1u liter", gwFuelCap /10, gwFuelCap -(gwFuelCap /10)*10); break;
-        case PID_FUEL_CONS:     ODS2(DBG_SYS,DBG_INFO, "- EE Fuel Cons:  %4u,%1u l/100", gbFuelCons/10, gbFuelCons-(gbFuelCons/10)*10); break;
-        case PID_BOOT_DELAY:    ODS2(DBG_SYS,DBG_INFO, "- EE BootDelay:  %4u,%1u s", gbLogoDelay/10, gbLogoDelay-(gbLogoDelay/10)*10); break;
-        case PID_WHEEL_IMP:     ODS1(DBG_SYS,DBG_INFO, "- EE Wheel Imp:  %6u I/Rev", gbWheelImpulse); break;
+                                                                                            EE_DisplFlags.flags.ContrLev,
+                                                                                            EE_DisplFlags.flags.BacklLev,
+                                                                                            EE_DisplFlags.flags.BacklOnLevel,
+                                                                                            EE_DisplFlags.flags.fDplInvers);  break;
+        case PID_DBGFILTFL:     ODS1(DBG_SYS,DBG_INFO, "- EE DbgFilter:  0x%x ", EE_DbgFilter); break;
+        case PID_DBGDETDIRFL:   ODS1(DBG_SYS,DBG_INFO, "- EE DbgDetail:  0x%x", EE_DbgDetails); break;
+        case PID_LOGO:          ODS1(DBG_SYS,DBG_INFO, "- EE Logo:       %u", EE_LogoSelect ) ; break;
+        case PID_SPEED_MAX:     ODS1(DBG_MEAS,DBG_INFO,"- EE EE_SpeedMax:  %6u km/h", EE_SpeedMax); break;
+        case PID_RPM_MAX:       ODS1(DBG_MEAS,DBG_INFO,"- EE RPM Max:    %6u RPM", EE_RPM_Max); break;
+        case PID_RPM_FLASH:     ODS1(DBG_MEAS,DBG_INFO,"- EE RPM Flash:  %6u RPM", EE_RPM_Flash); break;
+        case PID_VOLT_MIN:      ODS2(DBG_MEAS,DBG_INFO,"- EE Volt Min:   %3u,%.2u V", EE_Volt_Min/100, EE_Volt_Min-(EE_Volt_Min/100)*100); break;
+        case PID_VOLT_MAX:      ODS2(DBG_MEAS,DBG_INFO,"- EE Volt Max:   %3u,%.2u V", EE_Volt_Max/100, EE_Volt_Max-(EE_Volt_Max/100)*100); break;
+        case PID_TAIR_MIN:      ODS1(DBG_MEAS,DBG_INFO,"- EE TAIR Min:   %5i °C", EE_TAir_Min); break;
+        case PID_TAIR_MAX:      ODS1(DBG_MEAS,DBG_INFO,"- EE TAIR Max:   %5i °C", EE_TAir_Max); break;
+        case PID_TOIL_MIN:      ODS1(DBG_MEAS,DBG_INFO,"- EE TOIL Min:   %5i °C", EE_TOil_Min); break;
+        case PID_TOIL_MAX:      ODS1(DBG_MEAS,DBG_INFO,"- EE TOIL Max:   %5i °C", EE_TOil_Max); break;
+        case PID_TWAT_MIN:      ODS1(DBG_MEAS,DBG_INFO,"- EE TWAT Min:   %5i °C", EE_TWat_Min); break;
+        case PID_TWAT_MAX:      ODS1(DBG_MEAS,DBG_INFO,"- EE TWAT Max:   %5i °C", EE_TWat_Max); break;
+        case PID_BIKETYPE:      ODS1(DBG_SYS,DBG_INFO, "- EE BikeType:   %u", EE_BikeType ) ; break;
+        case PID_SERV_KM:       ODS1(DBG_SYS,DBG_INFO, "- EE Service:    %6lu km",  EE_NextSrvKm.km ); break;
+        case PID_FUEL_CAP:      ODS2(DBG_SYS,DBG_INFO, "- EE Fuel Cap:   %4u,%1u liter", EE_FuelCap /10, EE_FuelCap -(EE_FuelCap /10)*10); break;
+        case PID_FUEL_CONS:     ODS2(DBG_SYS,DBG_INFO, "- EE Fuel Cons:  %4u,%1u l/100", EE_FuelConsUser/10, EE_FuelConsUser-(EE_FuelConsUser/10)*10); break;
+        case PID_BOOT_DELAY:    ODS2(DBG_SYS,DBG_INFO, "- EE BootDelay:  %4u,%1u s", EE_LogoDelay/10, EE_LogoDelay-(EE_LogoDelay/10)*10); break;
+        case PID_WHEEL_IMP:     ODS1(DBG_SYS,DBG_INFO, "- EE Wheel Imp:  %6u I/Rev", EE_Wheel_ImpPRev); break;
         case PID_DEVFLAGS3:     ODS (DBG_SYS,DBG_INFO, "- EE DevFlags3:  currently not used!"); break;
-        case PID_COOLR_CNTRL:   ODS3(DBG_SYS,DBG_INFO, "- EE Coolride:   On:%u GPO:%u GPI:%u",  gCoolrideCntrl.flags.CoolrAvail,
-                                                                                                gCoolrideCntrl.flags.CoolrGPO,
-                                                                                                gCoolrideCntrl.flags.CoolrGPI ); break;
-        case PID_COMPS_CNTRL:   ODS2(DBG_SYS,DBG_INFO, "- EE Compass:    On:%u DPL:%u",         gCompassCntrl.flags.CompassAvail,
-                                                                                                gCompassCntrl.flags.CompassDisplay ); break;
-        case PID_LANGUAGE:      ODS1(DBG_SYS,DBG_INFO, "- EE Language:   %u", gLanguage); break;
-        case PID_FUELS_CNTRL:   ODS3(DBG_SYS,DBG_INFO, "- EE FuelSensor: On:%u I/l:%u GPI:%u",  gFuelSensCntrl.flags.FuelSAvail,
-                                                                                                gFuelSensCntrl.FuelSImpulseRate,
-                                                                                                gFuelSensCntrl.flags.FuelSGPI ); break;
+        case PID_COOLR_CNTRL:   ODS3(DBG_SYS,DBG_INFO, "- EE Coolride:   On:%u GPO:%u GPI:%u",  EE_CoolrideCtrl.flags.CoolrAvail,
+                                                                                                EE_CoolrideCtrl.flags.CoolrGPO,
+                                                                                                EE_CoolrideCtrl.flags.CoolrGPI ); break;
+        case PID_COMPS_CNTRL:   ODS2(DBG_SYS,DBG_INFO, "- EE Compass:    On:%u DPL:%u",         EE_CompassCtrl.flags.CompassAvail,
+                                                                                                EE_CompassCtrl.flags.CompassDisplay ); break;
+        case PID_LANGUAGE:      ODS1(DBG_SYS,DBG_INFO, "- EE Language:   %u", EE_LangSelect); break;
+        case PID_FUELS_CNTRL:   ODS3(DBG_SYS,DBG_INFO, "- EE FuelSensor: On:%u I/l:%u GPI:%u",  EE_FuelSensCtrl.flags.FuelSAvail,
+                                                                                                EE_FuelSensCtrl.FuelSImpulseRate,
+                                                                                                EE_FuelSensCtrl.flags.FuelSGPI ); break;
 
 
-        case PID_LAPCSTAT:      ODS2(DBG_MEAS,DBG_INFO,"- EE LapCnt:     Act:%u Lap:%u", LapCounterState.fActive, LapCounterState.cCurrentLap); break;
-        case PID_LAPC_0 :       ODS2(DBG_MEAS,DBG_INFO,"- EE LapCntTimer:  Lap[0 ]: %02u:%02u", LapCntTime[0 ].bMin, LapCntTime[0 ].bSec); break;
-        case PID_LAPC_1 :       ODS2(DBG_MEAS,DBG_INFO,"- EE LapCntTimer:  Lap[1 ]: %02u:%02u", LapCntTime[1 ].bMin, LapCntTime[1 ].bSec); break;
-        case PID_LAPC_2 :       ODS2(DBG_MEAS,DBG_INFO,"- EE LapCntTimer:  Lap[2 ]: %02u:%02u", LapCntTime[2 ].bMin, LapCntTime[2 ].bSec); break;
-        case PID_LAPC_3 :       ODS2(DBG_MEAS,DBG_INFO,"- EE LapCntTimer:  Lap[3 ]: %02u:%02u", LapCntTime[3 ].bMin, LapCntTime[3 ].bSec); break;
-        case PID_LAPC_4 :       ODS2(DBG_MEAS,DBG_INFO,"- EE LapCntTimer:  Lap[4 ]: %02u:%02u", LapCntTime[4 ].bMin, LapCntTime[4 ].bSec); break;
-        case PID_LAPC_5 :       ODS2(DBG_MEAS,DBG_INFO,"- EE LapCntTimer:  Lap[5 ]: %02u:%02u", LapCntTime[5 ].bMin, LapCntTime[5 ].bSec); break;
-        case PID_LAPC_6 :       ODS2(DBG_MEAS,DBG_INFO,"- EE LapCntTimer:  Lap[6 ]: %02u:%02u", LapCntTime[6 ].bMin, LapCntTime[6 ].bSec); break;
-        case PID_LAPC_7 :       ODS2(DBG_MEAS,DBG_INFO,"- EE LapCntTimer:  Lap[7 ]: %02u:%02u", LapCntTime[7 ].bMin, LapCntTime[7 ].bSec); break;
-        case PID_LAPC_8 :       ODS2(DBG_MEAS,DBG_INFO,"- EE LapCntTimer:  Lap[8 ]: %02u:%02u", LapCntTime[8 ].bMin, LapCntTime[8 ].bSec); break;
-        case PID_LAPC_9 :       ODS2(DBG_MEAS,DBG_INFO,"- EE LapCntTimer:  Lap[9 ]: %02u:%02u", LapCntTime[9 ].bMin, LapCntTime[9 ].bSec); break;
-        case PID_LAPC_10:       ODS2(DBG_MEAS,DBG_INFO,"- EE LapCntTimer:  Lap[10]: %02u:%02u", LapCntTime[10].bMin, LapCntTime[10].bSec); break;
-        case PID_LAPC_11:       ODS2(DBG_MEAS,DBG_INFO,"- EE LapCntTimer:  Lap[11]: %02u:%02u", LapCntTime[11].bMin, LapCntTime[11].bSec); break;
-        case PID_LAPC_12:       ODS2(DBG_MEAS,DBG_INFO,"- EE LapCntTimer:  Lap[12]: %02u:%02u", LapCntTime[12].bMin, LapCntTime[12].bSec); break;
-        case PID_LAPC_13:       ODS2(DBG_MEAS,DBG_INFO,"- EE LapCntTimer:  Lap[13]: %02u:%02u", LapCntTime[13].bMin, LapCntTime[13].bSec); break;
-        case PID_LAPC_14:       ODS2(DBG_MEAS,DBG_INFO,"- EE LapCntTimer:  Lap[14]: %02u:%02u", LapCntTime[14].bMin, LapCntTime[14].bSec); break;
-        case PID_LAPC_15:       ODS2(DBG_MEAS,DBG_INFO,"- EE LapCntTimer:  Lap[15]: %02u:%02u", LapCntTime[15].bMin, LapCntTime[15].bSec); break;
+        case PID_LAPCSTAT:      ODS2(DBG_MEAS,DBG_INFO,"- EE LapCnt:     Act:%u Lap:%u", EE_LapCnt_State.fActive, EE_LapCnt_State.cCurrentLap); break;
+        case PID_LAPC_0 :       ODS2(DBG_MEAS,DBG_INFO,"- EE EE_LapCnt_Timer:  Lap[0 ]: %02u:%02u", EE_LapCnt_Time[0 ].bMin, EE_LapCnt_Time[0 ].bSec); break;
+        case PID_LAPC_1 :       ODS2(DBG_MEAS,DBG_INFO,"- EE EE_LapCnt_Timer:  Lap[1 ]: %02u:%02u", EE_LapCnt_Time[1 ].bMin, EE_LapCnt_Time[1 ].bSec); break;
+        case PID_LAPC_2 :       ODS2(DBG_MEAS,DBG_INFO,"- EE EE_LapCnt_Timer:  Lap[2 ]: %02u:%02u", EE_LapCnt_Time[2 ].bMin, EE_LapCnt_Time[2 ].bSec); break;
+        case PID_LAPC_3 :       ODS2(DBG_MEAS,DBG_INFO,"- EE EE_LapCnt_Timer:  Lap[3 ]: %02u:%02u", EE_LapCnt_Time[3 ].bMin, EE_LapCnt_Time[3 ].bSec); break;
+        case PID_LAPC_4 :       ODS2(DBG_MEAS,DBG_INFO,"- EE EE_LapCnt_Timer:  Lap[4 ]: %02u:%02u", EE_LapCnt_Time[4 ].bMin, EE_LapCnt_Time[4 ].bSec); break;
+        case PID_LAPC_5 :       ODS2(DBG_MEAS,DBG_INFO,"- EE EE_LapCnt_Timer:  Lap[5 ]: %02u:%02u", EE_LapCnt_Time[5 ].bMin, EE_LapCnt_Time[5 ].bSec); break;
+        case PID_LAPC_6 :       ODS2(DBG_MEAS,DBG_INFO,"- EE EE_LapCnt_Timer:  Lap[6 ]: %02u:%02u", EE_LapCnt_Time[6 ].bMin, EE_LapCnt_Time[6 ].bSec); break;
+        case PID_LAPC_7 :       ODS2(DBG_MEAS,DBG_INFO,"- EE EE_LapCnt_Timer:  Lap[7 ]: %02u:%02u", EE_LapCnt_Time[7 ].bMin, EE_LapCnt_Time[7 ].bSec); break;
+        case PID_LAPC_8 :       ODS2(DBG_MEAS,DBG_INFO,"- EE EE_LapCnt_Timer:  Lap[8 ]: %02u:%02u", EE_LapCnt_Time[8 ].bMin, EE_LapCnt_Time[8 ].bSec); break;
+        case PID_LAPC_9 :       ODS2(DBG_MEAS,DBG_INFO,"- EE EE_LapCnt_Timer:  Lap[9 ]: %02u:%02u", EE_LapCnt_Time[9 ].bMin, EE_LapCnt_Time[9 ].bSec); break;
+        case PID_LAPC_10:       ODS2(DBG_MEAS,DBG_INFO,"- EE EE_LapCnt_Timer:  Lap[10]: %02u:%02u", EE_LapCnt_Time[10].bMin, EE_LapCnt_Time[10].bSec); break;
+        case PID_LAPC_11:       ODS2(DBG_MEAS,DBG_INFO,"- EE EE_LapCnt_Timer:  Lap[11]: %02u:%02u", EE_LapCnt_Time[11].bMin, EE_LapCnt_Time[11].bSec); break;
+        case PID_LAPC_12:       ODS2(DBG_MEAS,DBG_INFO,"- EE EE_LapCnt_Timer:  Lap[12]: %02u:%02u", EE_LapCnt_Time[12].bMin, EE_LapCnt_Time[12].bSec); break;
+        case PID_LAPC_13:       ODS2(DBG_MEAS,DBG_INFO,"- EE EE_LapCnt_Timer:  Lap[13]: %02u:%02u", EE_LapCnt_Time[13].bMin, EE_LapCnt_Time[13].bSec); break;
+        case PID_LAPC_14:       ODS2(DBG_MEAS,DBG_INFO,"- EE EE_LapCnt_Timer:  Lap[14]: %02u:%02u", EE_LapCnt_Time[14].bMin, EE_LapCnt_Time[14].bSec); break;
+        case PID_LAPC_15:       ODS2(DBG_MEAS,DBG_INFO,"- EE EE_LapCnt_Timer:  Lap[15]: %02u:%02u", EE_LapCnt_Time[15].bMin, EE_LapCnt_Time[15].bSec); break;
 
         default:                ODS1(DBG_MEAS,DBG_ERROR,"- Unspecified PID: %u", PID); break;
     }

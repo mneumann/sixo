@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.13  2012/05/27 16:01:39  tuberkel
+ * All Eeprom/Nvram Variables renamed
+ *
  * Revision 3.12  2012/02/27 23:15:19  tuberkel
  * - SysPar- API changed
  *
@@ -218,10 +221,10 @@ DEVICE_ID eStartDevice;                 // handles startdevice
 
 
 /* external symbols */
-extern DEVFLAGS1_TYPE   gDeviceFlags1;  // device parameters
-extern DEVFLAGS2_TYPE   gDeviceFlags2;  // device parameters
-extern UINT16           wWheelSize;     // to control vehicle simulation
-extern UINT8            gbLogoDelay;    // Eeprom value;
+extern DEVFLAGS1_TYPE   EE_DevFlags_1;  // device parameters
+extern DEVFLAGS2_TYPE   EE_DevFlags_2;  // device parameters
+extern UINT16           EE_WheelSize;     // to control vehicle simulation
+extern UINT8            EE_LogoDelay;    // Eeprom value;
 
 
 
@@ -234,10 +237,10 @@ extern  UINT16  wISPMax;                // interrupt stack pointer max value
 extern  UINT16  wMilliSecCounter;       // valid values: 0h .. ffffh
 extern  UINT16  wSecCounter;            // valid values: 0h .. ffffh
 
-extern  DBGFILT_TYPE    gDebugFilter;   // default off, use DebugSetFilterDetails() to change
-extern  DBGDETDIR_TYPE  gDebugDetails;  // default uart, use DebugSetFilterDetails() to change
+extern  DBGFILT_TYPE    EE_DbgFilter;   // default off, use DebugSetFilterDetails() to change
+extern  DBGDETDIR_TYPE  EE_DbgDetails;  // default uart, use DebugSetFilterDetails() to change
 
-extern  BIKE_TYPE       gBikeType;      // bike type selcetion
+extern  BIKE_TYPE       EE_BikeType;      // bike type selcetion
 
 
 
@@ -310,7 +313,7 @@ int main()
         ODS(DBG_SYS,DBG_INFO,"\n\rInitialize Devices:");
         Error = IntroDev_Init();                                  /* intro screen device */
         Error = MainDev_Init();                                   /* main device (speed&rpm) */
-        Error = TripCDev_Init();                                   /* trip counter device */
+        Error = NV_TripCom_ADev_Init();                                   /* trip counter device */
         Error = MonDev_Init();                                /* monitor device */
         #if(BIKE_MOTOBAU==1)                                        /* special MOTOBAU behaviour */
         Error = LCDev_Init();                                 /* LapCounter device */
@@ -322,10 +325,10 @@ int main()
 
         /* Display & LED 'HW pseudo test' ---------------- */
         LCDDrvSetBacklightLevel(TRUE, 63);  // switch on Backlight
-        if(gbLogoDelay > 0)                 // only if enabled by user:
+        if(EE_LogoDelay > 0)                 // only if enabled by user:
         {   IntroDev_Show(TRUE);          //    show 'splash screen'
             PORT_LED = PORT_LED_MASK;       //    all LEDs on
-            Delay_ms(gbLogoDelay*100);      //    wait (given in 1/10 sec, set as ms)
+            Delay_ms(EE_LogoDelay*100);      //    wait (given in 1/10 sec, set as ms)
             IntroDev_Show(FALSE);         //    clear 'splash screen'
             PORT_LED &= ~PORT_LED_MASK;     //    all LEDs off
         }
@@ -361,23 +364,23 @@ int main()
         // set start screen ------------------------------ */
 
         /* check for basic eeprom content error */
-        if (  (gDeviceFlags1.flags.ActDevNr <  DEVID_MAIN)           /* eeprom value in valid area? */
-            ||(gDeviceFlags1.flags.ActDevNr >= DEVID_LAST) )
-        {   ODS1( DBG_SYS, DBG_ERROR, "Invalid gDeviceFlags1.flags.ActDevNr %u corrected!", gDeviceFlags1.flags.ActDevNr );
-            gDeviceFlags1.flags.ActDevNr = DEVID_MAIN;               /* set main device as default */
+        if (  (EE_DevFlags_1.flags.ActDevNr <  DEVID_MAIN)           /* eeprom value in valid area? */
+            ||(EE_DevFlags_1.flags.ActDevNr >= DEVID_LAST) )
+        {   ODS1( DBG_SYS, DBG_ERROR, "Invalid EE_DevFlags_1.flags.ActDevNr %u corrected!", EE_DevFlags_1.flags.ActDevNr );
+            EE_DevFlags_1.flags.ActDevNr = DEVID_MAIN;               /* set main device as default */
         }
 
         /* prevent from starting with HW-Test all the time */
-        if (gDeviceFlags1.flags.ActDevNr == DEVID_HWTEST)            /* eeprom saved hw test state? */
-            gDeviceFlags1.flags.ActDevNr = DEVID_MAIN;               /* set main device as default */
+        if (EE_DevFlags_1.flags.ActDevNr == DEVID_HWTEST)            /* eeprom saved hw test state? */
+            EE_DevFlags_1.flags.ActDevNr = DEVID_MAIN;               /* set main device as default */
 
         /* for device/objects test only: bring GUI testscreen to top */
         #if(TESTSCREEN==1)
-        gDeviceFlags1.flags.ActDevNr = DEVID_TESTSCREEN;             /* enable our gui testscreen */
+        EE_DevFlags_1.flags.ActDevNr = DEVID_TESTSCREEN;             /* enable our gui testscreen */
         #endif
 
         /* start NORMAL USER MODE */
-        eStartDevice = gDeviceFlags1.flags.ActDevNr;                 /* select start device */
+        eStartDevice = EE_DevFlags_1.flags.ActDevNr;                 /* select start device */
         MSG_BUILD_SETFOCUS(Msg, DEVID_UNKNOWN, eStartDevice);       /* give focus to that device */
         MsgQPostMsg(Msg, MSGQ_PRIO_LOW);                            /* post message */
 
@@ -394,11 +397,11 @@ int main()
             HWTDev_Show(TRUE);
 
         /* if enabled: RPM+WHEEL simulation support */
-        if (gDeviceFlags2.flags.VehicSimul == TRUE)
+        if (EE_DevFlags_2.flags.VehicSimul == TRUE)
             VehicleSimulation();
 
         /* if enabled: Grafic Hardcopy support */
-        if (gDeviceFlags2.flags.Hardcopy == TRUE)
+        if (EE_DevFlags_2.flags.Hardcopy == TRUE)
             Hardcopy();
 
         /* if defined: Compass support */

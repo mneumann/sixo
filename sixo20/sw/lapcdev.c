@@ -76,6 +76,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.8  2012/05/27 16:01:39  tuberkel
+ * All Eeprom/Nvram Variables renamed
+ *
  * Revision 3.7  2012/02/26 12:24:55  tuberkel
  * - moved all Eeprom Vlaues physically into 'sysparam' module
  *
@@ -166,11 +169,11 @@
 
 /* external symbols (taken from eeprom/nvram) */
 extern STRING far       szDevName[];            // device names
-extern DEVFLAGS1_TYPE   gDeviceFlags1;          // system parameters
+extern DEVFLAGS1_TYPE   EE_DevFlags_1;          // system parameters
 extern UINT16           wMilliSecCounter;       // high resolution short distance timer, ms,  max  65 sec
 extern UINT16           wSecCounter;            // low  resolution long  distance timer, sec, max. 18 h
-extern TIME_TYPE_LL     LapCntTime[LAPS_MAX];   // original values from EEPROM
-extern LCSTATE_TYPE     LapCounterState;        // LapCounter state
+extern TIME_TYPE_LL     EE_LapCnt_Time[LAPS_MAX];   // original values from EEPROM
+extern LCSTATE_TYPE     EE_LapCnt_State;        // LapCounter state
 
 
 // device object data
@@ -270,8 +273,8 @@ ERRCODE LCDev_Init(void)
     LCDev_.fScreenInit  = FALSE;
     LCDev_.wDevState    = 0;
 
-    // LapCounterState.fActive     = 1;    // default disabled, might be enabled via EEPROM setting
-    // LapCounterState.cCurrentLap = 0;    // default start with 0; might be changed via EEPROM setting
+    // EE_LapCnt_State.fActive     = 1;    // default disabled, might be enabled via EEPROM setting
+    // EE_LapCnt_State.cCurrentLap = 0;    // default start with 0; might be changed via EEPROM setting
 
     /* initialize all objects of any type */
     DevObjInit( &LCDev_, &TextObjInit,   STEXTOBJ_INITLISTSIZE, OBJT_TXT  );
@@ -315,15 +318,15 @@ void LCDev_Show(BOOL fShow)
     for ( i = 0; i < LAPS_MAX; i++)
     {
         // check: used/unused lapcounter?
-        if (  (LapCntTime[i].bMin          == 0 )    // minutes still reseted?
-            &&(LapCntTime[i].bSec          == 0 ) )   // seconds still reseted?
-            //&&(LapCounterState.cCurrentLap != i ) )  // this lap is not focused?
+        if (  (EE_LapCnt_Time[i].bMin          == 0 )    // minutes still reseted?
+            &&(EE_LapCnt_Time[i].bSec          == 0 ) )   // seconds still reseted?
+            //&&(EE_LapCnt_State.cCurrentLap != i ) )  // this lap is not focused?
              sprintf( szLapCntText[i],"#%02u --:--", i+1 );     // show unsed
-        else sprintf( szLapCntText[i],"#%02u %02u:%02u", i+1, LapCntTime[i].bMin, LapCntTime[i].bSec );
+        else sprintf( szLapCntText[i],"#%02u %02u:%02u", i+1, EE_LapCnt_Time[i].bMin, EE_LapCnt_Time[i].bSec );
     }
 
     // update current focused lap
-    LCDev_SetFocus(LapCounterState.cCurrentLap);
+    LCDev_SetFocus(EE_LapCnt_State.cCurrentLap);
 
     // show mode of complete device
     if (fShow == TRUE)                                      // 'show' screen ?
@@ -428,7 +431,7 @@ ERRCODE LCDev_MsgEntry(MESSAGE GivenMsg)
                 }
                 LCDev_.fFocused = TRUE;                           // set our focus
                 LCDev_Show(TRUE);                                 // show our screen immediatly
-                gDeviceFlags1.flags.ActDevNr = DEVID_LAPCNT;             // save device# for restore
+                EE_DevFlags_1.flags.ActDevNr = DEVID_LAPCNT;             // save device# for restore
                 RValue = ERR_MSG_PROCESSED;
              }
              else
@@ -529,13 +532,13 @@ ERRCODE LCDev_StateMachine(MESSAGE Msg)
            ||(MSG_KEY_TRANSITION(Msg) == KEYTRANS_ON      ) ) ) // or longer pressed?
     {
         // decrement lap
-        if ( LapCounterState.cCurrentLap > 0 )                  // underflow/wrap around?
-             LapCounterState.cCurrentLap--;                     // NO:  set previous lap
-        else LapCounterState.cCurrentLap = (LAPS_MAX-1);        // YES: set last lap
-        LCDev_SetFocus(LapCounterState.cCurrentLap);      // set focus
+        if ( EE_LapCnt_State.cCurrentLap > 0 )                  // underflow/wrap around?
+             EE_LapCnt_State.cCurrentLap--;                     // NO:  set previous lap
+        else EE_LapCnt_State.cCurrentLap = (LAPS_MAX-1);        // YES: set last lap
+        LCDev_SetFocus(EE_LapCnt_State.cCurrentLap);      // set focus
         LCDev_Show(TRUE);                                 // immedeately show result
         RValue = ERR_MSG_PROCESSED;                             // processed!
-        ODS1( DBG_SYS, DBG_INFO, "LapCnt decr to lap %u!", LapCounterState.cCurrentLap+1);
+        ODS1( DBG_SYS, DBG_INFO, "LapCnt decr to lap %u!", EE_LapCnt_State.cCurrentLap+1);
     }
 
     // move focus to next lap timer?
@@ -544,13 +547,13 @@ ERRCODE LCDev_StateMachine(MESSAGE Msg)
         &&(  (MSG_KEY_TRANSITION(Msg) == KEYTRANS_PRESSED )     // now pressed
            ||(MSG_KEY_TRANSITION(Msg) == KEYTRANS_ON      ) ) ) // or longer pressed?
     {
-        if (LapCounterState.cCurrentLap < (LAPS_MAX-1) )        // wrap around?
-             LapCounterState.cCurrentLap++;                     // NO:  set next lap
-        else LapCounterState.cCurrentLap = 0;                   // YES: set first last
-        LCDev_SetFocus(LapCounterState.cCurrentLap);      // set focus
+        if (EE_LapCnt_State.cCurrentLap < (LAPS_MAX-1) )        // wrap around?
+             EE_LapCnt_State.cCurrentLap++;                     // NO:  set next lap
+        else EE_LapCnt_State.cCurrentLap = 0;                   // YES: set first last
+        LCDev_SetFocus(EE_LapCnt_State.cCurrentLap);      // set focus
         LCDev_Show(TRUE);                                 // immedeately show result
         RValue = ERR_MSG_PROCESSED;                             // processed!
-        ODS1( DBG_SYS, DBG_INFO, "LapCnt incr. to lap %u!", LapCounterState.cCurrentLap+1);
+        ODS1( DBG_SYS, DBG_INFO, "LapCnt incr. to lap %u!", EE_LapCnt_State.cCurrentLap+1);
     }
     return RValue;
 }
@@ -580,8 +583,8 @@ ERRCODE LCDev_SetFocus(UINT8 bLap)
 
     // let the focus blink with 1 Hz, if lap counter active
     TextObjInit[bLap].fpObject->State.bits.fSelected = 1;
-    if (  (  LapCounterState.fActive  == 1 )
-        &&( (LapCntTime[bLap].bSec%2) == 0 ) )
+    if (  (  EE_LapCnt_State.fActive  == 1 )
+        &&( (EE_LapCnt_Time[bLap].bSec%2) == 0 ) )
              TextObjInit[bLap].fpObject->State.bits.fSelected = 0;
 
     return (RValue);
@@ -622,14 +625,14 @@ ERRCODE LCDev_ResetMsg(MESSAGE Msg)
         int i;
 
         // stop lap timer and reset selected lap
-        LapCounterState.fActive = 0;
-        LapCounterState.cCurrentLap = 0;
+        EE_LapCnt_State.fActive = 0;
+        EE_LapCnt_State.cCurrentLap = 0;
 
         // reset all lap timers
         for ( i = 0; i < (LAPS_MAX); i++ )
         {
-            LapCntTime[i].bSec = 0;
-            LapCntTime[i].bMin = 0;
+            EE_LapCnt_Time[i].bSec = 0;
+            EE_LapCnt_Time[i].bMin = 0;
         }
 
         // acknowledge to user
@@ -669,14 +672,14 @@ ERRCODE LCDev_StartStop(MESSAGE Msg)
         &&( MSG_KEY_DURATION(Msg) < KEYTM_PRESSED_VLONG              ) )    /* has just shortly been pressed? */
     {
         // start / stop lap timer
-        if ( LapCounterState.fActive == 1 )
+        if ( EE_LapCnt_State.fActive == 1 )
         {
-            LapCounterState.fActive = 0;
+            EE_LapCnt_State.fActive = 0;
             ODS( DBG_SYS, DBG_INFO, "LapCnt manually stopped!");
         }
         else
         {
-            LapCounterState.fActive = 1;
+            EE_LapCnt_State.fActive = 1;
             ODS( DBG_SYS, DBG_INFO, "LapCnt manually started!");
         }
     }
@@ -695,7 +698,7 @@ ERRCODE LCDev_StartStop(MESSAGE Msg)
  *                  lap counter although not shown on screen!
  *  PARAMETER:      -
  *  RETURN:         -
- *  COMMENT:        LapCounterState.cCurrentLap (EEPROM value!) indicates current
+ *  COMMENT:        EE_LapCnt_State.cCurrentLap (EEPROM value!) indicates current
  *                  focused lap.
  *********************************************************************** */
 void LCDev_UpdTime( void )
@@ -704,24 +707,24 @@ void LCDev_UpdTime( void )
     UINT8        bThisSecond = 0;       // just a time stamp
 
     // check: LapCounter is active?
-    if ( LapCounterState.fActive == 1 )
+    if ( EE_LapCnt_State.fActive == 1 )
     {
         TimerGetSys_sec( bThisSecond );             // get current second
         if ( bThisSecond != bLastSecond )           // next second detected?
         {
-            int i = LapCounterState.cCurrentLap;    // just a helper variable
+            int i = EE_LapCnt_State.cCurrentLap;    // just a helper variable
             bLastSecond = bThisSecond;              // prevent any retry inside this second
-            LapCntTime[i].bSec++;                   // increment lap counter
+            EE_LapCnt_Time[i].bSec++;                   // increment lap counter
 
             // check max time format
-            if ( LapCntTime[i].bSec > 59 )          // check seconds
+            if ( EE_LapCnt_Time[i].bSec > 59 )          // check seconds
             {
-                LapCntTime[i].bSec = 0;             // wrap seconds
-                LapCntTime[i].bMin++;               // incr minutes
-                if ( LapCntTime[i].bMin > 99 )      // check minutes
+                EE_LapCnt_Time[i].bSec = 0;             // wrap seconds
+                EE_LapCnt_Time[i].bMin++;               // incr minutes
+                if ( EE_LapCnt_Time[i].bMin > 99 )      // check minutes
                 {
-                    LapCntTime[i].bMin = 99;        // clip minutes
-                    LapCounterState.fActive = 0;    // stop any lapcounter
+                    EE_LapCnt_Time[i].bMin = 99;        // clip minutes
+                    EE_LapCnt_State.fActive = 0;    // stop any lapcounter
                     ODS( DBG_SYS, DBG_INFO, "LapCnt stopped due to 99:59 timeout!!");
                 }
             }

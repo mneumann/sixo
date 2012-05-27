@@ -72,6 +72,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.3  2012/05/27 16:01:43  tuberkel
+ * All Eeprom/Nvram Variables renamed
+ *
  * Revision 3.2  2012/02/14 21:08:03  tuberkel
  * - #define COMPASS ==> COMPDRV
  * - Compass SystemParam moved from devFlags2 -> 3
@@ -131,7 +134,7 @@ static DATE_TYPE    RTCDate;            // date READ access, always up2date
 extern UINT16           wMilliSecCounter;       // high resolution short distance timer, ms,  max  65 sec
 extern UINT16           wSecCounter;            // low  resolution long  distance timer, sec, max. 18 h
 extern UINT16           dwSystemTime;           // high resolution long  distance timer, ms,  max. 49 days
-extern DEVFLAGS2_TYPE   gDeviceFlags2;          // daylight saving settings
+extern DEVFLAGS2_TYPE   EE_DevFlags_2;          // daylight saving settings
 extern BOOL             fCESTChanged;           // DaylaightSaving 'CET/CEST changed flag'
 
 
@@ -653,9 +656,9 @@ ERRCODE TimeDate_SetCalib( INT32 lDuration, INT32 lDeviation )
 void TimeDate_UpdateCEST( void )
 {
     // if DaylightSave automatic enabled, update CEST state here too!
-    if( gDeviceFlags2.flags.DLS_Auto == TRUE )
-    {   gDeviceFlags2.flags.DLS_Active = TimeDate_GetCEST();// update CEST state too
-        ODS1(DBG_SYS,DBG_INFO,"CEST: %s", (gDeviceFlags2.flags.DLS_Active == TRUE)?"ON":"off");
+    if( EE_DevFlags_2.flags.DLS_Auto == TRUE )
+    {   EE_DevFlags_2.flags.DLS_Active = TimeDate_GetCEST();// update CEST state too
+        ODS1(DBG_SYS,DBG_INFO,"CEST: %s", (EE_DevFlags_2.flags.DLS_Active == TRUE)?"ON":"off");
     }
 }
 
@@ -740,17 +743,17 @@ BOOL TimeDate_GetCEST( void )
 ERRCODE TimeDate_CheckDaylightSaving( void )
 {
     // check: Daylight Saving Automatic enabled by user?
-    if (gDeviceFlags2.flags.DLS_Auto == TRUE)
+    if (EE_DevFlags_2.flags.DLS_Auto == TRUE)
     {
         // check: Change CET => CEST detected?
-        if(  gDeviceFlags2.flags.DLS_Active == FALSE )
+        if(  EE_DevFlags_2.flags.DLS_Active == FALSE )
         {
             if ( TimeDate_GetCEST() == TRUE  )
             {   ODS(DBG_SYS,DBG_INFO,"Summertime CEST detected -> set Hour++!");
                 fCESTChanged = TRUE;                        // set for surveillance module
                 RTCTime.bHour++;                            // incr. 1 hour
                 TimeDate_SetTime( &RTCTime );               // setup new time
-                gDeviceFlags2.flags.DLS_Active = TRUE;      // save new DaylightSaving State
+                EE_DevFlags_2.flags.DLS_Active = TRUE;      // save new DaylightSaving State
             }
             else
             {   // CEST active and valid -> nothing tbd.
@@ -763,7 +766,7 @@ ERRCODE TimeDate_CheckDaylightSaving( void )
                 fCESTChanged = TRUE;                        // set for surveillance module
                 RTCTime.bHour--;                            // decr. 1 hour
                 TimeDate_SetTime( &RTCTime );               // setup new time
-                gDeviceFlags2.flags.DLS_Active = FALSE;     // save new DaylightSaving State
+                EE_DevFlags_2.flags.DLS_Active = FALSE;     // save new DaylightSaving State
             }
             else
             {   // CET active and valid -> nothing tbd.

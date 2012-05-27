@@ -70,6 +70,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.17  2012/05/27 16:01:42  tuberkel
+ * All Eeprom/Nvram Variables renamed
+ *
  * Revision 3.16  2012/05/24 19:30:03  tuberkel
  * Moved BMP-Logos to 'logos.c'
  *
@@ -217,29 +220,29 @@
 /* external symbols (taken from eeprom/nvram) */
 extern  far UINT16          wMilliSecCounter;   // high resolution short distance timer, ms,  max  65 sec
 extern  far UINT16          wSecCounter;        // low  resolution long  distance timer, sec, max. 18 h
-extern  far DEVFLAGS2_TYPE  gDeviceFlags2;      // device status parameters
-extern  far DEVFLAGS3_TYPE  gDeviceFlags3;      // device status parameters
-extern  far BIKE_TYPE       gBikeType;          // bike type
-extern  far DIST_TYPE       gNextServKm;        // to get/set original value
-extern  far DIST_TYPE       gNextServKm_def;    // to detect wether enabled/not
-extern  far TIME_TYPE_LD    EngRunTime_Srv_def; // to detect wether enabled/not
+extern  far DEVFLAGS2_TYPE  EE_DevFlags_2;      // device status parameters
+extern  far DEVFLAGS3_TYPE  EE_DevFlags_3;      // device status parameters
+extern  far BIKE_TYPE       EE_BikeType;          // bike type
+extern  far DIST_TYPE       EE_NextSrvKm;        // to get/set original value
+extern  far DIST_TYPE       EE_NextSrvKm_def;    // to detect wether enabled/not
+extern  far TIME_TYPE_LD    NV_EngRunTime_Srv_def; // to detect wether enabled/not
 extern  far DIGFILTTYPE     DigInFilter[];      // digital filter table for all inputs
-extern  far RPM_TYPE        RPM_Flash;          // engine speed to enable flash lamp,   1 RPM/bit
-extern  far RPM_TYPE        RPM_Max;            // max engine speed,                    1 RPM/bit
-extern  far SPEED_TYPE      Speed_Max;          // max vehicel speed                    1 km/h/bit
-extern  far TIME_TYPE_LD    EngRunTime_Srv;     // 4 bytes, engine runtime since last service
-extern  far TIME_TYPE_LD    EngRunTime_All;     // 4 bytes, engine runtime overall
-extern  far UINT16          gwFuelCap;          // tank size in 1/10 liters
-extern  far UINT8           gbFuelCons;         // motor fuel consumption in 1/10 liter/100 km
+extern  far RPM_TYPE        EE_RPM_Flash;          // engine speed to enable flash lamp,   1 RPM/bit
+extern  far RPM_TYPE        EE_RPM_Max;            // max engine speed,                    1 RPM/bit
+extern  far SPEED_TYPE      EE_SpeedMax;          // max vehicel speed                    1 km/h/bit
+extern  far TIME_TYPE_LD    NV_EngRunTime_Srv;     // 4 bytes, engine runtime since last service
+extern  far TIME_TYPE_LD    NV_EngRunTime_All;     // 4 bytes, engine runtime overall
+extern  far UINT16          EE_FuelCap;          // tank size in 1/10 liters
+extern  far UINT8           EE_FuelConsUser;         // motor fuel consumption in 1/10 liter/100 km
 
-extern  far UINT16          Volt_Min;           // minimal battery voltage,     0,01 V/bit
-extern  far UINT16          Volt_Max;           // maximal battery voltage,     0,01 V/bit
-extern  far INT16           TAir_Min;           // minimal air temperature,     1°C/bit, valid -40°C...215°C
-extern  far INT16           TAir_Max;           // maximal air temperature,     1°C/bit, valid -40°C...215°C
-extern  far INT16           TOil_Min;           // minimal oil temperature,     1°C/bit, valid -40°C...215°C
-extern  far INT16           TOil_Max;           // maximal oil temperature,     1°C/bit, valid -40°C...215°C
-extern  far INT16           TWat_Min;           // minimal water temperature,   1°C/bit, valid -40°C...215°C
-extern  far INT16           TWat_Max;           // maximal water temperature,   1°C/bit, valid -40°C...215°C
+extern  far UINT16          EE_Volt_Min;           // minimal battery voltage,     0,01 V/bit
+extern  far UINT16          EE_Volt_Max;           // maximal battery voltage,     0,01 V/bit
+extern  far INT16           EE_TAir_Min;           // minimal air temperature,     1°C/bit, valid -40°C...215°C
+extern  far INT16           EE_TAir_Max;           // maximal air temperature,     1°C/bit, valid -40°C...215°C
+extern  far INT16           EE_TOil_Min;           // minimal oil temperature,     1°C/bit, valid -40°C...215°C
+extern  far INT16           EE_TOil_Max;           // maximal oil temperature,     1°C/bit, valid -40°C...215°C
+extern  far INT16           EE_TWat_Min;           // minimal water temperature,   1°C/bit, valid -40°C...215°C
+extern  far INT16           EE_TWat_Max;           // maximal water temperature,   1°C/bit, valid -40°C...215°C
 
 
 /* clock control */
@@ -388,61 +391,61 @@ void Surv_UpdateStatistics (void)
     // check battery voltage (if valid):
     if ( wBattSupply != ANAIN_INVALID_U )
     {
-        if (  ( Volt_Max < wBattSupply     )
-            ||( Volt_Max == ANAIN_INVALID_U ) )
-                Volt_Max = wBattSupply;
+        if (  ( EE_Volt_Max < wBattSupply     )
+            ||( EE_Volt_Max == ANAIN_INVALID_U ) )
+                EE_Volt_Max = wBattSupply;
 
-        if (  ( Volt_Min > wBattSupply )
-            ||( Volt_Min == ANAIN_INVALID_U ) )
-                Volt_Min = wBattSupply;
+        if (  ( EE_Volt_Min > wBattSupply )
+            ||( EE_Volt_Min == ANAIN_INVALID_U ) )
+                EE_Volt_Min = wBattSupply;
     }
 
     // check air temperature (if valid & connected)
     if (  ( iTempAir != ANAIN_INVALID_S        )
         &&( iTempAir > ANAIN_TEMP_SENSORDETECT ) )
     {
-        if (  ( TAir_Max < iTempAir         )
-            ||( TAir_Max == ANAIN_INVALID_S ) )
-                TAir_Max = iTempAir;
+        if (  ( EE_TAir_Max < iTempAir         )
+            ||( EE_TAir_Max == ANAIN_INVALID_S ) )
+                EE_TAir_Max = iTempAir;
 
-        if (  ( TAir_Min > iTempAir         )
-            ||( TAir_Min == ANAIN_INVALID_S ) )
-                TAir_Min = iTempAir;
+        if (  ( EE_TAir_Min > iTempAir         )
+            ||( EE_TAir_Min == ANAIN_INVALID_S ) )
+                EE_TAir_Min = iTempAir;
     }
 
     // check oil temperature (if valid & connected)
     if (  ( iTempOil != ANAIN_INVALID_S        )
         &&( iTempOil > ANAIN_TEMP_SENSORDETECT ) )
     {
-        if (  ( TOil_Max < iTempOil         )
-            ||( TOil_Max == ANAIN_INVALID_S ) )
-                TOil_Max = iTempOil;
+        if (  ( EE_TOil_Max < iTempOil         )
+            ||( EE_TOil_Max == ANAIN_INVALID_S ) )
+                EE_TOil_Max = iTempOil;
 
-        if (  ( TOil_Min > iTempOil         )
-            ||( TOil_Min == ANAIN_INVALID_S ) )
-                TOil_Min = iTempOil;
+        if (  ( EE_TOil_Min > iTempOil         )
+            ||( EE_TOil_Min == ANAIN_INVALID_S ) )
+                EE_TOil_Min = iTempOil;
     }
 
     // check water temperature (if valid & connected)
     if (  ( iTempWat != ANAIN_INVALID_S        )
         &&( iTempWat > ANAIN_TEMP_SENSORDETECT ) )
     {
-        if (  ( TWat_Max < iTempWat         )
-            ||( TWat_Max == ANAIN_INVALID_S ) )
-                TWat_Max = iTempWat;
+        if (  ( EE_TWat_Max < iTempWat         )
+            ||( EE_TWat_Max == ANAIN_INVALID_S ) )
+                EE_TWat_Max = iTempWat;
 
-        if (  ( TWat_Min > iTempWat )
-            ||( TWat_Min == ANAIN_INVALID_S ) )
-                TWat_Min = iTempWat;
+        if (  ( EE_TWat_Min > iTempWat )
+            ||( EE_TWat_Min == ANAIN_INVALID_S ) )
+                EE_TWat_Min = iTempWat;
     }
 
     // check RPM max:
-    if ( RPM_Max < wRPM )
-         RPM_Max = wRPM;
+    if ( EE_RPM_Max < wRPM )
+         EE_RPM_Max = wRPM;
 
     // check Speed max
-    if ( Speed_Max < wWheelSpeed )
-         Speed_Max = wWheelSpeed;
+    if ( EE_SpeedMax < wWheelSpeed )
+         EE_SpeedMax = wWheelSpeed;
 
 }
 
@@ -470,33 +473,33 @@ void Surv_UpdateEngRunTime ( void )
         // Note: Motobau wants to incr. ServiceHours only, no warning, but
         //       default version uses ServiceHours to detect service limit
         #if (BIKE_MOTOBAU == 1)
-        EngRunTime_Srv.bSec++;
-        if (EngRunTime_Srv.bSec > 59)
+        NV_EngRunTime_Srv.bSec++;
+        if (NV_EngRunTime_Srv.bSec > 59)
         {
-            EngRunTime_Srv.bSec = 0;
-            EngRunTime_Srv.bMin++;
-            if (EngRunTime_Srv.bMin > 59)
+            NV_EngRunTime_Srv.bSec = 0;
+            NV_EngRunTime_Srv.bMin++;
+            if (NV_EngRunTime_Srv.bMin > 59)
             {
-                EngRunTime_Srv.bMin = 0;
-                EngRunTime_Srv.wHour++;
-                if (EngRunTime_Srv.wHour > SURV_ENGRTIME_SRV_MAX)
-                    EngRunTime_Srv.wHour = SURV_ENGRTIME_SRV_MAX;  // limit time
+                NV_EngRunTime_Srv.bMin = 0;
+                NV_EngRunTime_Srv.wHour++;
+                if (NV_EngRunTime_Srv.wHour > SURV_ENGRTIME_SRV_MAX)
+                    NV_EngRunTime_Srv.wHour = SURV_ENGRTIME_SRV_MAX;  // limit time
             }
         }
         #endif // BIKE_MOTOBAU
 
         // support Overall Engine RunTime:
-        EngRunTime_All.bSec++;
-        if (EngRunTime_All.bSec > 59)
+        NV_EngRunTime_All.bSec++;
+        if (NV_EngRunTime_All.bSec > 59)
         {
-            EngRunTime_All.bSec = 0;
-            EngRunTime_All.bMin++;
-            if (EngRunTime_All.bMin > 59)
+            NV_EngRunTime_All.bSec = 0;
+            NV_EngRunTime_All.bMin++;
+            if (NV_EngRunTime_All.bMin > 59)
             {
-                EngRunTime_All.bMin = 0;
-                EngRunTime_All.wHour++;
-                if (EngRunTime_All.wHour > SURV_ENGRTIME_ALL_MAX)
-                    EngRunTime_All.wHour = SURV_ENGRTIME_ALL_MAX;  // limit time
+                NV_EngRunTime_All.bMin = 0;
+                NV_EngRunTime_All.wHour++;
+                if (NV_EngRunTime_All.wHour > SURV_ENGRTIME_ALL_MAX)
+                    NV_EngRunTime_All.wHour = SURV_ENGRTIME_ALL_MAX;  // limit time
             }
         }
     }
@@ -518,8 +521,8 @@ void Surv_CheckRPMFlash ( void )
     MESSAGE msg;
 
     // check: Activate RPM Flash?
-    if (  ( RPM_Flash > 0        )      // feature enabled?
-        &&( wRPM > RPM_Flash     )      // limit exceeded?
+    if (  ( EE_RPM_Flash > 0        )      // feature enabled?
+        &&( wRPM > EE_RPM_Flash     )      // limit exceeded?
         &&( RPMFlash_On == FALSE ) )    // not already activated?
     {
         // ENABLE INFO LAMP
@@ -534,11 +537,11 @@ void Surv_CheckRPMFlash ( void )
     }
 
     // check: Deactivate RPM Flash?
-    if (  (  ( RPM_Flash == 0      )      // feature disabled (at runtime)?
+    if (  (  ( EE_RPM_Flash == 0      )      // feature disabled (at runtime)?
            &&( RPMFlash_On == TRUE ) )    // still active?
 
-        ||(  ( RPM_Flash > 0       )      // feature enabled?
-           &&( wRPM < RPM_Flash    )      // back under limit?
+        ||(  ( EE_RPM_Flash > 0       )      // feature enabled?
+           &&( wRPM < EE_RPM_Flash    )      // back under limit?
            &&( RPMFlash_On == TRUE ) ) )  // still active?
     {
         // DISABLE INFO LAMP
@@ -565,7 +568,7 @@ void Surv_CheckRPMFlash ( void )
  *********************************************************************** */
 void Surv_CheckService ( void )
 {
-    DIST_TYPE   VehicDist;      // current vehicle distance
+    DIST_TYPE   NV_VehicDist;      // current vehicle distance
     SURVP_ID    vstateprm;      // vehicle state parameter
     SURVP_STATE vstatelvl;      // vehicle state level
 
@@ -574,8 +577,8 @@ void Surv_CheckService ( void )
     vstatelvl = eSURVST_OK;
 
     // check: current vehicle runtime hours reached service intervall hours?
-    if (  (EngRunTime_Srv.wHour != EngRunTime_Srv_def.wHour )      // check enabled?
-        &&(EngRunTime_Srv.wHour <= EngRunTime_All.wHour     ) )    // exceeded hours?
+    if (  (NV_EngRunTime_Srv.wHour != NV_EngRunTime_Srv_def.wHour )      // check enabled?
+        &&(NV_EngRunTime_Srv.wHour <= NV_EngRunTime_All.wHour     ) )    // exceeded hours?
         vstatelvl = eSURVST_WARNING;
 
     // update this warning
@@ -586,9 +589,9 @@ void Surv_CheckService ( void )
     vstatelvl = eSURVST_OK;
 
     // check: current vehicle distance reached service intervall?
-    VehicDist = MeasGetVehicDist( MR_KM );
-    if (  (gNextServKm.km != gNextServKm_def.km )      // check enabled?
-        &&(gNextServKm.km <= VehicDist.km       ) )    // exceeded distance?
+    NV_VehicDist = MeasGetNV_VehicDist( MR_KM );
+    if (  (EE_NextSrvKm.km != EE_NextSrvKm_def.km )      // check enabled?
+        &&(EE_NextSrvKm.km <= NV_VehicDist.km       ) )    // exceeded distance?
         vstatelvl = eSURVST_WARNING;
 
     // update this warning
@@ -740,7 +743,7 @@ void Surv_CheckAnalogPorts(void)
     /* Check eSURVID_ALTERNATOR -------------------------------
         default value:                                      -> Ok
         if wRPM over warning limit and wAlternator too low: -> Warning! */
-    if ( gBikeType == eBIKE_R100GS )
+    if ( EE_BikeType == eBIKE_R100GS )
     {
         // special BIKE_R100GS checking
         vstateprm = eSURVID_ALTERNATOR;
@@ -761,7 +764,7 @@ void Surv_CheckAnalogPorts(void)
             }
         }
         // check: if not using Sixo-Warnmode, setup LED directly here
-        if ( gDeviceFlags2.flags.LedWarnMode == SURV_LWM_STD )
+        if ( EE_DevFlags_2.flags.LedWarnMode == SURV_LWM_STD )
         {
             if ( vstatelvl != eSURVST_OK )
                  LED_SetNewState(eLED_WARN, LED_ON );
@@ -812,20 +815,20 @@ void Surv_CheckAnalogPorts(void)
 void Surv_CheckDevice(void)
 {
     /* User Info: do not drive with vehicle simulation on! */
-    if (gDeviceFlags2.flags.VehicSimul == TRUE)
+    if (EE_DevFlags_2.flags.VehicSimul == TRUE)
          Surv_ListSetParamState(eSURVID_SIMULATION, eSURVST_INFO);
     else Surv_ListSetParamState(eSURVID_SIMULATION, eSURVST_OK);
 
     /* User warning: Hardcopy via HBEAM-switch active? */
     /* Note: If in Debugger-Mode KD30, Prevent warning for undisturbed screenshots */
 #if(KD30_USED==0)
-    if (gDeviceFlags2.flags.Hardcopy == TRUE)
+    if (EE_DevFlags_2.flags.Hardcopy == TRUE)
          Surv_ListSetParamState(eSURVID_HARDCOPY, eSURVST_INFO);
     else Surv_ListSetParamState(eSURVID_HARDCOPY, eSURVST_OK);
 #endif  // KD30_USED
 
     /* User Warning: Automatic RTC Clock change because of summer/winter time? */
-    if (  ( gDeviceFlags2.flags.DLS_Auto == TRUE )
+    if (  ( EE_DevFlags_2.flags.DLS_Auto == TRUE )
         &&( fCESTChanged                         == TRUE ) )
     {
         fCESTChanged = FALSE;               // reset for next change detection
@@ -863,7 +866,7 @@ void Surv_CheckDigitalPorts(void)
 
     /* ============================================================== */
     /* BIKE SPECIFIC WARNINGS */
-    switch ( gBikeType )
+    switch ( EE_BikeType )
     {
         /* SPECIAL HANDLING FOR BMW F650 ============================= */
         case eBIKE_F650:
@@ -880,7 +883,7 @@ void Surv_CheckDigitalPorts(void)
                  Surv_ListSetParamState(eSURVID_ABS, eSURVST_ERROR);
             else Surv_ListSetParamState(eSURVID_ABS, eSURVST_OK);
             // check: if not using Sixo-Warnmode, setup Error-LED directly here
-            if ( gDeviceFlags2.flags.LedWarnMode == SURV_LWM_STD )
+            if ( EE_DevFlags_2.flags.LedWarnMode == SURV_LWM_STD )
             {   if ( DF_ABS_Warn_F650 == 0 )
                      LED_SetNewState(eLED_WARN, LED_ON );
                 else LED_SetNewState(eLED_WARN, LED_OFF);
@@ -892,7 +895,7 @@ void Surv_CheckDigitalPorts(void)
                  Surv_ListSetParamState(eSURVID_WATTEMPSW, eSURVST_ERROR);
             else Surv_ListSetParamState(eSURVID_WATTEMPSW, eSURVST_OK);
             // check: if not using Sixo-Warnmode, setup LED directly here
-            if ( gDeviceFlags2.flags.LedWarnMode == SURV_LWM_STD )
+            if ( EE_DevFlags_2.flags.LedWarnMode == SURV_LWM_STD )
             {   if ( DF_ABS_Warn_F650 == 0 )
                      LED_SetNewState(eLED_ERROR, LED_ON );
                 else LED_SetNewState(eLED_ERROR, LED_OFF);
@@ -915,7 +918,7 @@ void Surv_CheckDigitalPorts(void)
                  Surv_ListSetParamState(eSURVID_OILSWDEF, eSURVST_WARNING);
             else Surv_ListSetParamState(eSURVID_OILSWDEF, eSURVST_OK);
             // check: if not using Sixo-Warnmode, setup LED directly here
-            if ( gDeviceFlags2.flags.LedWarnMode == SURV_LWM_STD )
+            if ( EE_DevFlags_2.flags.LedWarnMode == SURV_LWM_STD )
             {   if ( DF_Fuel_4l_AT == 0 )      // low active
                      LED_SetNewState(eLED_WARN, LED_ON );
                 else LED_SetNewState(eLED_WARN, LED_OFF );
@@ -928,7 +931,7 @@ void Surv_CheckDigitalPorts(void)
                  Surv_ListSetParamState(eSURVID_OILPRESS, eSURVST_ERROR);
             else Surv_ListSetParamState(eSURVID_OILPRESS, eSURVST_OK);
             // check: if not using Sixo-Warnmode, setup LED directly here
-            if ( gDeviceFlags2.flags.LedWarnMode == SURV_LWM_STD )
+            if ( EE_DevFlags_2.flags.LedWarnMode == SURV_LWM_STD )
             {   if ( DF_OILSW == 0 )      // low active
                      LED_SetNewState(eLED_ERROR, LED_ON );
                 else LED_SetNewState(eLED_ERROR, LED_OFF );
@@ -952,7 +955,7 @@ void Surv_CheckDigitalPorts(void)
                  Surv_ListSetParamState(eSURVID_WATTEMPSW, eSURVST_ERROR);
             else Surv_ListSetParamState(eSURVID_WATTEMPSW, eSURVST_OK);
             // check: if not using Sixo-Warnmode, setup LED directly here
-            if ( gDeviceFlags2.flags.LedWarnMode == SURV_LWM_STD )
+            if ( EE_DevFlags_2.flags.LedWarnMode == SURV_LWM_STD )
             {   if ( DF_Temp_Warn_BAGHIRA == 1)          // high active
                      LED_SetNewState(eLED_ERROR, LED_ON );
                 else LED_SetNewState(eLED_ERROR, LED_OFF );
@@ -977,7 +980,7 @@ void Surv_CheckDigitalPorts(void)
                  Surv_ListSetParamState(eSURVID_OILPRESS, eSURVST_ERROR);
             else Surv_ListSetParamState(eSURVID_OILPRESS, eSURVST_OK);
             // check: if not using Sixo-Warnmode, setup LED directly here
-            if ( gDeviceFlags2.flags.LedWarnMode == SURV_LWM_STD )
+            if ( EE_DevFlags_2.flags.LedWarnMode == SURV_LWM_STD )
             {   if ( DF_OILSW == 0 )      // low active
                      LED_SetNewState(eLED_ERROR, LED_ON );
                 else LED_SetNewState(eLED_ERROR, LED_OFF );
@@ -1375,7 +1378,7 @@ void Surv_SetLEDState( void )
     MESSAGE msg;            // for LED event message
 
     /* main switch: Use special SIxO warning Mode? */
-    if ( gDeviceFlags2.flags.LedWarnMode == SURV_LWM_SIXO )
+    if ( EE_DevFlags_2.flags.LedWarnMode == SURV_LWM_SIXO )
     {
         /* INFO-LED --------------------------------------  */
         if (  ( Surv_ListGetCount(eSURVST_INFO) >  0     )

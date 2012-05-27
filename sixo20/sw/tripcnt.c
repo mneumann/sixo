@@ -68,11 +68,14 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.12  2012/05/27 16:01:43  tuberkel
+ * All Eeprom/Nvram Variables renamed
+ *
  * Revision 3.11  2012/05/24 20:00:14  tuberkel
  * BMP renamed
  *
  * Revision 3.10  2012/02/27 23:16:09  tuberkel
- * - Compass: Information moved from gDeviceFlags3  ==> gCompassCntrl
+ * - Compass: Information moved from EE_DevFlags_3  ==> EE_CompassCtrl
  * - CompassDrv corrected
  * - SysPar- API changed
  *
@@ -135,7 +138,7 @@
  *
  * Revision 2.4  2009/06/21 21:17:43  tuberkel
  * Changes by AN and SCHW:
- * - new Compass layout inside TripCounter Module
+ * - new Compass layout inside NV_TripCom_Aounter Module
  * - can be disabled via user settings 'Tripcounter/upperlower:
  * Bitcoded:
  * - bit0: LongDistance:     1=upside (like roadbook), 0=downside
@@ -158,7 +161,7 @@
  * no message
  *
  * Revision 1.12  2006/03/18 08:58:14  Ralf
- * - TripCounter improved to 4 different counters
+ * - NV_TripCom_Aounter improved to 4 different counters
  *
  * Revision 1.11  2006/02/18 14:31:44  Ralf
  * - BIKE_MOTOBAU: switching to lapcounter instead to monitor device
@@ -192,10 +195,10 @@
 
 // Screen Appearance:  +----.----.----.----.-+
 // (21 Chars width)    |                     |
-//                     |  0000,0 TripCount   |
+//                     |  0000,0 NV_TripCom_Aount   |
 //                     |                     |
 //                     |---------------------|
-//                     |   00000,0 TripCnt   |
+//                     |   00000,0 NV_TripCom_Ant   |
 //                     |                     |
 //                     |124km/h 360° 22:19:30|  Speed + Compass Heading + Time
 //                     +----.----.----.----.-+
@@ -213,11 +216,11 @@
 /* external symbols */
 extern UINT16               wMilliSecCounter;       /* valid values: 0h .. ffffh */
 extern STRING far           szDevName[];            /* device names */
-extern DEVFLAGS1_TYPE       gDeviceFlags1;          /* device parameter set 1 */
-extern DEVFLAGS2_TYPE       gDeviceFlags2;          /* device parameter set 2 */
-extern DEVFLAGS3_TYPE       gDeviceFlags3;          /* device parameter set 3 */
-extern BIKE_TYPE            gBikeType;              /* bike type selecetion */
-extern COMPASSCNTL_TYPE     gCompassCntrl;          /* compass display mode */
+extern DEVFLAGS1_TYPE       EE_DevFlags_1;          /* device parameter set 1 */
+extern DEVFLAGS2_TYPE       EE_DevFlags_2;          /* device parameter set 2 */
+extern DEVFLAGS3_TYPE       EE_DevFlags_3;          /* device parameter set 3 */
+extern BIKE_TYPE            EE_BikeType;              /* bike type selecetion */
+extern COMPASSCNTL_TYPE     EE_CompassCtrl;          /* compass display mode */
 
 
 /* external bitmaps */
@@ -227,11 +230,11 @@ extern const unsigned char far * bmpCompassBot_144x8[];
 
 
 /* device static objects */
-static DEVDATA      TripCntDev;
-static OBJ_STEXT    BigTripCntObj;                      /* contains the bigger trip counter object data */
-static OBJ_STEXT    SmallTripCntObj;                    /* contains the smaller trip counter object data */
-static CHAR         BigTripCntTxt[BUFFER_STRSIZE]   = {' ', ' ', '0', RESTXT_DEC_SEPARATOR, '0', '0'};  /* buffer for big trip counter string */
-static CHAR         SmallTripCntTxt[BUFFER_STRSIZE] = {' ', ' ', ' ', ' ', ' ', '0', RESTXT_DEC_SEPARATOR, '0', '0'};  /* buffer for samll trip counter string */
+static DEVDATA      NV_TripCom_AntDev;
+static OBJ_STEXT    BigNV_TripCom_AntObj;                      /* contains the bigger trip counter object data */
+static OBJ_STEXT    SmallNV_TripCom_AntObj;                    /* contains the smaller trip counter object data */
+static CHAR         BigNV_TripCom_AntTxt[BUFFER_STRSIZE]   = {' ', ' ', '0', RESTXT_DEC_SEPARATOR, '0', '0'};  /* buffer for big trip counter string */
+static CHAR         SmallNV_TripCom_AntTxt[BUFFER_STRSIZE] = {' ', ' ', ' ', ' ', ' ', '0', RESTXT_DEC_SEPARATOR, '0', '0'};  /* buffer for samll trip counter string */
 static OBJ_STEXT    VehSpeedTxtObj;                     /* stateline speed object */
 static CHAR         szVehSpeed[8] = "---km/h";          /* buffer for speed string */
 static OBJ_STEXT    CompassTxtObj;                      /* stateline compass object */
@@ -242,11 +245,11 @@ static CHAR         szTime[10] = "--:--:--a";           /* buffer for time strin
 
 
 /* internal prototypes */
-ERRCODE TripCDev_MsgEntry_Keys(MESSAGE GivenMsg);
-UINT16  TripCDev_ExpSpeed(MESSAGE GivenMsg);
-void    TripCDev_UpdTimeDate(void);
-void    TripCDev_UpdCompassHead(void);
-void    TripCDev_UpdCompassBargr(void);
+ERRCODE NV_TripCom_ADev_MsgEntry_Keys(MESSAGE GivenMsg);
+UINT16  NV_TripCom_ADev_ExpSpeed(MESSAGE GivenMsg);
+void    NV_TripCom_ADev_UpdTimeDate(void);
+void    NV_TripCom_ADev_UpdCompassHead(void);
+void    NV_TripCom_ADev_UpdCompassBargr(void);
 
 
 
@@ -255,8 +258,8 @@ static const OBJ_STEXT_INIT TextObjInit[] =
 {
     /*pObject                   X    Y  Font            H  Width  Align     Format    string ptr        State      */
     /* ----------------------- ---- --- -------------- --- ----- --------- ---------- ----------------- ---------- */
-    { &BigTripCntObj,            0,  0, DPLFONT_24X32,  1,  6, TXT_RIGHT,  TXT_NORM, BigTripCntTxt,     OC_DISPL | OC_DYN },
-    { &SmallTripCntObj,          6, 38, DPLFONT_14X16,  1,  9, TXT_RIGHT,  TXT_NORM, SmallTripCntTxt,   OC_DISPL | OC_DYN },
+    { &BigNV_TripCom_AntObj,            0,  0, DPLFONT_24X32,  1,  6, TXT_RIGHT,  TXT_NORM, BigNV_TripCom_AntTxt,     OC_DISPL | OC_DYN },
+    { &SmallNV_TripCom_AntObj,          6, 38, DPLFONT_14X16,  1,  9, TXT_RIGHT,  TXT_NORM, SmallNV_TripCom_AntTxt,   OC_DISPL | OC_DYN },
     { &VehSpeedTxtObj,           2, 56, DPLFONT_6X8,    1,  7, TXT_LEFT,   TXT_NORM, szVehSpeed,        OC_DISPL | OC_DYN },
     { &CompassTxtObj,           52, 56, DPLFONT_6X8,    1,  4, TXT_CENTER, TXT_NORM, szCompass,         OC_DISPL | OC_DYN },
     { &TimeTxtObj,              45, 56, DPLFONT_6X8,    1, 14, TXT_RIGHT,  TXT_NORM, szTime,            OC_DISPL | OC_DYN }
@@ -269,8 +272,8 @@ static const OBJ_STEXT_INIT TextObjInit[] =
             list is for common object handling only! */
 static const void far * ObjectList[] =
 {
-    (void far *) &BigTripCntObj,
-    (void far *) &SmallTripCntObj,
+    (void far *) &BigNV_TripCom_AntObj,
+    (void far *) &SmallNV_TripCom_AntObj,
     (void far *) &VehSpeedTxtObj,
     (void far *) &CompassTxtObj,
     (void far *) &TimeTxtObj,
@@ -282,51 +285,51 @@ static const void far * ObjectList[] =
 
 
 /***********************************************************************
- *  FUNCTION:       TripCDev_Init
+ *  FUNCTION:       NV_TripCom_ADev_Init
  *  DESCRIPTION:    all initial stuff for all objects
  *  PARAMETER:      -
  *  RETURN:         -
  *  COMMENT:        -
  *********************************************************************** */
-ERRCODE TripCDev_Init(void)
+ERRCODE NV_TripCom_ADev_Init(void)
 {
     int i;
 
     /* device main data */
-    TripCntDev.eDevID       = DEVID_TRIPCOUNT;
-    TripCntDev.szDevName    = szDevName[DEVID_TRIPCOUNT];
-    TripCntDev.fFocused     = FALSE;
-    TripCntDev.fScreenInit  = FALSE;
+    NV_TripCom_AntDev.eDevID       = DEVID_TRIPCOUNT;
+    NV_TripCom_AntDev.szDevName    = szDevName[DEVID_TRIPCOUNT];
+    NV_TripCom_AntDev.fFocused     = FALSE;
+    NV_TripCom_AntDev.fScreenInit  = FALSE;
 
     /* initialize all objects of any type */
-    DevObjInit( &TripCntDev, (void far *)TextObjInit,   STEXTOBJ_INITLISTSIZE,     OBJT_TXT   );
+    DevObjInit( &NV_TripCom_AntDev, (void far *)TextObjInit,   STEXTOBJ_INITLISTSIZE,     OBJT_TXT   );
 
     // initialize this devices objects list
-    TripCntDev.Objects.ObjList       = ObjectList;
-    TripCntDev.Objects.ObjCount      = OBJECTLIST_SIZE;
-    TripCntDev.Objects.FirstSelObj   = DevObjGetFirstSelectable(&TripCntDev, ObjectList, OBJECTLIST_SIZE );
-    TripCntDev.Objects.LastSelObj    = DevObjGetLastSelectable (&TripCntDev, ObjectList, OBJECTLIST_SIZE );
+    NV_TripCom_AntDev.Objects.ObjList       = ObjectList;
+    NV_TripCom_AntDev.Objects.ObjCount      = OBJECTLIST_SIZE;
+    NV_TripCom_AntDev.Objects.FirstSelObj   = DevObjGetFirstSelectable(&NV_TripCom_AntDev, ObjectList, OBJECTLIST_SIZE );
+    NV_TripCom_AntDev.Objects.LastSelObj    = DevObjGetLastSelectable (&NV_TripCom_AntDev, ObjectList, OBJECTLIST_SIZE );
 
     /* return */
-    ODS( DBG_SYS, DBG_INFO, "- TripCDev_Init() done!");
+    ODS( DBG_SYS, DBG_INFO, "- NV_TripCom_ADev_Init() done!");
     return ERR_OK;
 }
 
 
 
 /***********************************************************************
- *  FUNCTION:       TripCDev_Show
+ *  FUNCTION:       NV_TripCom_ADev_Show
  *  DESCRIPTION:    bring updated trip counter device to display
  *                  by calling Show-Fct. of all relevant objects
  *  PARAMETER:      BOOL    TRUE = show objects, FALSE = clear screen
  *  RETURN:         -
  *  COMMENT:        -
  *********************************************************************** */
-void TripCDev_Show(BOOL fShow)
+void NV_TripCom_ADev_Show(BOOL fShow)
 {
     ERRCODE     error = ERR_OK;
     MESSAGE     NewMsg;             /* for screen fresh message */
-    DIST_TYPE   TripCnt;            /* trip counter A & B 4 byte structure */
+    DIST_TYPE   NV_TripCom_Ant;            /* trip counter A & B 4 byte structure */
 
     /* 'show' or 'clear' screen? */
     if (fShow == TRUE)
@@ -335,23 +338,23 @@ void TripCDev_Show(BOOL fShow)
         // display versions: Show like Roadbook, LongDistance above, ShortDist lower part
         // NOTE: behaviour on pressed keys (reset/inc/decr) is fixed to TripX-values, not to display!
         // TBD:  this should later be done via Eeprom settings!
-        TRIPC_ID BigTripCnt;
-        TRIPC_ID SmallTripCnt;
+        TRIPC_ID BigNV_TripCom_Ant;
+        TRIPC_ID SmallNV_TripCom_Ant;
         UINT16   wWheelSpeed;
 
         // User setting: Which counter should be shown as BIG upper one?
-        if (gDeviceFlags2.flags.TripCLongDistUp == 1)
-        {   BigTripCnt   = eTRIPC_A;
-            SmallTripCnt = eTRIPC_B;
+        if (EE_DevFlags_2.flags.NV_TripCom_ALongDistUp == 1)
+        {   BigNV_TripCom_Ant   = eTRIPC_A;
+            SmallNV_TripCom_Ant = eTRIPC_B;
         }
         else
-        {   BigTripCnt   = eTRIPC_B;
-            SmallTripCnt = eTRIPC_A;
+        {   BigNV_TripCom_Ant   = eTRIPC_B;
+            SmallNV_TripCom_Ant = eTRIPC_A;
         }
 
         /* get trip counter display values */
-        sprintf(BigTripCntTxt,   "%3u%c%.2u", MeasGetTripCnt(BigTripCnt,   MR_KM_ONLY), RESTXT_DEC_SEPARATOR, MeasGetTripCnt(BigTripCnt,   MR_DKM_ONLY));
-        sprintf(SmallTripCntTxt, "%6u%c%.2u", MeasGetTripCnt(SmallTripCnt, MR_KM_ONLY), RESTXT_DEC_SEPARATOR, MeasGetTripCnt(SmallTripCnt, MR_DKM_ONLY));
+        sprintf(BigNV_TripCom_AntTxt,   "%3u%c%.2u", MeasGetNV_TripCom_Ant(BigNV_TripCom_Ant,   MR_KM_ONLY), RESTXT_DEC_SEPARATOR, MeasGetNV_TripCom_Ant(BigNV_TripCom_Ant,   MR_DKM_ONLY));
+        sprintf(SmallNV_TripCom_AntTxt, "%6u%c%.2u", MeasGetNV_TripCom_Ant(SmallNV_TripCom_Ant, MR_KM_ONLY), RESTXT_DEC_SEPARATOR, MeasGetNV_TripCom_Ant(SmallNV_TripCom_Ant, MR_DKM_ONLY));
 
         /* -------------------------------------------------- */
         /* update vehicle speed '123 km/h */
@@ -364,34 +367,34 @@ void TripCDev_Show(BOOL fShow)
 
         /* -------------------------------------------------- */
         /* do we have to repaint all? */
-        if (TripCntDev.fScreenInit == FALSE)
+        if (NV_TripCom_AntDev.fScreenInit == FALSE)
         {
             /* set ne state */
-            TripCntDev.fScreenInit  = TRUE;
+            NV_TripCom_AntDev.fScreenInit  = TRUE;
 
             /* yes, repaint complete screen */
 
             /* show BIGCOUNTER only if compass BARGRAGH disabled */
-            if (  ( gCompassCntrl.flags.CompassAvail   == 0           )
-                ||( gCompassCntrl.flags.CompassDisplay <  COMPASS_DPL_GRAPH ) )
-                Obj_TextSt_Show( &BigTripCntObj);
-            Obj_TextSt_Show( &SmallTripCntObj );
+            if (  ( EE_CompassCtrl.flags.CompassAvail   == 0           )
+                ||( EE_CompassCtrl.flags.CompassDisplay <  COMPASS_DPL_GRAPH ) )
+                Obj_TextSt_Show( &BigNV_TripCom_AntObj);
+            Obj_TextSt_Show( &SmallNV_TripCom_AntObj );
             Obj_TextSt_Show( &VehSpeedTxtObj );
 
             // the following should be initialized ONCE,
             // but refreshed with diccated message!
-            TripCDev_UpdTimeDate();
+            NV_TripCom_ADev_UpdTimeDate();
 
             // show compass only if available
-            if ( gCompassCntrl.flags.CompassAvail == 1 )
+            if ( EE_CompassCtrl.flags.CompassAvail == 1 )
             {
                 // show compass haeding only if enabled
-                if ( gCompassCntrl.flags.CompassDisplay & COMPASS_DPL_HEAD )
-                    TripCDev_UpdCompassHead();
+                if ( EE_CompassCtrl.flags.CompassDisplay & COMPASS_DPL_HEAD )
+                    NV_TripCom_ADev_UpdCompassHead();
 
                 // show compass BARGRAGH only if enabled
-                if ( gCompassCntrl.flags.CompassDisplay & COMPASS_DPL_GRAPH )
-                    TripCDev_UpdCompassBargr();
+                if ( EE_CompassCtrl.flags.CompassDisplay & COMPASS_DPL_GRAPH )
+                    NV_TripCom_ADev_UpdCompassBargr();
             }
 
             /* horizontal line between big & small trip counter */
@@ -405,10 +408,10 @@ void TripCDev_Show(BOOL fShow)
         {
             /* No, repaint only changed stuff */
             /* show BIGCOUNTER onyl if compass BARGRAGH disabled */
-            if (  ( gCompassCntrl.flags.CompassAvail   == 0           )
-                ||( gCompassCntrl.flags.CompassDisplay <  COMPASS_DPL_GRAPH ) )
-                Obj_TextSt_Show( &BigTripCntObj);
-            Obj_TextSt_Show( &SmallTripCntObj );
+            if (  ( EE_CompassCtrl.flags.CompassAvail   == 0           )
+                ||( EE_CompassCtrl.flags.CompassDisplay <  COMPASS_DPL_GRAPH ) )
+                Obj_TextSt_Show( &BigNV_TripCom_AntObj);
+            Obj_TextSt_Show( &SmallNV_TripCom_AntObj );
             Obj_TextSt_Show( &VehSpeedTxtObj );
             //Obj_TextSt_Show( &TimeTxtObj ); will be refreshed by special message only
         }
@@ -416,19 +419,19 @@ void TripCDev_Show(BOOL fShow)
     else
     {
         DisplClearScreen(0x0);              /* leave a clear screen for next device */
-        TripCntDev.fScreenInit = FALSE;     /* reset devices screen state */
+        NV_TripCom_AntDev.fScreenInit = FALSE;     /* reset devices screen state */
     }
 }
 
 
 /***********************************************************************
- *  FUNCTION:       TripCDev_MsgEntry
+ *  FUNCTION:       NV_TripCom_ADev_MsgEntry
  *  DESCRIPTION:    Receive Message Handler called by MsgQPump
  *  PARAMETER:      msg
  *  RETURN:         ERR_MSG_NOT_PROCESSED / ERR_MSG_NOT_PROCESSED
  *  COMMENT:        -
  *********************************************************************** */
-ERRCODE TripCDev_MsgEntry(MESSAGE GivenMsg)
+ERRCODE NV_TripCom_ADev_MsgEntry(MESSAGE GivenMsg)
 {
     ERRCODE     RValue = ERR_MSG_NOT_PROCESSED;
     MESSAGE_ID  MsgId;
@@ -446,7 +449,7 @@ ERRCODE TripCDev_MsgEntry(MESSAGE GivenMsg)
             /*  Some device want's to get the focus:
                 If we've currently got the focus, we'll
                 answer to SET his focus! */
-            if ( TripCntDev.fFocused == TRUE)
+            if ( NV_TripCom_AntDev.fFocused == TRUE)
             {
                 ODS2(   DBG_SYS, DBG_INFO,
                         "%s wants to have focus from %s!",
@@ -454,8 +457,8 @@ ERRCODE TripCDev_MsgEntry(MESSAGE GivenMsg)
                         szDevName[DEVID_TRIPCOUNT]);
                 MSG_BUILD_SETFOCUS(NewMsg,DEVID_TRIPCOUNT,MSG_SENDER_ID(GivenMsg));   /* build answer message */
                 RValue = MsgQPostMsg(NewMsg, MSGQ_PRIO_LOW);                     /* send answer message */
-                TripCntDev.fFocused = FALSE;                                     /* clear our focus */
-                TripCDev_Show(FALSE);                                           /* clear our screen */
+                NV_TripCom_AntDev.fFocused = FALSE;                                     /* clear our focus */
+                NV_TripCom_ADev_Show(FALSE);                                           /* clear our screen */
                 RValue = ERR_MSG_PROCESSED;
             }
         } break;
@@ -467,7 +470,7 @@ ERRCODE TripCDev_MsgEntry(MESSAGE GivenMsg)
                 /*  Someone wants us to take the focus?
                     We assume, that nobody else has the focus
                     and we've got the the screen now for us! */
-                if (  (TripCntDev.fFocused       == TRUE           )
+                if (  (NV_TripCom_AntDev.fFocused       == TRUE           )
                     &&(MSG_RECEIVER_ID(GivenMsg) == DEVID_TRIPCOUNT) )
                     ODS2(   DBG_SYS, DBG_WARNING,
                             "FOCUS: %s -> %s, but it already has focus!",
@@ -478,14 +481,14 @@ ERRCODE TripCDev_MsgEntry(MESSAGE GivenMsg)
                             "FOCUS: %s -> %s!",
                             szDevName[MSG_SENDER_ID(GivenMsg)],
                             szDevName[DEVID_TRIPCOUNT]) */;
-                TripCntDev.fFocused = TRUE;                             /* set our focus */
-                TripCDev_Show(TRUE);                                    /* show our screen */
-                gDeviceFlags1.flags.ActDevNr = DEVID_TRIPCOUNT;         /* save device# for restore */
+                NV_TripCom_AntDev.fFocused = TRUE;                             /* set our focus */
+                NV_TripCom_ADev_Show(TRUE);                                    /* show our screen */
+                EE_DevFlags_1.flags.ActDevNr = DEVID_TRIPCOUNT;         /* save device# for restore */
                 RValue = ERR_MSG_PROCESSED;
              }
              else
              {
-                if ( TripCntDev.fFocused == TRUE )
+                if ( NV_TripCom_AntDev.fFocused == TRUE )
                 {
                     /*  Some other device should be given the focus,
                         BUT WE'VE GOT THE FOCUS!
@@ -495,7 +498,7 @@ ERRCODE TripCDev_MsgEntry(MESSAGE GivenMsg)
                             szDevName[MSG_SENDER_ID(GivenMsg)],
                             szDevName[MSG_RECEIVER_ID(GivenMsg)],
                             szDevName[DEVID_TRIPCOUNT]);
-                    TripCntDev.fFocused = FALSE;                        /* loose our focus */
+                    NV_TripCom_AntDev.fFocused = FALSE;                        /* loose our focus */
                     ODS1(   DBG_SYS, DBG_WARNING,
                             "%s now loosing focus :-( ",
                             szDevName[DEVID_TRIPCOUNT]);
@@ -509,7 +512,7 @@ ERRCODE TripCDev_MsgEntry(MESSAGE GivenMsg)
     /* --------------------------------------------------- */
     /* this part is only for FOCUSED time
        AND msg not already processed */
-    if (  (TripCntDev.fFocused == TRUE )
+    if (  (NV_TripCom_AntDev.fFocused == TRUE )
         &&(RValue == ERR_MSG_NOT_PROCESSED ) )
     {
         switch (MsgId)
@@ -518,7 +521,7 @@ ERRCODE TripCDev_MsgEntry(MESSAGE GivenMsg)
             case MSG_SCREEN_RFRSH:
                 // Please note, that Compass Data and Time is refreshed on dedicated
                 // message MSG_COMPASS_RFRSH and MSG_SECOND_GONE only (see below)
-                TripCDev_Show(TRUE);
+                NV_TripCom_ADev_Show(TRUE);
                 RValue = ERR_MSG_PROCESSED;
                 break;
 
@@ -530,8 +533,8 @@ ERRCODE TripCDev_MsgEntry(MESSAGE GivenMsg)
                     &&(MSG_KEY_DURATION(GivenMsg) < KEYTM_PRESSED_SHORT              ) )
                 {
                     /* give focus immediatly to next screen */
-                    TripCntDev.fFocused = FALSE;                        /* clear our focus */
-                    TripCDev_Show(FALSE);                               /* clear our screen */
+                    NV_TripCom_AntDev.fFocused = FALSE;                        /* clear our focus */
+                    NV_TripCom_ADev_Show(FALSE);                               /* clear our screen */
 
                     // special MOTOBAU behaviour
                     #if(BIKE_MOTOBAU==1)
@@ -548,25 +551,25 @@ ERRCODE TripCDev_MsgEntry(MESSAGE GivenMsg)
             case MSG_KEY_OK:
             case MSG_KEY_UP:
             case MSG_KEY_DOWN:
-                RValue = TripCDev_MsgEntry_Keys(GivenMsg);              /* used for Ok, Up, Down: */
+                RValue = NV_TripCom_ADev_MsgEntry_Keys(GivenMsg);              /* used for Ok, Up, Down: */
                 break;
 
             /* trigger time / date screen update only */
             case MSG_SECOND_GONE:
-                TripCDev_UpdTimeDate();
+                NV_TripCom_ADev_UpdTimeDate();
                 RValue = ERR_MSG_PROCESSED;
                 break;
 
             /* got a fresh compass heading information */
             case MSG_COMPASS_RFRSH:
                 // show compass if available
-                if (  gCompassCntrl.flags.CompassAvail == 1 )
+                if (  EE_CompassCtrl.flags.CompassAvail == 1 )
                 {   // show compass HEADING only if enabled
-                    if ( gCompassCntrl.flags.CompassDisplay & COMPASS_DPL_HEAD )
-                        TripCDev_UpdCompassHead();
+                    if ( EE_CompassCtrl.flags.CompassDisplay & COMPASS_DPL_HEAD )
+                        NV_TripCom_ADev_UpdCompassHead();
                     // show compass BARGRAGH only if enabled
-                    if ( gCompassCntrl.flags.CompassDisplay & COMPASS_DPL_GRAPH )
-                        TripCDev_UpdCompassBargr();
+                    if ( EE_CompassCtrl.flags.CompassDisplay & COMPASS_DPL_GRAPH )
+                        NV_TripCom_ADev_UpdCompassBargr();
                     // msg processed anyway
                     RValue = ERR_MSG_PROCESSED;
                 }
@@ -582,18 +585,18 @@ ERRCODE TripCDev_MsgEntry(MESSAGE GivenMsg)
 
 
 /***********************************************************************
- *  FUNCTION:       TripCDev_MsgEntry_Keys
+ *  FUNCTION:       NV_TripCom_ADev_MsgEntry_Keys
  *  DESCRIPTION:    Handling of all pressed keys
  *  PARAMETER:      MESSAGE Given Key Msg
  *  RETURN:         error code
  *  COMMENT:        -
  *********************************************************************** */
-ERRCODE TripCDev_MsgEntry_Keys(MESSAGE GivenMsg)
+ERRCODE NV_TripCom_ADev_MsgEntry_Keys(MESSAGE GivenMsg)
 {
     ERRCODE     RValue = ERR_MSG_PROCESSED;
     MESSAGE_ID  MsgId;
     MESSAGE     NewMsg;
-    DIST_TYPE   TripCnt;
+    DIST_TYPE   NV_TripCom_Ant;
 
     MsgId = MSG_ID(GivenMsg);                                       /* get message id */
     switch (MsgId)
@@ -601,19 +604,19 @@ ERRCODE TripCDev_MsgEntry_Keys(MESSAGE GivenMsg)
         case MSG_KEY_OK:
             if (MSG_KEY_TRANSITION(GivenMsg) == KEYTRANS_PRESSED )  /* just pressed? */
             {
-                /* clear big trip counter (here: TripCntB) any way */
-                TripCnt.km = 0;                                     /* clear local counter */
-                MeasSetTripCnt(eTRIPC_B, &TripCnt);                 /* copy to TripCnt B */
+                /* clear big trip counter (here: NV_TripCom_AntB) any way */
+                NV_TripCom_Ant.km = 0;                                     /* clear local counter */
+                MeasSetNV_TripCom_Ant(eTRIPC_B, &NV_TripCom_Ant);                 /* copy to NV_TripCom_Ant B */
             }
             if (MSG_KEY_DURATION(GivenMsg) > KEYTM_PRESSED_LONG )   /* pressed > 3 sec? */
             {
                 /* check: long distance counter to be reseted? */
-                if (MeasGetTripCnt(eTRIPC_A, MR_DKM) > 0)
+                if (MeasGetNV_TripCom_Ant(eTRIPC_A, MR_DKM) > 0)
                 {
                     /* clear both trip counter the same time  */
-                    TripCnt.km = 0;                                 /* clear local counter */
-                    MeasSetTripCnt(eTRIPC_B, &TripCnt);             /* copy to TripCnt B */
-                    MeasSetTripCnt(eTRIPC_A, &TripCnt);             /* copy to TripCnt A */
+                    NV_TripCom_Ant.km = 0;                                 /* clear local counter */
+                    MeasSetNV_TripCom_Ant(eTRIPC_B, &NV_TripCom_Ant);             /* copy to NV_TripCom_Ant B */
+                    MeasSetNV_TripCom_Ant(eTRIPC_A, &NV_TripCom_Ant);             /* copy to NV_TripCom_Ant A */
                     Beep_SignalOk();
                     LED_SignalOk();
                 }
@@ -623,12 +626,12 @@ ERRCODE TripCDev_MsgEntry_Keys(MESSAGE GivenMsg)
             if (  (MSG_KEY_TRANSITION(GivenMsg) == KEYTRANS_PRESSED )   /* just pressed? */
                 ||(MSG_KEY_TRANSITION(GivenMsg) == KEYTRANS_ON      ) ) /* key repetition rate active? */
             {
-                UINT16 wIncrVal = TripCDev_ExpSpeed(GivenMsg);          /* get incr value = f(key press duration) */
-                MeasGetRawTripCnt(eTRIPC_A, &TripCnt);                  /* get current trip counter value */
-                if ((TripCnt.dkm + wIncrVal) < DIST_MAX_VEHIC)          /* no overflow? */
+                UINT16 wIncrVal = NV_TripCom_ADev_ExpSpeed(GivenMsg);          /* get incr value = f(key press duration) */
+                MeasGetRawNV_TripCom_Ant(eTRIPC_A, &NV_TripCom_Ant);                  /* get current trip counter value */
+                if ((NV_TripCom_Ant.dkm + wIncrVal) < DIST_MAX_VEHIC)          /* no overflow? */
                 {
-                    TripCnt.dkm += wIncrVal;                            /* increment local copy */
-                    MeasSetTripCnt(eTRIPC_A, &TripCnt);                 /* copy to TripCnt A */
+                    NV_TripCom_Ant.dkm += wIncrVal;                            /* increment local copy */
+                    MeasSetNV_TripCom_Ant(eTRIPC_A, &NV_TripCom_Ant);                 /* copy to NV_TripCom_Ant A */
                 }
             }
             break;
@@ -636,14 +639,14 @@ ERRCODE TripCDev_MsgEntry_Keys(MESSAGE GivenMsg)
             if (  (MSG_KEY_TRANSITION(GivenMsg) == KEYTRANS_PRESSED )   /* just pressed? */
                 ||(MSG_KEY_TRANSITION(GivenMsg) == KEYTRANS_ON      ) ) /* key repetition rate active? */
             {
-                UINT16 wDecrValue = TripCDev_ExpSpeed(GivenMsg);        /* get decr value = f(key press duration) */
-                MeasGetRawTripCnt(eTRIPC_A, &TripCnt);                              /* get current trip counter value */
-                if (wDecrValue > TripCnt.dkm)                           /* too big to decr? */
-                    wDecrValue = TripCnt.dkm;                           /*-> clip to ensure reset to zero! */
-                if ((TripCnt.dkm - wDecrValue) <= TripCnt.dkm)          /* no underflow? */
+                UINT16 wDecrValue = NV_TripCom_ADev_ExpSpeed(GivenMsg);        /* get decr value = f(key press duration) */
+                MeasGetRawNV_TripCom_Ant(eTRIPC_A, &NV_TripCom_Ant);                              /* get current trip counter value */
+                if (wDecrValue > NV_TripCom_Ant.dkm)                           /* too big to decr? */
+                    wDecrValue = NV_TripCom_Ant.dkm;                           /*-> clip to ensure reset to zero! */
+                if ((NV_TripCom_Ant.dkm - wDecrValue) <= NV_TripCom_Ant.dkm)          /* no underflow? */
                 {
-                    TripCnt.dkm -= wDecrValue;                          /* decrement local copy */
-                    MeasSetTripCnt(eTRIPC_A, &TripCnt);                 /* copy to TripCnt B */
+                    NV_TripCom_Ant.dkm -= wDecrValue;                          /* decrement local copy */
+                    MeasSetNV_TripCom_Ant(eTRIPC_A, &NV_TripCom_Ant);                 /* copy to NV_TripCom_Ant B */
                 }
             }
             break;
@@ -654,19 +657,19 @@ ERRCODE TripCDev_MsgEntry_Keys(MESSAGE GivenMsg)
 
     /* refresh trip counter display immediatly, if necessary */
     if (RValue == ERR_MSG_PROCESSED)
-        TripCDev_Show(TRUE);
+        NV_TripCom_ADev_Show(TRUE);
     return RValue;
 }
 
 
 /***********************************************************************
- *  FUNCTION:       TripCDev_ExpSpeed
+ *  FUNCTION:       NV_TripCom_ADev_ExpSpeed
  *  DESCRIPTION:    gives a value adequate to time the user presses key
  *  PARAMETER:      Given msg including the duration
  *  RETURN:         inkr/decr value in 10 m
  *  COMMENT:        -
  *********************************************************************** */
-UINT16 TripCDev_ExpSpeed(MESSAGE GivenMsg)
+UINT16 NV_TripCom_ADev_ExpSpeed(MESSAGE GivenMsg)
 {
     UINT16 RValue;
 
@@ -691,17 +694,17 @@ UINT16 TripCDev_ExpSpeed(MESSAGE GivenMsg)
 
 
 /***********************************************************************
- *  FUNCTION:       TripCDev_UpdTimeDate
+ *  FUNCTION:       NV_TripCom_ADev_UpdTimeDate
  *  DESCRIPTION:    Separate handling of TimeDate screen refreshs
  *                  to synchronize display to RTC seconds
  *  PARAMETER:      -
  *  RETURN:         -
  *  COMMENT:        -
  *********************************************************************** */
-void TripCDev_UpdTimeDate(void)
+void NV_TripCom_ADev_UpdTimeDate(void)
 {
     // check conditions to display timedate */
-    if ( TripCntDev.fScreenInit == TRUE  )       // screen is ready?
+    if ( NV_TripCom_AntDev.fScreenInit == TRUE  )       // screen is ready?
     {
         /* update time for lower state line '13:15:24p' */
         TimeDate_GetString( RESENUM_HHMMSS,  szTime );
@@ -711,21 +714,21 @@ void TripCDev_UpdTimeDate(void)
 
 
 /***********************************************************************
- *  FUNCTION:       TripCDev_UpdCompassHead
+ *  FUNCTION:       NV_TripCom_ADev_UpdCompassHead
  *  DESCRIPTION:    Separate handling of CompassHeading screen refreshs,
  *                  update compass heading for lower state line '359°'
  *  PARAMETER:      -
  *  RETURN:         -
  *  COMMENT:        -
  *********************************************************************** */
-void TripCDev_UpdCompassHead(void)
+void NV_TripCom_ADev_UpdCompassHead(void)
 {
 #if (COMPASSDRV==1)
     COMPDRV_HEADINFO *ptHeadingInfo;
     static usOldHeading = 0xffff;
 
     // check conditions to display timedate */
-    if ( TripCntDev.fScreenInit == TRUE  )       // screen is ready?
+    if ( NV_TripCom_AntDev.fScreenInit == TRUE  )       // screen is ready?
     {
         /* time to get a fresh heading from driver */
         ptHeadingInfo = CompDrv_GetHeadingInfo();
@@ -747,7 +750,7 @@ void TripCDev_UpdCompassHead(void)
 
 
 /***********************************************************************
- *  FUNCTION:       TripCDev_UpdCompassBargr
+ *  FUNCTION:       NV_TripCom_ADev_UpdCompassBargr
  *  DESCRIPTION:    Shows a big graphic on display (half filled)
  *                  with a small floating bar of heading values
  *                  and a big heading value in front.
@@ -757,7 +760,7 @@ void TripCDev_UpdCompassHead(void)
  *                  big tripcounter value, so only one of them
  *                  can be enabled!
  *********************************************************************** */
-void TripCDev_UpdCompassBargr(void)
+void NV_TripCom_ADev_UpdCompassBargr(void)
 {
 #if (COMPASSDRV==1)
 
@@ -779,7 +782,7 @@ void TripCDev_UpdCompassBargr(void)
 
 
     // check conditions to display timedate */
-    if ( TripCntDev.fScreenInit == FALSE  )       // screen is NOT ready?
+    if ( NV_TripCom_AntDev.fScreenInit == FALSE  )       // screen is NOT ready?
     {   return;
     }
 
