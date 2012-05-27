@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.4  2012/05/27 17:52:40  tuberkel
+ * Corrections for renamed Eeprom/Nvram Variables
+ *
  * Revision 3.3  2012/05/27 16:01:37  tuberkel
  * All Eeprom/Nvram Variables renamed
  *
@@ -126,7 +129,7 @@ typedef enum
     DEVID_ALL,              // to all devices
     DEVID_MAIN,             // Main device
     DEVID_INTRO,            // IntroScreen device
-    DEVID_TRIPCOUNT,        // NV_TripCom_Aounter device
+    DEVID_TRIPCOUNT,        // TripCounter device
     DEVID_SET,              // Settings device
     DEVID_STATISTIC,        // Statistic device
     DEVID_LAPCNT,           // LapCounter device
@@ -260,10 +263,10 @@ ERRCODE SetDev_Init(void);
 ERRCODE SetDev_MsgEntry(MESSAGE msg);
 
 
-/* NV_TripCom_Aounter device function prototypes */
-ERRCODE NV_TripCom_ADev_Init(void);
-void    NV_TripCom_ADev_Show(BOOL fShow);
-ERRCODE NV_TripCom_ADev_MsgEntry(MESSAGE GivenMsg);
+/* TripCounter device function prototypes */
+ERRCODE TripCntDev_Init(void);
+void    TripCntDev_Show(BOOL fShow);
+ERRCODE TripCntDev_MsgEntry(MESSAGE GivenMsg);
 
 /* Main device function prototypes */
 ERRCODE MainDev_Init(void);

@@ -69,6 +69,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.12  2012/05/27 17:52:40  tuberkel
+ * Corrections for renamed Eeprom/Nvram Variables
+ *
  * Revision 3.11  2012/05/27 16:01:42  tuberkel
  * All Eeprom/Nvram Variables renamed
  *
@@ -154,7 +157,7 @@
  * no message
  *
  * Revision 1.15  2006/03/18 08:59:22  Ralf
- * - NV_TripCom_Aounter improved to 4 different counters
+ * - TripCounter improved to 4 different counters
  *
  *
  ************************************************************************ */
@@ -259,7 +262,7 @@ typedef union
     UINT8           byte;
     struct
     {
-        unsigned char   NV_TripCom_ALongDistUp :1;     /* NV_TripCom_AounterLongDist: 1=upside (like roadbook), 0=downside */
+        unsigned char   TripCntLDistUp  :1;     /* TripCounterLongDist: 1=upside (like roadbook), 0=downside */
         unsigned char   BeeperAvail     :1;     /* Beeper:              1=available, 0=not available */
         unsigned char   DLS_Auto        :1;     /* DaylightSavingAuto:  1=on (automatic on), 0=Off */
         unsigned char   DLS_Active      :1;     /* DaylightSavingActive: 1=CEST active (CentralEurpSummerTime active), 0=Off */
@@ -411,10 +414,10 @@ typedef enum
     PID_VEHIC_KM = PID_NVRAM_START,         // vehicle overall distance km struct
     PID_HOURS_ALL,                          // engine running overall
     PID_HOURS_SERV,                         // engine running since last service
-    PID_TRIP_A_KM,                          // NV_TripCnt_A distance km struct (for trip counter)
-    PID_TRIP_B_KM,                          // NV_TripCnt_B distance km struct (for trip counter)
-    PID_TRIP_C_KM,                          // NV_TripCom_A distance km struct (for common use)
-    PID_TRIP_D_KM,                          // NV_TripCom_B distance km struct (for common use)
+    PID_TRIP_A_KM,                          // TripCnt_A distance km struct (for trip counter)
+    PID_TRIP_B_KM,                          // TripCnt_B distance km struct (for trip counter)
+    PID_TRIP_C_KM,                          // TripCom_A distance km struct (for common use)
+    PID_TRIP_D_KM,                          // TripCom_B distance km struct (for common use)
     PID_SPEED_AVR_M,                        // average speed of time in motion only (no pauses)
     PID_SPEED_AVR_P,                        // average speed of time with pauses
     PID_FUEL_KM,                            // distance since last refuel (km struct)
@@ -508,7 +511,6 @@ typedef struct
 /* public function prototypes */
 ERRCODE SysPar_ReadSysParam     ( const PARAM_ID_TYPE eParamID, void far * fpParamBuffer );
 ERRCODE SysPar_WriteSysParam    ( const PARAM_ID_TYPE eParamID, void far * fpGivenParam );
-ERRCODE ParInitSystemParam  ( void );
 ERRCODE SysPar_SetDefaults      ( BOOL fComplete );
 ERRCODE SysPar_CheckFirstInit   ( void );
 ERRCODE SysPar_CyclicSaveValues ( void );

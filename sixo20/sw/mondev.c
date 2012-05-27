@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.10  2012/05/27 17:52:40  tuberkel
+ * Corrections for renamed Eeprom/Nvram Variables
+ *
  * Revision 3.9  2012/05/27 16:01:41  tuberkel
  * All Eeprom/Nvram Variables renamed
  *
@@ -174,36 +177,36 @@
 
 
 /* external symbols */
-extern UINT16               wMilliSecCounter;           /* valid values: 0h .. ffffh */
-extern STRING far           szDevName[];                /* device names */
-extern DEVFLAGS1_TYPE        EE_DevFlags_1;               /* system parameters */
+extern UINT16           wMilliSecCounter;           /* valid values: 0h .. ffffh */
+extern STRING far       szDevName[];                /* device names */
+extern DEVFLAGS1_TYPE   EE_DevFlags_1;               /* system parameters */
 
 extern BIKE_TYPE        EE_BikeType;          /* bike type selcetion */
 
-extern UINT16       EE_Volt_Min;
-extern far UINT16   EE_Volt_Min_def;
-extern UINT16       EE_Volt_Max;
-extern far UINT16   EE_Volt_Max_def;
-extern INT16        EE_TAir_Min;           // NOTE:    We have to declare the default values
-extern INT16 far    EE_TAir_Min_def;       //          with 'far', because they are defined
-extern INT16        EE_TAir_Max;           //          as 'const' in ROM in another module.
-extern INT16 far    EE_TAir_Max_def;
-extern INT16        EE_TOil_Min;
-extern INT16 far    EE_TOil_Min_def;
-extern INT16        EE_TOil_Max;
-extern INT16 far    EE_TOil_Max_def;
-extern INT16        EE_TWat_Min;
-extern INT16 far    EE_TWat_Min_def;
-extern INT16        EE_TWat_Max;
-extern INT16 far    EE_TWat_Max_def;
+extern UINT16           EE_Volt_Min;
+extern far UINT16       EE_Volt_Min_def;
+extern UINT16           EE_Volt_Max;
+extern far UINT16       EE_Volt_Max_def;
+extern INT16            EE_TAir_Min;           // NOTE:    We have to declare the default values
+extern INT16 far        EE_TAir_Min_def;       //          with 'far', because they are defined
+extern INT16            EE_TAir_Max;           //          as 'const' in ROM in another module.
+extern INT16 far        EE_TAir_Max_def;
+extern INT16            EE_TOil_Min;
+extern INT16 far        EE_TOil_Min_def;
+extern INT16            EE_TOil_Max;
+extern INT16 far        EE_TOil_Max_def;
+extern INT16            EE_TWat_Min;
+extern INT16 far        EE_TWat_Min_def;
+extern INT16            EE_TWat_Max;
+extern INT16 far        EE_TWat_Max_def;
 
 extern SPEED_TYPE       EE_SpeedMax;
 extern SPEED_TYPE  far  EE_SpeedMax_def;
 extern RPM_TYPE         EE_RPM_Max;
 extern RPM_TYPE    far  EE_RPM_Max_def;
 
-extern TIME_TYPE_LD  NV_EngRunTime_Srv;
-extern TIME_TYPE_LD  NV_EngRunTime_All;
+extern TIME_TYPE_LD     NV_EngRunTime_Srv;
+extern TIME_TYPE_LD     NV_EngRunTime_All;
 
 
 

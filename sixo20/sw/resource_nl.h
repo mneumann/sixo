@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.4  2012/05/27 17:52:40  tuberkel
+ * Corrections for renamed Eeprom/Nvram Variables
+ *
  * Revision 3.3  2012/05/27 16:01:42  tuberkel
  * All Eeprom/Nvram Variables renamed
  *
@@ -169,8 +172,8 @@
 /* settings device strings */
 #define RESTXT_SET_WHEELSIZE_DESC    "Wiel:"
 #define RESTXT_SET_WHEELSIZE_UNIT    "mm"
-#define RESTXT_SET_EE_CCFNOM_DESC       "EE_CCF:"
-#define RESTXT_SET_EE_CCFNOM_UNIT       "/"
+#define RESTXT_SET_CCFNOM_DESC       "EE_CCF:"
+#define RESTXT_SET_CCFNOM_UNIT       "/"
 #define RESTXT_SET_LCD_BL_DESC     "Display A:"
 #define RESTXT_SET_LCD_BR_DESC    "L:"
 #define RESTXT_SET_LCD_CNT_DESC     "C:"
@@ -180,7 +183,7 @@
 
 #define RESTXT_SET_BIKE_DESC         "Mot:"
 #define RESTXT_SET_COMPCAL          "Kmp:"
-#define RESTXT_SET_TRIPCNTFL        "NV_TripCom_Ant:"
+#define RESTXT_SET_TRIPCNTFL        "TripCnt:"
 
 #define RESTXT_SET_SERVKM           "Serv. bij:"
 

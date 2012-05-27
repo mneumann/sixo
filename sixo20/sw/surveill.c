@@ -70,6 +70,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.18  2012/05/27 17:52:40  tuberkel
+ * Corrections for renamed Eeprom/Nvram Variables
+ *
  * Revision 3.17  2012/05/27 16:01:42  tuberkel
  * All Eeprom/Nvram Variables renamed
  *
@@ -589,7 +592,7 @@ void Surv_CheckService ( void )
     vstatelvl = eSURVST_OK;
 
     // check: current vehicle distance reached service intervall?
-    NV_VehicDist = MeasGetNV_VehicDist( MR_KM );
+    NV_VehicDist = Meas_Get_VehicDist( MR_KM );
     if (  (EE_NextSrvKm.km != EE_NextSrvKm_def.km )      // check enabled?
         &&(EE_NextSrvKm.km <= NV_VehicDist.km       ) )    // exceeded distance?
         vstatelvl = eSURVST_WARNING;

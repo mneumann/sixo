@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.14  2012/05/27 17:52:40  tuberkel
+ * Corrections for renamed Eeprom/Nvram Variables
+ *
  * Revision 3.13  2012/05/27 16:01:39  tuberkel
  * All Eeprom/Nvram Variables renamed
  *
@@ -313,7 +316,7 @@ int main()
         ODS(DBG_SYS,DBG_INFO,"\n\rInitialize Devices:");
         Error = IntroDev_Init();                                  /* intro screen device */
         Error = MainDev_Init();                                   /* main device (speed&rpm) */
-        Error = NV_TripCom_ADev_Init();                                   /* trip counter device */
+        Error = TripCntDev_Init();                                   /* trip counter device */
         Error = MonDev_Init();                                /* monitor device */
         #if(BIKE_MOTOBAU==1)                                        /* special MOTOBAU behaviour */
         Error = LCDev_Init();                                 /* LapCounter device */

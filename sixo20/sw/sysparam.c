@@ -78,6 +78,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.14  2012/05/27 17:52:40  tuberkel
+ * Corrections for renamed Eeprom/Nvram Variables
+ *
  * Revision 3.13  2012/05/27 16:01:42  tuberkel
  * All Eeprom/Nvram Variables renamed
  *
@@ -283,15 +286,15 @@ const  BIKE_TYPE EE_BikeType_def = eBIKE_STANDARD;
        UINT16 EE_WheelSize;                       // original value in mm
 static UINT16 EE_WheelSize_cmp;                   // compare value
 const  UINT16 EE_WheelSize_def = DEF_WHEELSIZE;   // default value
-       UINT8 EE_Wheel_ImpPRev;                    // wheel impulses/revolution
-static UINT8 EE_Wheel_ImpPRev_cmp;
-const  UINT8 EE_Wheel_ImpPRev_def = 1;
+       UINT8 EE_WheelImpPRev;                    // wheel impulses/revolution
+static UINT8 EE_WheelImpPRev_cmp;
+const  UINT8 EE_WheelImpPRev_def = 1;
 
 // -------------------------------------------------
 // RPM cylinder correcture factor
        CCF_TYPE EE_CCF;
 static CCF_TYPE EE_CCF_cmp;
-const  CCF_TYPE EE_CCF_def = DEF_EE_CCF_NOM | DEF_EE_CCF_DENOM;
+const  CCF_TYPE EE_CCF_def = DEF_CCF_NOM | DEF_CCF_DENOM;
 
 // -------------------------------------------------
 // distances
@@ -444,10 +447,10 @@ const SYSPARINFO_TYPE  rgSysParControl[] =
     {   PID_VEHIC_KM,       NVRAM_SEC,    0,  sizeof(DIST_TYPE),      &NV_VehicDist,      &NV_VehicDist_cmp,      &NV_VehicDist_def      },  // 4 bytes, vehicle overall distance
     {   PID_HOURS_SERV,     NVRAM_SEC,    4,  sizeof(TIME_TYPE_LD),   &NV_EngRunTime_Srv, &NV_EngRunTime_Srv_cmp, &NV_EngRunTime_Srv_def },  // 4 bytes, engine runtime since last service
     {   PID_HOURS_ALL,      NVRAM_SEC,    8,  sizeof(TIME_TYPE_LD),   &NV_EngRunTime_All, &NV_EngRunTime_All_cmp, &NV_EngRunTime_All_def },  // 4 bytes, engine runtime overall
-    {   PID_TRIP_A_KM,      NVRAM,       12,  sizeof(DIST_TYPE),      &NV_TripCnt_A,      &NV_TripCnt_A_cmp,      &NV_TripCnt_A_def      },  // 4 bytes, NV_TripCom_Aounter A distance
-    {   PID_TRIP_B_KM,      NVRAM,       16,  sizeof(DIST_TYPE),      &NV_TripCnt_B,      &NV_TripCnt_B_cmp,      &NV_TripCnt_B_def      },  // 4 bytes, NV_TripCom_Aounter B distance
-    {   PID_TRIP_C_KM,      NVRAM,       20,  sizeof(DIST_TYPE),      &NV_TripCom_A,      &NV_TripCom_A_cmp,      &NV_TripCom_A_def      },  // 4 bytes, NV_TripCom_Aounter C distance
-    {   PID_TRIP_D_KM,      NVRAM,       24,  sizeof(DIST_TYPE),      &NV_TripCom_B,      &NV_TripCom_B_cmp,      &NV_TripCom_B_def      },  // 4 bytes, NV_TripCom_Aounter D distance
+    {   PID_TRIP_A_KM,      NVRAM,       12,  sizeof(DIST_TYPE),      &NV_TripCnt_A,      &NV_TripCnt_A_cmp,      &NV_TripCnt_A_def      },  // 4 bytes, TripCounter A distance
+    {   PID_TRIP_B_KM,      NVRAM,       16,  sizeof(DIST_TYPE),      &NV_TripCnt_B,      &NV_TripCnt_B_cmp,      &NV_TripCnt_B_def      },  // 4 bytes, TripCounter B distance
+    {   PID_TRIP_C_KM,      NVRAM,       20,  sizeof(DIST_TYPE),      &NV_TripCom_A,      &NV_TripCom_A_cmp,      &NV_TripCom_A_def      },  // 4 bytes, TripCounter C distance
+    {   PID_TRIP_D_KM,      NVRAM,       24,  sizeof(DIST_TYPE),      &NV_TripCom_B,      &NV_TripCom_B_cmp,      &NV_TripCom_B_def      },  // 4 bytes, TripCounter D distance
     {   PID_SPEED_AVR_M,    NVRAM,       28,  sizeof(SPEED_TYPE),     &NV_Speed_AvrM,     &NV_Speed_AvrM_cmp,     &NV_Speed_AvrM_def     },  // 2 bytes, average speed EX-cluding pause times
     {   PID_SPEED_AVR_P,    NVRAM,       30,  sizeof(SPEED_TYPE),     &NV_Speed_AvrP,     &NV_Speed_AvrP_cmp,     &NV_Speed_AvrP_def     },  // 2 bytes, average speed IN-cluding pause times
     {   PID_FUEL_KM,        NVRAM,       32,  sizeof(DIST_TYPE),      &NV_FuelDist,       &NV_FuelDist_cmp,       &NV_FuelDist_def       },  // 4 bytes, distance since last refuel
@@ -485,7 +488,7 @@ const SYSPARINFO_TYPE  rgSysParControl[] =
     {   PID_FUEL_CAP,       EEPROM,     41,   sizeof(UINT16),         &EE_FuelCap,        &EE_FuelCap_cmp,        &EE_FuelCap_def     },  // 2 bytes, fuel reservoir in 1/10 liters
     {   PID_FUEL_CONS,      EEPROM,     43,   sizeof(UINT8),          &EE_FuelConsUser,   &bFuelCons_cmp,         &bFuelCons_def      },  // 1 byte,  fuel consumption in 1/10 l/100km
     {   PID_BOOT_DELAY,     EEPROM,     44,   sizeof(UINT8),          &EE_LogoDelay,      &EE_LogoDelay_cmp,      &EE_LogoDelay_def   },  // 1 byte,  delay in 1/10 s at power up
-    {   PID_WHEEL_IMP,      EEPROM,     45,   sizeof(UINT8),          &EE_Wheel_ImpPRev,  &EE_Wheel_ImpPRev_cmp,  &EE_Wheel_ImpPRev_def}, // 1 byte,  number of impulses/wheel rotation
+    {   PID_WHEEL_IMP,      EEPROM,     45,   sizeof(UINT8),          &EE_WheelImpPRev,  &EE_WheelImpPRev_cmp,  &EE_WheelImpPRev_def}, // 1 byte,  number of impulses/wheel rotation
     {   PID_DEVFLAGS3,      EEPROM,     46,   sizeof(DEVFLAGS3_TYPE), &EE_DevFlags_3,     &EE_DevFlags_3_cmp,     &EE_DevFlags_3_def  },  // 1 byte,  bitfield for system status
     {   PID_COOLR_CNTRL,    EEPROM,     47,   sizeof(UINT8),          &EE_CoolrideCtrl,   &EE_CoolrideCtrl_cmp,   &EE_CoolrideCtrl_def},  // 1 byte,  bitfield for Coolride Heatgrip Control
     {   PID_COMPS_CNTRL,    EEPROM,     48,   sizeof(UINT8),          &EE_CompassCtrl,    &EE_CompassCtrl_cmp,    &EE_CompassCtrl_def },  // 1 byte,  bitfield for Compass Module Control
@@ -983,7 +986,7 @@ void SysPar_DebugOutParameter( const PARAM_ID_TYPE PID )
         case PID_CCF:       ODS2(DBG_SYS,DBG_INFO, "- EE EE_CCF:        %u/%u",            EE_CCF.nibble.nom, EE_CCF.nibble.denom); break;
         case PID_DEVFLAGS1:     ODS2(DBG_SYS,DBG_INFO, "- EE DevFlags1:  DEV:%s MAIND:%u",    szDevName[EE_DevFlags_1.flags.ActDevNr], EE_DevFlags_1.flags.MainDevState); break;
         case PID_DEVFLAGS2:     ODS8(DBG_SYS,DBG_INFO, "- EE DevFlags2:  TC:%u B:%u DL:%u DA:%u M:%u LW:%u VS:%u HC:%u",
-                                                                                            EE_DevFlags_2.flags.NV_TripCom_ALongDistUp,
+                                                                                            EE_DevFlags_2.flags.TripCntLDistUp,
                                                                                             EE_DevFlags_2.flags.BeeperAvail,
                                                                                             EE_DevFlags_2.flags.DLS_Auto,
                                                                                             EE_DevFlags_2.flags.DLS_Active,
@@ -1015,7 +1018,7 @@ void SysPar_DebugOutParameter( const PARAM_ID_TYPE PID )
         case PID_FUEL_CAP:      ODS2(DBG_SYS,DBG_INFO, "- EE Fuel Cap:   %4u,%1u liter", EE_FuelCap /10, EE_FuelCap -(EE_FuelCap /10)*10); break;
         case PID_FUEL_CONS:     ODS2(DBG_SYS,DBG_INFO, "- EE Fuel Cons:  %4u,%1u l/100", EE_FuelConsUser/10, EE_FuelConsUser-(EE_FuelConsUser/10)*10); break;
         case PID_BOOT_DELAY:    ODS2(DBG_SYS,DBG_INFO, "- EE BootDelay:  %4u,%1u s", EE_LogoDelay/10, EE_LogoDelay-(EE_LogoDelay/10)*10); break;
-        case PID_WHEEL_IMP:     ODS1(DBG_SYS,DBG_INFO, "- EE Wheel Imp:  %6u I/Rev", EE_Wheel_ImpPRev); break;
+        case PID_WHEEL_IMP:     ODS1(DBG_SYS,DBG_INFO, "- EE Wheel Imp:  %6u I/Rev", EE_WheelImpPRev); break;
         case PID_DEVFLAGS3:     ODS (DBG_SYS,DBG_INFO, "- EE DevFlags3:  currently not used!"); break;
         case PID_COOLR_CNTRL:   ODS3(DBG_SYS,DBG_INFO, "- EE Coolride:   On:%u GPO:%u GPI:%u",  EE_CoolrideCtrl.flags.CoolrAvail,
                                                                                                 EE_CoolrideCtrl.flags.CoolrGPO,

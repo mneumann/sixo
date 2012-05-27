@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.32  2012/05/27 17:52:40  tuberkel
+ * Corrections for renamed Eeprom/Nvram Variables
+ *
  * Revision 3.31  2012/05/27 16:01:42  tuberkel
  * All Eeprom/Nvram Variables renamed
  *
@@ -202,7 +205,7 @@
  *
  * Revision 2.7  2009/06/21 21:23:18  tuberkel
  * Changes by AN and SCHW:
- * - new Compass layout inside NV_TripCom_Aounter Module
+ * - new Compass layout inside TripCounter Module
  * - can be disabled via user settings 'Tripcounter/upperlower:
  * Bitcoded:
  * - bit0: LongDistance:     1=upside (like roadbook), 0=downside
@@ -364,42 +367,42 @@ static const STRING pszSelectBike[RESTXT_SET_BIKE_CNT] =
 // ------------------------------------------
 // CylinderCorrectureFactor EE_CCF:
 // Note: EE_CCF is a bitfield structure - can therefore NOT directly be adressed by edit objects,
-//       So we need local copy 'EE_CCFNom'/'EE_CCFDenom' to compare/save changes!
+//       So we need local copy 'CCFNom'/'CCFDenom' to compare/save changes!
 extern CCF_TYPE EE_CCF;                        // EE_CCF value (with Nom/Denom nibbles) from eeprom (can not be address
-static UINT8    EE_CCFNom;                     // copy of EE_CCF.Nom as reference for edit object
-static UINT8    EE_CCFDenom;                   // copy of EE_CCF.Denom as reference for edit object
-static OBJ_NUM  NumObj_EE_CCFNom;              // nominator edit object
-static OBJ_NUM  NumObj_EE_CCFDenom;            // denominator edit object
+static UINT8    CCFNom;                     // copy of EE_CCF.Nom as reference for edit object
+static UINT8    CCFDenom;                   // copy of EE_CCF.Denom as reference for edit object
+static OBJ_NUM  NumObj_CCFNom;              // nominator edit object
+static OBJ_NUM  NumObj_CCFDenom;            // denominator edit object
 
 // ------------------------------------------
 // WheelSize / WheelImpulse objects
-extern UINT16   EE_WheelSize;                 // wheel size from eeprom in mm
+extern UINT16   EE_WheelSize;               // wheel size from eeprom in mm
+extern UINT8    EE_WheelImpPRev;            // wheel impulse from eeprom
 static OBJ_NUM  NumObj_WheelSize;           // wheel size edit object
-extern UINT8    EE_Wheel_ImpPRev;             // wheel impulse from eeprom
-static OBJ_NUM  NumObj_WheelImpuls;         // wheel impulse edit object
+static OBJ_NUM  NumObj_WheelImpPRev;        // wheel impulse edit object
 
 // ------------------------------------------
 // EngineRunTime objects:
-extern TIME_TYPE_LD NV_EngRunTime_Srv;         // engine runtime in h - since last service (NVRAM, 4 bytes)
-extern TIME_TYPE_LD NV_EngRunTime_All;         // engine runtime in h - overall (NVRAM, 4 bytes)
+extern TIME_TYPE_LD NV_EngRunTime_Srv;      // engine runtime in h - since last service (NVRAM, 4 bytes)
+extern TIME_TYPE_LD NV_EngRunTime_All;      // engine runtime in h - overall (NVRAM, 4 bytes)
 static OBJ_NUM      NumObj_EngRunSrv;       // EnginRunTime Service - edit object
 static OBJ_NUM      NumObj_EngRunAll;       // EnginRunTime All     - edit object
 
 // ------------------------------------------
 // Vehicle / Service km objects:
-// Note: 'NV_VehicDist' is Interrupt-driven and API protected - can therefore NOT directly be adressed by edit objects,
-//       So we need local copy 'NV_VehicDist' to compare/save changes!
-extern DIST_TYPE    EE_NextSrvKm;            // Next km-Service (from eeprom)
+// Note: 'VehicDist' is Interrupt-driven and API protected - can therefore NOT directly be adressed by edit objects,
+//       So we need local copy 'VehicDist' to compare/save changes!
+extern DIST_TYPE    EE_NextSrvKm;           // Next km-Service (from eeprom)
 static UINT32       dwServKm;               // original vehicle distance in km only
-static DIST_TYPE    NV_VehicDist;              // NV_VehicDist-Copy returned by Measurement API
-static UINT32       dwNV_VehicDist;            // NV_VehicDist-Copy - in km only
+static DIST_TYPE    VehicDist;              // VehicDist-Copy returned by Measurement API
+static UINT32       dwVehicDist;            // VehicDist-Copy - in km only
 static OBJ_NUM      NumObj_ServKm;          // Serv-km  - edit object
-static OBJ_NUM      NumObj_NV_VehicDist;       // Vehic-km - edit object
+static OBJ_NUM      NumObj_VehicDist;       // Vehic-km - edit object
 
 // ----------------------------------------------------------------
 // TankCapacity / FuelConsumption objects:
-extern UINT16       EE_FuelCap;              // FuelCapacity in 1/10 liters (from eeprom)
-extern UINT8        EE_FuelConsUser;             // FuelConsumption in 1/10 l/100 km (from eeprom)
+extern UINT16       EE_FuelCap;             // FuelCapacity in 1/10 liters (from eeprom)
+extern UINT8        EE_FuelConsUser;        // FuelConsumption in 1/10 l/100 km (from eeprom)
 static OBJ_NUM      NumObj_TankCap;         // FuelCapacity    - edit object
 static OBJ_NUM      NumObj_FuelCons;        // FuelConsumption - edit object
 
@@ -513,7 +516,7 @@ BOOL                gfDaylightSave;         // Copy of eeprom value.struct eleme
 // ----------------------------------------------------------------
 // Language Selection
 static OBJ_SELECT   SlctObj_Lang;           // Language - edit object
-extern UINT8        EE_LangSelect;              // Language (from eeprom
+extern UINT8        EE_LangSelect;          // Language (from eeprom)
 static const STRING pszSelectLang[RESTXT_SET_LANG_CNT] =
                         {   RESTXT_SET_LANG_DE,
                             RESTXT_SET_LANG_EN,
@@ -521,9 +524,9 @@ static const STRING pszSelectLang[RESTXT_SET_LANG_CNT] =
                         };
 
 // ----------------------------------------------------------------
-// NV_TripCom_AounterDisplayMode (up/down)
-static OBJ_SELECT   SlctObj_NV_TripCom_AntLUp;     // NV_TripCom_AounterDisplayMode - edit object
-static BOOL         fNV_TripCom_AntLongUp;         // NV_TripCom_AounterDisplayMode - copy of eeprom value
+// TripCounter-DisplayMode (up/down)
+static OBJ_SELECT   SlctObj_TripC_LUp;      // TripCounter-DisplayMode - edit object - 'Long-Up'
+static BOOL         fTripC_LUp;             // TripCounter-DisplayMode - copy of eeprom value 'Long-Up'
 static const STRING pszSelectTrip[RESTXT_SET_TRIP_CNT] =
                         {   RESTXT_SET_TRIP_VST,
                             RESTXT_SET_TRIP_VSB
@@ -571,7 +574,7 @@ extern DBGFILT_TYPE EE_DbgFilter;           // SIxO-DebugOut control (level & mo
 
 // ----------------------------------------------------------------
 // COMPASS OBJECTS
-extern COMPASSCNTL_TYPE     EE_CompassCtrl;      // Eeprom value
+extern COMPASSCNTL_TYPE     EE_CompassCtrl;     // Eeprom value
 static UINT8                bCompassDispl;      // to support enum display mode
 static OBJ_SELECT           SlctObj_CompassD;   // compass calibration state object
 static const STRING pszSelectCompD[RESTXT_SET_COMPD_CNT] =
@@ -580,8 +583,8 @@ static const STRING pszSelectCompD[RESTXT_SET_COMPD_CNT] =
                             RESTXT_SET_COMPD_GR  ,
                             RESTXT_SET_COMPD_HDGR
                         };
-static OBJ_SELECT   SlctObj_CompassC;       // compass display mode object
-static UINT8        bCompassCal;            // to detect user pressed buttons/activity
+static OBJ_SELECT   SlctObj_CompassC;           // compass display mode object
+static UINT8        bCompassCal;                // to detect user pressed buttons/activity
 static const STRING pszSelectCompC[RESTXT_SET_COMPC_CNT] =
                         {   RESTXT_SET_COMPC_NA   ,
                             RESTXT_SET_COMPC_WORK ,
@@ -720,13 +723,13 @@ static const OBJ_SLCT_INIT SlctObj_InitList[] =
     /* ------------------ ------ ------ ------------ ----- ----------------------------- ------------------     --------------- ---------------------------- ----------------  ------------------------ --------------------------------- */
     { &SlctObj_BikeType,    C01,   R2,  DPLFONT_6X8,   12, (UINT8 far *)&LocalBikeType,  RESTXT_SET_BIKE_CNT,   &bEditBuffer,   RESTXT_SET_BIKE_DESC,        pszSelectBike,    RESTXT_SET_BIKE_WIDTH,   OC_DISPL | OC_SELECT | OC_EDIT   },
     /* ------------------ ------ ------ ------------ ----- ----------------------------- ------------------     --------------- ---------------------------- ----------------  ------------------------ --------------------------------- */
-    { &SlctObj_NV_TripCom_AntLUp,  C01,   R4,  DPLFONT_6X8,   12, (UINT8 far *)&fNV_TripCom_AntLongUp, RESTXT_SET_TRIP_CNT,   &bEditBuffer,   RESTXT_SET_TRIP_DESC,        pszSelectTrip,    RESTXT_SET_TRIP_WIDTH,   OC_DISPL | OC_SELECT | OC_EDIT   },
-    { &SlctObj_Lang,        C01,   R5,  DPLFONT_6X8,   12, (UINT8 far *)&EE_LangSelect,      RESTXT_SET_LANG_CNT,   &bEditBuffer,   RESTXT_SET_LANG_DESC,        pszSelectLang,    RESTXT_SET_LANG_WIDTH,   OC_DISPL                         },
+    { &SlctObj_TripC_LUp,   C01,   R4,  DPLFONT_6X8,   12, (UINT8 far *)&fTripC_LUp,     RESTXT_SET_TRIP_CNT,   &bEditBuffer,   RESTXT_SET_TRIP_DESC,        pszSelectTrip,    RESTXT_SET_TRIP_WIDTH,   OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &SlctObj_Lang,        C01,   R5,  DPLFONT_6X8,   12, (UINT8 far *)&EE_LangSelect,  RESTXT_SET_LANG_CNT,   &bEditBuffer,   RESTXT_SET_LANG_DESC,        pszSelectLang,    RESTXT_SET_LANG_WIDTH,   OC_DISPL                         },
     { &SlctObj_Metric,      C01,   R6,  DPLFONT_6X8,   12, (UINT8 far *)&fMetric,        RESTXT_SET_METRIC_CNT, &bEditBuffer,   RESTXT_SET_METRIC_DESC,      pszSelectMetric,  RESTXT_SET_METRIC_WIDTH, OC_DISPL                         },
     /* ------------------ ------ ------ ------------ ----- ----------------------------- ------------------     --------------- ---------------------------- ----------------  ------------------------ --------------------------------- */
     { &SlctObj_LEDWM,       C05,   R6,  DPLFONT_6X8,   17, (UINT8 far *)&fLedWarnMode,   RESTXT_SET_LEDWM_CNT,  &bEditBuffer,   RESTXT_SET_LEDWM_DESC,       pszSelectLedWM,   RESTXT_SET_LEDWM_WIDTH,  OC_DISPL | OC_SELECT | OC_EDIT   },
     /* ------------------ ------ ------ ------------ ----- ----------------------------- ------------------     --------------- ---------------------------- ----------------  ------------------------ --------------------------------- */
-    { &SlctObj_Logo,        C01,   R7,  DPLFONT_6X8,   12, (UINT8 far *)&EE_LogoSelect, RESTXT_SET_LOGO_CNT,   &bEditBuffer,   RESTXT_SET_LOGO_DESC,        pszSelectLogo,    RESTXT_SET_LOGO_WIDTH,   OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &SlctObj_Logo,        C01,   R7,  DPLFONT_6X8,   12, (UINT8 far *)&EE_LogoSelect,  RESTXT_SET_LOGO_CNT,   &bEditBuffer,   RESTXT_SET_LOGO_DESC,        pszSelectLogo,    RESTXT_SET_LOGO_WIDTH,   OC_DISPL | OC_SELECT | OC_EDIT   },
     /* ------------------ ------ ------ ------------ ----- ----------------------------- ------------------     --------------- ---------------------------- ----------------  ------------------------ --------------------------------- */
     { &SlctObj_CompassD,    C11,   R2,  DPLFONT_6X8,    5, (UINT8 far *)&bCompassDispl,  RESTXT_SET_COMPD_CNT,  &bEditBuffer,   RESTXT_SET_COMPD_DESC,       pszSelectCompD,   RESTXT_SET_COMPD_WIDTH,  OC_DISPL | OC_SELECT | OC_EDIT   },
     { &SlctObj_CompassC,    C17,   R2,  DPLFONT_6X8,    5, (UINT8 far *)&bCompassCal,    RESTXT_SET_COMPC_CNT,  &bEditBuffer,   RESTXT_SET_COMPC_DESC,       pszSelectCompC,   RESTXT_SET_COMPC_WIDTH,  OC_DISPL | OC_SELECT | OC_EDIT   },
@@ -746,17 +749,17 @@ static const OBJ_NUM_INIT NumObj_InitList[] =
     /* VEHICLE SETTINGS */
     /* fpObject           OrgX    OrgY  Font         Width  pNumber                 pWorkNumber     Type   Min  Max    Step DplType  Mode     C  zDescr                      zUnit                       L   Capabilities                     */
     /* ------------------ ------ ------ ------------ ----- -----------------------  --------------- ------ ---- ------- --- -------  -------- - ---------------------------- --------------------------- -- ----------------------------------- */
-    { &NumObj_EE_CCFNom,       C15,   R2,  DPLFONT_6X8,     6, &EE_CCFNom,                &bEditBuffer,   eUCHAR, 1L,     9L,  0L, eDez,   eColumn, 0, RESTXT_SET_EE_CCFNOM_DESC,     RESTXT_SET_EE_CCFNOM_UNIT,     1,  OC_DISPL | OC_SELECT | OC_EDIT   },
-    { &NumObj_EE_CCFDenom,     C21,   R2,  DPLFONT_6X8,     1, &EE_CCFDenom,              &bEditBuffer,   eUCHAR, 1L,     9L,  0L, eDez,   eColumn, 0, RESTXT_EMPTY_TXT,           RESTXT_EMPTY_TXT,           1,  OC_DISPL | OC_SELECT | OC_EDIT   },
-    { &NumObj_WheelSize,    C01,   R3,  DPLFONT_6X8,    12, &EE_WheelSize,            &wEditBuffer,   eUINT,  0L,  9999L,  0L, eDez,   eColumn, 0, RESTXT_SET_WHEELSIZE_DESC,  RESTXT_SET_WHEELSIZE_UNIT,  4,  OC_DISPL | OC_SELECT | OC_EDIT   },
-    { &NumObj_WheelImpuls,  C16,   R3,  DPLFONT_6X8,     6, &EE_Wheel_ImpPRev,        &wEditBuffer,   eUCHAR, 1L,    99L,  0L, eDez,   eColumn, 0, RESTXT_SET_WHEELIMP_DESC,   RESTXT_EMPTY_TXT,           2,  OC_DISPL | OC_SELECT | OC_EDIT   },
-    { &NumObj_NV_VehicDist,    C01,   R4,  DPLFONT_6X8,    12, &dwNV_VehicDist,           &dwEditBuffer,  eULONG, 0L,999999L,  0L, eDez,   eColumn, 0, RESTXT_SET_VEHICKM_DESC,    RESTXT_SET_VEHICKM_UNIT,    6,  OC_DISPL | OC_SELECT | OC_EDIT   },
-    { &NumObj_EngRunAll,    C16,   R4,  DPLFONT_6X8,     6, &NV_EngRunTime_All.wHour,  &wEditBuffer,   eUINT,  0L, 65535L,  0L, eDez,   eColumn, 0, RESTXT_EMPTY_TXT,           RESTXT_SET_ERT_UNIT,        5,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &NumObj_CCFNom,       C15,   R2,  DPLFONT_6X8,     6, &CCFNom,                &bEditBuffer,   eUCHAR, 1L,     9L,  0L, eDez,   eColumn, 0, RESTXT_SET_CCFNOM_DESC,     RESTXT_SET_CCFNOM_UNIT,     1,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &NumObj_CCFDenom,     C21,   R2,  DPLFONT_6X8,     1, &CCFDenom,              &bEditBuffer,   eUCHAR, 1L,     9L,  0L, eDez,   eColumn, 0, RESTXT_EMPTY_TXT,           RESTXT_EMPTY_TXT,           1,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &NumObj_WheelSize,    C01,   R3,  DPLFONT_6X8,    12, &EE_WheelSize,          &wEditBuffer,   eUINT,  0L,  9999L,  0L, eDez,   eColumn, 0, RESTXT_SET_WHEELSIZE_DESC,  RESTXT_SET_WHEELSIZE_UNIT,  4,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &NumObj_WheelImpPRev,C16,   R3,  DPLFONT_6X8,     6, &EE_WheelImpPRev,      &wEditBuffer,   eUCHAR, 1L,    99L,  0L, eDez,   eColumn, 0, RESTXT_SET_WHEELIMP_DESC,   RESTXT_EMPTY_TXT,           2,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &NumObj_VehicDist,    C01,   R4,  DPLFONT_6X8,    12, &dwVehicDist,           &dwEditBuffer,  eULONG, 0L,999999L,  0L, eDez,   eColumn, 0, RESTXT_SET_VEHICKM_DESC,    RESTXT_SET_VEHICKM_UNIT,    6,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &NumObj_EngRunAll,    C16,   R4,  DPLFONT_6X8,     6, &NV_EngRunTime_All.wHour,&wEditBuffer,  eUINT,  0L, 65535L,  0L, eDez,   eColumn, 0, RESTXT_EMPTY_TXT,           RESTXT_SET_ERT_UNIT,        5,  OC_DISPL | OC_SELECT | OC_EDIT   },
     { &NumObj_ServKm,       C01,   R5,  DPLFONT_6X8,    12, &dwServKm,              &dwEditBuffer,  eULONG, 0L,999999L,  0L, eDez,   eColumn, 0, RESTXT_SET_SERVKM_DESC,     RESTXT_SET_VEHICKM_UNIT,    6,  OC_DISPL | OC_SELECT | OC_EDIT   },
-    { &NumObj_EngRunSrv,    C16,   R5,  DPLFONT_6X8,     6, &NV_EngRunTime_Srv.wHour,  &wEditBuffer,   eUINT,  0L, 65535L,  0L, eDez,   eColumn, 0, RESTXT_EMPTY_TXT,           RESTXT_SET_ERT_UNIT,        5,  OC_DISPL | OC_SELECT | OC_EDIT   },
-    { &NumObj_TankCap,      C01,   R6,  DPLFONT_6X8,    12, &EE_FuelCap,             &dwEditBuffer,  eUINT,  0L,   999L,  0L, eDez,   eColumn, 1, RESTXT_SET_TANKCAP_DESC,    RESTXT_SET_TANKCAP_UNIT,    4,  OC_DISPL                         },
-    { &NumObj_FuelCons,     C15,   R6,  DPLFONT_6X8,     7, &EE_FuelConsUser,            &bEditBuffer,   eUCHAR, 0L,   255L,  0L, eDez,   eColumn, 1, RESTXT_SET_FUELCONS_DESC,   RESTXT_SET_FUELCONS_UNIT,   4,  OC_DISPL                         },
-    { &NumObj_LogoDelay,    C18,   R7,  DPLFONT_6X8,     4, &EE_LogoDelay,           &bEditBuffer,   eUCHAR, 0L,    99L,  0L, eDez,   eColumn, 1, "",                         RESTXT_SET_LOGODELAY_UNIT,  3,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &NumObj_EngRunSrv,    C16,   R5,  DPLFONT_6X8,     6, &NV_EngRunTime_Srv.wHour,&wEditBuffer,  eUINT,  0L, 65535L,  0L, eDez,   eColumn, 0, RESTXT_EMPTY_TXT,           RESTXT_SET_ERT_UNIT,        5,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &NumObj_TankCap,      C01,   R6,  DPLFONT_6X8,    12, &EE_FuelCap,            &dwEditBuffer,  eUINT,  0L,   999L,  0L, eDez,   eColumn, 1, RESTXT_SET_TANKCAP_DESC,    RESTXT_SET_TANKCAP_UNIT,    4,  OC_DISPL                         },
+    { &NumObj_FuelCons,     C15,   R6,  DPLFONT_6X8,     7, &EE_FuelConsUser,       &bEditBuffer,   eUCHAR, 0L,   255L,  0L, eDez,   eColumn, 1, RESTXT_SET_FUELCONS_DESC,   RESTXT_SET_FUELCONS_UNIT,   4,  OC_DISPL                         },
+    { &NumObj_LogoDelay,    C18,   R7,  DPLFONT_6X8,     4, &EE_LogoDelay,          &bEditBuffer,   eUCHAR, 0L,    99L,  0L, eDez,   eColumn, 1, "",                         RESTXT_SET_LOGODELAY_UNIT,  3,  OC_DISPL | OC_SELECT | OC_EDIT   },
 
     /* DEVICE SETTINGS */
     /* fpObject           OrgX    OrgY  Font         Width  pNumber                 pWorkNumber     Type   Min  Max    Step DplType  Mode     C  zDescr                      zUnit                       L   Capabilities                     */
@@ -777,7 +780,7 @@ static const OBJ_NUM_INIT NumObj_InitList[] =
     { &NumObj_BacklLvl,     C05,   R3,  DPLFONT_6X8,    17, &bBacklLev,             &bEditBuffer,   eUCHAR, 0L,    63L,  1L, eDez,   eStep,   0, RESTXT_SET_LCD_BR_DESC,     RESTXT_EMPTY_TXT,           2,  OC_DISPL | OC_SELECT | OC_EDIT   },
     { &NumObj_ContrLvl,     C05,   R4,  DPLFONT_6X8,    17, &bContrLev,             &bEditBuffer,   eUCHAR, 0L,    63L,  1L, eDez,   eStep,   0, RESTXT_SET_LCD_CNT_DESC,    RESTXT_EMPTY_TXT,           2,  OC_DISPL | OC_SELECT | OC_EDIT   },
     { &NumObj_LEDDimm,      C05,   R5,  DPLFONT_6X8,    17, &bLEDDimmLev,           &bEditBuffer,   eUCHAR, 0L,     7L,  1L, eDez,   eStep,   0, RESTXT_SET_LED_DIM_DESC,    RESTXT_EMPTY_TXT,           1,  OC_DISPL | OC_SELECT             },
-    { &NumObj_RPMFlash,     C05,   R7,  DPLFONT_6X8,    17, &EE_RPM_Flash,             &wEditBuffer,   eUINT,  0L, 30000L,  0L, eDez,   eColumn, 0, RESTXT_SET_RPMFL_DESC,      RESTXT_EMPTY_TXT,           5,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &NumObj_RPMFlash,     C05,   R7,  DPLFONT_6X8,    17, &EE_RPM_Flash,          &wEditBuffer,   eUINT,  0L, 30000L,  0L, eDez,   eColumn, 0, RESTXT_SET_RPMFL_DESC,      RESTXT_EMPTY_TXT,           5,  OC_DISPL | OC_SELECT | OC_EDIT   },
 
     /* EXTENSIONS SETTINGS */
     /* fpObject           OrgX    OrgY  Font         Width  pNumber                 pWorkNumber     Type   Min  Max    Step DplType  Mode     C  zDescr                      zUnit                       L   Capabilities                     */
@@ -807,11 +810,11 @@ static const void far * ObjectList_Veh[] =
 {
     (void far *) &STxtObj_HL_Vehicle,   // 0 - Headline (not selectable)
     (void far *) &SlctObj_BikeType,     // 01
-    (void far *) &NumObj_EE_CCFNom,        // 02
-    (void far *) &NumObj_EE_CCFDenom,      // 03
+    (void far *) &NumObj_CCFNom,        // 02
+    (void far *) &NumObj_CCFDenom,      // 03
     (void far *) &NumObj_WheelSize,     // 04
-    (void far *) &NumObj_WheelImpuls,   // 05
-    (void far *) &NumObj_NV_VehicDist,     // 06
+    (void far *) &NumObj_WheelImpPRev, // 05
+    (void far *) &NumObj_VehicDist,     // 06
     (void far *) &NumObj_EngRunAll,     // 07
     (void far *) &NumObj_ServKm,        // 08
     (void far *) &NumObj_EngRunSrv,     // 09
@@ -837,7 +840,7 @@ static const void far * ObjectList_Dev[] =
     (void far *) &NumObj_ClkMonth,      // 06
     (void far *) &NumObj_ClkYear,       // 07
     (void far *) &BoolObj_DLSave,       // 08
-    (void far *) &SlctObj_NV_TripCom_AntLUp,   // 09
+    (void far *) &SlctObj_TripC_LUp,    // 09
     (void far *) &BoolObj_BeepCtrl,     // 10
     (void far *) &SlctObj_Lang,         // 11
     (void far *) &BoolObj_VehSim,       // 12
@@ -930,10 +933,10 @@ ERRCODE SetDev_Init(void)
     SDObj.fScreenInit  = FALSE;
 
     /* initialize all kind of object types */
-    DevObjInit( &SDObj, (void far *)STxtObj_InitList,        STEXTOBJ_INITLISTSIZE,     OBJT_TXT   );
-    DevObjInit( &SDObj, (void far *)NumObj_InitList,     NUMOBJ_INITLISTSIZE,  OBJT_ENUM  );
-    DevObjInit( &SDObj, (void far *)SlctObj_InitList,      SLCTOBJ_INITLISTSIZE,   OBJT_SLCT  );
-    DevObjInit( &SDObj, (void far *)BoolObj_InitList,    BOOLOBJ_INITLISTSIZE, OBJT_EBOOL );
+    DevObjInit( &SDObj, (void far *)STxtObj_InitList,   STEXTOBJ_INITLISTSIZE,  OBJT_TXT   );
+    DevObjInit( &SDObj, (void far *)NumObj_InitList,    NUMOBJ_INITLISTSIZE,    OBJT_ENUM  );
+    DevObjInit( &SDObj, (void far *)SlctObj_InitList,   SLCTOBJ_INITLISTSIZE,   OBJT_SLCT  );
+    DevObjInit( &SDObj, (void far *)BoolObj_InitList,   BOOLOBJ_INITLISTSIZE,   OBJT_EBOOL );
 
     /* special SDObj object lists control handling */
     SetDev_ObjListInit();
@@ -1031,7 +1034,7 @@ ERRCODE SetDev_MsgEntry(MESSAGE GivenMsg)
 
 
     // analyze message: it's for us?
-    MsgId = MSG_ID(GivenMsg);                                                   // get message id
+    MsgId = MSG_ID(GivenMsg);                               // get message id
     switch (MsgId)
     {
         case MSG_GET_FOCUS:
@@ -1046,10 +1049,10 @@ ERRCODE SetDev_MsgEntry(MESSAGE GivenMsg)
                         szDevName[MSG_SENDER_ID(GivenMsg)],
                         szDevName[DEVID_SET]);
                 MSG_BUILD_SETFOCUS(NewMsg,DEVID_SET,MSG_SENDER_ID(GivenMsg));   // build answer message
-                RValue = MsgQPostMsg(NewMsg, MSGQ_PRIO_LOW);                    // send answer message
-                SetDev_Show(FALSE);                                           // clear our screen
-                SDObj.fScreenInit = FALSE;                                  // reset init state
-                SDObj.fFocused    = FALSE;                                  // clear our focus
+                RValue = MsgQPostMsg(NewMsg, MSGQ_PRIO_LOW);// send answer message
+                SetDev_Show(FALSE);                         // clear our screen
+                SDObj.fScreenInit = FALSE;                  // reset init state
+                SDObj.fFocused    = FALSE;                  // clear our focus
                 RValue = ERR_MSG_PROCESSED;
             }
         } break;
@@ -1072,10 +1075,10 @@ ERRCODE SetDev_MsgEntry(MESSAGE GivenMsg)
                             "FOCUS: %s -> %s!",
                             szDevName[MSG_SENDER_ID(GivenMsg)],
                             szDevName[DEVID_SET]) */;
-                SetDev_Show(TRUE);                                    // show our screen immediatly
-                SDObj.fScreenInit = TRUE;                           // reset init state
-                SDObj.fFocused    = TRUE;                           // set our focus
-                EE_DevFlags_1.flags.ActDevNr = DEVID_SET;                // save device# for restore
+                SetDev_Show(TRUE);                          // show our screen immediatly
+                SDObj.fScreenInit = TRUE;                   // reset init state
+                SDObj.fFocused    = TRUE;                   // set our focus
+                EE_DevFlags_1.flags.ActDevNr = DEVID_SET;   // save device# for restore
                 RValue = ERR_MSG_PROCESSED;
              }
              else
@@ -1090,7 +1093,7 @@ ERRCODE SetDev_MsgEntry(MESSAGE GivenMsg)
                             szDevName[MSG_SENDER_ID(GivenMsg)],
                             szDevName[MSG_RECEIVER_ID(GivenMsg)],
                             szDevName[DEVID_SET]);
-                    SDObj.fFocused = FALSE;                        // loose our focus
+                    SDObj.fFocused = FALSE;                 // loose our focus
                     ODS1(   DBG_SYS, DBG_WARNING,
                             "%s now loosing focus :-( ",
                             szDevName[DEVID_SET]);
@@ -1151,9 +1154,9 @@ ERRCODE SetDev_MsgEntry(MESSAGE GivenMsg)
                     &&(MSG_KEY_DURATION(GivenMsg) < KEYTM_PRESSED_SHORT              ) )
                 {
                     /* give focus immediatly to next screen */
-                    SDObj.fScreenInit = FALSE;                         // reset init state
-                    SDObj.fFocused    = FALSE;                         // clear our focus
-                    SetDev_Show(FALSE);                              // clear our screen
+                    SDObj.fScreenInit = FALSE;                  // reset init state
+                    SDObj.fFocused    = FALSE;                  // clear our focus
+                    SetDev_Show(FALSE);                         // clear our screen
                     MSG_BUILD_SETFOCUS(NewMsg, DEVID_SET, DEVID_INTRO);
                     MsgQPostMsg(NewMsg, MSGQ_PRIO_LOW);
                     RValue = ERR_MSG_PROCESSED;
@@ -1201,10 +1204,10 @@ void SetDev_CheckChanges_Vehicle( void )
     }
 
     // EE_CCF value was changed? ----------------------
-    if (  (EE_CCF.nibble.nom   != EE_CCFNom  )
-        ||(EE_CCF.nibble.denom != EE_CCFDenom) )
-    {   EE_CCF.nibble.nom   = EE_CCFNom;              // save global -> auto eeprom update!
-        EE_CCF.nibble.denom = EE_CCFDenom;
+    if (  (EE_CCF.nibble.nom   != CCFNom  )
+        ||(EE_CCF.nibble.denom != CCFDenom) )
+    {   EE_CCF.nibble.nom   = CCFNom;              // save global -> auto eeprom update!
+        EE_CCF.nibble.denom = CCFDenom;
     }
 
     // Service km changed? -------------------
@@ -1213,9 +1216,9 @@ void SetDev_CheckChanges_Vehicle( void )
     }
 
     // Vehicle Distance changed? -------------------
-    if( NV_VehicDist.km != dwNV_VehicDist )
-    {   NV_VehicDist.km = dwNV_VehicDist * 100L;          // give back km into dkm structure
-        MeasSetNV_VehicDist( &NV_VehicDist );             // save into system variable -> auto eeprom update!
+    if( VehicDist.km != dwVehicDist )
+    {   VehicDist.km = dwVehicDist * 100L;          // give back km into dkm structure
+        Meas_Set_VehicDist( &VehicDist );             // save into system variable -> auto eeprom update!
     }
 
     // RPM flash setting changed? ------------------
@@ -1247,11 +1250,11 @@ void SetDev_CheckChanges_Device( void )
     // Eeprom Reset required by user? -----------------
     if( gfEepromReset == 1 )        // saved with changes?
     {
-        gfEepromReset  = 0;                     // clear for next use
-        SetDev_Show(FALSE);                   // clear screen
-        SysPar_SetDefaults(PARTIAL);                // reset ALL parameters
-        Delay_ms(500);                          // wait, simulate a reset
-        SetDev_Show(TRUE);                    // rebuild screen
+        gfEepromReset  = 0;                 // clear for next use
+        SetDev_Show(FALSE);                 // clear screen
+        SysPar_SetDefaults(PARTIAL);        // reset ALL parameters
+        Delay_ms(500);                      // wait, simulate a reset
+        SetDev_Show(TRUE);                  // rebuild screen
     }
 
     // Beeper Usage was changed? -----------------
@@ -1280,8 +1283,8 @@ void SetDev_CheckChanges_Device( void )
     }
 
     // NV_TripCom_AntFlag was changed? -----------------
-    if( EE_DevFlags_2.flags.NV_TripCom_ALongDistUp != fNV_TripCom_AntLongUp )     // compare bits only
-    {   EE_DevFlags_2.flags.NV_TripCom_ALongDistUp  = fNV_TripCom_AntLongUp;      // save global -> auto eeprom update!
+    if( EE_DevFlags_2.flags.TripCntLDistUp != fTripC_LUp )     // compare bits only
+    {   EE_DevFlags_2.flags.TripCntLDistUp  = fTripC_LUp;      // save global -> auto eeprom update!
     }
 
     // Metric was changed? -----------------
@@ -1345,7 +1348,7 @@ void SetDev_CheckChanges_TimeDate( void )
     // NOTE3: If DaylightSaving is enabled, we additonally check CET/CEST
     //        state too, but we don not change the hour value!
     TimeDate_GetTime( &RTCTimeCopy );                           // get time update to detect changes
-    if (  (NumObj_ClkHour.State.bits.fSelected == TRUE)            // Hours focused?
+    if (  (NumObj_ClkHour.State.bits.fSelected == TRUE)         // Hours focused?
         &&(RTCTimeCopy.bHour != bHour              ) )          // AND saved hours with changes?
     {   RTCTimeCopy.bHour = bHour;                              // copy changes
         TimeDate_SetTime( &RTCTimeCopy );                       // save changes in RTC (and correct it)
@@ -1355,14 +1358,14 @@ void SetDev_CheckChanges_TimeDate( void )
         }
     }
     else
-    {   if (  (NumObj_ClkMin.State.bits.fSelected == TRUE)         // Minutes focused?
+    {   if (  (NumObj_ClkMin.State.bits.fSelected == TRUE)      // Minutes focused?
             &&(RTCTimeCopy.bMin != bMin               ) )       // AND saved month with changes?
         {   RTCTimeCopy.bMin = bMin;                            // copy changes
             TimeDate_SetTime( &RTCTimeCopy );                   // save changes in RTC (and correct it)
             bMin = RTCTimeCopy.bMin;                            // read back (corrected) value
         }
         else
-        {   if (  (NumObj_ClkSec.State.bits.fSelected == TRUE)     // Seconds focused?
+        {   if (  (NumObj_ClkSec.State.bits.fSelected == TRUE)  // Seconds focused?
                 //&&(NumObj_ClkSec.State.bits.fEditActive == FALSE)  // AND not in edit mode?
                 &&(RTCTimeCopy.bSec != bSec               ) )   // AND saved seconds with changes?
             {   RTCTimeCopy.bSec = bSec;                        // copy changes
@@ -1469,14 +1472,14 @@ void SetDev_CheckChanges_Extension( void )
 
     // Compass Display Mode was changed ?
     if ( SlctObj_CompassD.State.bits.fEditActive == FALSE ) // edit mode NOT active?
-    {   EE_CompassCtrl.flags.CompassDisplay = bCompassDispl; // just assure eeprom value equals local copy
+    {   EE_CompassCtrl.flags.CompassDisplay = bCompassDispl;// just assure eeprom value equals local copy
     }
 
     // -------------------------------------------------------
     // Compass Calibration State in edit mode?
     if (SlctObj_CompassC.State.bits.fEditActive == TRUE )    // edit mode active?
     {
-        if(bEditBuffer  < bCompassCal)           // decr. state NOT allowed! -> fix old value!
+        if(bEditBuffer  < bCompassCal)          // decr. state NOT allowed! -> fix old value!
         {   bEditBuffer = bCompassCal;
         }
         else if(bEditBuffer > bCompassCal+1)    // incr. >1 NOT allowed! -> limit new value!
@@ -1495,7 +1498,7 @@ void SetDev_CheckChanges_Extension( void )
                 case 6: ODS( DBG_SYS, DBG_INFO, "Step 6: Save vertical measurement!"); break;
             }
             #if (COMPASSDRV==1)
-            CompDrv_Cmd_IncCalState();                    // ==> activate next calibration step!
+            CompDrv_Cmd_IncCalState();          // ==> activate next calibration step!
             #endif
         }
         else
@@ -1505,20 +1508,20 @@ void SetDev_CheckChanges_Extension( void )
     else    // currently not (no longer) in edit mode
     {   // check for changed value after editing finished with ESC / OK
         #if (COMPASSDRV==1)
-        if (bCompassCal == 0)                      // user pressed ESC ?
+        if (bCompassCal == 0)                   // user pressed ESC ?
         {   ODS( DBG_SYS, DBG_INFO, "Calibration aborted => Reset Calibration Mode!");
-            CompDrv_Cmd_Reset();                      // ==> reset calibration process!
+            CompDrv_Cmd_Reset();                // ==> reset calibration process!
         }
-        if (bCompassCal < 6)                      // user OK before end 'state 6'?
+        if (bCompassCal < 6)                    // user OK before end 'state 6'?
         {   ODS( DBG_SYS, DBG_INFO, "Calibration not completed => Reset Calibration Mode!");
-            CompDrv_Cmd_Reset();                      // ==> reset calibration process!
+            CompDrv_Cmd_Reset();                // ==> reset calibration process!
         }
         else
         {   // success finished calibration state!
             ODS( DBG_SYS, DBG_INFO, "Calibration successfully completed!");
         }
         #endif
-        bCompassCal = 0;                         // reset to default state
+        bCompassCal = 0;                        // reset to default state
     }
 
     // -------------------------------------------------------
@@ -1527,16 +1530,16 @@ void SetDev_CheckChanges_Extension( void )
 
     // Coolride enable/disable changed?
     if ( BoolObj_CoolrAvail.State.bits.fEditActive == FALSE )   // edit mode NOT active?
-    {   EE_CoolrideCtrl.flags.CoolrAvail = gfCoolrAvail;         // just assure eeprom value equals local copy
+    {   EE_CoolrideCtrl.flags.CoolrAvail = gfCoolrAvail;        // just assure eeprom value equals local copy
     }
 
     // Coolride GPO Settings changed?
-    if ( NumObj_CoolrOut.State.bits.fEditActive == FALSE )  // edit mode NOT active?
-    {   EE_CoolrideCtrl.flags.CoolrGPO = gbCoolrGPO;         // just assure eeprom value equals local copy
+    if ( NumObj_CoolrOut.State.bits.fEditActive == FALSE )      // edit mode NOT active?
+    {   EE_CoolrideCtrl.flags.CoolrGPO = gbCoolrGPO;            // just assure eeprom value equals local copy
     }
 
     // Coolride GPI Settings changed?
-    if ( NumObj_CoolrIn.State.bits.fEditActive == FALSE )   // edit mode NOT active?
+    if ( NumObj_CoolrIn.State.bits.fEditActive == FALSE )       // edit mode NOT active?
     {   // check: GPI has been changed?
         if (EE_CoolrideCtrl.flags.CoolrGPI != gbCoolrGPI)
         {   // save new value & initialize new GPI with valid Coolride-PWM-Measurement settings
@@ -1551,16 +1554,16 @@ void SetDev_CheckChanges_Extension( void )
 
     // FuelSensor enable/disable changed?
     if ( BoolObj_FuelSAvail.State.bits.fEditActive == FALSE )   // edit mode NOT active?
-    {   EE_FuelSensCtrl.flags.FuelSAvail = gfFuelSensAvail;      // just assure eeprom value equals local copy
+    {   EE_FuelSensCtrl.flags.FuelSAvail = gfFuelSensAvail;     // just assure eeprom value equals local copy
     }
 
     // FuelSensor ImpulsRate changed?
     if ( NumObj_FuelSImp.State.bits.fEditActive == FALSE )      // edit mode NOT active?
-    {   EE_FuelSensCtrl.FuelSImpulseRate = gwFuelSImp;           // just assure eeprom value equals local copy
+    {   EE_FuelSensCtrl.FuelSImpulseRate = gwFuelSImp;          // just assure eeprom value equals local copy
     }
 
     // FuelSensor GPI Settings changed?
-    if ( NumObj_FuelSIn.State.bits.fEditActive == FALSE )   // edit mode NOT active?
+    if ( NumObj_FuelSIn.State.bits.fEditActive == FALSE )       // edit mode NOT active?
     {   // check: GPI has been changed?
         if (EE_FuelSensCtrl.flags.FuelSGPI != gbFuelSGPI );
         {   // save new value & initialize new GPI with valid FuelSensor-PWM-Measurement settings
@@ -1590,7 +1593,7 @@ void SetDev_CheckChanges_Extension( void )
  *                  is doing!
  *
  *                  Note that file-local-copies of global data (e.g.
- *                  local 'EE_CCFNom' of 'EE_CCF.nibble.nom' are changed by
+ *                  local 'CCFNom' of 'EE_CCF.nibble.nom' are changed by
  *                  edit object only if 'Save' button was pressed! So,
  *                  while edit process is still active, these local values
  *                  won't change!
@@ -1627,7 +1630,7 @@ void SetDev_CheckChanges( void )
  *                  is doing!
  *
  *                  Note that file-local-copies of global data (e.g.
- *                  local 'EE_CCFNom' of 'EE_CCF.nibble.nom') are changed by
+ *                  local 'CCFNom' of 'EE_CCF.nibble.nom') are changed by
  *                  edit object only if 'Save' button was pressed! So,
  *                  while edit process is still active, these local values
  *                  won't change!
@@ -1646,20 +1649,20 @@ void SetDev_ValuesUpdate(void)
     // ============================================================
 
     // Cylinder Correctur Factor
-    if (NumObj_EE_CCFNom.State.bits.fEditActive == FALSE)
-        EE_CCFNom = EE_CCF.nibble.nom;
-    if (NumObj_EE_CCFDenom.State.bits.fEditActive == FALSE)
-        EE_CCFDenom = EE_CCF.nibble.denom;
+    if (NumObj_CCFNom.State.bits.fEditActive == FALSE)
+        CCFNom = EE_CCF.nibble.nom;
+    if (NumObj_CCFDenom.State.bits.fEditActive == FALSE)
+        CCFDenom = EE_CCF.nibble.denom;
 
     // vehicle km
-    if (NumObj_NV_VehicDist.State.bits.fEditActive == FALSE)
-    {   NV_VehicDist = MeasGetNV_VehicDist(MR_KM);            // get fresh value
-        dwNV_VehicDist = NV_VehicDist.km;                     // get km only
+    if (NumObj_VehicDist.State.bits.fEditActive == FALSE)
+    {   VehicDist = Meas_Get_VehicDist(MR_KM);          // get fresh value
+        dwVehicDist = VehicDist.km;                      // get km only
     }
 
     // service km
     if (NumObj_ServKm.State.bits.fEditActive == FALSE)
-    {   dwServKm = EE_NextSrvKm.km;                      // get km only
+    {   dwServKm = EE_NextSrvKm.km;                         // get km only
     }
 
     // ============================================================
@@ -1667,8 +1670,8 @@ void SetDev_ValuesUpdate(void)
     // ============================================================
 
     // tripcounter state
-    if (SlctObj_NV_TripCom_AntLUp.State.bits.fEditActive == FALSE)
-    {   fNV_TripCom_AntLongUp = EE_DevFlags_2.flags.NV_TripCom_ALongDistUp;
+    if (SlctObj_TripC_LUp.State.bits.fEditActive == FALSE)
+    {   fTripC_LUp = EE_DevFlags_2.flags.TripCntLDistUp;
     }
 
     // metric state
@@ -1796,8 +1799,8 @@ void SetDev_ValuesUpdate(void)
 void SetDev_ValuesInit(void)
 {
     // cylinder correctur factor
-    EE_CCFNom          = EE_CCF.nibble.nom;
-    EE_CCFDenom        = EE_CCF.nibble.denom;
+    CCFNom          = EE_CCF.nibble.nom;
+    CCFDenom        = EE_CCF.nibble.denom;
 
     // display
     bBacklOnLevel   = EE_DisplFlags.flags.BacklOnLevel;

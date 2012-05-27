@@ -16,7 +16,7 @@
  *
  *                  Devices in this systems context are single and autark
  *                  working modules to solve a special feature, f.e. the
- *                  'NV_TripCom_Aounter' or the 'MainMenu'.
+ *                  'TripCounter' or the 'MainMenu'.
  *
  *  --------------------------------------------------------------------
  *
@@ -73,6 +73,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.6  2012/05/27 17:52:39  tuberkel
+ * Corrections for renamed Eeprom/Nvram Variables
+ *
  * Revision 3.5  2012/05/27 16:01:37  tuberkel
  * All Eeprom/Nvram Variables renamed
  *
@@ -137,7 +140,7 @@ extern  UINT16  wMilliSecCounter;       // valid values: 0h .. ffffh
 extern  UINT16  wSecCounter;            // valid values: 0h .. ffffh
 
 extern DPLFLAGS_TYPE    EE_DisplFlags;  //orginal display values
-extern DEVFLAGS1_TYPE    EE_DevFlags_1;   //system parameters
+extern DEVFLAGS1_TYPE   EE_DevFlags_1;  //system parameters
 extern UINT32           dwSystemTime;   // high resolution long  distance timer, ms,  max. 49 days
 
 
@@ -150,7 +153,7 @@ const STRING szDevName[] =
     "AllDevices",
     "MainDev",
     "IntroDev",
-    "NV_TripCom_ADev",
+    "TripCntDev",
     "SetDev",
     "StatDev",
     "LapCDev",

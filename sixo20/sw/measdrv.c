@@ -75,6 +75,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.6  2012/05/27 17:52:40  tuberkel
+ * Corrections for renamed Eeprom/Nvram Variables
+ *
  * Revision 3.5  2012/05/27 16:01:40  tuberkel
  * All Eeprom/Nvram Variables renamed
  *
@@ -108,7 +111,7 @@
  * no message
  *
  * Revision 1.10  2006/03/18 09:02:22  Ralf
- * - NV_TripCom_Aounter improved to 4 different counters
+ * - TripCounter improved to 4 different counters
  *
  *
  ************************************************************************ */
@@ -129,15 +132,15 @@
 
 /* external symbols */
 extern  UINT16      wMilliSecCounter;   /* valid values: 0h .. ffffh */
-extern  UINT16      EE_WheelSize;         /* wheel size in mm, to be read from eeprom */
-extern  UINT8       EE_Wheel_ImpPRev;     /* wheel impulses per revolution */
+extern  UINT16      EE_WheelSize;       /* wheel size in mm, to be read from eeprom */
+extern  UINT8       EE_WheelImpPRev;   /* wheel impulses per revolution */
 
-extern  DIST_TYPE   NV_VehicDist;          /* vehicle distance */
-extern  DIST_TYPE   NV_TripCnt_A;              /* NV_TripCom_Aounter A */
-extern  DIST_TYPE   NV_TripCnt_B;              /* NV_TripCom_Aounter B */
-extern  DIST_TYPE   NV_TripCom_A;              /* NV_TripCom_Aounter C */
-extern  DIST_TYPE   NV_TripCom_B;              /* NV_TripCom_Aounter D */
-extern  DIST_TYPE   NV_FuelDist;           /* fuel distance */
+extern  DIST_TYPE   NV_VehicDist;       /* vehicle distance */
+extern  DIST_TYPE   NV_TripCnt_A;       /* TripCounter A */
+extern  DIST_TYPE   NV_TripCnt_B;       /* TripCounter B */
+extern  DIST_TYPE   NV_TripCom_A;       /* TripCommon A */
+extern  DIST_TYPE   NV_TripCom_B;       /* TripCommon B */
+extern  DIST_TYPE   NV_FuelDist;        /* fuel distance */
 
 
 /* dedicated measurement values for low/high pass filter depending on current speed */
@@ -411,13 +414,13 @@ void WheelSensor_ISR(void)
     PIN_TESTPAD11_TOGGLE;                 /* toggle port pin (debug only) */
 
     /* --------------------------------------------------------------------------------- */
-    /* wheel revolution prescaler - EE_Wheel_ImpPRev
+    /* wheel revolution prescaler - EE_WheelImpPRev
        NOTE: Some wheel sensors provide more than 1 impulses/revolution.
              This can be supported by software be setting up the 'gwWheelImpulse'
              up 99 Imp/rev.
              BUT: This has to be set up in hardware too, because of the
              WHEEL input low pass filter (see forum for details). */
-    if ( ++bImpPrescaler < EE_Wheel_ImpPRev )
+    if ( ++bImpPrescaler < EE_WheelImpPRev )
     {   return;         // do nothing, just wait for next ISR trigger to continue sum of impulses
     }
     bImpPrescaler = 0;  // reset prescaler to restart again...

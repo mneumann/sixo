@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.2  2012/05/27 17:52:40  tuberkel
+ * Corrections for renamed Eeprom/Nvram Variables
+ *
  * Revision 3.1  2012/05/27 16:01:41  tuberkel
  * All Eeprom/Nvram Variables renamed
  *
@@ -82,7 +85,7 @@
  * no message
  *
  * Revision 1.7  2006/03/18 08:50:43  Ralf
- * - NV_TripCom_Aounter improved to 4 different counters
+ * - TripCounter improved to 4 different counters
  *
  * Revision 1.6  2006/02/18 14:55:46  Ralf
  * - tripcounter C+D added
@@ -100,8 +103,8 @@
 /* default values to initialize eeprom/nvram */
 #define DEF_WHEELSIZE    2100   /* wheel circumdistance in Millimeters */
 #define DEF_WHEELIMPULSE    1   /* number of impulses / wheel rotation */
-#define DEF_EE_CCF_NOM      0x01   /* low nibble: cylinder correktur factor nominator   (default: 1) */
-#define DEF_EE_CCF_DENOM    0x10   /* high nibble cylinder correktur factor denominator (default: 1) */
+#define DEF_CCF_NOM      0x01   /* low nibble: cylinder correktur factor nominator   (default: 1) */
+#define DEF_CCF_DENOM    0x10   /* high nibble cylinder correktur factor denominator (default: 1) */
 
 
 
@@ -168,10 +171,10 @@ typedef union
    the trip counters */
 typedef enum
 {
-    eTRIPC_A,    // trip counter A
-    eTRIPC_B,    // trip counter B
-    eTRIPC_C,    // trip counter C
-    eTRIPC_D,    // trip counter D
+    eTRIPCNT_A,    // trip counter A
+    eTRIPCNT_B,    // trip counter B
+    eTRIPCOMM_A,   // trip common A
+    eTRIPCOMM_B,   // trip common B
 } TRIPC_ID;
 
 
@@ -211,20 +214,20 @@ ERRCODE GetFormatedDist( DIST_TYPE far * fpDistSrc, DIST_TYPE far * fpDistTrgt, 
 
 
 /* public prototypes */
-UINT16  MeasGetWheelSpeed(  MEASUNITS_TYPE eUnit);
-UINT16  MeasGetEngineSpeed( MEASUNITS_TYPE eUnit);
+UINT16      MeasGetWheelSpeed       ( MEASUNITS_TYPE eUnit);
+UINT16      MeasGetEngineSpeed      ( MEASUNITS_TYPE eUnit);
 
-DIST_TYPE MeasGetNV_VehicDist(   MEASUNITS_TYPE eUnits );
-ERRCODE   MeasSetNV_VehicDist(   DIST_TYPE far * fpDist);
-ERRCODE   MeasGetRawNV_VehicDist(DIST_TYPE far * fpDist);
+DIST_TYPE   Meas_Get_VehicDist      ( MEASUNITS_TYPE eUnits );
+ERRCODE     Meas_Set_VehicDist      ( DIST_TYPE far * fpDist);
+ERRCODE     Meas_Get_VehicDist_Raw  ( DIST_TYPE far * fpDist);
 
-UINT16  MeasGetNV_FuelDist(   MEASUNITS_TYPE eUnits );
-ERRCODE MeasSetNV_FuelDist(   DIST_TYPE far * fpDist);
-ERRCODE MeasGetRawNV_FuelDist(DIST_TYPE far * fpDist);
+UINT16      Meas_Get_FuelDist       ( MEASUNITS_TYPE eUnits );
+ERRCODE     Meas_Set_FuelDist       ( DIST_TYPE far * fpDist);
+ERRCODE     Meas_Get_FuelDist_Raw   ( DIST_TYPE far * fpDist);
 
-UINT16  MeasGetNV_TripCom_Ant(    TRIPC_ID eNV_TripCom_AntID, MEASUNITS_TYPE eUnits );
-ERRCODE MeasGetRawNV_TripCom_Ant( TRIPC_ID eNV_TripCom_AntID, DIST_TYPE far * fpDist);
-ERRCODE MeasSetNV_TripCom_Ant(    TRIPC_ID eNV_TripCom_AntID, DIST_TYPE far * fpDist);
+UINT16      Meas_Get_TripCnt        ( TRIPC_ID eTripCntID, MEASUNITS_TYPE eUnits );
+ERRCODE     Meas_Get_TripCnt_Raw    ( TRIPC_ID eTripCntID, DIST_TYPE far * fpDist);
+ERRCODE     Meas_Set_TripCnt        ( TRIPC_ID eTripCntID, DIST_TYPE far * fpDist);
 
 
 

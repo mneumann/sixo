@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.18  2012/05/27 17:52:40  tuberkel
+ * Corrections for renamed Eeprom/Nvram Variables
+ *
  * Revision 3.17  2012/05/27 16:01:42  tuberkel
  * All Eeprom/Nvram Variables renamed
  *
@@ -248,8 +251,8 @@
 #define RESTXT_SET_BIKE_DESC        "Typ:"
 #define RESTXT_SET_LOGO_DESC        "Logo:"
 
-#define RESTXT_SET_EE_CCFNOM_DESC      "ZKF:"
-#define RESTXT_SET_EE_CCFNOM_UNIT      "/"
+#define RESTXT_SET_CCFNOM_DESC      "ZKF:"
+#define RESTXT_SET_CCFNOM_UNIT      "/"
 
 #define RESTXT_SET_WHEELSIZE_DESC   "Rad:"
 #define RESTXT_SET_WHEELSIZE_UNIT   "mm"
@@ -272,7 +275,7 @@
 #define RESTXT_SET_RTC_CALIB        "K:±"
 #define RESTXT_SET_RTC_DLS          "Smz:"
 
-#define RESTXT_SET_TRIP_DESC        "NV_TripCom_A-kurz:"
+#define RESTXT_SET_TRIP_DESC        "TripCnt-kurz:"
 #define RESTXT_SET_METRIC_DESC      "Metrik:"
 #define RESTXT_SET_LEDWM_DESC       "WarnModus:"
 #define RESTXT_SET_VEHICSIM         "Sim:"
@@ -305,9 +308,9 @@
 
 #define RESTXT_SET_COMPD_DESC       "A:"    // Kompass Anzeige Mode (3 chars, right aligned!)
 #define RESTXT_SET_COMPD_NA         " nv"   // nicht verfuegbar
-#define RESTXT_SET_COMPD_HD         "K  "   // nur Kurs im NV_TripCom_Aounter
-#define RESTXT_SET_COMPD_GR         "  G"   // nur Graph im NV_TripCom_Aounter
-#define RESTXT_SET_COMPD_HDGR       "K+G"   // Kurs + Graph im NV_TripCom_Aounter
+#define RESTXT_SET_COMPD_HD         "K  "   // nur Kurs im TripCounter
+#define RESTXT_SET_COMPD_GR         "  G"   // nur Graph im TripCounter
+#define RESTXT_SET_COMPD_HDGR       "K+G"   // Kurs + Graph im TripCounter
 
 #define RESTXT_SET_COMPC_DESC       "K:"    // Kompass Kalibriering (3 chars, right aligned!)
 #define RESTXT_SET_COMPC_NA         " nv"   // Modul nicht verfügbar
