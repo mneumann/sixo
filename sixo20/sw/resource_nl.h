@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.5  2012/05/28 12:47:31  tuberkel
+ * Corrections for renamed Eeprom/Nvram Variables
+ *
  * Revision 3.4  2012/05/27 17:52:40  tuberkel
  * Corrections for renamed Eeprom/Nvram Variables
  *
@@ -156,8 +159,8 @@
 #define RESTXT_STATE_WATERTEMP    "  Koelwater te heet! "
 #define RESTXT_STATE_OILTEMP      "    Olie te heet!    "
 #define RESTXT_STATE_ENGINE_COLD  " Motor niet op temp! "
-#define RESTXT_STATE_SURV_BATT_LOW  "  Spanning te laag!  "
-#define RESTXT_STATE_SURV_BATT_HIGH "  Spanning te hoog!  "
+#define RESTXT_STATE_BATT_LOW  "  Spanning te laag!  "
+#define RESTXT_STATE_BATT_HIGH "  Spanning te hoog!  "
 #define RESTXT_STATE_ALTERNATOR   "Laadspanning te laag!"
 #define RESTXT_STATE_OILPRESS     "  Oliedruk te laag!  "
 #define RESTXT_STATE_OILSWDEF     " Oliedruksch. defekt?"
@@ -217,7 +220,7 @@
 #define RESTXT_DOWLONG_SUN      "Zondag"
 
 #define RESTXT_DEC_SEPARATOR 	','
-#define RESTXT_THOU_SEPARATOR	'.'
+#define RESTXT_1K_SEPARATOR	'.'
 
 /* time/date format separator */
 #define RESTXT_DAYSEPERATOR     "."

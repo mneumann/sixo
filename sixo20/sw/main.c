@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.15  2012/05/28 12:47:31  tuberkel
+ * Corrections for renamed Eeprom/Nvram Variables
+ *
  * Revision 3.14  2012/05/27 17:52:40  tuberkel
  * Corrections for renamed Eeprom/Nvram Variables
  *
@@ -127,8 +130,8 @@
  * Revision 3.0  2010/11/07 09:41:32  tuberkel
  * V30 Preparations:
  * - Intro-Screen & LED check duration adjustable by User
- * - VehicleSimulation adjustable by User
- * - Hardcopy adjustable by User
+ * - main_VehicleSimulation adjustable by User
+ * - fHardcopyAvail adjustable by User
  *
  * Revision 2.8  2009/07/15 08:55:53  tuberkel
  * NEW: #define TESTSCREEN for GUI Tests
@@ -214,21 +217,26 @@
 
 
 
+
+/* ------------------------------------------ */
 /* main.c prototype area */
 int  main(void);
-void VehicleSimulation(void);
-void Hardcopy (void);
+void main_VehicleSimulation(void);
+void main_CheckHardcopy (void);
 
+
+
+/* ------------------------------------------ */
 /* local symbols */
 DEVICE_ID eStartDevice;                 // handles startdevice
 
 
+/* ------------------------------------------ */
 /* external symbols */
 extern DEVFLAGS1_TYPE   EE_DevFlags_1;  // device parameters
 extern DEVFLAGS2_TYPE   EE_DevFlags_2;  // device parameters
 extern UINT16           EE_WheelSize;     // to control vehicle simulation
 extern UINT8            EE_LogoDelay;    // Eeprom value;
-
 
 
 /* external symbols for diagnostic service */
@@ -244,6 +252,10 @@ extern  DBGFILT_TYPE    EE_DbgFilter;   // default off, use DebugSetFilterDetail
 extern  DBGDETDIR_TYPE  EE_DbgDetails;  // default uart, use DebugSetFilterDetails() to change
 
 extern  BIKE_TYPE       EE_BikeType;      // bike type selcetion
+
+
+
+
 
 
 
@@ -400,12 +412,12 @@ int main()
             HWTDev_Show(TRUE);
 
         /* if enabled: RPM+WHEEL simulation support */
-        if (EE_DevFlags_2.flags.VehicSimul == TRUE)
-            VehicleSimulation();
+        if (EE_DevFlags_2.flags.fVehicSimul == TRUE)
+            main_VehicleSimulation();
 
-        /* if enabled: Grafic Hardcopy support */
-        if (EE_DevFlags_2.flags.Hardcopy == TRUE)
-            Hardcopy();
+        /* if enabled: Grafic fHardcopyAvail support */
+        if (EE_DevFlags_2.flags.fHardcopyAvail == TRUE)
+            main_CheckHardcopy();
 
         /* if defined: Compass support */
         #if (COMPASSDRV==1)
@@ -419,14 +431,14 @@ int main()
 
 
 /***********************************************************************
- * FUNCTION:    VehicleSimulation
+ * FUNCTION:    main_VehicleSimulation
  * DESCRIPTION: Processes a Vehicle Simulation sequence,
  *              simulates WHEEL + RPM input via ISR calls
  * PARAMETER:   -
  * RETURN:      -
  * COMMENT:     To simulate real SIXO action while nobody moves...
  *********************************************************************** */
-void VehicleSimulation(void)
+void main_VehicleSimulation(void)
 {
     // delayed start to prevent ISR overflows
     if ( wSecCounter < SIM_STARTDELAY )
@@ -440,14 +452,14 @@ void VehicleSimulation(void)
 
 
 /***********************************************************************
- * FUNCTION:    Hardcopy
- * DESCRIPTION: Send a screen hardcopy in BMP format to printf-uart (debug)
- *              if HIGHBEAM state changes from LOW->HIGH only!
+ * FUNCTION:    main_HardcopyAvail
+ * DESCRIPTION: If HIGHBEAM state changes from LOW->HIGH only - 
+ *              Sends a screen hardcopy in BMP format to printf-uart (debug)
  * PARAMETER:   -
  * RETURN:      -
  * COMMENT:     FOR DOCUMENATATION PURPOSE ONLY!
  *********************************************************************** */
-void Hardcopy (void)
+void main_CheckHardcopy (void)
 {
     #include "digindrv.h"
     #include "displdrv.h"
@@ -464,7 +476,7 @@ void Hardcopy (void)
 
     // detect state change: HBEAM right now released?
     if (  (DigIn_HBeam == 0 )
-        &&(fOldState      == 1 ) )
+        &&(fOldState   == 1 ) )
     {
         fOldState = 0;
     }

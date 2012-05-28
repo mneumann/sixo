@@ -70,6 +70,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.4  2012/05/28 12:47:31  tuberkel
+ * Corrections for renamed Eeprom/Nvram Variables
+ *
  * Revision 3.3  2012/02/10 23:45:22  tuberkel
  * - Survelannce HeatGrip <Info> - if active
  * - Surveillance-API reviewed
@@ -149,6 +152,7 @@
 
 
 /* all surveilled vehicle/device parameter index/id */
+/* NOTE: MUST be adequate to string list 'szSurvParamDesc[]'! */
 typedef enum
 {
    eSURVID_NOENTRY = 0,     // 00 MUST BE THE FIRST - default string, indicates 'no problem available'

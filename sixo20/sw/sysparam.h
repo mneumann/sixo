@@ -69,6 +69,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.13  2012/05/28 12:47:31  tuberkel
+ * Corrections for renamed Eeprom/Nvram Variables
+ *
  * Revision 3.12  2012/05/27 17:52:40  tuberkel
  * Corrections for renamed Eeprom/Nvram Variables
  *
@@ -117,7 +120,7 @@
  * Revision 3.0  2010/11/07 09:33:29  tuberkel
  * V30 Preparations:
  * - New System Parameters:
- *   - DayLightSavin, Beeper, VehSimulation, Hardcopy
+ *   - DayLightSavin, Beeper, VehSimulation, fHardcopyAvail
  *   - WheelImpulses/Revolution
  *   - CompassDisplayMode
  *   - Language
@@ -262,17 +265,17 @@ typedef union
     UINT8           byte;
     struct
     {
-        unsigned char   TripCntLDistUp  :1;     /* TripCounterLongDist: 1=upside (like roadbook), 0=downside */
-        unsigned char   BeeperAvail     :1;     /* Beeper:              1=available, 0=not available */
-        unsigned char   DLS_Auto        :1;     /* DaylightSavingAuto:  1=on (automatic on), 0=Off */
-        unsigned char   DLS_Active      :1;     /* DaylightSavingActive: 1=CEST active (CentralEurpSummerTime active), 0=Off */
-        unsigned char   Metric          :1;     /* Metric:              0=km, 1=miles */
-        unsigned char   LedWarnMode     :1;     /* LedWarningMode:      0=Sixo-like, 1=common (Warning lamps ON at ignition like in cars) */
-        unsigned char   VehicSimul      :1;     /* vehicle Simulation:  1=on, 0=off */
-        unsigned char   Hardcopy        :1;     /* Hardcopy via Uart:   1=available, 0=off (via Highbeam switch) */
+        unsigned char   fTripCntLUp     :1;     /* TripCounterLongDist: 1=upside (like roadbook), 0=downside */
+        unsigned char   fBeeperAvail    :1;     /* Beeper:              1=available, 0=not available */
+        unsigned char   fDLSAuto        :1;     /* DaylightSavingAuto:  1=on (automatic on), 0=Off */
+        unsigned char   fDLSActive      :1;     /* DaylightSavingActive:1=CEST active (CentralEurpSummerTime active), 0=Off */
+        unsigned char   fMetricKm       :1;     /* fMetricKm:           0=km, 1=miles */
+        unsigned char   fLedWarnModeStd :1;     /* LedWarningMode:      0=Sixo-like, 1=common (Warning lamps ON at ignition like in cars) */
+        unsigned char   fVehicSimul     :1;     /* VehicleSimulation:   1=on, 0=off */
+        unsigned char   fHardcopyAvail  :1;     /* Hardcopy via Uart:   1=available, 0=off (via Highbeam switch) */
     } flags;
 } DEVFLAGS2_TYPE;
-#define DEF_DEVFLAGS2 (0x03 )  /* default: LongDistUp=on, BeeperAvail=1, */
+#define DEF_DEVFLAGS2 (0x03 )  /* default: LongDistUp=on, fBeeperAvail=1, */
 
 
 /* ----------------------------------------------------------------------------- */

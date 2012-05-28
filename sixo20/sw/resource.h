@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.10  2012/05/28 12:47:31  tuberkel
+ * Corrections for renamed Eeprom/Nvram Variables
+ *
  * Revision 3.9  2012/05/25 20:28:51  tuberkel
  * new RESTXT_MAIN_ARROW_R
  *
@@ -196,6 +199,38 @@
 
 #define RESTXT_EMPTY_TXT    ""      /* placeholder for unused descriptor texts */
 
+
+/* =============================================== */
+/* main device strings */
+/* =============================================== */
+#define RESTXT_SPEED_DESC       "km/h"
+#define RESTXT_SPEEDA_DESC      "km"
+#define RESTXT_SPEEDB_DESC      "h"
+#define RESTXT_RPM_DESC         "/min"
+#define RESTXT_DIST_DESC        "km"
+#define RESTXT_DEGC_DESC        "°C"
+#define RESTXT_VOLT_DESC        "V"
+#define RESTXT_TRIP1DESC        "T1"
+#define RESTXT_TRIP2DESC        "T2"
+#define RESTXT_SPEEDMAX_DESC    "max"
+#define RESTXT_SPEEDMAX_UNIT    "km/h"
+
+#define RESTXT_MAIN_ARROW_R         "\x8e"  // big right arrow to indicate to/from refuel
+
+
+/* =============================================== */
+/* statistic device resources */
+/* =============================================== */
+#define RESTXT_STAT_BATT_DESC       "V"                     // Voltage
+#define RESTXT_STAT_TEMP_DESC       "°C"                    // °C
+#define RESTXT_STAT_VMAX_UNIT       "km/h"
+#define RESTXT_STAT_H_DESC          "h"
+
+
+/* =============================================== */
+/* settings device strings */
+/* =============================================== */
+
 /* device bike version strings */
 /* NOTE: This list must be identical to 'BIKE_TYPE' !!! */
 #define RESTXT_SET_BIKE_WIDTH      8            /* max width of below strings in chars */
@@ -206,7 +241,6 @@
 #define RESTXT_SET_BIKE_AFRICATWIN  "      AT"
 #define RESTXT_SET_BIKE_BAGHIRA     " Baghira"
 #define RESTXT_SET_BIKE_F650        "    F650"
-
 
 /* device bike version strings */
 /* NOTE: This list must be identical to 'LOGO_TYPE' !!! */
@@ -228,6 +262,8 @@
 #define RESTXT_SET_LOGO_TENERISTI   "Teneris"
 #define RESTXT_SET_LOGO_COOLRIDE    "Coolrid"
 
+#define RESTXT_SET_LOGODELAY_UNIT   "s"
+
 
 /* tripcounter display mode flag */
 #define RESTXT_SET_TRIP_WIDTH       1       /* max width of below strings in chars */
@@ -235,11 +271,11 @@
 #define RESTXT_SET_TRIP_VSB    "\x8c"       /* Arrow Top */
 #define RESTXT_SET_TRIP_VST    "\x8b"       /* Arrow Bottom */
 
-/* Metric mode flag */
-#define RESTXT_SET_METRIC_WIDTH     5       /* max width of below strings in chars */
+/* fMetricKm mode flag */
+#define RESTXT_SET_METRIC_WIDTH     2       /* max width of below strings in chars */
 #define RESTXT_SET_METRIC_CNT       2       /* number of values: km/Miles */
-#define RESTXT_SET_METRIC_KM        "   km"
-#define RESTXT_SET_METRIC_MILES     "Miles"
+#define RESTXT_SET_METRIC_KM        "km"
+#define RESTXT_SET_METRIC_MILES     "mi"
 
 /* LedWarning mode flag */
 #define RESTXT_SET_LEDWM_WIDTH     4       /* max width of below strings in chars */
@@ -254,13 +290,18 @@
 #define RESTXT_SET_LANG_EN          "EN"
 #define RESTXT_SET_LANG_NL          "NL"
 
-/* main device strings */
-#define RESTXT_MAIN_ARROW_R         "\x8e"  // big right arrow to indicate to/from refuel
+/* vehicle settings */
+#define RESTXT_SET_WHEELSIZE_UNIT   "mm"
+#define RESTXT_SET_VEHICKM_UNIT     "km"
+#define RESTXT_SET_SERVKM_UNIT      "km"
+#define RESTXT_SET_ERT_UNIT         "h"
+#define RESTXT_SET_TANKCAP_UNIT     "l"
+#define RESTXT_SET_FUELCONS_UNIT    "l/h"
 
 
-/* --------------------------------------------------------- */
-/* Extensions Resource Settings */
-/* --------------------------------------------------------- */
+/* =============================================== */
+// Extensions 1 Screen              ....!....!....!....!.
+/* =============================================== */
 
 /* compass settings */
 #define RESTXT_SET_COMPD_WIDTH      3       // see RESTXT_SET_COMPD_NA.. for language strings
@@ -285,15 +326,27 @@
 
 
 /* intro special sw version strings
-   1 character, might be concated  */
+   1 character, might be concatenated  */
 #define RESTXT_SWVER_DEBUG     " DBG"  // 'D' for DebugOuts on Uart0
 #define RESTXT_SWVER_MINIEMU   " EMU " // 'E' for Emulator KD30
 #define RESTXT_SWVER_COMPASS   " CMP"  // 'C' for Compass
 
+/* Coolride strings */
+#define RESTXT_SET_COOLRIDE         "Coolride"  // Coolride Modul verfügbar
+#define RESTXT_SET_COOLR_IN         "I:"        // Mess-Eingang:   GPI 0..3
+#define RESTXT_SET_COOLR_OUT        "O:"        // Tasten-Ausgang: GPO 0..1
+
+/* Chain Oiler */
+#define RESTXT_SET_CHAINO_DUR       "s"         // Aktivität für n sec.
+#define RESTXT_SET_CHAINO_KM        "km"        // Aktivität alle n km
+#define RESTXT_SET_CHAINO_OUT       "O:"        // Kettenölerausgang: GPO 0..1
 
 
-/* HW-Test device ressources
-   Should look like this:
+
+/* =============================================== */
+/* HW-Test device ressources */
+/* =============================================== */
+/*  Should look like this:
 
    4x6 font = 32x8 chars on display
    +....!....!....!....!....!....!..+
@@ -326,8 +379,10 @@ Note: We use the Text-Object property to automatically
 
 
 
+/* =============================================== */
+/* some test resources */
+/* =============================================== */
 
-/* test resources */
                             /*!....!....!....!....!.*/
 
 #define RESTXT_TEST_GUITEST   "     > GUI-Test <    "

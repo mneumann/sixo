@@ -72,6 +72,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.4  2012/05/28 12:47:31  tuberkel
+ * Corrections for renamed Eeprom/Nvram Variables
+ *
  * Revision 3.3  2012/05/27 16:01:43  tuberkel
  * All Eeprom/Nvram Variables renamed
  *
@@ -656,9 +659,9 @@ ERRCODE TimeDate_SetCalib( INT32 lDuration, INT32 lDeviation )
 void TimeDate_UpdateCEST( void )
 {
     // if DaylightSave automatic enabled, update CEST state here too!
-    if( EE_DevFlags_2.flags.DLS_Auto == TRUE )
-    {   EE_DevFlags_2.flags.DLS_Active = TimeDate_GetCEST();// update CEST state too
-        ODS1(DBG_SYS,DBG_INFO,"CEST: %s", (EE_DevFlags_2.flags.DLS_Active == TRUE)?"ON":"off");
+    if( EE_DevFlags_2.flags.fDLSAuto == TRUE )
+    {   EE_DevFlags_2.flags.fDLSActive = TimeDate_GetCEST();// update CEST state too
+        ODS1(DBG_SYS,DBG_INFO,"CEST: %s", (EE_DevFlags_2.flags.fDLSActive == TRUE)?"ON":"off");
     }
 }
 
@@ -743,17 +746,17 @@ BOOL TimeDate_GetCEST( void )
 ERRCODE TimeDate_CheckDaylightSaving( void )
 {
     // check: Daylight Saving Automatic enabled by user?
-    if (EE_DevFlags_2.flags.DLS_Auto == TRUE)
+    if (EE_DevFlags_2.flags.fDLSAuto == TRUE)
     {
         // check: Change CET => CEST detected?
-        if(  EE_DevFlags_2.flags.DLS_Active == FALSE )
+        if(  EE_DevFlags_2.flags.fDLSActive == FALSE )
         {
             if ( TimeDate_GetCEST() == TRUE  )
             {   ODS(DBG_SYS,DBG_INFO,"Summertime CEST detected -> set Hour++!");
                 fCESTChanged = TRUE;                        // set for surveillance module
                 RTCTime.bHour++;                            // incr. 1 hour
                 TimeDate_SetTime( &RTCTime );               // setup new time
-                EE_DevFlags_2.flags.DLS_Active = TRUE;      // save new DaylightSaving State
+                EE_DevFlags_2.flags.fDLSActive = TRUE;      // save new DaylightSaving State
             }
             else
             {   // CEST active and valid -> nothing tbd.
@@ -766,7 +769,7 @@ ERRCODE TimeDate_CheckDaylightSaving( void )
                 fCESTChanged = TRUE;                        // set for surveillance module
                 RTCTime.bHour--;                            // decr. 1 hour
                 TimeDate_SetTime( &RTCTime );               // setup new time
-                EE_DevFlags_2.flags.DLS_Active = FALSE;     // save new DaylightSaving State
+                EE_DevFlags_2.flags.fDLSActive = FALSE;     // save new DaylightSaving State
             }
             else
             {   // CET active and valid -> nothing tbd.

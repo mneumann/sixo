@@ -78,6 +78,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.15  2012/05/28 12:47:31  tuberkel
+ * Corrections for renamed Eeprom/Nvram Variables
+ *
  * Revision 3.14  2012/05/27 17:52:40  tuberkel
  * Corrections for renamed Eeprom/Nvram Variables
  *
@@ -138,7 +141,7 @@
  * V30 Preparations:
  * - BugFix for invalid km-Values from NVRAM
  * - New System Parameters:
- *   - DayLightSavin, Beeper, VehSimulation, Hardcopy
+ *   - DayLightSavin, Beeper, VehSimulation, fHardcopyAvail
  *   - WheelImpulses/Revolution
  *   - CompassDisplayMode
  *   - Language
@@ -986,14 +989,14 @@ void SysPar_DebugOutParameter( const PARAM_ID_TYPE PID )
         case PID_CCF:       ODS2(DBG_SYS,DBG_INFO, "- EE EE_CCF:        %u/%u",            EE_CCF.nibble.nom, EE_CCF.nibble.denom); break;
         case PID_DEVFLAGS1:     ODS2(DBG_SYS,DBG_INFO, "- EE DevFlags1:  DEV:%s MAIND:%u",    szDevName[EE_DevFlags_1.flags.ActDevNr], EE_DevFlags_1.flags.MainDevState); break;
         case PID_DEVFLAGS2:     ODS8(DBG_SYS,DBG_INFO, "- EE DevFlags2:  TC:%u B:%u DL:%u DA:%u M:%u LW:%u VS:%u HC:%u",
-                                                                                            EE_DevFlags_2.flags.TripCntLDistUp,
-                                                                                            EE_DevFlags_2.flags.BeeperAvail,
-                                                                                            EE_DevFlags_2.flags.DLS_Auto,
-                                                                                            EE_DevFlags_2.flags.DLS_Active,
-                                                                                            EE_DevFlags_2.flags.Metric,
-                                                                                            EE_DevFlags_2.flags.LedWarnMode,
-                                                                                            EE_DevFlags_2.flags.VehicSimul,
-                                                                                            EE_DevFlags_2.flags.Hardcopy   ) ; break;
+                                                                                            EE_DevFlags_2.flags.fTripCntLUp,
+                                                                                            EE_DevFlags_2.flags.fBeeperAvail,
+                                                                                            EE_DevFlags_2.flags.fDLSAuto,
+                                                                                            EE_DevFlags_2.flags.fDLSActive,
+                                                                                            EE_DevFlags_2.flags.fMetricKm,
+                                                                                            EE_DevFlags_2.flags.fLedWarnModeStd,
+                                                                                            EE_DevFlags_2.flags.fVehicSimul,
+                                                                                            EE_DevFlags_2.flags.fHardcopyAvail   ) ; break;
         case PID_DPLFL:         ODS4(DBG_SYS,DBG_INFO, "- EE DplFlags:   C:%u BLL:%u BLOL:%u Inv:%u",
                                                                                             EE_DisplFlags.flags.ContrLev,
                                                                                             EE_DisplFlags.flags.BacklLev,

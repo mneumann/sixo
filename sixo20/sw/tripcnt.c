@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.14  2012/05/28 12:47:31  tuberkel
+ * Corrections for renamed Eeprom/Nvram Variables
+ *
  * Revision 3.13  2012/05/27 17:52:40  tuberkel
  * Corrections for renamed Eeprom/Nvram Variables
  *
@@ -346,7 +349,7 @@ void TripCntDev_Show(BOOL fShow)
         UINT16   wWheelSpeed;
 
         // User setting: Which counter should be shown as BIG upper one?
-        if (EE_DevFlags_2.flags.TripCntLDistUp == 1)
+        if (EE_DevFlags_2.flags.fTripCntLUp == 1)
         {   BigTripCnt   = eTRIPCNT_A;
             SmallTripCnt = eTRIPCNT_B;
         }

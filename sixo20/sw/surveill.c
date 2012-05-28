@@ -70,6 +70,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.19  2012/05/28 12:47:31  tuberkel
+ * Corrections for renamed Eeprom/Nvram Variables
+ *
  * Revision 3.18  2012/05/27 17:52:40  tuberkel
  * Corrections for renamed Eeprom/Nvram Variables
  *
@@ -266,14 +269,14 @@ static TIME_TYPE    ClockTime;              // copy of RTC data
 
 
 /* const array with parameter names */
-/* NOTE: must be adequate to enum type SURVP_ID! */
+/* NOTE: MUST be adequate to enum type SURVP_ID! */
 static const STRING szSurvParamDesc[] =
 {
     RESTXT_STATE_ALLRIGHT       ,  // 00
     RESTXT_STATE_OILTEMP        ,  // 01
     RESTXT_STATE_WATERTEMP      ,  // 02
-    RESTXT_STATE_SURV_BATT_LOW  ,  // 03
-    RESTXT_STATE_SURV_BATT_HIGH ,  // 04
+    RESTXT_STATE_BATT_LOW  ,  // 03
+    RESTXT_STATE_BATT_HIGH ,  // 04
     RESTXT_STATE_ALTERNATOR     ,  // 05
     RESTXT_STATE_OILPRESS       ,  // 06
     RESTXT_STATE_OILSWDEF       ,  // 07
@@ -767,7 +770,7 @@ void Surv_CheckAnalogPorts(void)
             }
         }
         // check: if not using Sixo-Warnmode, setup LED directly here
-        if ( EE_DevFlags_2.flags.LedWarnMode == SURV_LWM_STD )
+        if ( EE_DevFlags_2.flags.fLedWarnModeStd == SURV_LWM_STD )
         {
             if ( vstatelvl != eSURVST_OK )
                  LED_SetNewState(eLED_WARN, LED_ON );
@@ -818,20 +821,20 @@ void Surv_CheckAnalogPorts(void)
 void Surv_CheckDevice(void)
 {
     /* User Info: do not drive with vehicle simulation on! */
-    if (EE_DevFlags_2.flags.VehicSimul == TRUE)
+    if (EE_DevFlags_2.flags.fVehicSimul == TRUE)
          Surv_ListSetParamState(eSURVID_SIMULATION, eSURVST_INFO);
     else Surv_ListSetParamState(eSURVID_SIMULATION, eSURVST_OK);
 
-    /* User warning: Hardcopy via HBEAM-switch active? */
+    /* User warning: fHardcopyAvail via HBEAM-switch active? */
     /* Note: If in Debugger-Mode KD30, Prevent warning for undisturbed screenshots */
 #if(KD30_USED==0)
-    if (EE_DevFlags_2.flags.Hardcopy == TRUE)
+    if (EE_DevFlags_2.flags.fHardcopyAvail == TRUE)
          Surv_ListSetParamState(eSURVID_HARDCOPY, eSURVST_INFO);
     else Surv_ListSetParamState(eSURVID_HARDCOPY, eSURVST_OK);
 #endif  // KD30_USED
 
     /* User Warning: Automatic RTC Clock change because of summer/winter time? */
-    if (  ( EE_DevFlags_2.flags.DLS_Auto == TRUE )
+    if (  ( EE_DevFlags_2.flags.fDLSAuto == TRUE )
         &&( fCESTChanged                         == TRUE ) )
     {
         fCESTChanged = FALSE;               // reset for next change detection
@@ -886,7 +889,7 @@ void Surv_CheckDigitalPorts(void)
                  Surv_ListSetParamState(eSURVID_ABS, eSURVST_ERROR);
             else Surv_ListSetParamState(eSURVID_ABS, eSURVST_OK);
             // check: if not using Sixo-Warnmode, setup Error-LED directly here
-            if ( EE_DevFlags_2.flags.LedWarnMode == SURV_LWM_STD )
+            if ( EE_DevFlags_2.flags.fLedWarnModeStd == SURV_LWM_STD )
             {   if ( DF_ABS_Warn_F650 == 0 )
                      LED_SetNewState(eLED_WARN, LED_ON );
                 else LED_SetNewState(eLED_WARN, LED_OFF);
@@ -898,7 +901,7 @@ void Surv_CheckDigitalPorts(void)
                  Surv_ListSetParamState(eSURVID_WATTEMPSW, eSURVST_ERROR);
             else Surv_ListSetParamState(eSURVID_WATTEMPSW, eSURVST_OK);
             // check: if not using Sixo-Warnmode, setup LED directly here
-            if ( EE_DevFlags_2.flags.LedWarnMode == SURV_LWM_STD )
+            if ( EE_DevFlags_2.flags.fLedWarnModeStd == SURV_LWM_STD )
             {   if ( DF_ABS_Warn_F650 == 0 )
                      LED_SetNewState(eLED_ERROR, LED_ON );
                 else LED_SetNewState(eLED_ERROR, LED_OFF);
@@ -921,7 +924,7 @@ void Surv_CheckDigitalPorts(void)
                  Surv_ListSetParamState(eSURVID_OILSWDEF, eSURVST_WARNING);
             else Surv_ListSetParamState(eSURVID_OILSWDEF, eSURVST_OK);
             // check: if not using Sixo-Warnmode, setup LED directly here
-            if ( EE_DevFlags_2.flags.LedWarnMode == SURV_LWM_STD )
+            if ( EE_DevFlags_2.flags.fLedWarnModeStd == SURV_LWM_STD )
             {   if ( DF_Fuel_4l_AT == 0 )      // low active
                      LED_SetNewState(eLED_WARN, LED_ON );
                 else LED_SetNewState(eLED_WARN, LED_OFF );
@@ -934,7 +937,7 @@ void Surv_CheckDigitalPorts(void)
                  Surv_ListSetParamState(eSURVID_OILPRESS, eSURVST_ERROR);
             else Surv_ListSetParamState(eSURVID_OILPRESS, eSURVST_OK);
             // check: if not using Sixo-Warnmode, setup LED directly here
-            if ( EE_DevFlags_2.flags.LedWarnMode == SURV_LWM_STD )
+            if ( EE_DevFlags_2.flags.fLedWarnModeStd == SURV_LWM_STD )
             {   if ( DF_OILSW == 0 )      // low active
                      LED_SetNewState(eLED_ERROR, LED_ON );
                 else LED_SetNewState(eLED_ERROR, LED_OFF );
@@ -958,7 +961,7 @@ void Surv_CheckDigitalPorts(void)
                  Surv_ListSetParamState(eSURVID_WATTEMPSW, eSURVST_ERROR);
             else Surv_ListSetParamState(eSURVID_WATTEMPSW, eSURVST_OK);
             // check: if not using Sixo-Warnmode, setup LED directly here
-            if ( EE_DevFlags_2.flags.LedWarnMode == SURV_LWM_STD )
+            if ( EE_DevFlags_2.flags.fLedWarnModeStd == SURV_LWM_STD )
             {   if ( DF_Temp_Warn_BAGHIRA == 1)          // high active
                      LED_SetNewState(eLED_ERROR, LED_ON );
                 else LED_SetNewState(eLED_ERROR, LED_OFF );
@@ -983,7 +986,7 @@ void Surv_CheckDigitalPorts(void)
                  Surv_ListSetParamState(eSURVID_OILPRESS, eSURVST_ERROR);
             else Surv_ListSetParamState(eSURVID_OILPRESS, eSURVST_OK);
             // check: if not using Sixo-Warnmode, setup LED directly here
-            if ( EE_DevFlags_2.flags.LedWarnMode == SURV_LWM_STD )
+            if ( EE_DevFlags_2.flags.fLedWarnModeStd == SURV_LWM_STD )
             {   if ( DF_OILSW == 0 )      // low active
                      LED_SetNewState(eLED_ERROR, LED_ON );
                 else LED_SetNewState(eLED_ERROR, LED_OFF );
@@ -1381,7 +1384,7 @@ void Surv_SetLEDState( void )
     MESSAGE msg;            // for LED event message
 
     /* main switch: Use special SIxO warning Mode? */
-    if ( EE_DevFlags_2.flags.LedWarnMode == SURV_LWM_SIXO )
+    if ( EE_DevFlags_2.flags.fLedWarnModeStd == SURV_LWM_SIXO )
     {
         /* INFO-LED --------------------------------------  */
         if (  ( Surv_ListGetCount(eSURVST_INFO) >  0     )

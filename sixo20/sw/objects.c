@@ -69,6 +69,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.9  2012/05/28 12:47:31  tuberkel
+ * Corrections for renamed Eeprom/Nvram Variables
+ *
  * Revision 3.8  2012/02/21 20:58:15  tuberkel
  * all Setdevice ObjectNames reviewed
  *
@@ -1232,7 +1235,7 @@ STRING Obj_Num_2String( OBJ_NUM far * fpObject, STRING szTargetBuffer )
             for (i = 0; i < (fpObject->bLength - fpObject->bComma - 1); i++)
                 szTargetBuffer[i] = szTargetBuffer[i+1];
         }
-        szTargetBuffer[fpObject->bLength - fpObject->bComma - 1] = RESTXT_THOU_SEPARATOR;
+        szTargetBuffer[fpObject->bLength - fpObject->bComma - 1] = RESTXT_1K_SEPARATOR;
     }
 
 
