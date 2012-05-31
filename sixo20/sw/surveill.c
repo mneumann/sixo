@@ -70,6 +70,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.20  2012/05/31 20:47:28  tuberkel
+ * just comments
+ *
  * Revision 3.19  2012/05/28 12:47:31  tuberkel
  * Corrections for renamed Eeprom/Nvram Variables
  *
@@ -224,31 +227,34 @@
 
 // ------------------------------------------------------
 /* external symbols (taken from eeprom/nvram) */
-extern  far UINT16          wMilliSecCounter;   // high resolution short distance timer, ms,  max  65 sec
-extern  far UINT16          wSecCounter;        // low  resolution long  distance timer, sec, max. 18 h
-extern  far DEVFLAGS2_TYPE  EE_DevFlags_2;      // device status parameters
-extern  far DEVFLAGS3_TYPE  EE_DevFlags_3;      // device status parameters
-extern  far BIKE_TYPE       EE_BikeType;          // bike type
-extern  far DIST_TYPE       EE_NextSrvKm;        // to get/set original value
-extern  far DIST_TYPE       EE_NextSrvKm_def;    // to detect wether enabled/not
-extern  far TIME_TYPE_LD    NV_EngRunTime_Srv_def; // to detect wether enabled/not
-extern  far DIGFILTTYPE     DigInFilter[];      // digital filter table for all inputs
-extern  far RPM_TYPE        EE_RPM_Flash;          // engine speed to enable flash lamp,   1 RPM/bit
-extern  far RPM_TYPE        EE_RPM_Max;            // max engine speed,                    1 RPM/bit
-extern  far SPEED_TYPE      EE_SpeedMax;          // max vehicel speed                    1 km/h/bit
-extern  far TIME_TYPE_LD    NV_EngRunTime_Srv;     // 4 bytes, engine runtime since last service
-extern  far TIME_TYPE_LD    NV_EngRunTime_All;     // 4 bytes, engine runtime overall
-extern  far UINT16          EE_FuelCap;          // tank size in 1/10 liters
-extern  far UINT8           EE_FuelConsUser;         // motor fuel consumption in 1/10 liter/100 km
+extern  far UINT16          wMilliSecCounter;       // high resolution short distance timer, ms,  max  65 sec
+extern  far UINT16          wSecCounter;            // low  resolution long  distance timer, sec, max. 18 h
 
-extern  far UINT16          EE_Volt_Min;           // minimal battery voltage,     0,01 V/bit
-extern  far UINT16          EE_Volt_Max;           // maximal battery voltage,     0,01 V/bit
-extern  far INT16           EE_TAir_Min;           // minimal air temperature,     1°C/bit, valid -40°C...215°C
-extern  far INT16           EE_TAir_Max;           // maximal air temperature,     1°C/bit, valid -40°C...215°C
-extern  far INT16           EE_TOil_Min;           // minimal oil temperature,     1°C/bit, valid -40°C...215°C
-extern  far INT16           EE_TOil_Max;           // maximal oil temperature,     1°C/bit, valid -40°C...215°C
-extern  far INT16           EE_TWat_Min;           // minimal water temperature,   1°C/bit, valid -40°C...215°C
-extern  far INT16           EE_TWat_Max;           // maximal water temperature,   1°C/bit, valid -40°C...215°C
+extern  far DIGFILTTYPE     DigInFilter[];          // digital filter table for all inputs
+
+extern  far TIME_TYPE_LD    NV_EngRunTime_Srv_def;  // to detect wether enabled/not
+extern  far TIME_TYPE_LD    NV_EngRunTime_Srv;      // 4 bytes, engine runtime since last service
+extern  far TIME_TYPE_LD    NV_EngRunTime_All;      // 4 bytes, engine runtime overall
+
+extern  far DEVFLAGS2_TYPE  EE_DevFlags_2;          // device status parameters
+extern  far DEVFLAGS3_TYPE  EE_DevFlags_3;          // device status parameters
+extern  far BIKE_TYPE       EE_BikeType;            // bike type
+extern  far DIST_TYPE       EE_NextSrvKm;           // to get/set original value
+extern  far DIST_TYPE       EE_NextSrvKm_def;       // to detect wether enabled/not
+extern  far RPM_TYPE        EE_RPM_Flash;           // engine speed to enable flash lamp,   1 RPM/bit
+extern  far RPM_TYPE        EE_RPM_Max;             // max engine speed,                    1 RPM/bit
+extern  far SPEED_TYPE      EE_SpeedMax;            // max vehicel speed                    1 km/h/bit
+extern  far UINT16          EE_FuelCap;             // tank size in 1/10 liters
+extern  far UINT8           EE_FuelConsUser;        // motor fuel consumption in 1/10 liter/100 km
+
+extern  far UINT16          EE_Volt_Min;            // minimal battery voltage,     0,01 V/bit
+extern  far UINT16          EE_Volt_Max;            // maximal battery voltage,     0,01 V/bit
+extern  far INT16           EE_TAir_Min;            // minimal air temperature,     1°C/bit, valid -40°C...215°C
+extern  far INT16           EE_TAir_Max;            // maximal air temperature,     1°C/bit, valid -40°C...215°C
+extern  far INT16           EE_TOil_Min;            // minimal oil temperature,     1°C/bit, valid -40°C...215°C
+extern  far INT16           EE_TOil_Max;            // maximal oil temperature,     1°C/bit, valid -40°C...215°C
+extern  far INT16           EE_TWat_Min;            // minimal water temperature,   1°C/bit, valid -40°C...215°C
+extern  far INT16           EE_TWat_Max;            // maximal water temperature,   1°C/bit, valid -40°C...215°C
 
 
 /* clock control */
@@ -275,8 +281,8 @@ static const STRING szSurvParamDesc[] =
     RESTXT_STATE_ALLRIGHT       ,  // 00
     RESTXT_STATE_OILTEMP        ,  // 01
     RESTXT_STATE_WATERTEMP      ,  // 02
-    RESTXT_STATE_BATT_LOW  ,  // 03
-    RESTXT_STATE_BATT_HIGH ,  // 04
+    RESTXT_STATE_BATT_LOW       ,  // 03
+    RESTXT_STATE_BATT_HIGH      ,  // 04
     RESTXT_STATE_ALTERNATOR     ,  // 05
     RESTXT_STATE_OILPRESS       ,  // 06
     RESTXT_STATE_OILSWDEF       ,  // 07

@@ -78,6 +78,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.16  2012/05/31 20:46:52  tuberkel
+ * just comments
+ *
  * Revision 3.15  2012/05/28 12:47:31  tuberkel
  * Corrections for renamed Eeprom/Nvram Variables
  *
@@ -413,16 +416,16 @@ const  UINT8 EE_LangSelect_def = 0; // default: DE
 
 // -------------------------------------------------
 /* fuel handling */
-       UINT16               EE_FuelCap;              // fuel tank size in 1/10 liters
+       UINT16               EE_FuelCap;             // fuel tank size in 1/10 liters
 static UINT16               EE_FuelCap_cmp;
 const  UINT16               EE_FuelCap_def = 0;
-       UINT8                EE_FuelConsUser;             // fuel consumption in 1/10 liter/100 km
+       UINT8                EE_FuelConsUser;        // fuel consumption in 1/10 liter/100 km
 static UINT8                bFuelCons_cmp;
 const  UINT8                bFuelCons_def = 0;     
-       UINT32               NV_FuelSensImp;            // Fuel sensor Impulses counter since last refuel (NVRAM!)
+       UINT32               NV_FuelSensImp;         // Fuel sensor Impulses counter since last refuel (NVRAM!)
 static UINT32               NV_FuelSensImp_cmp;
 const  UINT32               NV_FuelSensImp_def;
-       FUELSCNTRL_TYPE      EE_FuelSensCtrl;         // fuel sensor control 
+       FUELSCNTRL_TYPE      EE_FuelSensCtrl;        // fuel sensor control 
 static FUELSCNTRL_TYPE      EE_FuelSensCtrl_cmp;         
 const  FUELSCNTRL_TYPE      EE_FuelSensCtrl_def = 0;     
 
