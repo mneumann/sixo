@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.34  2012/05/31 20:48:22  tuberkel
+ * Fuel-Tank & Consumption enabled
+ *
  * Revision 3.33  2012/05/28 12:47:31  tuberkel
  * Corrections for renamed Eeprom/Nvram Variables
  *
@@ -759,8 +762,8 @@ static const OBJ_NUM_INIT NumObj_InitList[] =
     { &NumObj_EngRunAll,    C16,   R4,  DPLFONT_6X8,     6, &NV_EngRunTime_All.wHour,&wEditBuffer,  eUINT,  0L, 65535L,  0L, eDez,   eColumn, 0, RESTXT_EMPTY_TXT,           RESTXT_SET_ERT_UNIT,        5,  OC_DISPL | OC_SELECT | OC_EDIT   },
     { &NumObj_ServKm,       C01,   R5,  DPLFONT_6X8,    12, &dwServKm,              &dwEditBuffer,  eULONG, 0L,999999L,  0L, eDez,   eColumn, 0, RESTXT_SET_SERVKM_DESC,     RESTXT_SET_VEHICKM_UNIT,    6,  OC_DISPL | OC_SELECT | OC_EDIT   },
     { &NumObj_EngRunSrv,    C16,   R5,  DPLFONT_6X8,     6, &NV_EngRunTime_Srv.wHour,&wEditBuffer,  eUINT,  0L, 65535L,  0L, eDez,   eColumn, 0, RESTXT_EMPTY_TXT,           RESTXT_SET_ERT_UNIT,        5,  OC_DISPL | OC_SELECT | OC_EDIT   },
-    { &NumObj_TankCap,      C01,   R6,  DPLFONT_6X8,    12, &EE_FuelCap,            &dwEditBuffer,  eUINT,  0L,   999L,  0L, eDez,   eColumn, 1, RESTXT_SET_TANKCAP_DESC,    RESTXT_SET_TANKCAP_UNIT,    4,  OC_DISPL                         },
-    { &NumObj_FuelCons,     C15,   R6,  DPLFONT_6X8,     7, &EE_FuelConsUser,       &bEditBuffer,   eUCHAR, 0L,   255L,  0L, eDez,   eColumn, 1, RESTXT_EMPTY_TXT,           RESTXT_SET_FUELCONS_UNIT,   4,  OC_DISPL                         },
+    { &NumObj_TankCap,      C01,   R6,  DPLFONT_6X8,    12, &EE_FuelCap,            &dwEditBuffer,  eUINT,  0L,   999L,  0L, eDez,   eColumn, 1, RESTXT_SET_TANKCAP_DESC,    RESTXT_SET_TANKCAP_UNIT,    4,  OC_DISPL | OC_SELECT | OC_EDIT   },
+    { &NumObj_FuelCons,     C15,   R6,  DPLFONT_6X8,     7, &EE_FuelConsUser,       &bEditBuffer,   eUCHAR, 0L,   255L,  0L, eDez,   eColumn, 1, RESTXT_EMPTY_TXT,           RESTXT_SET_FUELCONS_UNIT,   4,  OC_DISPL | OC_SELECT | OC_EDIT   },
     { &NumObj_LogoDelay,    C18,   R7,  DPLFONT_6X8,     4, &EE_LogoDelay,          &bEditBuffer,   eUCHAR, 0L,    99L,  0L, eDez,   eColumn, 1, "",                         RESTXT_SET_LOGODELAY_UNIT,  3,  OC_DISPL | OC_SELECT | OC_EDIT   },
 
     /* DEVICE SETTINGS */
