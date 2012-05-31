@@ -69,6 +69,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.14  2012/05/31 20:54:48  tuberkel
+ * V3.0.7
+ *
  * Revision 3.13  2012/05/28 12:47:31  tuberkel
  * Corrections for renamed Eeprom/Nvram Variables
  *
@@ -183,7 +186,7 @@
 /* software version number e.q. '2.1.1' */
 #define DEF_SWID_APL   3  // APL = (0..15) main aplication number (changed with new main application features)
 #define DEF_SWID_SWV   0  // SWV = (0..15) sw version number (changed with additional features)
-#define DEF_SWID_BLD   6  // BLD = (0..15) build number (changed with bugfixes)
+#define DEF_SWID_BLD   7  // BLD = (0..15) build number (changed with bugfixes)
 
 
 /* hardware specific version number */

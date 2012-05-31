@@ -8,6 +8,15 @@ Note that "sixo" is freezed (except bug fixes and minor updates).
 Version Date        Feature
 ======= ==========  ======================================
 
+==========================================================
+v3.0.7  2012-05-31  
+> NEW:
+    + To/From Fuelstation now calculated & displayed
+    + Calculation based on user given FuelCapacity & FuelConsumption
+    - Real Fuel-Sensor still ignored
+> CHANGES:
+    + All EEPROM & NVRAM data ('SystemParameter') completely renamed
+
 ======= ==========  ======================================
 v3.0.6  2012-05-16  JUST A BETA VERSION!
 > NEW:
