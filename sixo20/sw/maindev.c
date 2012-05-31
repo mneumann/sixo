@@ -68,6 +68,11 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.39  2012/05/31 20:50:27  tuberkel
+ * - MainDev_UpdMeas_Fuel() completely reviewed
+ * - Display of To/From Fuelstation now ok (based on user given value)
+ * - FuelSensor-Data not yet used!
+ *
  * Revision 3.38  2012/05/27 17:52:40  tuberkel
  * Corrections for renamed Eeprom/Nvram Variables
  *
@@ -320,9 +325,11 @@ extern UINT16               wSecCounter;                        /* valid values:
 extern STRING far           szDevName[];                        /* device names */
 extern DEVFLAGS1_TYPE       EE_DevFlags_1;                      /* system parameters */
 extern char                 szSurvGlobalState[VEHSTATE_TXT_LEN];/* vehicle state string */
-extern COOLRIDECNTRL_TYPE   EE_CoolrideCtrl;                     /* Coolride Control (from eeprom) */
-extern FUELSCNTRL_TYPE      EE_FuelSensCtrl;                     /* FuelSensor Control flags (from eeprom) */
-extern UINT32               NV_FuelSensImp;                        /* Fuel sensor Impulses counter since last refuel (NVRAM!) */
+extern COOLRIDECNTRL_TYPE   EE_CoolrideCtrl;                    /* Coolride Control (from eeprom) */
+extern FUELSCNTRL_TYPE      EE_FuelSensCtrl;                    /* FuelSensor Control flags (from eeprom) */
+extern UINT8                EE_FuelConsUser;                    /* FuelConsumption in 1/10 l/100 km (from eeprom) */
+extern UINT16               EE_FuelCap;                         /* FuelCapacity in 1/10 liters (from eeprom) */
+extern UINT32               NV_FuelSensImp;                     /* Fuel sensor Impulses counter since last refuel (NVRAM!) */
 
 
 /* ============================================================= */
@@ -405,7 +412,8 @@ static OBJ_STEXT    FuelDistTxtObj;             /* fuel distance text object, e.
 static OBJ_STEXT    FuelLiterTxtObj;            /* fuel liter text object, e.g. '19,2L' */
 static CHAR         szFuelDist[10] = "   0km";  /* buffer to contain distance, max. '9999km' */
 static CHAR         szFuelLiter[10]=  " 0,0l";  /* buffer to contain fuel,     max. '99,9l' l */
-#define ML2LITER    1000L;                      /* helper to convert ml <=> Liter */
+#define ML2LITER    1000L                       /* helper to convert ml <=> 1/1  Liter */
+#define ML2DCL      100L                        /* helper to convert ml <=> 1/10 Liter */
 
 /* ------------------------------------ */
 /* lower area mode 4: Fuel Consumption (only if Fuel Sensor available) */
@@ -1972,58 +1980,113 @@ void MainDev_UpdTimeDate(void)
  *  COMMENT:        We use the 'Fuel' & 'Arrow' icon for multiple
  *                  view mode, so we move them a little bit to correct
  *                  position.
+ *                  'GPIx.dwLHCounter' has been initilized by NVRAM value at init time
+ *                  'NV_FuelSensImp' is implicitely saved back into NVRAM 
+ *                  (for next init time)
  *********************************************************************** */
 void MainDev_UpdMeas_Fuel(void)
 {           
-    UINT32 dwFuelConsAct_ml_100;    // Actuel Fuel Consumption - complete (milli-liters/100 km)
-    UINT8  bFuelConsAct_l_100;      // Actuel Fuel Consumption - left comma part (liters/100 km only)
-    UINT8  bFuelConsAct_dl_100;     // Actuel Fuel Consumption - right comma part (dl/100 km only)            
+    UINT32 dwConsAct_ml_100;    // Actuel  Fuel Consumption (ml/100km)
+    UINT32 dwConsAvr_ml_100;    // Average Fuel Consumption (ml/100km)
+    UINT32 dwFuelExh_ml;        // Fuel exhaustion (ml)
+    UINT32 dwFuelRem_ml;        // Fuel Remaining (ml)
+    UINT32 dwDistExh_km;        // Fuel Distance since last refuel (km)
+    UINT32 dwDistRem_km;        // Fuel Distance until next refuel (km)
+    BOOL   fSensorAvail;        // FuelSensor available (just a copy for easier use)
+    UINT32 dwImpRate;           // FuelSensor Impulsrate (Impulses/Liter)
+    UINT32 dwCapacity_ml;       // FuelCapacity (ml)
+    UINT32 dwConsUsr_ml_100;    // User given Fuel Consumption (ml/100km)
 
-    UINT32 dwFuelExhaust_ml;        // Fuel exhaustion - complete (milli-liters)
-    UINT8  bFuelExhaust_l;          // Fuel exhaustion - left comma part (liters only)
-    UINT8  bFuelExhaust_dl;         // Fuel exhaustion - right comma part (deziliters only)            
+    /* ============================================================= */    
+    /* retrieve some local scaled copies of EEPROM/NVRAM values */
+    /* ============================================================= */    
+    fSensorAvail        =         EE_FuelSensCtrl.flags.FuelSAvail;
+    dwImpRate           = (UINT32)EE_FuelSensCtrl.FuelSImpulseRate;    
+    dwCapacity_ml       = (UINT32)EE_FuelCap      * ML2DCL;
+    dwConsUsr_ml_100    = (UINT32)EE_FuelConsUser * ML2DCL;    
+    NV_FuelSensImp      = DigInDrv_GPI_GetMeas(EE_FuelSensCtrl.flags.FuelSGPI)->dwLHCounter;
 
-    UINT32 dwFuelRemain_ml;         // Fuel Remaining - in MilliLiters
-    UINT8  bFuelRemain_l;           // Fuel Remaining - left comma part (liters only)
-    UINT8  bFuelRemain_dl;          // Fuel Remaining - right comma part (deziliters only)            
+    /* ============================================================= */    
+    /* retrieve DISTANCE SINCE LAST REFUELING */
+    /* ============================================================= */    
+    dwDistExh_km = Meas_Get_FuelDist(MR_KM_ONLY);
 
-    UINT16 wFuelDist_Remain;        // Fuel Distance - remaining in km
-
-
-    /* ================================================ */
-    /* A) Update fuel measurement values */
-
-    /* calculate absolute fuel exhaustion (Liter) */
-    UINT16 wFuel    = 182;      // TEST in dezi liter
-    UINT8  wFuel_l  = wFuel/10; 
-    UINT8  wFuel_dl = wFuel - (wFuel_l*10); 
+    /* ============================================================= */    
+    /* calculate ABSOLUTE FUEL EXHAUSTION (dwFuelExh_ml, Milliliter):    
+        Fuel(Exh, Liter) = SumOfImpulses (Imp) / Impulsrate (Imp/Liter) */       
+    /* ============================================================= */            
     
-    /* calculate relative fuel consumption (l/100 or l/Min) */
     /* check: FuelSensor available? */
-    if ( EE_FuelSensCtrl.flags.FuelSAvail == TRUE ) 
-    {                                 
-        /* get a fresh fuel consumption value 
-           NOTE: a) 'GPIx.dwLHCounter' has been initilized by NVRAM value at init time
-                 b) 'NV_FuelSensImp' is implicitely saved back into NVRAM (for next init time) */
-        NV_FuelSensImp = DigInDrv_GPI_GetMeas(EE_FuelSensCtrl.flags.FuelSGPI)->dwLHCounter;
-        
-        /* convert FuelImpulses into 'Liters.MilliLiters' */
-        if ( EE_FuelSensCtrl.FuelSImpulseRate > 0 )
-        {
-            /*
-            dwFuelCons = (ML2LITER * NV_FuelSensImp) / EE_FuelSensCtrl.FuelSImpulseRate;
-            bFuelCons_Liter = (UINT8) ( dwFuelCons / ML2LITER );
-            wFuelCons_ml    = (UINT16)( dwFuelCons - ((UINT32)bFuelCons_Liter * 1000L) );
-            */
+    if ( fSensorAvail == TRUE ) 
+    {                                        
+        /* convert FuelImpulses into exhausted fuel ('Liters.DeziLiters', prevent division by zero)*/
+        if ( dwImpRate > 0 )
+        {   dwFuelExh_ml = (ML2LITER * NV_FuelSensImp) / dwImpRate;
         }
+        else
+        {   dwFuelExh_ml = 0L;   // invalid user FuelSImpulseRate!
+        }           
     }
     else
-    {   /* estimate fuel consumption based on user given l/100 */ 
+    {   /* NON-SENSOR-VERSION: calculate fuel exhaustion based on user given l/100 (prevent disivion by zero)*/ 
+        if ( dwDistExh_km > 0 )
+        {   dwFuelExh_ml = (dwConsUsr_ml_100 * dwDistExh_km) / 100L;        
+        }
+        else
+        {   dwFuelExh_ml = 0L;   // not yet calculable!!
+        }                   
     }
-                
+    
+    /* ============================================================= */    
+    /* calculate REMAINING FUEL dwFuelRem_ml (Milliliter, if valid parameters available)        
+        Fuel(remain. Liter) = Fuel(Capacity, Liter) - Fuel(Exhaust, Liter) */        
+    /* ============================================================= */      
+          
+    /* check: valid input data available? */
+    if ( dwCapacity_ml > dwFuelExh_ml )     // assure a positive result!
+    {   dwFuelRem_ml = dwCapacity_ml - dwFuelExh_ml;
+    }
+    else
+    {   dwFuelRem_ml = 0L;           // not yet calculable!
+    }
 
-    /* ================================================ */
-    /* B) Update display strings  */       
+    /* ============================================================= */    
+    /* calculate AVERAGE FUEL CONSUMPTION (ml/100km):    
+        Fuel(ConsAverage, ml/100km) = 100 * Fuel(Exh, ml) / Dist(Exh, km) */
+    /* ============================================================= */    
+    
+    /* check: FuelSensor available? */
+    if ( fSensorAvail == TRUE ) 
+    {    
+        if (  ( dwDistExh_km > 0 )
+            &&( dwFuelExh_ml  > 0 ) )
+        {   dwConsAvr_ml_100 = (100L * dwFuelExh_ml) / dwDistExh_km;
+        }
+        else
+        {   dwConsAvr_ml_100 = 0;     // not yet calculable!
+        }                
+    }
+    else
+    {   /* NON-SENSOR-VERSION: use user given fixed value instead */
+        dwConsAvr_ml_100 = dwConsUsr_ml_100;      
+    }                
+        
+    /* ============================================================= */    
+    /* calculate REMAINING DISTANCE (km, if valid parameters available)   
+        Dist(Remain) = 100 * Fuel(Remain, ml) / Fuel(ConsAverage, ml/100km) */
+    /* ============================================================= */    
+    
+    /* check input parameters first */    
+    if (  ( dwConsAvr_ml_100 > 0 )
+        &&( dwFuelRem_ml  > 0 ) )
+    {   dwDistRem_km = (100L * dwFuelRem_ml)  / dwConsAvr_ml_100;
+    }
+    else
+    {   dwDistRem_km = 0;
+    }                       
+
+    /* ============================================================= */    
+    /* Update display strings  */       
     
     /* check current display state */
     switch (MDObj.wDevState)
@@ -2032,11 +2095,18 @@ void MainDev_UpdMeas_Fuel(void)
         /* update distance & liters SINCE LAST refuel */
         case MD_FUEL_FROM:
         {
+            UINT8  bFuelExhaust_l;          // Fuel exhaustion - left comma part (liters only)
+            UINT8  bFuelExhaust_dl;         // Fuel exhaustion - right comma part (deziliters only)                    
+        
+            // prepare parts to be displayed
+            bFuelExhaust_l   = (UINT8)(  dwFuelExh_ml / ML2LITER );
+            bFuelExhaust_dl  = (UINT8)(( dwFuelExh_ml - ((UINT32)bFuelExhaust_l * ML2LITER) )/100 );        
+
             /* prepare fuel-liters since last refueling */
-            sprintf( szFuelLiter, "%2u%c%1ul", wFuel_l, RESTXT_DEC_SEPARATOR, wFuel_dl );            
+            sprintf( szFuelLiter, "%2u%c%1ul", bFuelExhaust_l, RESTXT_DEC_SEPARATOR, bFuelExhaust_dl );            
 
             /* calculate & prepare fuel-distance since last refueling */
-            sprintf( szFuelDist,  "%3u%s", Meas_Get_FuelDist(MR_KM_ONLY), RESTXT_DIST_DESC );                        
+            sprintf( szFuelDist,  "%4lu%s", dwDistExh_km, RESTXT_DIST_DESC );                        
             
             /* assure position of fuel icon & arrow right for this mode */
             FuelBmpObj.Org.wXPos        = 0;    // Fuel icon left
@@ -2047,12 +2117,18 @@ void MainDev_UpdMeas_Fuel(void)
         /* update distance & liters UNTIL NEXT refuel */            
         case MD_FUEL_TO:
         {
-            UINT16 wFuel    = 24;      // TEST in dezi liter
-            UINT8  wFuel_l  = wFuel/10; 
-            UINT8  wFuel_dl = wFuel - (wFuel_l*10); 
-            //sprintf( szFuelDist,  "%3ukm",     Meas_Get_FuelDist(MR_KM_ONLY));            
-            sprintf( szFuelDist,  "%3ukm", 8 );            
-            sprintf( szFuelLiter, "%2u%c%1ul", wFuel_l, RESTXT_DEC_SEPARATOR, wFuel_dl );                        
+            UINT8  bFuelRemain_l;           // Fuel Remaining - left comma part (liters only)
+            UINT8  bFuelRemain_dl;          // Fuel Remaining - right comma part (deziliters only)            
+            
+            // prepare parts to be displayed
+            bFuelRemain_l   = (UINT8)(  dwFuelRem_ml / ML2LITER );
+            bFuelRemain_dl  = (UINT8)(( dwFuelRem_ml - ((UINT32)bFuelRemain_l * ML2LITER) )/100);        
+
+            /* prepare fuel-liters since last refueling */
+            sprintf( szFuelLiter, "%2u%c%1ul", bFuelRemain_l, RESTXT_DEC_SEPARATOR, bFuelRemain_dl );            
+
+            /* calculate & prepare fuel-distance since last refueling */
+            sprintf( szFuelDist,  "%4lu%s", dwDistRem_km, RESTXT_DIST_DESC );                        
             
             /* update position of fuel icon & arrow */
             FuelArrowRTxtObj.Org.wXPos  = 0;            
@@ -2062,9 +2138,12 @@ void MainDev_UpdMeas_Fuel(void)
         /*------------------------------------------- */
         /* update fuel consumption (only if fuel sensor available) */            
         case MD_FUEL_CONS:
-        {              
+        {   
+            UINT8  bFuelConsAct_l_100;      // Actuel Fuel Consumption - left comma part (liters/100 km only)
+            UINT8  bFuelConsAct_dl_100;     // Actuel Fuel Consumption - right comma part (dl/100 km only)                   
+                       
             /* check: FuelSensor available? */
-            if ( EE_FuelSensCtrl.flags.FuelSAvail == TRUE ) 
+            if ( fSensorAvail == TRUE ) 
             {                          
                 UINT32 dwFuelCons = 0;      // Fuel Consumption in Milli-Liters
                 UINT8  bFuelCons_Liter;     // Fuel Consumption - left comma part (liters only)
@@ -2088,7 +2167,7 @@ void MainDev_UpdMeas_Fuel(void)
                 }
                 else        
                 {   /* Missing FuelSensor parameter! -> prevent division by Zero! */
-                    sprintf( szFuelDist, " --.---" );
+                    sprintf( szFuelDist, "-.-" );
                 }       
                 
                 /* update position of fuel icon & arrow */
