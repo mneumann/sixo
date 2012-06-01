@@ -5,7 +5,7 @@
 # All Rights Reserved.
 #
 #	Notice	:	Don't edit.
-#	Date	:	2012 05(May) 24(Thursday) PM.08.33
+#	Date	:	2012 06(June) 01(Friday) PM.11.48
 #	Project	:	SIxO20
 ####################################################################
 
@@ -23,18 +23,18 @@ OUTDIR	=	.\outdir
 MKDIR	=	@-mkdir
 ABSFILE	=	$(PROJECT).x30
 ODINCMD	=	$(OUTDIR)
-LN	=	LN30
 TARGET	=	$(ABSFILE)
+LN	=	LN30
 ECHO	=	@-echo
 MKFILE	=	$(PROJECT).tmk
-PROJECT	=	SIxO20
 TYPE	=	@-type
+PROJECT	=	SIxO20
+CFLAGS	=	-c -I. -silent -dir $(OUTDIR) -Wall -DDEBUG=0 -DKD30_USED=0 -DKD30_GUI_USED=0 -DGEARBOX=0 -DCOMPASSDRV=0 -finfo
+AFLAGS	=	-. -DDEBUG=0:KD30_USED=0:COMPASSDRV=0 -finfo -O$(OUTDIR)
 LFLAGS	=	-MS -L nc30lib -. -G -O $(OUTDIR)\$(TARGET)
-UTLFLAGS	=	
-CFLAGS	=	-c -I. -silent -dir $(OUTDIR) -Wall -DDEBUG=1 -DKD30_USED=1 -DKD30_GUI_USED=1 -DGEARBOX=0 -DCOMPASSDRV=0 -finfo
-LMCFLAGS	=	-. -ID
 LIBFLAGS	=	-C
-AFLAGS	=	-. -DDEBUG=1:KD30_USED=1:COMPASSDRV=0 -finfo -O$(OUTDIR)
+UTLFLAGS	=	
+LMCFLAGS	=	-. -ID
 .SUFFIXES: .a30 .r30 .c .x30 .lib
 .PHONY: all
 all: \
@@ -421,7 +421,8 @@ $(OUTDIR)\introdev.r30: \
 		$(MTOOLINC)\string.h \
 		.\resource_de.h \
 		.\measdrv.h \
-		.\vehicsim.h 
+		.\vehicsim.h \
+		.\logos.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) introdev.c
 $(OUTDIR)\lapcdev.r30: \
 		.\lapcdev.c \
@@ -675,7 +676,8 @@ $(OUTDIR)\sysparam.r30: \
 		.\surveill.h \
 		$(MTOOLINC)\stdio.h \
 		.\resource.h \
-		.\resource_de.h 
+		.\resource_de.h \
+		.\logos.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) sysparam.c
 $(OUTDIR)\testdev.r30: \
 		.\testdev.c \
