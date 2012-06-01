@@ -9,6 +9,13 @@ Version Date        Feature
 ======= ==========  ======================================
 
 ==========================================================
+v3.0.8  2012-06-01
+> NEW:
+    + Fuelsensor supported
+    + FuelRemain/FuelDistance/AverageConsumption calculated & displayed
+    - Actual(!) FuelConsumption not yet supported
+
+==========================================================
 v3.0.7  2012-05-31  
 > NEW:
     + To/From Fuelstation now calculated & displayed
