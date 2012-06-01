@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.16  2012/06/01 20:11:54  tuberkel
+ * just comments
+ *
  * Revision 3.15  2012/05/28 12:47:31  tuberkel
  * Corrections for renamed Eeprom/Nvram Variables
  *
@@ -293,21 +296,21 @@ int main()
     ODS(DBG_SYS,DBG_INFO,"\n\rInitialize Drivers:");
     Error = TimerInit();            /* start our both timers (ta0 1kHz, ta1 50 Hz) */
     Error = iicInit();              /* prepare iic ports and eeprom type (needs TimerInit()!)*/
-    Error = SysPar_CheckFirstInit();    /* check, wether eeprom/nvram update necessary */
-    Error = SysPar_InitSystemPar();     /* initialize all system parameters from eeprom/nvram */
+    Error = SysPar_CheckFirstInit();/* check, wether eeprom/nvram update necessary */
+    Error = SysPar_InitSystemPar(); /* initialize all system parameters from eeprom/nvram */
     Error = TimeDateInit();         /* initialize system time & date stuff */
     Error = DigOutDrv_Init();       /* all digital output ports & PWM out */
     Error = DigInDrv_Init();        /* prepare keyboard ports and other input ports */
     Error = DisplInit(FALSE);       /* prepare lcd output & clear screen */
-    Error = GPO_Init();              /* prepare general purpose output ports */
-    Error = LED_Init();              /* prepare led output ports & service */
-    Error = Beep_Init();             /* prepare beeper output ports & service */
+    Error = GPO_Init();             /* prepare general purpose output ports */
+    Error = LED_Init();             /* prepare led output ports & service */
+    Error = Beep_Init();            /* prepare beeper output ports & service */
     Error = MsgQInit();             /* reset message queue */
     Error = MeasDrvInit();          /* measurement init stuff (ta2, ta3, ta4, tb2, int1, int0) */
     Error = AnaInInit();            /* A/D converter for all measurements  */
-    Error = Surv_Init();             /* vehicle surveillance */
+    Error = Surv_Init();            /* vehicle surveillance */
 #if (COMPASSDRV==1)
-    Error = CompDrv_Init();          /* inits UART0 and its receive interrupt for compass use */
+    Error = CompDrv_Init();         /* inits UART0 and its receive interrupt for compass use */
 #endif // COMPASSDRV
 
     /* check: hw self diagnostic test ---------------- */
@@ -326,40 +329,40 @@ int main()
         // NORMAL USER MODE =============================================
         /* device screen inits --------------------------- */
         ODS(DBG_SYS,DBG_INFO,"\n\rInitialize Devices:");
-        Error = IntroDev_Init();                                  /* intro screen device */
-        Error = MainDev_Init();                                   /* main device (speed&rpm) */
-        Error = TripCntDev_Init();                                   /* trip counter device */
-        Error = MonDev_Init();                                /* monitor device */
-        #if(BIKE_MOTOBAU==1)                                        /* special MOTOBAU behaviour */
-        Error = LCDev_Init();                                 /* LapCounter device */
+        Error = IntroDev_Init();    /* intro screen device */
+        Error = MainDev_Init();     /* main device (speed&rpm) */
+        Error = TripCntDev_Init();  /* trip counter device */
+        Error = MonDev_Init();      /* monitor device */
+        #if(BIKE_MOTOBAU==1)        /* special MOTOBAU behaviour */
+        Error = LCDev_Init();       /* LapCounter device */
         #endif // BIKE_MOTOBAU
-        Error = SetDev_Init();                                    /* settings device */
+        Error = SetDev_Init();      /* settings device */
         #if(TESTSCREEN==1)
-        Error = TestScreen_Init();                                   /* testscreen device */
+        Error = TestScreen_Init();  /* testscreen device */
         #endif
 
         /* Display & LED 'HW pseudo test' ---------------- */
         LCDDrvSetBacklightLevel(TRUE, 63);  // switch on Backlight
-        if(EE_LogoDelay > 0)                 // only if enabled by user:
-        {   IntroDev_Show(TRUE);          //    show 'splash screen'
+        if(EE_LogoDelay > 0)                // only if enabled by user:
+        {   IntroDev_Show(TRUE);            //    show 'splash screen'
             PORT_LED = PORT_LED_MASK;       //    all LEDs on
-            Delay_ms(EE_LogoDelay*100);      //    wait (given in 1/10 sec, set as ms)
-            IntroDev_Show(FALSE);         //    clear 'splash screen'
+            Delay_ms(EE_LogoDelay*100);     //    wait (given in 1/10 sec, set as ms)
+            IntroDev_Show(FALSE);           //    clear 'splash screen'
             PORT_LED &= ~PORT_LED_MASK;     //    all LEDs off
         }
 
         /* Register cyclicely called (50Hz) fast functions --------- */
-        TimerRegisterEntryFunction( DigInDrv_Key_CheckKeys );      /* check keys */
+        TimerRegisterEntryFunction( DigInDrv_Key_CheckKeys );       /* check keys */
         TimerRegisterEntryFunction( DigInDrv_CheckAllPorts );       /* update of standard LEDs for Turn/HighBeam/Neutral */
-        TimerRegisterEntryFunction( SysPar_CyclicSaveValues );          /* check/save eeprom values */
+        TimerRegisterEntryFunction( SysPar_CyclicSaveValues );      /* check/save eeprom values */
         TimerRegisterEntryFunction( DevCyclicRefresh );             /* generation of MSG_SCREEN_RFRSH */
         TimerRegisterEntryFunction( TimeDateUpdate );               /* RTC check */
         TimerRegisterEntryFunction( AnaInDrvTriggerADConverter );   /* generation of AD samples in single sweep mode */
         TimerRegisterEntryFunction( DigOutDrv_Service );            /* support PWM control for all digital outs */
-        TimerRegisterEntryFunction( DigInDrv_GPI_UpdateMeas );       /* support PWM control for all digital input */
-        TimerRegisterEntryFunction( Surv_ProcessAll );               /* process complete surveillance for infos/warnings/errors */
+        TimerRegisterEntryFunction( DigInDrv_GPI_UpdateMeas );      /* support PWM control for all digital input */
+        TimerRegisterEntryFunction( Surv_ProcessAll );              /* process complete surveillance for infos/warnings/errors */
         #if(BIKE_MOTOBAU==1)                                        /* special MOTOBAU behaviour */
-        TimerRegisterEntryFunction( LCDev_UpdTime );             /* enable background lapcounter feature */
+        TimerRegisterEntryFunction( LCDev_UpdTime );                /* enable background lapcounter feature */
         #endif // BIKE_MOTOBAU
 
         /* TEST LED/GPO PWM Output (kept alive via timer interrupt */
@@ -379,23 +382,23 @@ int main()
         // set start screen ------------------------------ */
 
         /* check for basic eeprom content error */
-        if (  (EE_DevFlags_1.flags.ActDevNr <  DEVID_MAIN)           /* eeprom value in valid area? */
+        if (  (EE_DevFlags_1.flags.ActDevNr <  DEVID_MAIN)          /* eeprom value in valid area? */
             ||(EE_DevFlags_1.flags.ActDevNr >= DEVID_LAST) )
         {   ODS1( DBG_SYS, DBG_ERROR, "Invalid EE_DevFlags_1.flags.ActDevNr %u corrected!", EE_DevFlags_1.flags.ActDevNr );
-            EE_DevFlags_1.flags.ActDevNr = DEVID_MAIN;               /* set main device as default */
+            EE_DevFlags_1.flags.ActDevNr = DEVID_MAIN;              /* set main device as default */
         }
 
         /* prevent from starting with HW-Test all the time */
-        if (EE_DevFlags_1.flags.ActDevNr == DEVID_HWTEST)            /* eeprom saved hw test state? */
-            EE_DevFlags_1.flags.ActDevNr = DEVID_MAIN;               /* set main device as default */
+        if (EE_DevFlags_1.flags.ActDevNr == DEVID_HWTEST)           /* eeprom saved hw test state? */
+            EE_DevFlags_1.flags.ActDevNr = DEVID_MAIN;              /* set main device as default */
 
         /* for device/objects test only: bring GUI testscreen to top */
         #if(TESTSCREEN==1)
-        EE_DevFlags_1.flags.ActDevNr = DEVID_TESTSCREEN;             /* enable our gui testscreen */
+        EE_DevFlags_1.flags.ActDevNr = DEVID_TESTSCREEN;            /* enable our gui testscreen */
         #endif
 
         /* start NORMAL USER MODE */
-        eStartDevice = EE_DevFlags_1.flags.ActDevNr;                 /* select start device */
+        eStartDevice = EE_DevFlags_1.flags.ActDevNr;                /* select start device */
         MSG_BUILD_SETFOCUS(Msg, DEVID_UNKNOWN, eStartDevice);       /* give focus to that device */
         MsgQPostMsg(Msg, MSGQ_PRIO_LOW);                            /* post message */
 
