@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.42  2012/06/01 21:46:31  tuberkel
+ * Fuel: Layout prepared for 'l/100km' or 'l/Min'
+ *
  * Revision 3.41  2012/06/01 20:20:26  tuberkel
  * BugFix FuelAverage - Post-Comma-Calculation
  *
@@ -425,8 +428,8 @@ static CHAR         szFuelLiter[10]=  " 0,0l";  /* buffer to contain fuel,     m
 
 /* ------------------------------------ */
 /* lower area mode 4: Fuel Consumption (only if Fuel Sensor available) */
-static OBJ_BMP      LiterPer100BmpObj;       /* bitmap for actuel  'l/100' */
-static OBJ_BMP      AverageBmpObj;              /* bitmap 'average' */
+static OBJ_BMP      ActLiterPerXBmpObj;         /* bitmap for actuel  'l/100' or 'l/Min' */
+static OBJ_BMP      AvrLiterPer100BmpObj;       /* bitmap for average 'l/100' */
 static OBJ_STEXT    FuelConsActTxtObj;          /* fuel consumption (actual) text object */
 static OBJ_STEXT    FuelConsAvrTxtObj;          /* fuel consumption (average) text object */
 static CHAR         szFuelConsAct[10] = "--,-"; /* buffer to contain fuel consumption (actual)  max. '99,9' l/100 */
@@ -579,7 +582,7 @@ static const OBJ_BMP_INIT BmpObjInit[] =
     /* --------------------------- -- --- --- --- --------------------- -------- ----- */
     { &MonAmbientTempBmpObj,        2, 37,  8,  8, bmpTemp_8x8,         DPLNORM, FALSE },
     { &MonWaterTempBmpObj,          2, 46,  8,  8, bmpWater_8x8,        DPLNORM, FALSE },
-    { &MonFuelDistBmpObj,               2, 46,  8,  8, bmpFuel_8x8,         DPLNORM, FALSE },
+    { &MonFuelDistBmpObj,           2, 46,  8,  8, bmpFuel_8x8,         DPLNORM, FALSE },
     { &MonVoltageBmpObj,           71, 37,  8,  8, bmpBattery_8x8,      DPLNORM, FALSE },
     { &MonOilTempBmpObj,           71, 46,  8,  8, bmpOil_8x8,          DPLNORM, FALSE },
     { &MonRPMBmpObj,               71, 46,  8,  8, bmpRPM_8x8,          DPLNORM, FALSE },
@@ -588,8 +591,8 @@ static const OBJ_BMP_INIT BmpObjInit[] =
     /* fuel consumption symbols  */
     /* --------------------------- -- --- --- --- --------------------- -------- ----- */
     { &FuelBmpObj,                  0, 38, 16, 16, bmpFuel_16x16,       DPLNORM, FALSE },
-    { &LiterPer100BmpObj,       16, 38, 16, 16, bmpLiterPer100_16x16,DPLNORM, FALSE },
-    { &AverageBmpObj,             114, 38, 16, 16, bmpAverage_16x16,    DPLNORM, FALSE },
+    { &ActLiterPerXBmpObj,         52, 38, 16, 16, bmpLiterPer100_16x16,DPLNORM, FALSE },
+    { &AvrLiterPer100BmpObj,      114, 38, 16, 16, bmpLiterPer100_16x16,DPLNORM, FALSE },
 
     /* --------------------------- -- --- --- --- --------------------- -------- ----- */
 };
@@ -600,14 +603,14 @@ static const OBJ_BMP_INIT BmpObjInit[] =
 /* text object table */
 static const OBJ_STEXT_INIT TextObjInit[] =
 {
-    /* BIG Vehicle Speed + Unit */
+    /* UPPER BIG PART: Always show Vehicle Speed + Unit */
     /* pObject                  X    Y  Font            H  Width  Align     Format    string ptr            State      */
     /* ----------------------- ---- --- -------------- --- ----- --------- ---------- -----------------     ---------- */
     { &SpeedTxtObj,             28,  0, DPLFONT_24X32,  1,  3, TXT_RIGHT,  TXT_NORM, szSpeed,               OC_DISPL | OC_DYN   },
     { &SpeedDescATxtObj,       108,  1, DPLFONT_8X16,   1,  2, TXT_LEFT,   TXT_NORM | TXT_UNDERL, RESTXT_SPEEDA_DESC,  OC_DISPL },
     { &SpeedDescBTxtObj,       112, 17, DPLFONT_8X16,   1,  1, TXT_LEFT,   TXT_NORM, RESTXT_SPEEDB_DESC,    OC_DISPL            },
 
-    /* Selected BIG Information */
+    /* LOWER MEDIUM PART: Selectable Information */
     /* pObject                  X    Y  Font            H  Width  Align     Format    string ptr            State      */
     /* ----------------------- ---- --- -------------- --- ----- --------- ---------- -----------------     ---------- */
     { &RPMTxtObj,               22, 38, DPLFONT_14X16,  1,  5, TXT_RIGHT,  TXT_NORM, szRPM,                 OC_DISPL | OC_DYN   },
@@ -625,10 +628,10 @@ static const OBJ_STEXT_INIT TextObjInit[] =
     { &FuelArrowRTxtObj,         0, 38, DPLFONT_8X16,   1,  1, TXT_RIGHT,  TXT_NORM, RESTXT_MAIN_ARROW_R,   OC_DISPL            },   
     { &FuelDistTxtObj,          28, 38, DPLFONT_8X16,   1,  6, TXT_RIGHT,  TXT_NORM, szFuelDist,            OC_DISPL | OC_DYN   },
     { &FuelLiterTxtObj,         88, 38, DPLFONT_8X16,   1,  5, TXT_RIGHT,  TXT_NORM, szFuelLiter,           OC_DISPL | OC_DYN   },
-    { &FuelConsActTxtObj,       38, 38, DPLFONT_8X16,   1,  4, TXT_RIGHT,  TXT_NORM, szFuelConsAct,         OC_DISPL | OC_DYN   },
-    { &FuelConsAvrTxtObj,       82, 38, DPLFONT_8X16,   1,  4, TXT_RIGHT,  TXT_NORM, szFuelConsAvr,         OC_DISPL | OC_DYN   },
+    { &FuelConsActTxtObj,       20, 38, DPLFONT_8X16,   1,  4, TXT_RIGHT,  TXT_NORM, szFuelConsAct,         OC_DISPL | OC_DYN   },
+    { &FuelConsAvrTxtObj,       74, 38, DPLFONT_8X16,   1,  5, TXT_RIGHT,  TXT_NORM, szFuelConsAvr,         OC_DISPL | OC_DYN   },
         
-    /* Monitor Device Information */
+    /* LOWER SMALL PART: Monitor Device Information */
     /* pObject                  X    Y  Font            H  Width  Align     Format    string ptr            State      */
     /* ----------------------- ---- --- -------------- --- ----- --------- ---------- -----------------     ---------- */
     { &MonAmbientTempTxtObj,    24, 38, DPLFONT_6X8,    1,  6, TXT_RIGHT,  TXT_NORM, szMonAmbientTemp,      OC_DISPL | OC_DYN   },
@@ -772,8 +775,8 @@ static const void far * ObjectList_Fuel_Cons[] =
 
     // objects - shown in 'MD_FUEL_CONS' mode only
     (void far *) &FuelBmpObj,           // icon 'fuel'
-    (void far *) &LiterPer100BmpObj, // icon 'l/100'
-    (void far *) &AverageBmpObj,        // icon 'average'
+    (void far *) &ActLiterPerXBmpObj,   // icon 'l/100' or 'l/Min'
+    (void far *) &AvrLiterPer100BmpObj, // icon 'l/100'
     (void far *) &FuelConsActTxtObj,    // actuel  fuel consumption in l/100
     (void far *) &FuelConsAvrTxtObj,    // average fuel consumption in l/100
 };
@@ -932,8 +935,8 @@ static const void far * ObjectList[] =
     (void far *) &FuelLiterTxtObj,
     (void far *) &FuelArrowRTxtObj,          
     (void far *) &FuelBmpObj,           
-    (void far *) &LiterPer100BmpObj,
-    (void far *) &AverageBmpObj,
+    (void far *) &ActLiterPerXBmpObj,
+    (void far *) &AvrLiterPer100BmpObj,
     (void far *) &FuelConsActTxtObj,
     (void far *) &FuelConsAvrTxtObj,    
     
@@ -1173,8 +1176,8 @@ void MainDev_Show(BOOL fShow)
                     break;                
                 case MD_FUEL_CONS:
                     Obj_Bmp_Show(   &FuelBmpObj          );
-                    Obj_Bmp_Show(   &LiterPer100BmpObj);
-                    Obj_Bmp_Show(   &AverageBmpObj       );
+                    Obj_Bmp_Show(   &ActLiterPerXBmpObj  );
+                    Obj_Bmp_Show(   &AvrLiterPer100BmpObj);
                     Obj_TextSt_Show(&FuelConsActTxtObj   );
                     Obj_TextSt_Show(&FuelConsAvrTxtObj   );
                     break;
@@ -1990,9 +1993,14 @@ void MainDev_UpdTimeDate(void)
  *  COMMENT:        We use the 'Fuel' & 'Arrow' icon for multiple
  *                  view mode, so we move them a little bit to correct
  *                  position.
+ *
  *                  'GPIx.dwLHCounter' has been initilized by NVRAM value at init time
  *                  'NV_FuelSensImp' is implicitely saved back into NVRAM 
  *                  (for next init time)
+ *
+ *                  If FuelSensor is available and fuel is consumed - but
+ *                  wheel stands still - we change the view from 
+ *                  'l/100km' to 'l/Min' by simply exhanging the icons.
  *********************************************************************** */
 void MainDev_UpdMeas_Fuel(void)
 {           
@@ -2114,10 +2122,20 @@ void MainDev_UpdMeas_Fuel(void)
             bFuelExhaust_dl  = (UINT8)(( dwFuelExh_ml - ((UINT32)bFuelExhaust_l * LITER2ML) )/100 );        
 
             /* prepare fuel-liters since last refueling */
-            sprintf( szFuelLiter, "%2u%c%1ul", bFuelExhaust_l, RESTXT_DEC_SEPARATOR, bFuelExhaust_dl );            
+            if ( bFuelExhaust_l <= 99 )
+            {   sprintf( szFuelLiter, "%2u%c%1ul", bFuelExhaust_l, RESTXT_DEC_SEPARATOR, bFuelExhaust_dl );            
+            }
+            else
+            {   sprintf( szFuelLiter, "%--%c-l", RESTXT_DEC_SEPARATOR );            
+            }            
 
             /* calculate & prepare fuel-distance since last refueling */
-            sprintf( szFuelDist,  "%4lu%s", dwDistExh_km, RESTXT_DIST_DESC );                        
+            if ( dwDistExh_km <= 9999L )
+            {   sprintf( szFuelDist,  "%4lu%s", dwDistExh_km, RESTXT_DIST_DESC );                        
+            }
+            else
+            {   sprintf( szFuelDist,  " ---%s", RESTXT_DIST_DESC );                        
+            }
             
             /* assure position of fuel icon & arrow right for this mode */
             FuelBmpObj.Org.wXPos        = 0;    // Fuel icon left
@@ -2136,10 +2154,20 @@ void MainDev_UpdMeas_Fuel(void)
             bFuelRemain_dl  = (UINT8)(( dwFuelRem_ml - ((UINT32)bFuelRemain_l * LITER2ML) )/100);        
 
             /* prepare fuel-liters since last refueling */
-            sprintf( szFuelLiter, "%2u%c%1ul", bFuelRemain_l, RESTXT_DEC_SEPARATOR, bFuelRemain_dl );            
-
+            if ( bFuelRemain_l <= 99 )
+            {   sprintf( szFuelLiter, "%2u%c%1ul", bFuelRemain_l, RESTXT_DEC_SEPARATOR, bFuelRemain_dl );            
+            }
+            else
+            {   sprintf( szFuelLiter, "%--%c-l", RESTXT_DEC_SEPARATOR );            
+            }
+            
             /* calculate & prepare fuel-distance since last refueling */
-            sprintf( szFuelDist,  "%4lu%s", dwDistRem_km, RESTXT_DIST_DESC );                        
+            if ( dwDistRem_km <= 9999 )
+            {   sprintf( szFuelDist,  "%4lu%s", dwDistRem_km, RESTXT_DIST_DESC );                        
+            }
+            else
+            {   sprintf( szFuelDist,  " ---%s", RESTXT_DIST_DESC );                        
+            }
             
             /* update position of fuel icon & arrow */
             FuelArrowRTxtObj.Org.wXPos  = 0;            
@@ -2161,7 +2189,7 @@ void MainDev_UpdMeas_Fuel(void)
                 /* prepare average consumption */
                 bConsAvr_l_100  = (UINT8)( dwConsAvr_ml_100 / LITER2ML );
                 bConsAvr_dl_100 = (UINT8)( ( dwConsAvr_ml_100 - ((UINT32)bConsAvr_l_100 * LITER2ML)) / DL2ML );
-                sprintf( szFuelConsAvr, "%2u%c%1u", bConsAvr_l_100, RESTXT_DEC_SEPARATOR, bConsAvr_dl_100 );                    
+                sprintf( szFuelConsAvr, "\xf8%2u%c%1u", bConsAvr_l_100, RESTXT_DEC_SEPARATOR, bConsAvr_dl_100 );                    
                 
                 /* prepare actual consumption */
                 sprintf( szFuelConsAct, "--,-" );   // not yet used
