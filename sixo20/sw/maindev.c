@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.41  2012/06/01 20:20:26  tuberkel
+ * BugFix FuelAverage - Post-Comma-Calculation
+ *
  * Revision 3.40  2012/06/01 20:13:30  tuberkel
  * Fuel: Average Consumption updated
  * - calculation & display based on FuelSensor ok!
@@ -2157,7 +2160,7 @@ void MainDev_UpdMeas_Fuel(void)
 
                 /* prepare average consumption */
                 bConsAvr_l_100  = (UINT8)( dwConsAvr_ml_100 / LITER2ML );
-                bConsAvr_dl_100 = (UINT8)( dwConsAvr_ml_100 - ((UINT32)bConsAvr_l_100 * LITER2ML) );
+                bConsAvr_dl_100 = (UINT8)( ( dwConsAvr_ml_100 - ((UINT32)bConsAvr_l_100 * LITER2ML)) / DL2ML );
                 sprintf( szFuelConsAvr, "%2u%c%1u", bConsAvr_l_100, RESTXT_DEC_SEPARATOR, bConsAvr_dl_100 );                    
                 
                 /* prepare actual consumption */
