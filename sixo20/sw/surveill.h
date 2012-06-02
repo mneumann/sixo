@@ -1,17 +1,14 @@
 /***********************************************************************
  *
- *  $RCSfile: surveill.c
- *
- *  $Revision$
- *
- *  $Date$
- *
- *  Author: Markus Mueller, mm@rsj.de
+ *  CVS-Filename:   $RCSfile$
+ *  Version:        $Revision$
+ *  Last Changed:   $Date$
+ *  Changed by:     $Author$
  *
  *  --------------------------------------------------------------------
- *  Created:        03-30-2004 by Markus Mueller
+ *  Created:        03-30-2004 by Markus Mueller, mm@rsj.de
  *  Project:        SIxO 2.0
- *  Module:         surveill
+ *  Module:         surveill.c
  *  Purpose:        vehicle surveillance module
  *  Comments:       -
  *
@@ -70,6 +67,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.5  2012/06/02 06:05:30  tuberkel
+ * just comments
+ *
  * Revision 3.4  2012/05/28 12:47:31  tuberkel
  * Corrections for renamed Eeprom/Nvram Variables
  *
