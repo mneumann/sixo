@@ -6,7 +6,8 @@
  *  Changed by:     $Author$
  *
  *  --------------------------------------------------------------------
- *  Created:        03-30-2004 by Markus Mueller, mm@rsj.de
+ *
+ *  Created:        03-30-2004 by Markus Mueller (mm@rsj.de)
  *  Project:        SIxO 2.0
  *  Module:         surveill.c
  *  Purpose:        vehicle surveillance module
@@ -67,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.6  2012/06/02 06:14:19  tuberkel
+ * just file header comments
+ *
  * Revision 3.5  2012/06/02 06:05:30  tuberkel
  * just comments
  *

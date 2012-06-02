@@ -1,15 +1,13 @@
 /***********************************************************************
  *
- *  $RCSfile: anain.h
- *
- *  $Revision$
- *
- *  $Date$
- *
- *  Author: Markus Mueller, mm@rsj.de
+ *  CVS-Filename:   $RCSfile$
+ *  Version:        $Revision$
+ *  Last Changed:   $Date$
+ *  Changed by:     $Author$
  *
  *  --------------------------------------------------------------------
- *  Created:        03-30-2004 by Markus Mueller
+ *
+ *  Created:        03-30-2004 by Markus Mueller (mm@rsj.de)
  *  Project:        SIxO 2.0
  *  Module:         Illumination Measurement
  *  Purpose:        measure lumination with A/D port AN3 (P103)
@@ -18,6 +16,7 @@
  *                  tons of changes, correct filter calculations - AN 11-04-2004
  *                  introduced separate scale factors, - AN 11-06-2004
  *                  added AnaInGetAltwVoltage
+ *
  *  --------------------------------------------------------------------
  *
  *  Compiler:       Renesas NC30WA V.5.00 Release 2
@@ -73,6 +72,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.1  2012/06/02 06:14:19  tuberkel
+ * just file header comments
+ *
  * Revision 3.0  2010/11/07 14:00:50  tuberkel
  * V30 Preparations - no changes
  *

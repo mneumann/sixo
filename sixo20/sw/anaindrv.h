@@ -1,16 +1,13 @@
 /***********************************************************************
  *
- *  $RCSfile$
- *
- *  $Revision$
- *
- *  $Date$
- *
- *  Author: Markus Mueller, mm@rsj.de
- *          Arnold Neugebauer
+ *  CVS-Filename:   $RCSfile$
+ *  Version:        $Revision$
+ *  Last Changed:   $Date$
+ *  Changed by:     $Author$
  *
  *  --------------------------------------------------------------------
- *  Created:        10-22-2003 by Markus Mueller
+ *
+ *  Created:        10-22-2003 by Markus Mueller (mm@rsj.de) & Arnold Neugebauer
  *  Project:        SIxO 2.0
  *  Module:         Illumination Measurement
  *  Purpose:        measure lumination with A/D port AN3 (P103)

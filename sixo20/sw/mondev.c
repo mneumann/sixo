@@ -7,7 +7,7 @@
  *
  *  --------------------------------------------------------------------
  *
- *  Created:        2004-04-10 by Markus Mueller
+ *  Created:        2004-04-10 by Markus Mueller (mm@rsj.de)
  *  Project:        SIxO
  *  Module:         monitor device
  *  Purpose:        handles the monitor device screen
@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.11  2012/06/02 06:14:19  tuberkel
+ * just file header comments
+ *
  * Revision 3.10  2012/05/27 17:52:40  tuberkel
  * Corrections for renamed Eeprom/Nvram Variables
  *
