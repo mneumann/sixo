@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.3  2012/06/03 17:45:18  tuberkel
+ * Updated API-Function-Name according to Modul-Name
+ *
  * Revision 3.2  2012/05/27 17:52:40  tuberkel
  * Corrections for renamed Eeprom/Nvram Variables
  *
@@ -153,7 +156,7 @@ typedef UINT16 RPM_TYPE;
 /* cylinder correcture factor (EE_CCF):
     - used to adapt ignition impulses to number of cylinders sharing one impulse
     - devided into two parts: nominator & denominator
-    - see 'MeasGetEngineSpeed()' in measure.c for details */
+    - see 'Meas_GetSpeed_Engine()' in measure.c for details */
 typedef union
 {
     UINT8 byte;
@@ -204,7 +207,7 @@ typedef enum
 
 
 /* non public prototypes */
-ERRCODE GetFormatedDist( DIST_TYPE far * fpDistSrc, DIST_TYPE far * fpDistTrgt, MEASUNITS_TYPE RUnits);
+ERRCODE Meas_ConvertDist( DIST_TYPE far * fpDistSrc, DIST_TYPE far * fpDistTrgt, MEASUNITS_TYPE RUnits);
 
 
 
@@ -214,20 +217,20 @@ ERRCODE GetFormatedDist( DIST_TYPE far * fpDistSrc, DIST_TYPE far * fpDistTrgt, 
 
 
 /* public prototypes */
-UINT16      MeasGetWheelSpeed       ( MEASUNITS_TYPE eUnit);
-UINT16      MeasGetEngineSpeed      ( MEASUNITS_TYPE eUnit);
+UINT16      Meas_GetSpeed_Wheel       ( MEASUNITS_TYPE eUnit);
+UINT16      Meas_GetSpeed_Engine      ( MEASUNITS_TYPE eUnit);
 
-DIST_TYPE   Meas_Get_VehicDist      ( MEASUNITS_TYPE eUnits );
-ERRCODE     Meas_Set_VehicDist      ( DIST_TYPE far * fpDist);
-ERRCODE     Meas_Get_VehicDist_Raw  ( DIST_TYPE far * fpDist);
+DIST_TYPE   Meas_GetDist_Vehicle      ( MEASUNITS_TYPE eUnits );
+ERRCODE     Meas_SetDist_Vehicle      ( DIST_TYPE far * fpDist);
+ERRCODE     Meas_GetDist_VehicleRaw  ( DIST_TYPE far * fpDist);
 
-UINT16      Meas_Get_FuelDist       ( MEASUNITS_TYPE eUnits );
-ERRCODE     Meas_Set_FuelDist       ( DIST_TYPE far * fpDist);
-ERRCODE     Meas_Get_FuelDist_Raw   ( DIST_TYPE far * fpDist);
+UINT16      Meas_GetDist_Fuel       ( MEASUNITS_TYPE eUnits );
+ERRCODE     Meas_SetDist_Fuel       ( DIST_TYPE far * fpDist);
+ERRCODE     Meas_GetDist_FuelRaw   ( DIST_TYPE far * fpDist);
 
-UINT16      Meas_Get_TripCnt        ( TRIPC_ID eTripCntID, MEASUNITS_TYPE eUnits );
-ERRCODE     Meas_Get_TripCnt_Raw    ( TRIPC_ID eTripCntID, DIST_TYPE far * fpDist);
-ERRCODE     Meas_Set_TripCnt        ( TRIPC_ID eTripCntID, DIST_TYPE far * fpDist);
+UINT16      Meas_GetDist_TripCnt        ( TRIPC_ID eTripCntID, MEASUNITS_TYPE eUnits );
+ERRCODE     Meas_GetDist_TripCntRaw    ( TRIPC_ID eTripCntID, DIST_TYPE far * fpDist);
+ERRCODE     Meas_SetDist_TripCnt        ( TRIPC_ID eTripCntID, DIST_TYPE far * fpDist);
 
 
 

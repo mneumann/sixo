@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.45  2012/06/03 17:45:18  tuberkel
+ * Updated API-Function-Name according to Modul-Name
+ *
  * Revision 3.44  2012/06/03 12:46:04  tuberkel
  * Moved all Fuel-Formating from maindev.c ==> fuel.c
  *
@@ -1790,7 +1793,7 @@ ERRCODE MainDev_MsgEntry_VehDistRst(MESSAGE Msg)
                 case MD_FUEL_FROM:   
                 case MD_FUEL_TO:   
                 case MD_FUEL_CONS:
-                    Meas_Set_FuelDist( &Dist );                      
+                    Meas_SetDist_Fuel( &Dist );                      
                     /* check: Reset FuelConsumption too? */
                     if ( EE_FuelSensCtrl.flags.FuelSAvail == TRUE ) 
                     {   // reset NVRAM value and current FuelSensor impulse counter
@@ -1798,8 +1801,8 @@ ERRCODE MainDev_MsgEntry_VehDistRst(MESSAGE Msg)
                         DigInDrv_GPI_RstCount( EE_FuelSensCtrl.flags.FuelSGPI );
                     }
                     break;
-                case MD_TRIP1:  Meas_Set_TripCnt( eTRIPCOMM_A, &Dist ); break;
-                case MD_TRIP2:  Meas_Set_TripCnt( eTRIPCOMM_B, &Dist ); break;
+                case MD_TRIP1:  Meas_SetDist_TripCnt( eTRIPCOMM_A, &Dist ); break;
+                case MD_TRIP2:  Meas_SetDist_TripCnt( eTRIPCOMM_B, &Dist ); break;
                 case MD_SPEEDMAX: EE_SpeedMax = 0; break;
                 default: break;
             }
@@ -1900,12 +1903,12 @@ void MainDev_UpdMeas(void)
     UINT16  wWheelSpeed;
 
     /* update speed & distances */
-    wWheelSpeed = MeasGetWheelSpeed(MR_KM_PER_H);
+    wWheelSpeed = Meas_GetSpeed_Wheel(MR_KM_PER_H);
     sprintf( szSpeed,        "%3u",      wWheelSpeed);
-    sprintf( szRPM,          "%5u",      MeasGetEngineSpeed(MR_RPM_R10));
-    sprintf( szVehDist,      "%06lu",    Meas_Get_VehicDist(MR_KM));
-    sprintf( szTrip1Dist,    "%4u%c%1u", Meas_Get_TripCnt( eTRIPCOMM_A, MR_KM_ONLY), RESTXT_DEC_SEPARATOR, Meas_Get_TripCnt( eTRIPCOMM_A, MR_HM_ONLY));
-    sprintf( szTrip2Dist,    "%4u%c%1u", Meas_Get_TripCnt( eTRIPCOMM_B, MR_KM_ONLY), RESTXT_DEC_SEPARATOR, Meas_Get_TripCnt( eTRIPCOMM_B, MR_HM_ONLY));
+    sprintf( szRPM,          "%5u",      Meas_GetSpeed_Engine(MR_RPM_R10));
+    sprintf( szVehDist,      "%06lu",    Meas_GetDist_Vehicle(MR_KM));
+    sprintf( szTrip1Dist,    "%4u%c%1u", Meas_GetDist_TripCnt( eTRIPCOMM_A, MR_KM_ONLY), RESTXT_DEC_SEPARATOR, Meas_GetDist_TripCnt( eTRIPCOMM_A, MR_HM_ONLY));
+    sprintf( szTrip2Dist,    "%4u%c%1u", Meas_GetDist_TripCnt( eTRIPCOMM_B, MR_KM_ONLY), RESTXT_DEC_SEPARATOR, Meas_GetDist_TripCnt( eTRIPCOMM_B, MR_HM_ONLY));
     sprintf( szSpeedMax,     "%3u",      EE_SpeedMax);
 
     /* update complete monitor measurement stuff */
@@ -1933,10 +1936,10 @@ void MainDev_UpdMeas_Mon(void)
     if (MDObj.wDevState == MD_MONITOR)
     {
         /* update monitor fuel distance anyway */    
-        sprintf( szMonFuelDist,  "%3u %s", Meas_Get_FuelDist(MR_KM_ONLY), RESTXT_DIST_DESC );            
+        sprintf( szMonFuelDist,  "%3u %s", Meas_GetDist_Fuel(MR_KM_ONLY), RESTXT_DIST_DESC );            
         
         /* update temperatures (use external air temp if available, else internal) */
-        sprintf( szMonRPM,       "%5u",      MeasGetEngineSpeed(MR_RPM_R10));            
+        sprintf( szMonRPM,       "%5u",      Meas_GetSpeed_Engine(MR_RPM_R10));            
         if ( AnaInGetAirTemperature() > ANAIN_TEMP_SENSORDETECT )
         {   AnaInFormatTemperature(AnaInGetAirTemperature(), szBuff, sizeof(szBuff));  
         }

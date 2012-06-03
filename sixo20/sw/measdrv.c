@@ -75,6 +75,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.7  2012/06/03 17:45:18  tuberkel
+ * Updated API-Function-Name according to Modul-Name
+ *
  * Revision 3.6  2012/05/27 17:52:40  tuberkel
  * Corrections for renamed Eeprom/Nvram Variables
  *
@@ -151,21 +154,21 @@ static UINT16 wRPMPeriod32;             /* RPM period in 10 µsec/Digit (1/32 per
 
 
 /* module internal functions */
-void MeasDrvClearWheelSamples(void);
-void MeasDrvClearRPMSamples(void);
+void MeasDrv_ClearWheelSamples(void);
+void MeasDrv_ClearRPMSamples(void);
 
 
 
 
 /***********************************************************************
- *  FUNCTION:       MeasDrvInit
+ *  FUNCTION:       MeasDrv_Init
  *  DESCRIPTION:    Main-Init to call all measurement init stuff for
  *                  timers and isr's
  *  PARAMETER:      -
  *  RETURN:         error
  *  COMMENT:        -
  *********************************************************************** */
-ERRCODE MeasDrvInit(void)
+ERRCODE MeasDrv_Init(void)
 {
     ERRCODE RValue = ERR_OK;
 
@@ -181,15 +184,15 @@ ERRCODE MeasDrvInit(void)
     prcr  = 0x00;
 
     /* timer & intx inits */
-    RValue = MeasDrvInitWheel();       /* init & start velocity measurement */
-    RValue = MeasDrvInitRPM();         /* init & start engine rpm measurement */
+    RValue = MeasDrv_InitWheel();       /* init & start velocity measurement */
+    RValue = MeasDrv_InitRPM();         /* init & start engine rpm measurement */
 
-    ODS(DBG_SYS,DBG_INFO,"MeasDrvInit() done!");
+    ODS(DBG_SYS,DBG_INFO,"MeasDrv_Init() done!");
     return RValue;
 }
 
 /***********************************************************************
- *  FUNCTION:       MeasDrvInitWheel
+ *  FUNCTION:       MeasDrv_InitWheel
  *  DESCRIPTION:    Init & Start all timers for wheel speed measurement
  *  PARAMETER:      -
  *  RETURN:         errorcode
@@ -204,7 +207,7 @@ ERRCODE MeasDrvInit(void)
  *                  Note4:  Don't set TA2 start flag here!
  *                          -> start TA2 if first impuls detected!
  *********************************************************************** */
-ERRCODE MeasDrvInitWheel(void)
+ERRCODE MeasDrv_InitWheel(void)
 {
     ERRCODE RValue = ERR_OK;
 
@@ -232,7 +235,7 @@ ERRCODE MeasDrvInitWheel(void)
                                     - polarity flag to 'falling edge'
                                     - request cause select set to 'one edge' (ifsr2=0 default) */
 
-    MeasDrvClearWheelSamples(); /* reset  complete sample buffer */
+    MeasDrv_ClearWheelSamples(); /* reset  complete sample buffer */
 
     INT_GLOB_ENABLE;             /* enable all ISRs */
     return RValue;
@@ -241,7 +244,7 @@ ERRCODE MeasDrvInitWheel(void)
 
 
 /***********************************************************************
- *  FUNCTION:       MeasDrvInitRPM
+ *  FUNCTION:       MeasDrv_InitRPM
  *  DESCRIPTION:    Init & Start all timers for engine rpm measurement
  *  PARAMETER:      -
  *  RETURN:         errorcode
@@ -256,7 +259,7 @@ ERRCODE MeasDrvInitWheel(void)
  *                  Note4:  Don't set TA3 start flag here!
  *                          -> start TA3 if first impuls detected!
  *********************************************************************** */
-ERRCODE MeasDrvInitRPM(void)
+ERRCODE MeasDrv_InitRPM(void)
 {
     ERRCODE RValue = ERR_OK;
 
@@ -285,7 +288,7 @@ ERRCODE MeasDrvInitRPM(void)
                                     - polarity flag to 'falling edge'
                                     - request cause select register flag to 'one edge' (ifsr2=0 default) */
 
-    MeasDrvClearRPMSamples();   /* reset  complete sample buffer */
+    MeasDrv_ClearRPMSamples();   /* reset  complete sample buffer */
 
     INT_GLOB_ENABLE;             /* enable all ISRs */
     return RValue;
@@ -340,7 +343,7 @@ void WheelOverflow_ISR(void)
     PIN_TESTPAD9_TOGGLE;               /* toggle port pin (debug only) */
     fWheelCnt   = FALSE;        /* stop counter after timeout */
     wWheelCnt   = 0;            /* set and remain at max value */
-    MeasDrvClearWheelSamples(); /* reset complete sample buffer */
+    MeasDrv_ClearWheelSamples(); /* reset complete sample buffer */
 }
 
 
@@ -360,7 +363,7 @@ void RPMOverflow_ISR(void)
     PIN_TESTPAD10_TOGGLE;               /* toggle port pin (debug only) */
     fRPMCnt = FALSE;            /* stop counter after timeout */
     wRPMCnt = 0;                /* set and remain at min value */
-    MeasDrvClearRPMSamples();   /* reset complete sample buffer */
+    MeasDrv_ClearRPMSamples();   /* reset complete sample buffer */
 }
 
 
@@ -515,13 +518,13 @@ void RPMSensor_ISR(void)
 
 
 /***********************************************************************
- *  FUNCTION:       MeasDrvClearWheelSamples
+ *  FUNCTION:       MeasDrv_ClearWheelSamples
  *  DESCRIPTION:    resets sample buffer
  *  PARAMETER:      -
  *  RETURN:         -
  *  COMMENT:        sets samples to max period = slowest wheel speed
  *********************************************************************** */
-void MeasDrvClearWheelSamples(void)
+void MeasDrv_ClearWheelSamples(void)
 {
     dwWheelPeriod4   = UINT16_MAX * 8L; /* scaled */
     wWheelPeriodLast = UINT16_MAX;
@@ -529,13 +532,13 @@ void MeasDrvClearWheelSamples(void)
 
 
 /***********************************************************************
- *  FUNCTION:       MeasDrvClearRPMSamples
+ *  FUNCTION:       MeasDrv_ClearRPMSamples
  *  DESCRIPTION:    resets sample buffer
  *  PARAMETER:      -
  *  RETURN:         -
  *  COMMENT:        sets samples to max period = slowest wheel speed
  *********************************************************************** */
-void MeasDrvClearRPMSamples(void)
+void MeasDrv_ClearRPMSamples(void)
 {
     wRPMPeriod8  = UINT16_MAX;
     wRPMPeriod32 = UINT16_MAX;
@@ -544,14 +547,14 @@ void MeasDrvClearRPMSamples(void)
 
 
 /***********************************************************************
- *  FUNCTION:       MeasDrvGetWheelPeriod
+ *  FUNCTION:       MeasDrv_GetWheelPeriod
  *  DESCRIPTION:    Interface to get an averaged wheel period time
  *  PARAMETER:      BOOL fCurrent  TRUE    returns current value
  *                                 FALSE   returns averaged value
  *  RETURN:         UINT16 wheel period time in 200 µsec/digit
  *  COMMENT:        -
  *********************************************************************** */
-UINT16 MeasDrvGetWheelPeriod(BOOL fCurrent)
+UINT16 MeasDrv_GetWheelPeriod(BOOL fCurrent)
 {
     UINT16  RValue;
 
@@ -578,14 +581,14 @@ UINT16 MeasDrvGetWheelPeriod(BOOL fCurrent)
 
 
 /***********************************************************************
- *  FUNCTION:       MeasDrvGetRPMPeriod
+ *  FUNCTION:       MeasDrv_GetRPMPeriod
  *  DESCRIPTION:    Interface to get an averaged rpm period time
  *  PARAMETER:      BOOL fFast  TRUE    returns the faster changing value
  *                              FALSE   returns the the slower changing value
  *  RETURN:         UINT16 averaged rpm period time in 10 µsec/digit
  *  COMMENT:        -
  *********************************************************************** */
-UINT16 MeasDrvGetRPMPeriod(BOOL fFast)
+UINT16 MeasDrv_GetRPMPeriod(BOOL fFast)
 {
     UINT32  dwScratch = 0;
     UINT16  RValue;

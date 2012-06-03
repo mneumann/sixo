@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.15  2012/06/03 17:45:18  tuberkel
+ * Updated API-Function-Name according to Modul-Name
+ *
  * Revision 3.14  2012/05/28 12:47:31  tuberkel
  * Corrections for renamed Eeprom/Nvram Variables
  *
@@ -359,12 +362,12 @@ void TripCntDev_Show(BOOL fShow)
         }
 
         /* get trip counter display values */
-        sprintf(szBigTripCntTxt,   "%3u%c%.2u", Meas_Get_TripCnt(BigTripCnt,   MR_KM_ONLY), RESTXT_DEC_SEPARATOR, Meas_Get_TripCnt(BigTripCnt,   MR_DKM_ONLY));
-        sprintf(szSmallTripCntTxt, "%6u%c%.2u", Meas_Get_TripCnt(SmallTripCnt, MR_KM_ONLY), RESTXT_DEC_SEPARATOR, Meas_Get_TripCnt(SmallTripCnt, MR_DKM_ONLY));
+        sprintf(szBigTripCntTxt,   "%3u%c%.2u", Meas_GetDist_TripCnt(BigTripCnt,   MR_KM_ONLY), RESTXT_DEC_SEPARATOR, Meas_GetDist_TripCnt(BigTripCnt,   MR_DKM_ONLY));
+        sprintf(szSmallTripCntTxt, "%6u%c%.2u", Meas_GetDist_TripCnt(SmallTripCnt, MR_KM_ONLY), RESTXT_DEC_SEPARATOR, Meas_GetDist_TripCnt(SmallTripCnt, MR_DKM_ONLY));
 
         /* -------------------------------------------------- */
         /* update vehicle speed '123 km/h */
-        wWheelSpeed = MeasGetWheelSpeed(MR_KM_PER_H);
+        wWheelSpeed = Meas_GetSpeed_Wheel(MR_KM_PER_H);
         sprintf( szVehSpeed, "%3u%s", wWheelSpeed, RESTXT_SPEED_DESC);
 
         /* -------------------------------------------------- */
@@ -612,17 +615,17 @@ ERRCODE TripCntDev_MsgEntry_Keys(MESSAGE GivenMsg)
             {
                 /* clear big trip counter (here: TripCntB) any way */
                 TripCnt.km = 0;                                     /* clear local counter */
-                Meas_Set_TripCnt(eTRIPCNT_B, &TripCnt);             /* copy to TripCnt B */
+                Meas_SetDist_TripCnt(eTRIPCNT_B, &TripCnt);             /* copy to TripCnt B */
             }
             if (MSG_KEY_DURATION(GivenMsg) > KEYTM_PRESSED_LONG )   /* pressed > 3 sec? */
             {
                 /* check: long distance counter to be reseted? */
-                if (Meas_Get_TripCnt(eTRIPCNT_A, MR_DKM) > 0)
+                if (Meas_GetDist_TripCnt(eTRIPCNT_A, MR_DKM) > 0)
                 {
                     /* clear both trip counter the same time  */
                     TripCnt.km = 0;                                 /* clear local counter */
-                    Meas_Set_TripCnt(eTRIPCNT_B, &TripCnt);         /* copy to TripCnt B */
-                    Meas_Set_TripCnt(eTRIPCNT_A, &TripCnt);         /* copy to TripCnt A */
+                    Meas_SetDist_TripCnt(eTRIPCNT_B, &TripCnt);         /* copy to TripCnt B */
+                    Meas_SetDist_TripCnt(eTRIPCNT_A, &TripCnt);         /* copy to TripCnt A */
                     Beep_SignalOk();
                     LED_SignalOk();
                 }
@@ -633,11 +636,11 @@ ERRCODE TripCntDev_MsgEntry_Keys(MESSAGE GivenMsg)
                 ||(MSG_KEY_TRANSITION(GivenMsg) == KEYTRANS_ON      ) ) /* key repetition rate active? */
             {
                 UINT16 wIncrVal = TripCntDev_ExpSpeed(GivenMsg);        /* get incr value = f(key press duration) */
-                Meas_Get_TripCnt_Raw(eTRIPCNT_A, &TripCnt);                  /* get current trip counter value */
+                Meas_GetDist_TripCntRaw(eTRIPCNT_A, &TripCnt);                  /* get current trip counter value */
                 if ((TripCnt.dkm + wIncrVal) < DIST_MAX_VEHIC)          /* no overflow? */
                 {
                     TripCnt.dkm += wIncrVal;                            /* increment local copy */
-                    Meas_Set_TripCnt(eTRIPCNT_A, &TripCnt);             /* copy to TripCnt A */
+                    Meas_SetDist_TripCnt(eTRIPCNT_A, &TripCnt);             /* copy to TripCnt A */
                 }
             }
             break;
@@ -646,13 +649,13 @@ ERRCODE TripCntDev_MsgEntry_Keys(MESSAGE GivenMsg)
                 ||(MSG_KEY_TRANSITION(GivenMsg) == KEYTRANS_ON      ) ) /* key repetition rate active? */
             {
                 UINT16 wDecrValue = TripCntDev_ExpSpeed(GivenMsg);      /* get decr value = f(key press duration) */
-                Meas_Get_TripCnt_Raw(eTRIPCNT_A, &TripCnt);                              /* get current trip counter value */
+                Meas_GetDist_TripCntRaw(eTRIPCNT_A, &TripCnt);                              /* get current trip counter value */
                 if (wDecrValue > TripCnt.dkm)                           /* too big to decr? */
                     wDecrValue = TripCnt.dkm;                           /*-> clip to ensure reset to zero! */
                 if ((TripCnt.dkm - wDecrValue) <= TripCnt.dkm)          /* no underflow? */
                 {
                     TripCnt.dkm -= wDecrValue;                          /* decrement local copy */
-                    Meas_Set_TripCnt(eTRIPCNT_A, &TripCnt);             /* copy to TripCnt A */
+                    Meas_SetDist_TripCnt(eTRIPCNT_A, &TripCnt);             /* copy to TripCnt A */
                 }
             }
             break;

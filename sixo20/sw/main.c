@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.17  2012/06/03 17:45:17  tuberkel
+ * Updated API-Function-Name according to Modul-Name
+ *
  * Revision 3.16  2012/06/01 20:11:54  tuberkel
  * just comments
  *
@@ -306,7 +309,7 @@ int main()
     Error = LED_Init();             /* prepare led output ports & service */
     Error = Beep_Init();            /* prepare beeper output ports & service */
     Error = MsgQInit();             /* reset message queue */
-    Error = MeasDrvInit();          /* measurement init stuff (ta2, ta3, ta4, tb2, int1, int0) */
+    Error = MeasDrv_Init();          /* measurement init stuff (ta2, ta3, ta4, tb2, int1, int0) */
     Error = AnaInInit();            /* A/D converter for all measurements  */
     Error = Surv_Init();            /* vehicle surveillance */
 #if (COMPASSDRV==1)

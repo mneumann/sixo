@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.13  2012/06/03 17:45:17  tuberkel
+ * Updated API-Function-Name according to Modul-Name
+ *
  * Revision 3.12  2012/05/27 16:01:39  tuberkel
  * All Eeprom/Nvram Variables renamed
  *
@@ -698,8 +701,8 @@ void HWTDev_UpdMeas ( void )
     AnaInFormatVoltage    (AnaInGetAltwVoltage(),     szAltW,    sizeof(szVoltage));
 
     sprintf( szLDR,"%3u", AnaInGetLumiVal());
-    sprintf( szKmh,"%3u", MeasGetWheelSpeed(MR_KM_PER_H));
-    sprintf( szRPM,"%5u", MeasGetEngineSpeed(MR_RPM_R10));
+    sprintf( szKmh,"%3u", Meas_GetSpeed_Wheel(MR_KM_PER_H));
+    sprintf( szRPM,"%5u", Meas_GetSpeed_Engine(MR_RPM_R10));
 
     sprintf( szHWID, "%u", DigInDrv_GetHWVersion() );
     StatObj_HWVER.szText = szHWID;
@@ -826,26 +829,26 @@ void HWTDev_UpdStimErr( void )
 // we have a 'misterous factor 2' between MiniEmu and Not-MiniEmu-Version!
 #if(KD30_USED==1)
     // check vehicle speed in km/h
-    if (  (MeasGetWheelSpeed(MR_KM_PER_H) > 70 )
-        &&(MeasGetWheelSpeed(MR_KM_PER_H) < 85 ) )
+    if (  (Meas_GetSpeed_Wheel(MR_KM_PER_H) > 70 )
+        &&(Meas_GetSpeed_Wheel(MR_KM_PER_H) < 85 ) )
          StatObj_KMH.szText = szOk;
     else StatObj_KMH.szText = szErr;
 
     // check engine speed in km/h
-    if (  (MeasGetEngineSpeed(MR_RPM_R10) > 550 )
-        &&(MeasGetEngineSpeed(MR_RPM_R10) < 650 ) )
+    if (  (Meas_GetSpeed_Engine(MR_RPM_R10) > 550 )
+        &&(Meas_GetSpeed_Engine(MR_RPM_R10) < 650 ) )
          StatObj_RPM.szText = szOk;
     else StatObj_RPM.szText = szErr;
 #else
     // check vehicle speed in km/h
-    if (  (MeasGetWheelSpeed(MR_KM_PER_H) > 35 )
-        &&(MeasGetWheelSpeed(MR_KM_PER_H) < 40 ) )
+    if (  (Meas_GetSpeed_Wheel(MR_KM_PER_H) > 35 )
+        &&(Meas_GetSpeed_Wheel(MR_KM_PER_H) < 40 ) )
          StatObj_KMH.szText = szOk;
     else StatObj_KMH.szText = szErr;
 
     // check engine speed in km/h
-    if (  (MeasGetEngineSpeed(MR_RPM_R10) > 250 )
-        &&(MeasGetEngineSpeed(MR_RPM_R10) < 350 ) )
+    if (  (Meas_GetSpeed_Engine(MR_RPM_R10) > 250 )
+        &&(Meas_GetSpeed_Engine(MR_RPM_R10) < 350 ) )
          StatObj_RPM.szText = szOk;
     else StatObj_RPM.szText = szErr;
 #endif

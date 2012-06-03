@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.35  2012/06/03 17:45:18  tuberkel
+ * Updated API-Function-Name according to Modul-Name
+ *
  * Revision 3.34  2012/05/31 20:48:22  tuberkel
  * Fuel-Tank & Consumption enabled
  *
@@ -1214,7 +1217,7 @@ void SetDev_CheckChanges_Vehicle( void )
     // Vehicle Distance changed? -------------------
     if( VehicDist.km != dwVehicDist )
     {   VehicDist.km = dwVehicDist * 100L;      // give back km into dkm structure
-        Meas_Set_VehicDist( &VehicDist );       // save into system variable -> auto eeprom update!
+        Meas_SetDist_Vehicle( &VehicDist );       // save into system variable -> auto eeprom update!
     }
 
     // RPM flash setting changed? ------------------
@@ -1652,7 +1655,7 @@ void SetDev_ValuesUpdate(void)
 
     // vehicle km
     if (NumObj_VehicDist.State.bits.fEditActive == FALSE)
-    {   VehicDist = Meas_Get_VehicDist(MR_KM);          // get fresh value
+    {   VehicDist = Meas_GetDist_Vehicle(MR_KM);          // get fresh value
         dwVehicDist = VehicDist.km;                      // get km only
     }
 

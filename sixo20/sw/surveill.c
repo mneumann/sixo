@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.23  2012/06/03 17:45:18  tuberkel
+ * Updated API-Function-Name according to Modul-Name
+ *
  * Revision 3.22  2012/06/02 06:14:19  tuberkel
  * just file header comments
  *
@@ -385,8 +388,8 @@ void Surv_UpdateMeasData (void)
     iTempOil    = AnaInGetOilTemperature();   // if -ANAIN_TEMP_OFFSET -> not available!
     wBattSupply = AnaInGetVoltage();
     wAlternator = AnaInGetAltwVoltage();
-    wRPM        = MeasGetEngineSpeed(MR_RPM_R10);
-    wWheelSpeed = MeasGetWheelSpeed(MR_KM_PER_H);
+    wRPM        = Meas_GetSpeed_Engine(MR_RPM_R10);
+    wWheelSpeed = Meas_GetSpeed_Wheel(MR_KM_PER_H);
     TimeDate_GetTime( &ClockTime );           // get current RTC time
 }
 
@@ -605,7 +608,7 @@ void Surv_CheckService ( void )
     vstatelvl = eSURVST_OK;
 
     // check: current vehicle distance reached service intervall?
-    NV_VehicDist = Meas_Get_VehicDist( MR_KM );
+    NV_VehicDist = Meas_GetDist_Vehicle( MR_KM );
     if (  (EE_NextSrvKm.km != EE_NextSrvKm_def.km )      // check enabled?
         &&(EE_NextSrvKm.km <= NV_VehicDist.km       ) )    // exceeded distance?
         vstatelvl = eSURVST_WARNING;

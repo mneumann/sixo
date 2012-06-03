@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.4  2012/06/03 17:45:18  tuberkel
+ * Updated API-Function-Name according to Modul-Name
+ *
  * Revision 3.3  2012/02/04 22:25:49  tuberkel
  * LEDs renamed
  *
@@ -495,7 +498,7 @@ void msIntFunction(void)
 
     // DEBUG:
     //if (wMilliSecCounter % 200 == 0)
-        //ODS2(DBG_SYS, DBG_INFO, "WHEEL: %u   RPM: %u", MeasDrvGetWheelPeriod(), MeasDrvGetRPMPeriod() );
+        //ODS2(DBG_SYS, DBG_INFO, "WHEEL: %u   RPM: %u", MeasDrv_GetWheelPeriod(), MeasDrv_GetRPMPeriod() );
 }
 
 

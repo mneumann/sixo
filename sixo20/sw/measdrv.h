@@ -93,11 +93,12 @@
 
 
 /* public function prototypes */
-ERRCODE MeasDrvInit(void);
-ERRCODE MeasDrvInitWheel(void);
-ERRCODE MeasDrvInitRPM(void);
-UINT16 MeasDrvGetWheelPeriod(BOOL fCurrent);
-UINT16 MeasDrvGetRPMPeriod(BOOL fFast);
+ERRCODE MeasDrv_Init(void);
+ERRCODE MeasDrv_InitWheel(void);
+ERRCODE MeasDrv_InitRPM(void);
+UINT16  MeasDrv_GetWheelPeriod(BOOL fCurrent);
+UINT16  MeasDrv_GetRPMPeriod(BOOL fFast);
+
 void WheelSensor_ISR(void);
 void RPMSensor_ISR(void);
 
