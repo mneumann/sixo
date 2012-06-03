@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 1.3  2012/06/03 12:46:04  tuberkel
+ * Moved all Fuel-Formating from maindev.c ==> fuel.c
+ *
  * Revision 1.2  2012/06/03 11:41:14  tuberkel
  * Moved all Fuel-Calculations from maindev.c ==> fuel.c
  *
@@ -249,4 +252,115 @@ void Fuel_GetData (FUEL_DATASET_TYPE * pFuelDataSet)
     memcpy( pFuelDataSet, &sFuel, sizeof(FUEL_DATASET_TYPE) );
 }
     
+    
 
+/***********************************************************************
+ *  FUNCTION:       Fuel_GetFormatedString
+ *  DESCRIPTION:    Returns a formated string for the requested data
+ *  PARAMETER:      eChoice     indicator for requested data
+ *                  szDest      destination buffer to insert formated string
+ *                  bLen        max length of reqested string (incl. last '\x00)
+ *  RETURN:         -
+ *  COMMENT:        -
+ *********************************************************************** */
+void Fuel_GetFormStr (FUEL_SLCT eChoice, STRING szDest, UINT8 bLen )
+{      
+    /* check requested data */
+    switch (eChoice)
+    {       
+        /* -------------------------------------------------- */
+        case FS_DIST_EXH:  // Fuel Distance since last refuel (km) 
+        {
+            /* calculate & prepare fuel-distance since last refueling */
+            if  ( sFuel.dwDistExh_km <= 9999L )
+            {   sprintf( szDest,  "%4lu%s", sFuel.dwDistExh_km, RESTXT_DIST_DESC );                        
+            }
+            else
+            {   sprintf( szDest,  "9999%s", RESTXT_DIST_DESC );                        
+            }
+            
+        } break;
+    
+        /* -------------------------------------------------- */
+        case FS_DIST_REM:  // Fuel Distance until next refuel (km)   
+        {
+            /* calculate & prepare fuel-distance since last refueling */
+            if ( sFuel.dwDistRem_km <= 9999L )
+            {   sprintf( szDest,  "%4lu%s", sFuel.dwDistRem_km, RESTXT_DIST_DESC );                        
+            }
+            else
+            {   sprintf( szDest,  "9999%s", RESTXT_DIST_DESC );                        
+            }                        
+        } break;
+    
+        /* -------------------------------------------------- */
+        case FS_FUEL_EXH:  // Fuel exhaustion (ml)
+        {
+            UINT8  bFuelExhaust_l;          // Fuel exhaustion - left comma part (liters only)
+            UINT8  bFuelExhaust_dl;         // Fuel exhaustion - right comma part (deziliters only)                    
+        
+            // prepare parts to be displayed
+            bFuelExhaust_l   = (UINT8)(  sFuel.dwFuelExh_ml / LITER2ML );
+            bFuelExhaust_dl  = (UINT8)(( sFuel.dwFuelExh_ml - ((UINT32)bFuelExhaust_l * LITER2ML) )/100 );        
+
+            /* prepare fuel-liters since last refueling */
+            if ( bFuelExhaust_l <= 99 )
+            {   sprintf( szDest, "%2u%c%1ul", bFuelExhaust_l, RESTXT_DEC_SEPARATOR, bFuelExhaust_dl );            
+            }
+            else
+            {   sprintf( szDest, "99%c9l", RESTXT_DEC_SEPARATOR );            
+            }                        
+        } break;
+    
+        /* -------------------------------------------------- */
+        case FS_FUEL_REM:  // Fuel Remaining (ml)
+        {
+            UINT8  bFuelRemain_l;           // Fuel Remaining - left comma part (liters only)
+            UINT8  bFuelRemain_dl;          // Fuel Remaining - right comma part (deziliters only)            
+            
+            // prepare parts to be displayed
+            bFuelRemain_l   = (UINT8)(  sFuel.dwFuelRem_ml / LITER2ML );
+            bFuelRemain_dl  = (UINT8)(( sFuel.dwFuelRem_ml - ((UINT32)bFuelRemain_l * LITER2ML) )/100);        
+
+            /* prepare fuel-liters since last refueling */
+            if ( bFuelRemain_l <= 99 )
+            {   sprintf( szDest, "%2u%c%1ul", bFuelRemain_l, RESTXT_DEC_SEPARATOR, bFuelRemain_dl );            
+            }
+            else
+            {   sprintf( szDest, "99%c9l", RESTXT_DEC_SEPARATOR );            
+            }
+            
+        } break;
+    
+        /* -------------------------------------------------- */
+        case FS_CONS_ACT:  // if FuelSensor available: Actuel  Fuel Consumption (ml/100km)
+        {
+            UINT8  bConsAct_l_100;      // Actuel Fuel Consumption - left comma part (liters/100 km only)
+            UINT8  bConsAct_dl_100;     // Actuel Fuel Consumption - right comma part (dl/100 km only)                   
+            
+            /* prepare actual consumption */
+            sprintf( szDest, "--,-" );   // not yet used
+            //sprintf( szDest, "%2u%c%1u", bFuelCons_Liter, RESTXT_DEC_SEPARATOR, wFuelCons_ml );
+            
+        } break;
+    
+        /* -------------------------------------------------- */
+        case FS_CONS_AVR:  // if FuelSensor available: Average Fuel Consumption (ml/100km)
+        {
+            UINT8  bConsAvr_l_100;      // Average Fuel Consumption - left comma part (liters/100 km only)
+            UINT8  bConsAvr_dl_100;     // Average Fuel Consumption - right comma part (dl/100 km only)                   
+
+            /* prepare average consumption */
+            bConsAvr_l_100  = (UINT8)(   sFuel.dwConsAvr_ml_100 / LITER2ML );
+            bConsAvr_dl_100 = (UINT8)( ( sFuel.dwConsAvr_ml_100 - ((UINT32)bConsAvr_l_100 * LITER2ML)) / DL2ML );
+            sprintf( szDest, "\xf8%2u%c%1u", bConsAvr_l_100, RESTXT_DEC_SEPARATOR, bConsAvr_dl_100 );                                               
+        } break;
+    
+        /* -------------------------------------------------- */
+        default: szDest[0] = 'x'; break;   // Parameter error!
+    }
+}
+
+
+
+        

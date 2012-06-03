@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.44  2012/06/03 12:46:04  tuberkel
+ * Moved all Fuel-Formating from maindev.c ==> fuel.c
+ *
  * Revision 3.43  2012/06/03 11:41:14  tuberkel
  * Moved all Fuel-Calculations from maindev.c ==> fuel.c
  *
@@ -1998,11 +2001,9 @@ void MainDev_UpdTimeDate(void)
  *                  position.
  *********************************************************************** */
 void MainDev_UpdMeas_Fuel(void)
-{           
-    FUEL_DATASET_TYPE   sFuel;
-    
-    /* retrieve a local copy of the complete fuel data set */
-    Fuel_GetData ( &sFuel );
+{              
+    /* asssure fresh fuel measurement update  */
+    Fuel_UpdMeas();
    
     /* check current display state */
     switch (MDObj.wDevState)
@@ -2011,30 +2012,11 @@ void MainDev_UpdMeas_Fuel(void)
         /* update distance & liters SINCE LAST refuel */
         case MD_FUEL_FROM:
         {
-            UINT8  bFuelExhaust_l;          // Fuel exhaustion - left comma part (liters only)
-            UINT8  bFuelExhaust_dl;         // Fuel exhaustion - right comma part (deziliters only)                    
-        
-            // prepare parts to be displayed
-            bFuelExhaust_l   = (UINT8)(  sFuel.dwFuelExh_ml / LITER2ML );
-            bFuelExhaust_dl  = (UINT8)(( sFuel.dwFuelExh_ml - ((UINT32)bFuelExhaust_l * LITER2ML) )/100 );        
-
-            /* prepare fuel-liters since last refueling */
-            if ( bFuelExhaust_l <= 99 )
-            {   sprintf( szFuelLiter, "%2u%c%1ul", bFuelExhaust_l, RESTXT_DEC_SEPARATOR, bFuelExhaust_dl );            
-            }
-            else
-            {   sprintf( szFuelLiter, "%--%c-l", RESTXT_DEC_SEPARATOR );            
-            }            
-
-            /* calculate & prepare fuel-distance since last refueling */
-            if ( sFuel.dwDistExh_km <= 9999L )
-            {   sprintf( szFuelDist,  "%4lu%s", sFuel.dwDistExh_km, RESTXT_DIST_DESC );                        
-            }
-            else
-            {   sprintf( szFuelDist,  " ---%s", RESTXT_DIST_DESC );                        
-            }
+            /* get a fresh & formated fuel distance/liters since LAST refueling */
+            Fuel_GetFormStr( FS_FUEL_EXH, szFuelLiter, 5 ); // incl. 'l'
+            Fuel_GetFormStr( FS_DIST_EXH, szFuelDist,  6 ); // incl. 'km'
             
-            /* assure position of fuel icon & arrow right for this mode */
+            /* arrange fuel & arrow icon for this mode */
             FuelBmpObj.Org.wXPos        = 0;    // Fuel icon left
             FuelArrowRTxtObj.Org.wXPos  = 18;   // Arrow right of icon
         } break;                
@@ -2043,28 +2025,9 @@ void MainDev_UpdMeas_Fuel(void)
         /* update distance & liters UNTIL NEXT refuel */            
         case MD_FUEL_TO:
         {
-            UINT8  bFuelRemain_l;           // Fuel Remaining - left comma part (liters only)
-            UINT8  bFuelRemain_dl;          // Fuel Remaining - right comma part (deziliters only)            
-            
-            // prepare parts to be displayed
-            bFuelRemain_l   = (UINT8)(  sFuel.dwFuelRem_ml / LITER2ML );
-            bFuelRemain_dl  = (UINT8)(( sFuel.dwFuelRem_ml - ((UINT32)bFuelRemain_l * LITER2ML) )/100);        
-
-            /* prepare fuel-liters since last refueling */
-            if ( bFuelRemain_l <= 99 )
-            {   sprintf( szFuelLiter, "%2u%c%1ul", bFuelRemain_l, RESTXT_DEC_SEPARATOR, bFuelRemain_dl );            
-            }
-            else
-            {   sprintf( szFuelLiter, "%--%c-l", RESTXT_DEC_SEPARATOR );            
-            }
-            
-            /* calculate & prepare fuel-distance since last refueling */
-            if ( sFuel.dwDistRem_km <= 9999 )
-            {   sprintf( szFuelDist,  "%4lu%s", sFuel.dwDistRem_km, RESTXT_DIST_DESC );                        
-            }
-            else
-            {   sprintf( szFuelDist,  " ---%s", RESTXT_DIST_DESC );                        
-            }
+            /* get a fresh & formated fuel distance/liters to NEXT refueling */
+            Fuel_GetFormStr( FS_FUEL_REM, szFuelLiter, 5 ); // incl. 'l'
+            Fuel_GetFormStr( FS_DIST_REM, szFuelDist,  6 ); // incl. 'km'
             
             /* update position of fuel icon & arrow */
             FuelArrowRTxtObj.Org.wXPos  = 0;            
@@ -2075,29 +2038,11 @@ void MainDev_UpdMeas_Fuel(void)
         /* update fuel consumption (only if fuel sensor available) */            
         case MD_FUEL_CONS:
         {                          
-            /* check: FuelSensor available? */
-            if ( sFuel.fSensorAvail == TRUE ) 
-            {                          
-                UINT8  bConsAvr_l_100;      // Average Fuel Consumption - left comma part (liters/100 km only)
-                UINT8  bConsAvr_dl_100;     // Average Fuel Consumption - right comma part (dl/100 km only)                   
-                UINT8  bConsAct_l_100;      // Actuel Fuel Consumption - left comma part (liters/100 km only)
-                UINT8  bConsAct_dl_100;     // Actuel Fuel Consumption - right comma part (dl/100 km only)                   
-
-                /* prepare average consumption */
-                bConsAvr_l_100  = (UINT8)( sFuel.dwConsAvr_ml_100 / LITER2ML );
-                bConsAvr_dl_100 = (UINT8)( ( sFuel.dwConsAvr_ml_100 - ((UINT32)bConsAvr_l_100 * LITER2ML)) / DL2ML );
-                sprintf( szFuelConsAvr, "\xf8%2u%c%1u", bConsAvr_l_100, RESTXT_DEC_SEPARATOR, bConsAvr_dl_100 );                    
-                
-                /* prepare actual consumption */
-                sprintf( szFuelConsAct, "--,-" );   // not yet used
-                //sprintf( szFuelConsAct, "%2u%c%1u", bFuelCons_Liter, RESTXT_DEC_SEPARATOR, wFuelCons_ml );
-            }            
-            else
-            {   // MD_FUEL_CONS will not get called if 
-                // (EE_FuelSensCtrl.flags.FuelSAvail == FALSE)
-            }            
+            /* get a fresh & formated consumption value (NOT includiding 'l/100'!) */
+            Fuel_GetFormStr( FS_CONS_ACT, szFuelConsAct, 4 );
+            Fuel_GetFormStr( FS_CONS_AVR, szFuelConsAvr, 5 );   // incl. leading 'ø'
             
-            /* assure correct position of fuel icon (arrow-Object not in obj-list)*/
+            /* update position of fuel icon (arrow-icon NOT in current obj-list!)*/
             FuelBmpObj.Org.wXPos = 0;                                         
         } break;
         

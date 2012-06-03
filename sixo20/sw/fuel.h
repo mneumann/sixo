@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 1.3  2012/06/03 12:46:04  tuberkel
+ * Moved all Fuel-Formating from maindev.c ==> fuel.c
+ *
  * Revision 1.2  2012/06/03 11:41:14  tuberkel
  * Moved all Fuel-Calculations from maindev.c ==> fuel.c
  *
@@ -101,10 +104,24 @@ typedef struct
 } FUEL_DATASET_TYPE;
 
 
+/* to select a calculated fuel data */
+typedef enum
+{   
+    FS_DIST_EXH,                // Fuel Distance since last refuel (km)
+    FS_DIST_REM,                // Fuel Distance until next refuel (km)   
+    FS_FUEL_EXH,                // Fuel exhaustion (ml)
+    FS_FUEL_REM,                // Fuel Remaining (ml)
+                                
+                                // only valid, if FuelSensor available:
+    FS_CONS_ACT,                // Actuel  Fuel Consumption (ml/100km, only valid)
+    FS_CONS_AVR                 // Average Fuel Consumption (ml/100km)
+} FUEL_SLCT; 
+
+
 /* public prototypes */
 void    Fuel_UpdMeas        (void);
 void    Fuel_GetData        (FUEL_DATASET_TYPE * sFuelDataSet);
-
+void    Fuel_GetFormStr     (FUEL_SLCT eChoice, STRING szDest, UINT8 bLen );
 
 /* public defines */
 #define LITER2ML    1000L       /* helper to convert ml <=> 1/1  Liter */
