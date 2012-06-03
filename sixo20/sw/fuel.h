@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 1.2  2012/06/03 11:41:14  tuberkel
+ * Moved all Fuel-Calculations from maindev.c ==> fuel.c
+ *
  * Revision 1.1  2012/06/03 07:59:34  tuberkel
  * added to cvs
  *
@@ -81,9 +84,31 @@
 
 
 
+/* Fuel Data Structure bundle */
+typedef struct 
+{
+    UINT32 dwConsAct_ml_100;    // Actuel  Fuel Consumption (ml/100km)
+    UINT32 dwConsAvr_ml_100;    // Average Fuel Consumption (ml/100km)
+    UINT32 dwFuelExh_ml;        // Fuel exhaustion (ml)
+    UINT32 dwFuelRem_ml;        // Fuel Remaining (ml)
+    UINT32 dwDistExh_km;        // Fuel Distance since last refuel (km)
+    UINT32 dwDistRem_km;        // Fuel Distance until next refuel (km)
+    BOOL   fSensorAvail;        // FuelSensor available (just a copy for easier use)
+    UINT32 dwImpRate;           // FuelSensor Impulsrate (Impulses/Liter)
+    UINT32 dwImpulses;          // FuelSensor Impulses 
+    UINT32 dwCapacity_ml;       // FuelCapacity (ml)
+    UINT32 dwConsUsr_ml_100;    // User given Fuel Consumption (ml/100km)
+} FUEL_DATASET_TYPE;
 
-#define LITER2ML    1000L                       /* helper to convert ml <=> 1/1  Liter */
-#define DL2ML       100L                        /* helper to convert ml <=> 1/10 Liter */
+
+/* public prototypes */
+void    Fuel_UpdMeas        (void);
+void    Fuel_GetData        (FUEL_DATASET_TYPE * sFuelDataSet);
+
+
+/* public defines */
+#define LITER2ML    1000L       /* helper to convert ml <=> 1/1  Liter */
+#define DL2ML       100L        /* helper to convert ml <=> 1/10 Liter */
 
 
 #endif // _FUEL_H
