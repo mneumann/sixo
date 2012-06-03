@@ -68,6 +68,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 1.4  2012/06/03 20:37:39  tuberkel
+ * - Prepared for 'Actual l/100' and 'l/h'
+ * - not yet usable
+ *
  * Revision 1.3  2012/06/03 12:46:04  tuberkel
  * Moved all Fuel-Formating from maindev.c ==> fuel.c
  *
@@ -118,7 +122,7 @@ FUEL_DATASET_TYPE   sFuel;
 
 // ------------------------------------------------------
 /* local define */
-
+#define FUEL_ACT_DELAY  1000    // delay between actual calculation in ms
 
 
 
@@ -133,57 +137,57 @@ FUEL_DATASET_TYPE   sFuel;
  *                  using one of the API functions to return result.
  *
  *                  'GPIx.dwLHCounter' has been initilized by NVRAM value at init time
- *                  'NV_FuelSensImp' is implicitely saved back into NVRAM 
+ *                  'NV_FuelSensImp' is implicitely saved back into NVRAM
  *                  (for next init time)
  *
  *                  If FuelSensor is available and fuel is consumed - but
- *                  wheel stands still - we change the view from 
+ *                  wheel stands still - we change the view from
  *                  'l/100km' to 'l/Min' by simply exhanging the icons.
  *********************************************************************** */
 void Fuel_UpdMeas(void)
-{   
+{
     /* Update the NVRAM value of FuelSensor-Impulses (see note above) */
     NV_FuelSensImp = DigInDrv_GPI_GetMeas(EE_FuelSensCtrl.flags.FuelSGPI)->dwLHCounter;
-    
+
     /* get a fresh copy of EEPROM/NVRAM values (might have been changed) */
     sFuel.fSensorAvail      =         EE_FuelSensCtrl.flags.FuelSAvail;
-    sFuel.dwImpRate         = (UINT32)EE_FuelSensCtrl.FuelSImpulseRate;    
+    sFuel.dwImpRate         = (UINT32)EE_FuelSensCtrl.FuelSImpulseRate;
     sFuel.dwCapacity_ml     = (UINT32)EE_FuelCap      * DL2ML ;
-    sFuel.dwConsUsr_ml_100  = (UINT32)EE_FuelConsUser * DL2ML ;    
-    sFuel.dwDistExh_km      = Meas_Get_FuelDist(MR_KM_ONLY);
-    sFuel.dwImpulses        = NV_FuelSensImp;   
+    sFuel.dwConsUsr_ml_100  = (UINT32)EE_FuelConsUser * DL2ML ;
+    sFuel.dwDistExh_km      = Meas_GetDist_Fuel(MR_KM_ONLY);
+    sFuel.dwImpulses        = NV_FuelSensImp;
 
-    /* ============================================================= */    
-    /* calculate ABSOLUTE FUEL EXHAUSTION (dwFuelExh_ml, Milliliter):    
-        Fuel(Exh, Liter) = SumOfImpulses (Imp) / Impulsrate (Imp/Liter) */       
-    /* ============================================================= */            
-    
+    /* ============================================================= */
+    /* calculate ABSOLUTE FUEL EXHAUSTION (dwFuelExh_ml, Milliliter):
+        Fuel(Exh, Liter) = SumOfImpulses (Imp) / Impulsrate (Imp/Liter) */
+    /* ============================================================= */
+
     /* check: FuelSensor available? */
-    if ( sFuel.fSensorAvail == TRUE ) 
-    {                                        
+    if ( sFuel.fSensorAvail == TRUE )
+    {
         /* convert FuelImpulses into exhausted fuel ('Liters.DeziLiters', prevent division by zero)*/
         if ( sFuel.dwImpRate > 0 )
         {   sFuel.dwFuelExh_ml = (LITER2ML * sFuel.dwImpulses) / sFuel.dwImpRate;
         }
         else
         {   sFuel.dwFuelExh_ml = 0L;   // invalid user FuelSImpulseRate!
-        }           
+        }
     }
     else
-    {   /* NON-SENSOR-VERSION: calculate fuel exhaustion based on user given l/100 (prevent disivion by zero)*/ 
+    {   /* NON-SENSOR-VERSION: calculate fuel exhaustion based on user given l/100 (prevent disivion by zero)*/
         if ( sFuel.dwDistExh_km > 0 )
-        {   sFuel.dwFuelExh_ml = (sFuel.dwConsUsr_ml_100 * sFuel.dwDistExh_km) / 100L;        
+        {   sFuel.dwFuelExh_ml = (sFuel.dwConsUsr_ml_100 * sFuel.dwDistExh_km) / 100L;
         }
         else
         {   sFuel.dwFuelExh_ml = 0L;   // not yet calculable!!
-        }                   
+        }
     }
-    
-    /* ============================================================= */    
-    /* calculate REMAINING FUEL dwFuelRem_ml (Milliliter, if valid parameters available)        
-        Fuel(remain. Liter) = Fuel(Capacity, Liter) - Fuel(Exhaust, Liter) */        
-    /* ============================================================= */      
-          
+
+    /* ============================================================= */
+    /* calculate REMAINING FUEL dwFuelRem_ml (Milliliter, if valid parameters available)
+        Fuel(remain. Liter) = Fuel(Capacity, Liter) - Fuel(Exhaust, Liter) */
+    /* ============================================================= */
+
     /* check: valid input data available? */
     if ( sFuel.dwCapacity_ml > sFuel.dwFuelExh_ml )     // assure a positive result!
     {   sFuel.dwFuelRem_ml = sFuel.dwCapacity_ml - sFuel.dwFuelExh_ml;
@@ -192,41 +196,112 @@ void Fuel_UpdMeas(void)
     {   sFuel.dwFuelRem_ml = 0L;           // not yet calculable!
     }
 
-    /* ============================================================= */    
-    /* calculate AVERAGE FUEL CONSUMPTION (ml/100km):    
+    /* ============================================================= */
+    /* calculate AVERAGE FUEL CONSUMPTION (ml/100km):
         Fuel(ConsAverage, ml/100km) = 100 * Fuel(Exh, ml) / Dist(Exh, km) */
-    /* ============================================================= */    
-    
+    /* ============================================================= */
+
     /* check: FuelSensor available? */
-    if ( sFuel.fSensorAvail == TRUE ) 
-    {    
+    if ( sFuel.fSensorAvail == TRUE )
+    {
         if (  ( sFuel.dwDistExh_km > 0 )
             &&( sFuel.dwFuelExh_ml  > 0 ) )
         {   sFuel.dwConsAvr_ml_100 = (100L * sFuel.dwFuelExh_ml) / sFuel.dwDistExh_km;
         }
         else
         {   /* not yet calcuable => use user given default value */
-            sFuel.dwConsAvr_ml_100 = sFuel.dwConsUsr_ml_100;      
-        }                
+            sFuel.dwConsAvr_ml_100 = sFuel.dwConsUsr_ml_100;
+        }
     }
     else
     {   /* NON-SENSOR-VERSION: use user given fixed value instead */
-        sFuel.dwConsAvr_ml_100 = sFuel.dwConsUsr_ml_100;      
-    }                
-        
-    /* ============================================================= */    
-    /* calculate REMAINING DISTANCE (km, if valid parameters available)   
+        sFuel.dwConsAvr_ml_100 = sFuel.dwConsUsr_ml_100;
+    }
+
+    /* ============================================================= */
+    /* calculate REMAINING DISTANCE (km, if valid parameters available)
         Dist(Remain) = 100 * Fuel(Remain, ml) / Fuel(ConsAverage, ml/100km) */
-    /* ============================================================= */    
-    
-    /* check input parameters first */    
+    /* ============================================================= */
+
+    /* check input parameters first */
     if (  ( sFuel.dwConsAvr_ml_100 > 0 )
         &&( sFuel.dwFuelRem_ml  > 0 ) )
     {   sFuel.dwDistRem_km = (100L * sFuel.dwFuelRem_ml)  / sFuel.dwConsAvr_ml_100;
     }
     else
     {   sFuel.dwDistRem_km = 0;
-    }                       
+    }
+
+    /* ============================================================= */
+    /* calculate ACTUAL FUEL CONSUMPTION (ml/100km OR ml/Min): */
+    /* ============================================================= */
+
+    /* check: FuelSensor available? */
+    if ( sFuel.fSensorAvail == TRUE )
+    {
+        /* get basic calculation/comparison values */
+        UINT16 wThisTime_ms      = wMilliSecCounter;
+        UINT32 dwThisSample_Imp  = sFuel.dwImpulses;
+        UINT32 dwThisDist_m      = Meas_GetDist_Vehicle(MR_DKM).dkm * 10;
+
+        /* check: this is the FIRST time we are sampling? */
+        if (sFuel.dwLastDist_m == 0L)
+        {
+            /* take a first sample of values and return */
+            sFuel.wLastTime_ms      = wThisTime_ms;
+            sFuel.dwLastSample_Imp  = dwThisSample_Imp;
+            sFuel.dwLastDist_m      = dwThisDist_m;
+
+            /* no result yet available */
+            sFuel.dwConsAct_ml_100  = 0L;
+            sFuel.dwConsAct_ml_Min  = 0L;
+        }
+        else
+        {   /* first check input parameters: consumption & distance */
+            UINT16 wDiffTime_ms = wThisTime_ms - sFuel.wLastTime_ms;
+            UINT32 dwImpulses   = dwThisSample_Imp - sFuel.dwLastSample_Imp;
+            UINT32 dwDist_m     = dwThisDist_m     - sFuel.dwLastDist_m;
+            UINT32 dwFuel_ml    = (LITER2ML * dwImpulses) / sFuel.dwImpRate;
+
+            /* check: Enough time delay for accurate calculations? */
+            if ( FUEL_ACT_DELAY > wDiffTime_ms )
+            {   /* nothing to do now, wait for next call */
+            }
+            else
+            {   /* check: Any fuel consumption? */
+                if ( 0L == dwFuel_ml )
+                {   /* no fuel consumption -> no result yet available */
+                    sFuel.dwConsAct_ml_100 = 0L;
+                    sFuel.dwConsAct_ml_Min = 0L;
+                }
+                else
+                {   /* check: any vehicle movement? */
+                    if ( 0L == dwDist_m )
+                    {   /* No movement -> calculate 'ml/Min' (=> l/Min) */
+                        sFuel.dwConsAct_ml_Min = (dwFuel_ml * 1000L * 60L) / wDiffTime_ms;
+                        sFuel.dwConsAct_ml_100 = 0L;
+                    }
+                    else
+                    {   /* We have movement -> calculate actual 'ml/100km' */
+                        sFuel.dwConsAct_ml_100 = (dwFuel_ml * 100L) / dwDist_m;
+                        sFuel.dwConsAct_ml_Min = 0L;
+                    } // of dwDist_m
+                } // of dwFuel_ml
+
+                /* all done, update static values for next use */
+                sFuel.wLastTime_ms      = wThisTime_ms;
+                sFuel.dwLastSample_Imp  = dwThisSample_Imp;
+                sFuel.dwLastDist_m      = dwThisDist_m;
+
+            } // of wTime
+        } // of sFuel.dwLastDist_m
+    } // o fsFuel.fSensorAvail
+    else
+    {   /* NON-SENSOR-VERSION: use user given fixed value instead */
+        sFuel.dwConsAct_ml_100 = sFuel.dwConsUsr_ml_100;
+    }
+
+
 }
 
 
@@ -235,7 +310,7 @@ void Fuel_UpdMeas(void)
 
 /***********************************************************************
  *  FUNCTION:       Fuel_GetData
- *  DESCRIPTION:    Returns a copy of complete fuel data set 
+ *  DESCRIPTION:    Returns a copy of complete fuel data set
  *  PARAMETER:      dwImpulseRate   fuel sensor impulsrate (Imp/L)
  *                  dwImpulses      fuel sensor impulses
  *                  0               if not calculable
@@ -244,15 +319,15 @@ void Fuel_UpdMeas(void)
  *                  retrieving a copy of this data set.
  *********************************************************************** */
 void Fuel_GetData (FUEL_DATASET_TYPE * pFuelDataSet)
-{    
+{
     /* assure fresh calculated data before returning them */
     Fuel_UpdMeas();
-    
+
     /* simply copy our local data */
     memcpy( pFuelDataSet, &sFuel, sizeof(FUEL_DATASET_TYPE) );
 }
-    
-    
+
+
 
 /***********************************************************************
  *  FUNCTION:       Fuel_GetFormatedString
@@ -264,98 +339,125 @@ void Fuel_GetData (FUEL_DATASET_TYPE * pFuelDataSet)
  *  COMMENT:        -
  *********************************************************************** */
 void Fuel_GetFormStr (FUEL_SLCT eChoice, STRING szDest, UINT8 bLen )
-{      
+{
     /* check requested data */
     switch (eChoice)
-    {       
+    {
         /* -------------------------------------------------- */
-        case FS_DIST_EXH:  // Fuel Distance since last refuel (km) 
+        case FS_DIST_EXH:  // Fuel Distance since last refuel (km)
         {
             /* calculate & prepare fuel-distance since last refueling */
             if  ( sFuel.dwDistExh_km <= 9999L )
-            {   sprintf( szDest,  "%4lu%s", sFuel.dwDistExh_km, RESTXT_DIST_DESC );                        
+            {   sprintf( szDest,  "%4lu%s", sFuel.dwDistExh_km, RESTXT_DIST_DESC );
             }
             else
-            {   sprintf( szDest,  "9999%s", RESTXT_DIST_DESC );                        
+            {   sprintf( szDest,  "9999%s", RESTXT_DIST_DESC );
             }
-            
+
         } break;
-    
+
         /* -------------------------------------------------- */
-        case FS_DIST_REM:  // Fuel Distance until next refuel (km)   
+        case FS_DIST_REM:  // Fuel Distance until next refuel (km)
         {
             /* calculate & prepare fuel-distance since last refueling */
             if ( sFuel.dwDistRem_km <= 9999L )
-            {   sprintf( szDest,  "%4lu%s", sFuel.dwDistRem_km, RESTXT_DIST_DESC );                        
+            {   sprintf( szDest,  "%4lu%s", sFuel.dwDistRem_km, RESTXT_DIST_DESC );
             }
             else
-            {   sprintf( szDest,  "9999%s", RESTXT_DIST_DESC );                        
-            }                        
+            {   sprintf( szDest,  "9999%s", RESTXT_DIST_DESC );
+            }
         } break;
-    
+
         /* -------------------------------------------------- */
-        case FS_FUEL_EXH:  // Fuel exhaustion (ml)
+        case FS_FUEL_EXH:  // Fuel exhaustion (ml) */
         {
             UINT8  bFuelExhaust_l;          // Fuel exhaustion - left comma part (liters only)
-            UINT8  bFuelExhaust_dl;         // Fuel exhaustion - right comma part (deziliters only)                    
-        
-            // prepare parts to be displayed
-            bFuelExhaust_l   = (UINT8)(  sFuel.dwFuelExh_ml / LITER2ML );
-            bFuelExhaust_dl  = (UINT8)(( sFuel.dwFuelExh_ml - ((UINT32)bFuelExhaust_l * LITER2ML) )/100 );        
+            UINT8  bFuelExhaust_dl;         // Fuel exhaustion - right comma part (deziliters only)
+
+            /* prepare parts to be displayed (add 1/2 resolution to prevent rounding error) */
+            bFuelExhaust_l   = (UINT8)( (sFuel.dwFuelExh_ml + 500) / LITER2ML );
+            bFuelExhaust_dl  = (UINT8)(((sFuel.dwFuelExh_ml +  50) - ((UINT32)bFuelExhaust_l * LITER2ML) )/100 );
 
             /* prepare fuel-liters since last refueling */
             if ( bFuelExhaust_l <= 99 )
-            {   sprintf( szDest, "%2u%c%1ul", bFuelExhaust_l, RESTXT_DEC_SEPARATOR, bFuelExhaust_dl );            
+            {   sprintf( szDest, "%2u%c%1ul", bFuelExhaust_l, RESTXT_DEC_SEPARATOR, bFuelExhaust_dl );
             }
             else
-            {   sprintf( szDest, "99%c9l", RESTXT_DEC_SEPARATOR );            
-            }                        
+            {   sprintf( szDest, "99%c9l", RESTXT_DEC_SEPARATOR );
+            }
         } break;
-    
+
         /* -------------------------------------------------- */
         case FS_FUEL_REM:  // Fuel Remaining (ml)
         {
             UINT8  bFuelRemain_l;           // Fuel Remaining - left comma part (liters only)
-            UINT8  bFuelRemain_dl;          // Fuel Remaining - right comma part (deziliters only)            
-            
-            // prepare parts to be displayed
-            bFuelRemain_l   = (UINT8)(  sFuel.dwFuelRem_ml / LITER2ML );
-            bFuelRemain_dl  = (UINT8)(( sFuel.dwFuelRem_ml - ((UINT32)bFuelRemain_l * LITER2ML) )/100);        
+            UINT8  bFuelRemain_dl;          // Fuel Remaining - right comma part (deziliters only)
+
+            /* prepare parts to be displayed (add 1/2 resolution to prevent rounding error) */
+            bFuelRemain_l   = (UINT8)( (sFuel.dwFuelRem_ml + 500) / LITER2ML );
+            bFuelRemain_dl  = (UINT8)(((sFuel.dwFuelRem_ml +  50) - ((UINT32)bFuelRemain_l * LITER2ML) )/100);
 
             /* prepare fuel-liters since last refueling */
             if ( bFuelRemain_l <= 99 )
-            {   sprintf( szDest, "%2u%c%1ul", bFuelRemain_l, RESTXT_DEC_SEPARATOR, bFuelRemain_dl );            
+            {   sprintf( szDest, "%2u%c%1ul", bFuelRemain_l, RESTXT_DEC_SEPARATOR, bFuelRemain_dl );
             }
             else
-            {   sprintf( szDest, "99%c9l", RESTXT_DEC_SEPARATOR );            
+            {   sprintf( szDest, "99%c9l", RESTXT_DEC_SEPARATOR );
             }
-            
+
         } break;
-    
+
         /* -------------------------------------------------- */
-        case FS_CONS_ACT:  // if FuelSensor available: Actuel  Fuel Consumption (ml/100km)
+        case FS_CONS_ACT_KM:  // Actuel Fuel Consumption (ml/100km)
         {
             UINT8  bConsAct_l_100;      // Actuel Fuel Consumption - left comma part (liters/100 km only)
-            UINT8  bConsAct_dl_100;     // Actuel Fuel Consumption - right comma part (dl/100 km only)                   
-            
-            /* prepare actual consumption */
-            sprintf( szDest, "--,-" );   // not yet used
-            //sprintf( szDest, "%2u%c%1u", bFuelCons_Liter, RESTXT_DEC_SEPARATOR, wFuelCons_ml );
-            
+            UINT8  bConsAct_dl_100;     // Actuel Fuel Consumption - right comma part (dl/100 km only)
+
+            /* prepare actual consumption (add 1/2 resolution to prevent rounding error) */
+            bConsAct_l_100  = (UINT8)(  (sFuel.dwConsAct_ml_100 + 500) / LITER2ML );
+            bConsAct_dl_100 = (UINT8)( ((sFuel.dwConsAct_ml_100 +  50) - ((UINT32)bConsAct_l_100 * LITER2ML)) / DL2ML );
+            if ( bConsAct_l_100 <= 99 )
+            {   sprintf( szDest, "%2u%c%1u", bConsAct_l_100, RESTXT_DEC_SEPARATOR, bConsAct_dl_100 );
+            }
+            else
+            {   sprintf( szDest, "99%c9", RESTXT_DEC_SEPARATOR );
+            }
         } break;
-    
+
         /* -------------------------------------------------- */
-        case FS_CONS_AVR:  // if FuelSensor available: Average Fuel Consumption (ml/100km)
+        case FS_CONS_ACT_MIN:  // Actuel Fuel Consumption (ml/Min)
+        {
+            UINT8  bConsAct_l_Min;      // Actuel Fuel Consumption - left comma part (liters/Min only)
+            UINT8  bConsAct_dl_Min;     // Actuel Fuel Consumption - right comma part (dl/Min only)
+
+            /* prepare actual consumption (add 1/2 resolution to prevent rounding error) */
+            bConsAct_l_Min  = (UINT8)(  (sFuel.dwConsAct_ml_Min + 500) / LITER2ML );
+            bConsAct_dl_Min = (UINT8)( ((sFuel.dwConsAct_ml_Min +  50) - ((UINT32)bConsAct_l_Min * LITER2ML)) / DL2ML );
+            if ( bConsAct_l_Min <= 99 )
+            {   sprintf( szDest, "%2u%c%1u", bConsAct_l_Min, RESTXT_DEC_SEPARATOR, bConsAct_dl_Min );
+            }
+            else
+            {   sprintf( szDest, "99%c9", RESTXT_DEC_SEPARATOR );
+            }
+        } break;
+
+        /* -------------------------------------------------- */
+        case FS_CONS_AVR:  // Average Fuel Consumption (ml/100km)
         {
             UINT8  bConsAvr_l_100;      // Average Fuel Consumption - left comma part (liters/100 km only)
-            UINT8  bConsAvr_dl_100;     // Average Fuel Consumption - right comma part (dl/100 km only)                   
+            UINT8  bConsAvr_dl_100;     // Average Fuel Consumption - right comma part (dl/100 km only)
 
             /* prepare average consumption */
-            bConsAvr_l_100  = (UINT8)(   sFuel.dwConsAvr_ml_100 / LITER2ML );
-            bConsAvr_dl_100 = (UINT8)( ( sFuel.dwConsAvr_ml_100 - ((UINT32)bConsAvr_l_100 * LITER2ML)) / DL2ML );
-            sprintf( szDest, "\xf8%2u%c%1u", bConsAvr_l_100, RESTXT_DEC_SEPARATOR, bConsAvr_dl_100 );                                               
+            bConsAvr_l_100  = (UINT8)(  (sFuel.dwConsAvr_ml_100 + 500) / LITER2ML );
+            bConsAvr_dl_100 = (UINT8)( ((sFuel.dwConsAvr_ml_100 +  50) - ((UINT32)bConsAvr_l_100 * LITER2ML)) / DL2ML );
+            if ( bConsAvr_l_100 <= 99 )
+            {   sprintf( szDest, "\xf8%2u%c%1u", bConsAvr_l_100, RESTXT_DEC_SEPARATOR, bConsAvr_dl_100 );
+            }
+            else
+            {   sprintf( szDest, "99%c9", RESTXT_DEC_SEPARATOR );
+            }
         } break;
-    
+
         /* -------------------------------------------------- */
         default: szDest[0] = 'x'; break;   // Parameter error!
     }
@@ -363,4 +465,4 @@ void Fuel_GetFormStr (FUEL_SLCT eChoice, STRING szDest, UINT8 bLen )
 
 
 
-        
+
