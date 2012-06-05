@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.6  2012/06/05 20:00:50  tuberkel
+ * Meas_GetDist_Fuel() extended with high resolution 'dekameter'
+ *
  * Revision 3.5  2012/06/03 17:45:18  tuberkel
  * Updated API-Function-Name according to Modul-Name
  *
@@ -335,9 +338,11 @@ UINT16 Meas_GetDist_Fuel( MEASUNITS_TYPE eUnits )
     Meas_ConvertDist( &NV_FuelDist, &ResultDist, eUnits);
     switch (eUnits)
     {
+        case MR_DKM:        return ResultDist.dkm;   break;
         case MR_KM_ONLY:    return ResultDist.km_o;  break;
         case MR_HM_ONLY:    return ResultDist.hkm_o; break;
         case MR_DKM_ONLY:   return ResultDist.dkm_o; break;
+
         default: ODS1(DBG_MEAS,DBG_ERROR,"Illegal measurement type [%u]!", eUnits); break;
     }
     return ERR_OK;
