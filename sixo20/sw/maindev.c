@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.47  2012/06/05 20:01:52  tuberkel
+ * coments
+ *
  * Revision 3.46  2012/06/03 20:37:39  tuberkel
  * - Prepared for 'Actual l/100' and 'l/h'
  * - not yet usable
@@ -2047,10 +2050,10 @@ void MainDev_UpdMeas_Fuel(void)
            Note: We'll simply exchange the Bmp-resource to swap 'l/100' <=> 'l/Min' */
         case MD_FUEL_CONS:
         {
-            /* get a fresh & formated consumption value (NOT includiding 'l/100'!) */
+            /* get AVERAGE consumption (NOT includiding 'l/100'!) */
             Fuel_GetFormStr( FS_CONS_AVR, szFuelConsAvr, 5 );   // incl. leading 'ø'
 
-            /* check: any movement? */
+            /* get ACTUAL consumption - check: any movement? */
             if ( 0 == Meas_GetSpeed_Wheel(MR_KM_PER_H) )
             {   /* NO movement, use 'actual l/Min' value & icon */
                 Fuel_GetFormStr( FS_CONS_ACT_MIN, szFuelConsAct, 4 );
