@@ -68,6 +68,12 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 1.5  2012/06/05 20:03:42  tuberkel
+ * BugFixes:
+ * - Actual Consumption
+ * - Average Consumption higher resultion
+ * - invalid results mapped to '-.-' instead of '99.9'
+ *
  * Revision 1.4  2012/06/03 20:37:39  tuberkel
  * - Prepared for 'Actual l/100' and 'l/h'
  * - not yet usable
@@ -94,21 +100,21 @@
 /* Fuel Data Structure bundle */
 typedef struct
 {
-    UINT32 dwConsAct_ml_100;    // Actuel  Fuel Consumption (ml/100km)
+    UINT32 dwConsAct_ml_hkm;    // Actuel  Fuel Consumption (ml/100km)
     UINT32 dwConsAct_ml_Min;    // Actuel  Fuel Consumption (ml/Min)
-    UINT32 dwConsAvr_ml_100;    // Average Fuel Consumption (ml/100km)
+    UINT32 dwConsAvr_ml_hkm;    // Average Fuel Consumption (ml/100km)
 
     UINT32 dwFuelExh_ml;        // Fuel exhaustion (ml)
     UINT32 dwFuelRem_ml;        // Fuel Remaining (ml)
 
-    UINT32 dwDistExh_km;        // Fuel Distance since last refuel (km)
+    UINT32 dwDistExh_m;         // Fuel Distance since last refuel (m)
     UINT32 dwDistRem_km;        // Fuel Distance until next refuel (km)
 
     BOOL   fSensorAvail;        // FuelSensor available (just a copy for easier use)
     UINT32 dwImpRate;           // FuelSensor Impulsrate (Impulses/Liter)
     UINT32 dwImpulses;          // FuelSensor Impulses
     UINT32 dwCapacity_ml;       // FuelCapacity (ml)
-    UINT32 dwConsUsr_ml_100;    // User given Fuel Consumption (ml/100km)
+    UINT32 dwConsUsr_ml_hkm;    // User given Fuel Consumption (ml/100km)
 
     UINT16 wLastTime_ms;        // Timestamp of LAST actual consumption sample (ms)
     UINT32 dwLastSample_Imp;    // FuelSensor-Impulses of LAST actual consumption sample (ms)
