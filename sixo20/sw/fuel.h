@@ -68,6 +68,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 1.6  2012/06/07 19:14:27  tuberkel
+ * Fuel Consumption:
+ * - If no motion: Changed from 'l/Min' => 'l/Hour'
+ *
  * Revision 1.5  2012/06/05 20:03:42  tuberkel
  * BugFixes:
  * - Actual Consumption
@@ -130,9 +134,9 @@ typedef enum
     FS_DIST_REM,                // Fuel Distance until next refuel (km)
     FS_FUEL_EXH,                // Fuel exhaustion (ml)
     FS_FUEL_REM,                // Fuel Remaining (ml)
-
                                 // only valid, if FuelSensor available:
     FS_CONS_ACT_KM,             // Actuel  Fuel Consumption (ml/100km)
+    FS_CONS_ACT_HR,             // Actuel  Fuel Consumption (ml/Hour)
     FS_CONS_ACT_MIN,            // Actuel  Fuel Consumption (ml/Min)
     FS_CONS_AVR                 // Average Fuel Consumption (ml/100km)
 } FUEL_SLCT;

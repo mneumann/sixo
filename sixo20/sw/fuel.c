@@ -68,6 +68,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 1.6  2012/06/07 19:14:27  tuberkel
+ * Fuel Consumption:
+ * - If no motion: Changed from 'l/Min' => 'l/Hour'
+ *
  * Revision 1.5  2012/06/05 20:03:42  tuberkel
  * BugFixes:
  * - Actual Consumption
@@ -441,6 +445,23 @@ void Fuel_GetFormStr (FUEL_SLCT eChoice, STRING szDest, UINT8 bLen )
             bConsAct_dl_Min = (UINT8)( ((sFuel.dwConsAct_ml_Min +  50) - ((UINT32)bConsAct_l_Min * LITER2ML)) / DL2ML );
             if ( bConsAct_l_Min <= 99 )
             {   sprintf( szDest, "%2u%c%1u", bConsAct_l_Min, RESTXT_DEC_SEPARATOR, bConsAct_dl_Min );
+            }
+            else
+            {   sprintf( szDest, " -%c-", RESTXT_DEC_SEPARATOR );
+            }
+        } break;
+
+        /* -------------------------------------------------- */
+        case FS_CONS_ACT_HR:  // Actuel Fuel Consumption (ml/hour)
+        {
+            UINT8  bConsAct_l_Hour;      // Actuel Fuel Consumption - left comma part (liters/hour only)
+            UINT8  bConsAct_dl_Hour;     // Actuel Fuel Consumption - right comma part (dl/hour only)
+
+            /* prepare actual consumption (add 1/2 resolution to prevent rounding error) */
+            bConsAct_l_Hour  = (UINT8)(  ( 60L * sFuel.dwConsAct_ml_Min) / LITER2ML );
+            bConsAct_dl_Hour = (UINT8)( (((60L * sFuel.dwConsAct_ml_Min) +  50) - ((UINT32)bConsAct_l_Hour * LITER2ML)) / DL2ML );
+            if ( bConsAct_l_Hour <= 99 )
+            {   sprintf( szDest, "%2u%c%1u", bConsAct_l_Hour, RESTXT_DEC_SEPARATOR, bConsAct_dl_Hour );
             }
             else
             {   sprintf( szDest, " -%c-", RESTXT_DEC_SEPARATOR );

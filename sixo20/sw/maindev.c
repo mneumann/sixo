@@ -68,6 +68,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.48  2012/06/07 19:14:27  tuberkel
+ * Fuel Consumption:
+ * - If no motion: Changed from 'l/Min' => 'l/Hour'
+ *
  * Revision 3.47  2012/06/05 20:01:52  tuberkel
  * coments
  *
@@ -391,6 +395,7 @@ extern unsigned char far bmpHeatBarFull_19x8[];     /* heat bargraph - on */
 /* bitmaps for Fuel & Consumption */
 extern unsigned char far bmpFuel_16x16[];           /* icon 'fuel' */
 extern unsigned char far bmpLiterPer100_16x16[];    /* icon 'l/100' */
+extern unsigned char far bmpLiterPerHour_16x16[];   /* icon 'l/hr' */
 extern unsigned char far bmpLiterPerMin_16x16[];    /* icon 'l/Min' */
 extern unsigned char far bmpAverage_16x16[];        /* icon 'ø' */
 
@@ -2055,9 +2060,9 @@ void MainDev_UpdMeas_Fuel(void)
 
             /* get ACTUAL consumption - check: any movement? */
             if ( 0 == Meas_GetSpeed_Wheel(MR_KM_PER_H) )
-            {   /* NO movement, use 'actual l/Min' value & icon */
-                Fuel_GetFormStr( FS_CONS_ACT_MIN, szFuelConsAct, 4 );
-                ActLiterPerXBmpObj.Data.fpucBitmap = bmpLiterPerMin_16x16;
+            {   /* NO movement, use 'actual l/Hour' value & icon */
+                Fuel_GetFormStr( FS_CONS_ACT_HR, szFuelConsAct, 4 );
+                ActLiterPerXBmpObj.Data.fpucBitmap = bmpLiterPerHour_16x16;
             }
             else
             {   /* NO movement, use 'actual l/100' value & icon */
