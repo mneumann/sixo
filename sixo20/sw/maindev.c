@@ -68,6 +68,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.49  2012/06/07 20:43:05  tuberkel
+ * Fuel Consumption:
+ * - Fuel-Reset now saves current averag value into Eeprom for next start
+ *
  * Revision 3.48  2012/06/07 19:14:27  tuberkel
  * Fuel Consumption:
  * - If no motion: Changed from 'l/Min' => 'l/Hour'
@@ -1771,7 +1775,7 @@ ERRCODE MainDev_MsgEntry_VehDistRst(MESSAGE Msg)
 {
     MESSAGE_ID  MsgId = MSG_ID(Msg);                /* get message id */
     ERRCODE     RValue = ERR_MSG_NOT_PROCESSED;
-    static BOOL fLocked = FALSE;                    /* TRUE = key not yet relases */
+    static BOOL fLocked = FALSE;                    /* TRUE = key not yet released */
 
     // check: main device in state to reset anything?
     if (   ( MDObj.wDevState == MD_FUEL_FROM )
@@ -1806,13 +1810,23 @@ ERRCODE MainDev_MsgEntry_VehDistRst(MESSAGE Msg)
                 case MD_FUEL_FROM:
                 case MD_FUEL_TO:
                 case MD_FUEL_CONS:
-                    Meas_SetDist_Fuel( &Dist );
                     /* check: Reset FuelConsumption too? */
                     if ( EE_FuelSensCtrl.flags.FuelSAvail == TRUE )
-                    {   // reset NVRAM value and current FuelSensor impulse counter
+                    {
+                        /* first get & save current fuel consumption 'l/100 km' (prevent round error) */
+                        FUEL_DATASET_TYPE sFuelDataSet;
+                        Fuel_GetData ( &sFuelDataSet );
+                        EE_FuelConsUser = (UINT8)((sFuelDataSet.dwConsAvr_ml_hkm + 50L) / 100L);
+
+                        /* reset NVRAM value of Impuls counter */
                         NV_FuelSensImp = 0L;
+
+                        /* reset interrupt driven FuelSensor impulse counter */
                         DigInDrv_GPI_RstCount( EE_FuelSensCtrl.flags.FuelSGPI );
                     }
+                    /* reset fuel distance anyway */
+                    Meas_SetDist_Fuel( &Dist );
+
                     break;
                 case MD_TRIP1:  Meas_SetDist_TripCnt( eTRIPCOMM_A, &Dist ); break;
                 case MD_TRIP2:  Meas_SetDist_TripCnt( eTRIPCOMM_B, &Dist ); break;
