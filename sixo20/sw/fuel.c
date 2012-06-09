@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 1.7  2012/06/09 06:38:32  tuberkel
+ * BugFix: Fuel-Liters rounding errors
+ *
  * Revision 1.6  2012/06/07 19:14:27  tuberkel
  * Fuel Consumption:
  * - If no motion: Changed from 'l/Min' => 'l/Hour'
@@ -385,8 +388,8 @@ void Fuel_GetFormStr (FUEL_SLCT eChoice, STRING szDest, UINT8 bLen )
             UINT8  bFuelExhaust_dl;         // Fuel exhaustion - right comma part (deziliters only)
 
             /* prepare parts to be displayed (add 1/2 resolution to prevent rounding error) */
-            bFuelExhaust_l   = (UINT8)( (sFuel.dwFuelExh_ml ) / LITER2ML );
-            bFuelExhaust_dl  = (UINT8)(((sFuel.dwFuelExh_ml +  50) - ((UINT32)bFuelExhaust_l * LITER2ML) )/100 );
+            bFuelExhaust_l   = (UINT8)( (sFuel.dwFuelExh_ml +  50L) / LITER2ML );
+            bFuelExhaust_dl  = (UINT8)(((sFuel.dwFuelExh_ml +  50L) - ((UINT32)bFuelExhaust_l * LITER2ML) )/100L );
 
             /* prepare fuel-liters since last refueling */
             if ( bFuelExhaust_l <= 99 )
@@ -404,8 +407,8 @@ void Fuel_GetFormStr (FUEL_SLCT eChoice, STRING szDest, UINT8 bLen )
             UINT8  bFuelRemain_dl;          // Fuel Remaining - right comma part (deziliters only)
 
             /* prepare parts to be displayed (add 1/2 resolution to prevent rounding error) */
-            bFuelRemain_l   = (UINT8)( (sFuel.dwFuelRem_ml ) / LITER2ML );
-            bFuelRemain_dl  = (UINT8)(((sFuel.dwFuelRem_ml +  50) - ((UINT32)bFuelRemain_l * LITER2ML) )/100);
+            bFuelRemain_l   = (UINT8)( (sFuel.dwFuelRem_ml +  50L) / LITER2ML );
+            bFuelRemain_dl  = (UINT8)(((sFuel.dwFuelRem_ml +  50L) - ((UINT32)bFuelRemain_l * LITER2ML) )/100L);
 
             /* prepare fuel-liters since last refueling */
             if ( bFuelRemain_l <= 99 )
@@ -424,8 +427,8 @@ void Fuel_GetFormStr (FUEL_SLCT eChoice, STRING szDest, UINT8 bLen )
             UINT8  bConsAct_dl_100;     // Actuel Fuel Consumption - right comma part (dl/100 km only)
 
             /* prepare actual consumption (add 1/2 resolution to prevent rounding error) */
-            bConsAct_l_100  = (UINT8)(  (sFuel.dwConsAct_ml_hkm ) / LITER2ML );
-            bConsAct_dl_100 = (UINT8)( ((sFuel.dwConsAct_ml_hkm +  50) - ((UINT32)bConsAct_l_100 * LITER2ML)) / DL2ML );
+            bConsAct_l_100  = (UINT8)(  (sFuel.dwConsAct_ml_hkm +  50L) / LITER2ML );
+            bConsAct_dl_100 = (UINT8)( ((sFuel.dwConsAct_ml_hkm +  50L) - ((UINT32)bConsAct_l_100 * LITER2ML)) / DL2ML );
             if ( bConsAct_l_100 <= 99 )
             {   sprintf( szDest, "%2u%c%1u", bConsAct_l_100, RESTXT_DEC_SEPARATOR, bConsAct_dl_100 );
             }
@@ -441,8 +444,8 @@ void Fuel_GetFormStr (FUEL_SLCT eChoice, STRING szDest, UINT8 bLen )
             UINT8  bConsAct_dl_Min;     // Actuel Fuel Consumption - right comma part (dl/Min only)
 
             /* prepare actual consumption (add 1/2 resolution to prevent rounding error) */
-            bConsAct_l_Min  = (UINT8)(  (sFuel.dwConsAct_ml_Min ) / LITER2ML );
-            bConsAct_dl_Min = (UINT8)( ((sFuel.dwConsAct_ml_Min +  50) - ((UINT32)bConsAct_l_Min * LITER2ML)) / DL2ML );
+            bConsAct_l_Min  = (UINT8)(  (sFuel.dwConsAct_ml_Min +  50L) / LITER2ML );
+            bConsAct_dl_Min = (UINT8)( ((sFuel.dwConsAct_ml_Min +  50L) - ((UINT32)bConsAct_l_Min * LITER2ML)) / DL2ML );
             if ( bConsAct_l_Min <= 99 )
             {   sprintf( szDest, "%2u%c%1u", bConsAct_l_Min, RESTXT_DEC_SEPARATOR, bConsAct_dl_Min );
             }
@@ -458,8 +461,8 @@ void Fuel_GetFormStr (FUEL_SLCT eChoice, STRING szDest, UINT8 bLen )
             UINT8  bConsAct_dl_Hour;     // Actuel Fuel Consumption - right comma part (dl/hour only)
 
             /* prepare actual consumption (add 1/2 resolution to prevent rounding error) */
-            bConsAct_l_Hour  = (UINT8)(  ( 60L * sFuel.dwConsAct_ml_Min) / LITER2ML );
-            bConsAct_dl_Hour = (UINT8)( (((60L * sFuel.dwConsAct_ml_Min) +  50) - ((UINT32)bConsAct_l_Hour * LITER2ML)) / DL2ML );
+            bConsAct_l_Hour  = (UINT8)(  ( 60L * (sFuel.dwConsAct_ml_Min + 50L)) / LITER2ML );
+            bConsAct_dl_Hour = (UINT8)(  ((60L * (sFuel.dwConsAct_ml_Min + 50L)) - ((UINT32)bConsAct_l_Hour * LITER2ML)) / DL2ML );
             if ( bConsAct_l_Hour <= 99 )
             {   sprintf( szDest, "%2u%c%1u", bConsAct_l_Hour, RESTXT_DEC_SEPARATOR, bConsAct_dl_Hour );
             }
@@ -475,8 +478,8 @@ void Fuel_GetFormStr (FUEL_SLCT eChoice, STRING szDest, UINT8 bLen )
             UINT8  bConsAvr_dl_100;     // Average Fuel Consumption - right comma part (dl/100 km only)
 
             /* prepare average consumption */
-            bConsAvr_l_100  = (UINT8)(  (sFuel.dwConsAvr_ml_hkm ) / LITER2ML );
-            bConsAvr_dl_100 = (UINT8)( ((sFuel.dwConsAvr_ml_hkm +  50) - ((UINT32)bConsAvr_l_100 * LITER2ML)) / DL2ML );
+            bConsAvr_l_100  = (UINT8)(  (sFuel.dwConsAvr_ml_hkm +  50L) / LITER2ML );
+            bConsAvr_dl_100 = (UINT8)( ((sFuel.dwConsAvr_ml_hkm +  50L) - ((UINT32)bConsAvr_l_100 * LITER2ML)) / DL2ML );
             if ( bConsAvr_l_100 <= 99 )
             {   sprintf( szDest, "\xf8%2u%c%1u", bConsAvr_l_100, RESTXT_DEC_SEPARATOR, bConsAvr_dl_100 );
             }
