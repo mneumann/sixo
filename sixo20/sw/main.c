@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.18  2012/06/12 19:39:03  tuberkel
+ * just comments
+ *
  * Revision 3.17  2012/06/03 17:45:17  tuberkel
  * Updated API-Function-Name according to Modul-Name
  *
@@ -452,6 +455,7 @@ void main_VehicleSimulation(void)
 
     // process simulation sequence
     SimVehicSimulation(SIM_SEQUENCE);
+    //SimVehicSimulation(SIM_STATIC);
 }
 
 
@@ -459,7 +463,7 @@ void main_VehicleSimulation(void)
 
 /***********************************************************************
  * FUNCTION:    main_HardcopyAvail
- * DESCRIPTION: If HIGHBEAM state changes from LOW->HIGH only - 
+ * DESCRIPTION: If HIGHBEAM state changes from LOW->HIGH only -
  *              Sends a screen hardcopy in BMP format to printf-uart (debug)
  * PARAMETER:   -
  * RETURN:      -

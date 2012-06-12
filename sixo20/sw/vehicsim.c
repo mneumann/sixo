@@ -69,6 +69,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.1  2012/06/12 19:39:43  tuberkel
+ * just comments
+ *
  * Revision 3.0  2010/11/07 12:29:56  tuberkel
  * V30 Preparations:
  * - Module 'Vehicle Simualation ' ALWAYS supported
@@ -490,8 +493,12 @@ void SimVehicSimulation(BOOL fSequence)
         if (fSequence == SIM_STATIC )
         {
             /* use constant speed */
-            SimWheelSpeedSet( 0, 100, 10);        // accelerate speed from 0..100 km/h in 10 sec. and remain at that speed
-            SimRPMSpeedSet( 0, 2000, 10);         // accelerate RPM from 0..2000 km/h in 10 sec. and remain at that RPM
+            SimWheelSpeedSet( 0,  100, 10);     // accelerate speed from 0..100 km/h in 10 sec. and remain at that speed
+            SimRPMSpeedSet  ( 0, 2000, 10);     // accelerate RPM from 0..2000 km/h in 10 sec. and remain at that RPM
+
+            //SimWheelSpeedSet( 100,  100, 10);     // accelerate speed from 0..100 km/h in 10 sec. and remain at that speed
+            //SimRPMSpeedSet  ( 100, 2000, 10);     // accelerate RPM from 0..2000 km/h in 10 sec. and remain at that RPM
+
         }
 
         /* simulation main switch */
