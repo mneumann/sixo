@@ -5,7 +5,7 @@
 # All Rights Reserved.
 #
 #	Notice	:	Don't edit.
-#	Date	:	2012 06(June) 02(Saturday) AM.08.16
+#	Date	:	2012 06(June) 12(Tuesday) PM.09.38
 #	Project	:	SIxO20
 ####################################################################
 
@@ -23,18 +23,18 @@ OUTDIR	=	.\outdir
 MKDIR	=	@-mkdir
 ABSFILE	=	$(PROJECT).x30
 ODINCMD	=	$(OUTDIR)
-LN	=	LN30
 TARGET	=	$(ABSFILE)
+LN	=	LN30
 ECHO	=	@-echo
 MKFILE	=	$(PROJECT).tmk
-PROJECT	=	SIxO20
 TYPE	=	@-type
+PROJECT	=	SIxO20
+CFLAGS	=	-c -I. -silent -dir $(OUTDIR) -Wall -DDEBUG=0 -DKD30_USED=0 -DKD30_GUI_USED=0 -DGEARBOX=0 -DCOMPASSDRV=0 -finfo
+AFLAGS	=	-. -DDEBUG=0:KD30_USED=:COMPASSDRV=0 -finfo -O$(OUTDIR)
 LFLAGS	=	-MS -L nc30lib -. -G -O $(OUTDIR)\$(TARGET)
-UTLFLAGS	=	
-CFLAGS	=	-c -I. -silent -dir $(OUTDIR) -Wall -DDEBUG=1 -DKD30_USED=1 -DKD30_GUI_USED=1 -DGEARBOX=0 -DCOMPASSDRV=0 -finfo
-LMCFLAGS	=	-. -ID
 LIBFLAGS	=	-C
-AFLAGS	=	-. -DDEBUG=1:KD30_USED=1:COMPASSDRV=0 -finfo -O$(OUTDIR)
+UTLFLAGS	=	
+LMCFLAGS	=	-. -ID
 .SUFFIXES: .a30 .r30 .c .x30 .lib
 .PHONY: all
 all: \
@@ -355,7 +355,23 @@ $(OUTDIR)\fonts.r30: \
 		.\displdrv.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) fonts.c
 $(OUTDIR)\fuel.r30: \
-		.\fuel.c 
+		.\fuel.c \
+		$(MTOOLINC)\stdio.h \
+		$(MTOOLINC)\string.h \
+		.\standard.h \
+		.\sfr62p.h \
+		.\msgqueue.h \
+		.\stdmsgs.h \
+		.\timer.h \
+		.\debug.h \
+		.\anain.h \
+		.\resource.h \
+		.\resource_de.h \
+		.\fuel.h \
+		.\timedate.h \
+		.\sysparam.h \
+		.\digindrv.h \
+		.\measure.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) fuel.c
 $(OUTDIR)\gpo.r30: \
 		.\gpo.c \
@@ -521,7 +537,8 @@ $(OUTDIR)\maindev.r30: \
 		$(MTOOLINC)\string.h \
 		.\resource_de.h \
 		.\gpo.h \
-		.\digoutdr.h 
+		.\digoutdr.h \
+		.\fuel.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) maindev.c
 $(OUTDIR)\measdrv.r30: \
 		.\measdrv.c \

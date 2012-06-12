@@ -9,6 +9,14 @@ Version Date        Feature
 ======= ==========  ======================================
 
 ==========================================================
+v3.0.9  2012-06-12
+> NEW:
+    + FuelRemain Actual Consumption (l/100 or l/hour) supported
+> BUGFIXES:
+    - Fuel Liter rounding Errors corrected
+
+
+==========================================================
 v3.0.8  2012-06-01
 > NEW:
     + Fuelsensor supported
@@ -16,7 +24,7 @@ v3.0.8  2012-06-01
     - Actual(!) FuelConsumption not yet supported
 
 ==========================================================
-v3.0.7  2012-05-31  
+v3.0.7  2012-05-31
 > NEW:
     + To/From Fuelstation now calculated & displayed
     + Calculation based on user given FuelCapacity & FuelConsumption

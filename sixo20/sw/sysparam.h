@@ -69,6 +69,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.16  2012/06/12 19:45:41  tuberkel
+ * V309
+ *
  * Revision 3.15  2012/06/01 22:01:21  tuberkel
  * V308
  *
@@ -189,7 +192,7 @@
 /* software version number e.q. '2.1.1' */
 #define DEF_SWID_APL   3  // APL = (0..15) main aplication number (changed with new main application features)
 #define DEF_SWID_SWV   0  // SWV = (0..15) sw version number (changed with additional features)
-#define DEF_SWID_BLD   8  // BLD = (0..15) build number (changed with bugfixes)
+#define DEF_SWID_BLD   9  // BLD = (0..15) build number (changed with bugfixes)
 
 
 /* hardware specific version number */
@@ -364,11 +367,11 @@ typedef union
 
 /* ----------------------------------------------------------------------------- */
 /* FUELSENSOR - INCREMENTAL
-    
+
     PRINCIPLE
         - an external incremental sensor measures fuel volume passed by
         - fuel sensor delivers typical n Impulses/Liter
-        - SIxO PWM-Input counts transitions low2high and increments impulses        
+        - SIxO PWM-Input counts transitions low2high and increments impulses
         - current impulscount is always saved in NVRAM area (fast changing)
         - impulses devided by Imp/Litre can be used to calculate the consumption
         - at refueling, the fuel distance counter and fuel sensor impulses counter are reseted
@@ -385,8 +388,8 @@ typedef struct
     {
         unsigned char   FuelSAvail  :1;     /* FuelSensor Available: 1=available, 0=n.a. */
         unsigned char   FuelSGPI    :2;     /* FuelSensor Counter-Measurement: GPI 0..3 */
-        unsigned char   FuelS_res5  :5;     /* reserved */        
-        unsigned char   FuelS_res8  :8;     /* reserved */        
+        unsigned char   FuelS_res5  :5;     /* reserved */
+        unsigned char   FuelS_res8  :8;     /* reserved */
     } flags;
 } FUELSCNTRL_TYPE;
 
