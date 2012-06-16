@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 1.8  2012/06/16 06:14:42  tuberkel
+ * BugFix FS_CONS_ACT_HR calculations
+ *
  * Revision 1.7  2012/06/09 06:38:32  tuberkel
  * BugFix: Fuel-Liters rounding errors
  *
@@ -461,8 +464,8 @@ void Fuel_GetFormStr (FUEL_SLCT eChoice, STRING szDest, UINT8 bLen )
             UINT8  bConsAct_dl_Hour;     // Actuel Fuel Consumption - right comma part (dl/hour only)
 
             /* prepare actual consumption (add 1/2 resolution to prevent rounding error) */
-            bConsAct_l_Hour  = (UINT8)(  ( 60L * (sFuel.dwConsAct_ml_Min + 50L)) / LITER2ML );
-            bConsAct_dl_Hour = (UINT8)(  ((60L * (sFuel.dwConsAct_ml_Min + 50L)) - ((UINT32)bConsAct_l_Hour * LITER2ML)) / DL2ML );
+            bConsAct_l_Hour  = (UINT8)( ((60L * sFuel.dwConsAct_ml_Min) + 50L)                                         / LITER2ML );
+            bConsAct_dl_Hour = (UINT8)((((60L * sFuel.dwConsAct_ml_Min) + 50L) - ((UINT32)bConsAct_l_Hour * LITER2ML)) / DL2ML    );
             if ( bConsAct_l_Hour <= 99 )
             {   sprintf( szDest, "%2u%c%1u", bConsAct_l_Hour, RESTXT_DEC_SEPARATOR, bConsAct_dl_Hour );
             }
