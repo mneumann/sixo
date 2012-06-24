@@ -68,6 +68,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.18  2012/06/24 11:12:46  tuberkel
+ * BuGfix:
+ * - DigInDrv_GPI_UpdateMeas() now saves 'NV_FuelSensImp' too
+ *
  * Revision 3.17  2012/05/27 16:01:37  tuberkel
  * All Eeprom/Nvram Variables renamed
  *
@@ -299,17 +303,17 @@ ERRCODE DigInDrv_Init(void)
     }
 
     /* FuelSensor GPI Measurement (if available) */
-    if ( EE_FuelSensCtrl.flags.FuelSAvail == TRUE ) 
-    {   
+    if ( EE_FuelSensCtrl.flags.FuelSAvail == TRUE )
+    {
         /* setup PWM measurement */
         DigInDrv_GPI_SetupMeas( EE_FuelSensCtrl.flags.FuelSGPI, FUELS_PWMIN_LOGIC, FUELS_PWMIN_TO );
-        
+
         /* read saved NV_FuelSensImp from NVRAM and initialize adequate GPI-Counter for further use */
         DigIntMeas[EE_FuelSensCtrl.flags.FuelSGPI].dwLHCounter = NV_FuelSensImp;
     }
 
     /* enable all ISRs now */
-    INT_GLOB_ENABLE;             
+    INT_GLOB_ENABLE;
 
     ODS(DBG_DRV,DBG_INFO,"DigInDrv_Init() done!");
     return ERR_OK;
@@ -827,7 +831,7 @@ void DigInDrv_GPI_RstCount( DIGINTMEAS_GPI eGpi )
  *  COMMENT:        Assumes to be called cyclicly, does only update
  *                  one(!) GPI at each call to decrease system load.
  *
- *                  GETS IN 50-Hz-TIMER-ISR-CONTEXT!
+ *                  GETS CALLED INSIDE 50-Hz-TIMER-ISR-CONTEXT!
  *
  *                  Assumes to get called with HIGHER INT priority than
  *                  GPI-INTs (to not get interrupted by GPI-INTs)
@@ -887,6 +891,11 @@ void DigInDrv_GPI_UpdateMeas(void)
     if ( eGpi < eGPI3_Int5 )
          eGpi++;                // continue with next
     else eGpi = eGPI0_Int2;     // restart with GPI0
+
+    /* Update the NVRAM value of FuelSensor-Impulses */
+    if ( EE_FuelSensCtrl.flags.FuelSAvail == TRUE )
+    {   NV_FuelSensImp = DigInDrv_GPI_GetMeas(EE_FuelSensCtrl.flags.FuelSGPI)->dwLHCounter;
+    }
 }
 
 

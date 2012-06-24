@@ -68,6 +68,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 1.9  2012/06/24 11:13:18  tuberkel
+ * BuGfix:
+ * - DigInDrv_GPI_UpdateMeas() now saves 'NV_FuelSensImp' too
+ *
  * Revision 1.8  2012/06/16 06:14:42  tuberkel
  * BugFix FS_CONS_ACT_HR calculations
  *
@@ -154,7 +158,8 @@ FUEL_DATASET_TYPE   sFuel;
  *
  *                  'GPIx.dwLHCounter' has been initilized by NVRAM value at init time
  *                  'NV_FuelSensImp' is implicitely saved back into NVRAM
- *                  (for next init time)
+ *                  (for next init time). NV_FuelSensImp is updated inside
+ *                  Timer-ISR-contex (see DigInDrv_GPI_UpdateMeas() ).
  *
  *                  If FuelSensor is available and fuel is consumed - but
  *                  wheel stands still - we change the view from
@@ -162,16 +167,13 @@ FUEL_DATASET_TYPE   sFuel;
  *********************************************************************** */
 void Fuel_UpdMeas(void)
 {
-    /* Update the NVRAM value of FuelSensor-Impulses (see note above) */
-    NV_FuelSensImp = DigInDrv_GPI_GetMeas(EE_FuelSensCtrl.flags.FuelSGPI)->dwLHCounter;
-
     /* get a fresh copy of EEPROM/NVRAM values (might have been changed) */
     sFuel.fSensorAvail      =         EE_FuelSensCtrl.flags.FuelSAvail;
     sFuel.dwImpRate         = (UINT32)EE_FuelSensCtrl.FuelSImpulseRate;
     sFuel.dwCapacity_ml     = (UINT32)EE_FuelCap      * DL2ML ;
     sFuel.dwConsUsr_ml_hkm  = (UINT32)EE_FuelConsUser * DL2ML ;
     sFuel.dwDistExh_m       = 10L * Meas_GetDist_Fuel(MR_DKM);
-    sFuel.dwImpulses        = NV_FuelSensImp;
+    sFuel.dwImpulses        = NV_FuelSensImp; // (see note above)
 
     /* ============================================================= */
     /* calculate ABSOLUTE FUEL EXHAUSTION (dwFuelExh_ml, Milliliter):
