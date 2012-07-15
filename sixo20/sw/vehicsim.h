@@ -68,6 +68,11 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.2  2012/07/15 19:25:56  tuberkel
+ * VehicleSimulation completely reviewed
+ * - prepared to handle multiple IRQs
+ * - new acoustic support
+ *
  * Revision 3.1  2012/05/24 20:00:14  tuberkel
  * BMP renamed
  *
@@ -104,66 +109,85 @@
 #define SIM_STARTDELAY  2       // start delay in sec
 #define SIM_SEQUENCE    TRUE    // to control simulation: enables handling of sequence
 #define SIM_STATIC      FALSE   // to control simulation: enables handling of static behavoiur
+#define SIM_SEQSTEPINTV 1000    // intervall time in ms for one sequence step
 
-/* software interrupt declaration */
-/* (this is necessary to cause an interrupt by software) */
-#pragma INTCALL 29 WheelSensor_ISR();
-#pragma INTCALL 30 RPMSensor_ISR();
+#define SIM_SCALE_WHEEL  7200    // to convert km/h -> WheelPeriod-IRQ
+#define SIM_SCALE_RPM   26000    // to convert RPM  -> RPM-Period-IRQ
 
+#ifndef SIM_MODE
+#define SIM_MODE SIM_SEQUENCE   // default: use 'Sequence' (=1) mode
+#endif
 
-/* weel simulator types */
-typedef enum        /* simulator state */
-{
-    WSIM_CONST,         /* simulator uses constant speed */
-    WSIM_ACC            /* simulator calculates accelerated speed */
-} PSIM_STATE;
-
-
-typedef struct      /* simulator control data*/
-{
-    BOOL        fActive;            /* switch on/off */
-    PSIM_STATE  eMode;              /* constant / accelerated mode */
-    UINT8       bTransition_sec;    /* time to come from start period to end period */
-    INT16       iPeriodStepSize_ms; /* signed stepsize to inkrement wheel period from start to end */
-    UINT16      wStartPeriod_ms;    /* wheel period at simulation begin */
-    UINT16      wEndPeriod_ms;      /* wheel period at simulation end */
-    UINT16      wCurrentPeriod_ms;  /* current simulation wheel period */
-
-} PSIM_TYPE;
+/* Kind of simulation */
+typedef enum
+{   SIM_WHEEL,      /* index of wheelspeed simulation */
+    SIM_RPM,        /* index of engine RPM simulation */
+    //SIM_FUEL,       /* index of Fuelsensor simulation */
+    //SIM_COOLR,      /* index of Coolride simulation */
+    SIM_KIND_MAX    /* invalid max index  */
+} SIM_KIND;
 
 
-
-/* macros to convert km/h and U/Min into ISR period in ms */
-/* beide Werte weichen um Faktor 1/1.3 vom eigentlich richtigen Wert ab, warum? */
-#define KMH2PERIOD(kmh) ((UINT16)(9400/kmh))        // empirisch, eigentlich 7200 bei 2000mm Radumfang,
-#define RPM2PERIOD(rpm) ((UINT16)(7800/(rpm/10)))   // empirisch, eigentlich 60000
+/* ISR routine function prototype */
+typedef void (*SIM_ISR_FCT)(void);
 
 
-/* simulation array type */
+/* simulation sequence control data*/
 typedef struct
 {
-    UINT16  wSpeedStart;    // start in km/h
-    UINT16  wSpeedEnd;      // end in km/h
-    UINT16  wRPMStart;      // start in RPM
-    UINT16  wRPMEnd;        // end in RPM
-    UINT8   bTransition;    // transition time from start to end value in sec.
-} SIMULCNTR;
+    BOOL        fInit;              /* 1 = initialized */
+    BOOL        fSeqMode;           /* 1 = sequence mode (else: static mode) */
+    UINT8       bSeqStepNr;         /* current sequence step nr */
+    UINT16      wSeqStepDur;        /* current sequence step time in sec. (counting down) */
+    UINT16      wSeqLastCheck;      /* last call time stamp in sec. */
+} SIM_CNTRL;
+
+
+/* simulation kind control data*/
+typedef struct
+{
+    SIM_KIND    eKind;              /* indicator for Kind type */
+    BOOL        fActive;            /* 1 = simulation active  */
+    UINT16      wScaling;           /* scaling factor to convert Freq => Period */
+    INT16       iDuration;          /* step duration in msec */
+
+    UINT16      wLastFreqUpdate;    /* timestamp of last IRQ-Period-Update (in ms) */
+    UINT16      wLastISRCall;       /* timestamp of last IRQ-Call (in ms) */
+    UINT16      wISRPeriodCurr;     /* current period for IRQ-Call (in ms) */
+
+    UINT16      wFreqStart;         /* IRQ-Call-Frequency at step begin (in Hz) */
+    UINT16      wFreqEnd;           /* IRQ-Call-Frequency at step end (in Hz)*/
+    INT16       iFreqDiff;          /* IRQ-Call-Frequency range from start->end (in Hz) */
+
+    UINT16      wFreqCurr;          /* IRQ-Call-Frequency currently used (in Hz)*/
+    INT16       iFreqStep;          /* signed(!) IRQ-Call-Frequency stepsize to sweep from start to end (in Hz) */
+} SIM_KIND_CNTRL;
+
+
+
+/* kind simulation setp start/end value  */
+typedef struct
+{
+    INT16   iStart;    /* start value */
+    INT16   iEnd;      /* end value */
+} SIM_STEPVAL;
+
+
+/* simulation control array entry */
+typedef struct
+{
+    INT8         iDuration;              /* step duration in sec. */
+    SIM_STEPVAL  StepVal[SIM_KIND_MAX];  /* pair of start/end value for each kind */
+} SIM_SEQ_STEP;
 
 
 
 /* public prototypes */
-void SimWheelSpeedActive(BOOL fActive);
-void SimWheelSpeedSet( UINT16 wPeriod1, UINT16 wPeriod2, UINT8 bTransTime);
-void SimWheelSpeedControl(void);
-void SimWheelSpeedSequence(void);
-
-
-void SimRPMSpeedActive(BOOL fActive);
-void SimRPMSpeedSet( UINT16 wPeriod1, UINT16 wPeriod2, UINT8 bTransTime);
-void SimRPMSpeedControl(void);
-void SimRPMSpeedSequence(void);
-
-void SimVehicSimulation(BOOL fSequence);
+void Sim_Init               (BOOL fSequence);
+void Sim_Main               (BOOL fSequence);
+void Sim_KindSetup          (SIM_KIND_CNTRL * pKind, SIM_KIND eKind, BOOL fActive, UINT16 wScaling);
+void Sim_FrequenceSetup     (SIM_KIND_CNTRL * pKind, INT16 iFreqStart, INT16 iFreqEnd, INT16 iDuration);
+void Sim_FrequenceControl   (SIM_KIND_CNTRL * pKind);
 
 
  #endif // _SIMULATOR_H

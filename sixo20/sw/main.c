@@ -68,6 +68,11 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.19  2012/07/15 19:25:56  tuberkel
+ * VehicleSimulation completely reviewed
+ * - prepared to handle multiple IRQs
+ * - new acoustic support
+ *
  * Revision 3.18  2012/06/12 19:39:03  tuberkel
  * just comments
  *
@@ -254,8 +259,8 @@ extern  UINT16  wUSPMax;                // user stack pointer max value
 extern  UINT16  wISPStart;              // interrupt stack pointer start value
 extern  UINT16  wISPMax;                // interrupt stack pointer max value
 
-extern  UINT16  wMilliSecCounter;       // valid values: 0h .. ffffh
-extern  UINT16  wSecCounter;            // valid values: 0h .. ffffh
+extern  UINT16  wSystemTime_ms;       // valid values: 0h .. ffffh
+extern  UINT16  wSystemTime_sec;            // valid values: 0h .. ffffh
 
 extern  DBGFILT_TYPE    EE_DbgFilter;   // default off, use DebugSetFilterDetails() to change
 extern  DBGDETDIR_TYPE  EE_DbgDetails;  // default uart, use DebugSetFilterDetails() to change
@@ -367,6 +372,7 @@ int main()
         TimerRegisterEntryFunction( DigOutDrv_Service );            /* support PWM control for all digital outs */
         TimerRegisterEntryFunction( DigInDrv_GPI_UpdateMeas );      /* support PWM control for all digital input */
         TimerRegisterEntryFunction( Surv_ProcessAll );              /* process complete surveillance for infos/warnings/errors */
+
         #if(BIKE_MOTOBAU==1)                                        /* special MOTOBAU behaviour */
         TimerRegisterEntryFunction( LCDev_UpdTime );                /* enable background lapcounter feature */
         #endif // BIKE_MOTOBAU
@@ -442,27 +448,27 @@ int main()
 /***********************************************************************
  * FUNCTION:    main_VehicleSimulation
  * DESCRIPTION: Processes a Vehicle Simulation sequence,
- *              simulates WHEEL + RPM input via ISR calls
+ *              simulates divers IRQ sources like wheel, rpm, ...
+ *              input via software(!) ISR calls
  * PARAMETER:   -
  * RETURN:      -
- * COMMENT:     To simulate real SIXO action while nobody moves...
+ * COMMENT:     To simulate real SIXO action...
  *********************************************************************** */
 void main_VehicleSimulation(void)
 {
     // delayed start to prevent ISR overflows
-    if ( wSecCounter < SIM_STARTDELAY )
+    if ( wSystemTime_sec < SIM_STARTDELAY )
         return;
 
     // process simulation sequence
-    SimVehicSimulation(SIM_SEQUENCE);
-    //SimVehicSimulation(SIM_STATIC);
+    Sim_Main(SIM_MODE);
 }
 
 
 
 
 /***********************************************************************
- * FUNCTION:    main_HardcopyAvail
+ * FUNCTION:    main_CheckHardcopy
  * DESCRIPTION: If HIGHBEAM state changes from LOW->HIGH only -
  *              Sends a screen hardcopy in BMP format to printf-uart (debug)
  * PARAMETER:   -
