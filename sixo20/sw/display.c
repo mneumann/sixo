@@ -77,6 +77,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.5  2012/07/15 18:29:03  tuberkel
+ * SystemTimer Vars renamed
+ *
  * Revision 3.4  2012/05/27 16:01:38  tuberkel
  * All Eeprom/Nvram Variables renamed
  *
@@ -114,7 +117,7 @@ extern unsigned char far rgNumber14x16[];
 extern unsigned char far rgNumber24x32[];
 
 /* external symbols */
-extern UINT16           wMilliSecCounter;   // for cyclic LCD module checks
+extern UINT16           wSystemTime_ms;   // for cyclic LCD module checks
 extern DPLFLAGS_TYPE    EE_DisplFlags;      // display control structure from eeprom
 
 

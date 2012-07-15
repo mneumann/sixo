@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.16  2012/07/15 18:29:03  tuberkel
+ * SystemTimer Vars renamed
+ *
  * Revision 3.15  2012/06/03 17:45:18  tuberkel
  * Updated API-Function-Name according to Modul-Name
  *
@@ -223,7 +226,7 @@
 
 
 /* external symbols */
-extern UINT16               wMilliSecCounter;       /* valid values: 0h .. ffffh */
+extern UINT16               wSystemTime_ms;       /* valid values: 0h .. ffffh */
 extern STRING far           szDevName[];            /* device names */
 extern DEVFLAGS1_TYPE       EE_DevFlags_1;          /* device parameter set 1 */
 extern DEVFLAGS2_TYPE       EE_DevFlags_2;          /* device parameter set 2 */

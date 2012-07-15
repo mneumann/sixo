@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 1.10  2012/07/15 18:29:03  tuberkel
+ * SystemTimer Vars renamed
+ *
  * Revision 1.9  2012/06/24 11:13:18  tuberkel
  * BuGfix:
  * - DigInDrv_GPI_UpdateMeas() now saves 'NV_FuelSensImp' too
@@ -127,8 +130,8 @@
 
 // ------------------------------------------------------
 /* external symbols (taken from eeprom/nvram) */
-extern far UINT16           wMilliSecCounter;       /* high resolution short distance timer, ms,  max  65 sec */
-extern far UINT16           wSecCounter;            /* low  resolution long  distance timer, sec, max. 18 h */
+extern far UINT16           wSystemTime_ms;       /* high resolution short distance timer, ms,  max  65 sec */
+extern far UINT16           wSystemTime_sec;            /* low  resolution long  distance timer, sec, max. 18 h */
 extern FUELSCNTRL_TYPE      EE_FuelSensCtrl;        /* FuelSensor Control flags (from eeprom) */
 extern UINT8                EE_FuelConsUser;        /* FuelConsumption in 1/10 l/100 km (from eeprom) */
 extern UINT16               EE_FuelCap;             /* FuelCapacity in 1/10 liters (from eeprom) */
@@ -258,7 +261,7 @@ void Fuel_UpdMeas(void)
     if ( sFuel.fSensorAvail == TRUE )
     {
         /* get basic calculation/comparison values */
-        UINT16 wThisTime_ms      = wMilliSecCounter;
+        UINT16 wThisTime_ms      = wSystemTime_ms;
         UINT32 dwThisSample_Imp  = sFuel.dwImpulses;
         UINT32 dwThisDist_m      = Meas_GetDist_Vehicle(MR_DKM).dkm * 10;
 

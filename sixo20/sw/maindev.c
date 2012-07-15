@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.50  2012/07/15 18:29:03  tuberkel
+ * SystemTimer Vars renamed
+ *
  * Revision 3.49  2012/06/07 20:43:05  tuberkel
  * Fuel Consumption:
  * - Fuel-Reset now saves current averag value into Eeprom for next start
@@ -355,8 +358,8 @@ static MAINDEV_CNTRL    MDCntrl;    // special device show state control
 
 /* ============================================================= */
 /* external symbols */
-extern UINT16               wMilliSecCounter;                   /* valid values: 0h .. ffffh */
-extern UINT16               wSecCounter;                        /* valid values: 0h .. ffffh */
+extern UINT16               wSystemTime_ms;                   /* valid values: 0h .. ffffh */
+extern UINT16               wSystemTime_sec;                        /* valid values: 0h .. ffffh */
 extern STRING far           szDevName[];                        /* device names */
 extern DEVFLAGS1_TYPE       EE_DevFlags_1;                      /* system parameters */
 extern char                 szSurvGlobalState[VEHSTATE_TXT_LEN];/* vehicle state string */
@@ -1254,7 +1257,7 @@ void MainDev_Show(BOOL fShow)
 
             // SIMULATION ONLY: selected gear - show all gears every second */
             #if(GEARBOX==1)
-            switch ( wSecCounter % 10 )
+            switch ( wSystemTime_sec % 10 )
             {   case 0: GearSymbolBmpObj.Data.fpucBitmap = bmp7Seg_0_16x16; break;
                 case 1: GearSymbolBmpObj.Data.fpucBitmap = bmp7Seg_1_16x16; break;
                 case 2: GearSymbolBmpObj.Data.fpucBitmap = bmp7Seg_2_16x16; break;

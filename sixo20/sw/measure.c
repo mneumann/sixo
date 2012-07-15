@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.7  2012/07/15 18:29:03  tuberkel
+ * SystemTimer Vars renamed
+ *
  * Revision 3.6  2012/06/05 20:00:50  tuberkel
  * Meas_GetDist_Fuel() extended with high resolution 'dekameter'
  *
@@ -130,7 +133,7 @@
 
 
 /* external symbols (taken from eeprom/nvram) */
-extern  UINT16      wMilliSecCounter;   /* valid values: 0h .. ffffh */
+extern  UINT16      wSystemTime_ms;   /* valid values: 0h .. ffffh */
 extern  UINT16      EE_WheelSize;       /* wheel size in mm */
 extern  UINT16      EE_WheelImpPRev;   /* wheel impulses per revolution */
 extern  CCF_TYPE    EE_CCF;             /* RPM cylinder correcture factor */

@@ -73,6 +73,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.7  2012/07/15 18:29:03  tuberkel
+ * SystemTimer Vars renamed
+ *
  * Revision 3.6  2012/05/27 17:52:39  tuberkel
  * Corrections for renamed Eeprom/Nvram Variables
  *
@@ -136,8 +139,8 @@
 
 
 /* external stuff */
-extern  UINT16  wMilliSecCounter;       // valid values: 0h .. ffffh
-extern  UINT16  wSecCounter;            // valid values: 0h .. ffffh
+extern  UINT16  wSystemTime_ms;       // valid values: 0h .. ffffh
+extern  UINT16  wSystemTime_sec;            // valid values: 0h .. ffffh
 
 extern DPLFLAGS_TYPE    EE_DisplFlags;  //orginal display values
 extern DEVFLAGS1_TYPE   EE_DevFlags_1;  //system parameters

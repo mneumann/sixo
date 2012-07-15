@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.5  2012/07/15 18:29:03  tuberkel
+ * SystemTimer Vars renamed
+ *
  * Revision 3.4  2012/06/03 17:45:18  tuberkel
  * Updated API-Function-Name according to Modul-Name
  *
@@ -127,8 +130,8 @@ UINT32  gdwTicks                = 0;        // system time in ticks
 UINT8   gbLastTimer             = 0;        // counter for used timers
 UINT8   gbMaxTimerQueueEntries  = 0;        // index of last used timer
 
-UINT16  wMilliSecCounter      = 0;          // high resolution short distance timer, ms,  max  65 sec
-UINT16  wSecCounter           = 0;          // low  resolution long  distance timer, sec, max. 18 h
+UINT16  wSystemTime_ms      = 0;          // high resolution short distance timer, ms,  max  65 sec
+UINT16  wSystemTime_sec           = 0;          // low  resolution long  distance timer, sec, max. 18 h
 UINT32  dwSystemTime          = 0;          // high resolution long  distance timer, ms,  max. 49 days
 
 UINT16  gbTimerInterruptLoad    = 0;        // processor load by TimerInterrupt() in percent
@@ -489,15 +492,15 @@ void msIntFunction(void)
     asm(" fclr u");                         // set back to interrupt stack
 
     // system time as word
-    wMilliSecCounter++;                   // inkr. ms counter  (overflow after 65,535 sec)
-    if (wMilliSecCounter % 1000 == 0)
-            wSecCounter++;                // inkr. sec counter (overflow after ca. 18h)
+    wSystemTime_ms++;                   // inkr. ms counter  (overflow after 65,535 sec)
+    if (wSystemTime_ms % 1000 == 0)
+            wSystemTime_sec++;                // inkr. sec counter (overflow after ca. 18h)
 
     // system time as double word (max 49 days)
     dwSystemTime++;                        // inkr. ms counter (we acccept overflow after 49 days! ;-) )
 
     // DEBUG:
-    //if (wMilliSecCounter % 200 == 0)
+    //if (wSystemTime_ms % 200 == 0)
         //ODS2(DBG_SYS, DBG_INFO, "WHEEL: %u   RPM: %u", MeasDrv_GetWheelPeriod(), MeasDrv_GetRPMPeriod() );
 }
 

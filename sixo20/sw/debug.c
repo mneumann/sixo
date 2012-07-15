@@ -69,6 +69,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.5  2012/07/15 18:29:03  tuberkel
+ * SystemTimer Vars renamed
+ *
  * Revision 3.4  2012/05/27 16:01:36  tuberkel
  * All Eeprom/Nvram Variables renamed
  *
@@ -103,8 +106,8 @@
 #define LEN_SEND_BUFFER 80                  /* buffer to handle debug string */
 
 // externals
-extern  UINT16          wMilliSecCounter;   /* valid values: 0h .. ffffh */
-extern  UINT16          wSecCounter;        /* valid values: 0h .. ffffh */
+extern  UINT16          wSystemTime_ms;   /* valid values: 0h .. ffffh */
+extern  UINT16          wSystemTime_sec;        /* valid values: 0h .. ffffh */
 extern  DBGFILT_TYPE    EE_DbgFilter;       /* default off, use DebugSetFilterDetails() to change */
 extern  DBGDETDIR_TYPE  EE_DbgDetails;      /* default uart, use DebugSetFilterDetails() to change */
 

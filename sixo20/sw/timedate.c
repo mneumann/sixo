@@ -72,6 +72,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.5  2012/07/15 18:29:03  tuberkel
+ * SystemTimer Vars renamed
+ *
  * Revision 3.4  2012/05/28 12:47:31  tuberkel
  * Corrections for renamed Eeprom/Nvram Variables
  *
@@ -134,8 +137,8 @@ static TIME_TYPE    RTCTime;            // time READ access, always up2date
 static DATE_TYPE    RTCDate;            // date READ access, always up2date
 
 /* external symbols */
-extern UINT16           wMilliSecCounter;       // high resolution short distance timer, ms,  max  65 sec
-extern UINT16           wSecCounter;            // low  resolution long  distance timer, sec, max. 18 h
+extern UINT16           wSystemTime_ms;       // high resolution short distance timer, ms,  max  65 sec
+extern UINT16           wSystemTime_sec;            // low  resolution long  distance timer, sec, max. 18 h
 extern UINT16           dwSystemTime;           // high resolution long  distance timer, ms,  max. 49 days
 extern DEVFLAGS2_TYPE   EE_DevFlags_2;          // daylight saving settings
 extern BOOL             fCESTChanged;           // DaylaightSaving 'CET/CEST changed flag'

@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.24  2012/07/15 18:29:03  tuberkel
+ * SystemTimer Vars renamed
+ *
  * Revision 3.23  2012/06/03 17:45:18  tuberkel
  * Updated API-Function-Name according to Modul-Name
  *
@@ -234,8 +237,8 @@
 
 // ------------------------------------------------------
 /* external symbols (taken from eeprom/nvram) */
-extern  far UINT16          wMilliSecCounter;       // high resolution short distance timer, ms,  max  65 sec
-extern  far UINT16          wSecCounter;            // low  resolution long  distance timer, sec, max. 18 h
+extern  far UINT16          wSystemTime_ms;       // high resolution short distance timer, ms,  max  65 sec
+extern  far UINT16          wSystemTime_sec;            // low  resolution long  distance timer, sec, max. 18 h
 
 extern  far DIGFILTTYPE     DigInFilter[];          // digital filter table for all inputs
 
@@ -633,7 +636,7 @@ void Surv_CheckService ( void )
 ERRCODE Surv_ProcessAll(void)
 {
     // check startup delay ---------------------------
-    if ( wSecCounter  >  SURV_STARTDELAY )
+    if ( wSystemTime_sec  >  SURV_STARTDELAY )
     {
         Surv_UpdateMeasData ();         // updates analog data
         Surv_UpdateStatistics();        // updates min/max values

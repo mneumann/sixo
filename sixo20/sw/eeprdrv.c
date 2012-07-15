@@ -114,7 +114,7 @@
 UINT16 wEepromSize;
 UINT16 wPageSize;
 UINT16 wPageMask;
-extern  UINT16  wMilliSecCounter; //system timer of the module timer.c
+extern  UINT16  wSystemTime_ms; //system timer of the module timer.c
 
 #if(DEBUG==1)
    //for test eeprom emulated by iic_{snd|rcv}_test
@@ -277,7 +277,7 @@ ERRCODE iicEepromWrite(UINT16 EepromTrgtAddr, UINT16 nBytes, UINT8 * pSrcAddr)
       //Worst case is about 6.6ms for a complete page write (162bit+start+stop *
       //10us + 5ms prog cycle). If the bus is set slower (halfbittime in iicbb.a30
       //= 8us) we have ~7.6ms -> 8ms. Another ms is added due to the inaccuracy
-      //between asynchronous processes (access of wMilliSecCounter) -> 9ms.
+      //between asynchronous processes (access of wSystemTime_ms) -> 9ms.
       //(To handle the rollover of the millisecond counter correctly the
       //subtraction now-start produces 9 as the result of ff-f6, 00-f7,
       //01-f8, 02-f9, ..., 07-fe, 08-ff, 09-00)

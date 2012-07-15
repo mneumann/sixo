@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.19  2012/07/15 18:29:03  tuberkel
+ * SystemTimer Vars renamed
+ *
  * Revision 3.18  2012/06/24 11:12:46  tuberkel
  * BuGfix:
  * - DigInDrv_GPI_UpdateMeas() now saves 'NV_FuelSensImp' too
@@ -178,7 +181,7 @@
 
 
 /* external vars */
-extern UINT16               wMilliSecCounter;   /* valid values: 0h .. ffffh */
+extern UINT16               wSystemTime_ms;   /* valid values: 0h .. ffffh */
 extern BIKE_TYPE            EE_BikeType;          /* bike type (from eeprom) */
 extern COOLRIDECNTRL_TYPE   EE_CoolrideCtrl;     /* Coolride Control (from eeprom) */
 extern FUELSCNTRL_TYPE      EE_FuelSensCtrl;     /* FuelSensor Control flags (from eeprom) */
@@ -879,8 +882,8 @@ void DigInDrv_GPI_UpdateMeas(void)
 
     /* correct PWM to 0%/100%, if missing interrupts for long time */
     fLogicHigh = (DigIntMeas[eGpi].fHighActive == FALSE) ? DIGIN_HIGH : DIGIN_LOW;
-    if (  ( ( wMilliSecCounter - DigIntMeas[eGpi].wLastHLTrans ) > DigIntMeas[eGpi].wTimeOut )
-        ||( ( wMilliSecCounter - DigIntMeas[eGpi].wLastLHTrans ) > DigIntMeas[eGpi].wTimeOut ) )
+    if (  ( ( wSystemTime_ms - DigIntMeas[eGpi].wLastHLTrans ) > DigIntMeas[eGpi].wTimeOut )
+        ||( ( wSystemTime_ms - DigIntMeas[eGpi].wLastLHTrans ) > DigIntMeas[eGpi].wTimeOut ) )
     {   /* TOO old events: set to  0%/100% */
         if ( fCurrState == fLogicHigh )
              DigIntMeas[eGpi].ucPWM = 100;
@@ -942,13 +945,13 @@ void GPI0_Int2_ISR(void)
     /* select kind of edge (Low<->High) & update our measurement */
     if ( DigIn_GPI_0 == 1 )
     {   /* H -> L edge: calculate HIGH pulse width & save new time stamp */
-        DigIntMeas[eGPI0_Int2].wHighWidth   = wMilliSecCounter - DigIntMeas[eGPI0_Int2].wLastLHTrans;
-        DigIntMeas[eGPI0_Int2].wLastHLTrans = wMilliSecCounter;
+        DigIntMeas[eGPI0_Int2].wHighWidth   = wSystemTime_ms - DigIntMeas[eGPI0_Int2].wLastLHTrans;
+        DigIntMeas[eGPI0_Int2].wLastHLTrans = wSystemTime_ms;
     }
     else
     {   /* L -> H edge: calculate HIGH pulse width & save new time stamp */
-        DigIntMeas[eGPI0_Int2].wLowWidth    = wMilliSecCounter - DigIntMeas[eGPI0_Int2].wLastHLTrans;
-        DigIntMeas[eGPI0_Int2].wLastLHTrans = wMilliSecCounter;
+        DigIntMeas[eGPI0_Int2].wLowWidth    = wSystemTime_ms - DigIntMeas[eGPI0_Int2].wLastHLTrans;
+        DigIntMeas[eGPI0_Int2].wLastLHTrans = wSystemTime_ms;
 
         /* addtionally count this transition */
         DigIntMeas[eGPI0_Int2].dwLHCounter++;
@@ -977,13 +980,13 @@ void GPI1_Int3_ISR(void)
     /* select kind of edge (Low<->High) & update our measurement */
     if ( DigIn_GPI_1 == 1 )
     {   /* H -> L edge: calculate HIGH pulse width & save new time stamp */
-        DigIntMeas[eGPI1_Int3].wHighWidth   = wMilliSecCounter - DigIntMeas[eGPI1_Int3].wLastLHTrans;
-        DigIntMeas[eGPI1_Int3].wLastHLTrans = wMilliSecCounter;
+        DigIntMeas[eGPI1_Int3].wHighWidth   = wSystemTime_ms - DigIntMeas[eGPI1_Int3].wLastLHTrans;
+        DigIntMeas[eGPI1_Int3].wLastHLTrans = wSystemTime_ms;
     }
     else
     {   /* L -> H edge: calculate HIGH pulse width & save new time stamp */
-        DigIntMeas[eGPI1_Int3].wLowWidth    = wMilliSecCounter - DigIntMeas[eGPI1_Int3].wLastHLTrans;
-        DigIntMeas[eGPI1_Int3].wLastLHTrans = wMilliSecCounter;
+        DigIntMeas[eGPI1_Int3].wLowWidth    = wSystemTime_ms - DigIntMeas[eGPI1_Int3].wLastHLTrans;
+        DigIntMeas[eGPI1_Int3].wLastLHTrans = wSystemTime_ms;
 
         /* addtionally count this transition */
         DigIntMeas[eGPI1_Int3].dwLHCounter++;
@@ -1012,13 +1015,13 @@ void GPI2_Int4_ISR(void)
     /* select kind of edge (Low<->High) & update our measurement */
     if ( DigIn_GPI_2 == 1 )
     {   /* H -> L edge: calculate HIGH pulse width & save new time stamp */
-        DigIntMeas[eGPI2_Int4].wHighWidth   = wMilliSecCounter - DigIntMeas[eGPI2_Int4].wLastLHTrans;
-        DigIntMeas[eGPI2_Int4].wLastHLTrans = wMilliSecCounter;
+        DigIntMeas[eGPI2_Int4].wHighWidth   = wSystemTime_ms - DigIntMeas[eGPI2_Int4].wLastLHTrans;
+        DigIntMeas[eGPI2_Int4].wLastHLTrans = wSystemTime_ms;
     }
     else
     {   /* L -> H edge: calculate HIGH pulse width & save new time stamp */
-        DigIntMeas[eGPI2_Int4].wLowWidth    = wMilliSecCounter - DigIntMeas[eGPI2_Int4].wLastHLTrans;
-        DigIntMeas[eGPI2_Int4].wLastLHTrans = wMilliSecCounter;
+        DigIntMeas[eGPI2_Int4].wLowWidth    = wSystemTime_ms - DigIntMeas[eGPI2_Int4].wLastHLTrans;
+        DigIntMeas[eGPI2_Int4].wLastLHTrans = wSystemTime_ms;
 
         /* addtionally count this transition */
         DigIntMeas[eGPI2_Int4].dwLHCounter++;
@@ -1048,13 +1051,13 @@ void GPI3_Int5_ISR(void)
     /* select kind of edge (Low<->High) & update our measurement */
     if ( DigIn_GPI_3 == 1 )
     {   /* H -> L edge: calculate HIGH pulse width & save new time stamp */
-        DigIntMeas[eGPI3_Int5].wHighWidth   = wMilliSecCounter - DigIntMeas[eGPI3_Int5].wLastLHTrans;
-        DigIntMeas[eGPI3_Int5].wLastHLTrans = wMilliSecCounter;
+        DigIntMeas[eGPI3_Int5].wHighWidth   = wSystemTime_ms - DigIntMeas[eGPI3_Int5].wLastLHTrans;
+        DigIntMeas[eGPI3_Int5].wLastHLTrans = wSystemTime_ms;
     }
     else
     {   /* L -> H edge: calculate HIGH pulse width & save new time stamp */
-        DigIntMeas[eGPI3_Int5].wLowWidth    = wMilliSecCounter - DigIntMeas[eGPI3_Int5].wLastHLTrans;
-        DigIntMeas[eGPI3_Int5].wLastLHTrans = wMilliSecCounter;
+        DigIntMeas[eGPI3_Int5].wLowWidth    = wSystemTime_ms - DigIntMeas[eGPI3_Int5].wLastHLTrans;
+        DigIntMeas[eGPI3_Int5].wLastLHTrans = wSystemTime_ms;
 
         /* addtionally count this transition */
         DigIntMeas[eGPI3_Int5].dwLHCounter++;

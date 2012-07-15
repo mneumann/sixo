@@ -78,6 +78,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.17  2012/07/15 18:29:03  tuberkel
+ * SystemTimer Vars renamed
+ *
  * Revision 3.16  2012/05/31 20:46:52  tuberkel
  * just comments
  *
@@ -211,7 +214,7 @@
 
 
 /* external symbols */
-extern far UINT16   wMilliSecCounter;   /* valid values: 0h .. ffffh */
+extern far UINT16   wSystemTime_ms;   /* valid values: 0h .. ffffh */
 extern far STRING   szDevName[];        /* debug out stuff */
 extern far BOOL     fRTCDefect;         /* surveillance RTC defect detection */
 

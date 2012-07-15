@@ -69,6 +69,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.7  2012/07/15 18:29:03  tuberkel
+ * SystemTimer Vars renamed
+ *
  * Revision 3.6  2012/05/27 16:01:42  tuberkel
  * All Eeprom/Nvram Variables renamed
  *
@@ -217,7 +220,7 @@ static const OBJ_SLCT_INIT SelectObjInit[] =
 
 /* ----------------------------------------------------------- */
 /* external symbols */
-extern UINT16           wMilliSecCounter;       // valid values: 0h .. ffffh
+extern UINT16           wSystemTime_ms;       // valid values: 0h .. ffffh
 extern STRING far       szDevName[];            // device names
 extern DEVFLAGS1_TYPE    EE_DevFlags_1;           /* system parameters */
 

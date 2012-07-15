@@ -76,6 +76,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.9  2012/07/15 18:29:03  tuberkel
+ * SystemTimer Vars renamed
+ *
  * Revision 3.8  2012/05/27 16:01:39  tuberkel
  * All Eeprom/Nvram Variables renamed
  *
@@ -170,8 +173,8 @@
 /* external symbols (taken from eeprom/nvram) */
 extern STRING far       szDevName[];            // device names
 extern DEVFLAGS1_TYPE   EE_DevFlags_1;          // system parameters
-extern UINT16           wMilliSecCounter;       // high resolution short distance timer, ms,  max  65 sec
-extern UINT16           wSecCounter;            // low  resolution long  distance timer, sec, max. 18 h
+extern UINT16           wSystemTime_ms;       // high resolution short distance timer, ms,  max  65 sec
+extern UINT16           wSystemTime_sec;            // low  resolution long  distance timer, sec, max. 18 h
 extern TIME_TYPE_LL     EE_LapCnt_Time[LAPS_MAX];   // original values from EEPROM
 extern LCSTATE_TYPE     EE_LapCnt_State;        // LapCounter state
 

@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.2  2012/07/15 18:29:03  tuberkel
+ * SystemTimer Vars renamed
+ *
  * Revision 3.1  2012/02/04 08:41:04  tuberkel
  * New: MS2TICKSL - long version
  *
@@ -101,8 +104,8 @@
 #define WARN_TIMERLOAD_MS 15          // ODS() warning if timer function took more than 15 ms
 
 /* interface to get copy of system time counters */
-#define TimerGetSys_sec(x)        (x = wSecCounter)
-#define TimerGetSys_msec(x)       (x = wMilliSecCounter)
+#define TimerGetSys_sec(x)        (x = wSystemTime_sec)
+#define TimerGetSys_msec(x)       (x = wSystemTime_ms)
 
 /* define timer message format */
 typedef struct

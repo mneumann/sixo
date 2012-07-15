@@ -75,6 +75,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.8  2012/07/15 18:29:03  tuberkel
+ * SystemTimer Vars renamed
+ *
  * Revision 3.7  2012/06/03 17:45:18  tuberkel
  * Updated API-Function-Name according to Modul-Name
  *
@@ -134,7 +137,7 @@
 
 
 /* external symbols */
-extern  UINT16      wMilliSecCounter;   /* valid values: 0h .. ffffh */
+extern  UINT16      wSystemTime_ms;   /* valid values: 0h .. ffffh */
 extern  UINT16      EE_WheelSize;       /* wheel size in mm, to be read from eeprom */
 extern  UINT8       EE_WheelImpPRev;   /* wheel impulses per revolution */
 

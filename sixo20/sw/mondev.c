@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.12  2012/07/15 18:29:03  tuberkel
+ * SystemTimer Vars renamed
+ *
  * Revision 3.11  2012/06/02 06:14:19  tuberkel
  * just file header comments
  *
@@ -180,7 +183,7 @@
 
 
 /* external symbols */
-extern UINT16           wMilliSecCounter;           /* valid values: 0h .. ffffh */
+extern UINT16           wSystemTime_ms;           /* valid values: 0h .. ffffh */
 extern STRING far       szDevName[];                /* device names */
 extern DEVFLAGS1_TYPE   EE_DevFlags_1;               /* system parameters */
 

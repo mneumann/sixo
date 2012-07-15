@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.14  2012/07/15 18:29:03  tuberkel
+ * SystemTimer Vars renamed
+ *
  * Revision 3.13  2012/06/03 17:45:17  tuberkel
  * Updated API-Function-Name according to Modul-Name
  *
@@ -192,8 +195,8 @@
 
 
 /* external symbols */
-extern UINT16  wMilliSecCounter;                // valid values: 0h .. ffffh
-extern UINT16  wSecCounter;                     // valid values: 0h .. ffffh
+extern UINT16  wSystemTime_ms;                // valid values: 0h .. ffffh
+extern UINT16  wSystemTime_sec;                     // valid values: 0h .. ffffh
 
 extern STRING far           szDevName[];        /* device names */
 extern DEVFLAGS1_TYPE       EE_DevFlags_1;      /* system parameters */
@@ -957,10 +960,10 @@ void HWTDev_UpdUnStimErr( void )
 
     // =============================================================================
     // NVRAM + RTC + Battery Check (every 2nd second)
-    if ( (wSecCounter - wLastRTCCheck) > CYCLE_CHECK_RTC)
+    if ( (wSystemTime_sec - wLastRTCCheck) > CYCLE_CHECK_RTC)
     {
         // suspend check for CYCLE_CHECK_RTC seconds
-        wLastRTCCheck = wSecCounter;
+        wLastRTCCheck = wSystemTime_sec;
 
         // check running RTC seconds
         // Note: Min+Sec will be used as NVRAM test pattern and battery check
@@ -1020,10 +1023,10 @@ void HWTDev_UpdUnStimErr( void )
 
     // =============================================================================
     // EEPROM check (every 5 seconds to prevent eeprom damage)
-    if ( (wSecCounter - wLastEepromCheck) > CYCLE_CHECK_EEPROM )
+    if ( (wSystemTime_sec - wLastEepromCheck) > CYCLE_CHECK_EEPROM )
     {
         // suspend check for CYCLE_CHECK_EEPROM seconds
-        wLastEepromCheck = wSecCounter;
+        wLastEepromCheck = wSystemTime_sec;
 
         // write/read at last EEPROM word position before MagicNumber, without destroying old data
         wTestEEPROMAdr = iicEepromSize() - EEPR_MAGICNUM_SIZE - sizeof( wTestEEPROMWord );
@@ -1215,7 +1218,7 @@ void HWTDev_StimuISR(void)
     // slowly toggle internal flag fGPO1_active
     // Note: fGPO1_active will be used as source for port pins
     //       only if test adapter present!
-    if ( (wSecCounter%2)==0)
+    if ( (wSystemTime_sec%2)==0)
          fGPO1_active = TRUE;
     else fGPO1_active = FALSE;
 

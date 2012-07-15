@@ -89,6 +89,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.5  2012/07/15 18:29:03  tuberkel
+ * SystemTimer Vars renamed
+ *
  * Revision 3.4  2012/02/27 23:15:38  tuberkel
  * CompassDrv API changed
  *
@@ -149,7 +152,7 @@ typedef struct
 #endif
 
 
-extern  UINT16  wMilliSecCounter; //system timer of the module timer.c
+extern  UINT16  wSystemTime_ms; //system timer of the module timer.c
 
 UINT8 gucRxIsrState = 0;
 UINT8 gaucRxdBuffer[COMPDRV_RXD_BUFFLEN];

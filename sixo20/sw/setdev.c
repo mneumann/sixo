@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.36  2012/07/15 18:29:03  tuberkel
+ * SystemTimer Vars renamed
+ *
  * Revision 3.35  2012/06/03 17:45:18  tuberkel
  * Updated API-Function-Name according to Modul-Name
  *
@@ -342,7 +345,7 @@ static OBJ_STEXT        STxtObj_HL_Ext1;
 extern STRING far           szDevName[];        // device names
 extern DEVFLAGS1_TYPE       EE_DevFlags_1;      // system parameters
 extern unsigned char        szSWVersion[];      // formated sw version
-extern UINT16               wMilliSecCounter;   // valid values: 0h .. ffffh
+extern UINT16               wSystemTime_ms;   // valid values: 0h .. ffffh
 
 
 // ----------------------------------------------------------------
