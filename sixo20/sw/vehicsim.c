@@ -69,6 +69,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.3  2012/07/15 20:43:56  tuberkel
+ * Intermediate update:
+ * - constant simulation ok
+ *
  * Revision 3.2  2012/07/15 19:25:56  tuberkel
  * VehicleSimulation completely reviewed
  * - prepared to handle multiple IRQs
@@ -342,7 +346,7 @@ void Sim_Init(BOOL fSequence)
     SimSeq.fSeqMode = fSequence;
 
     /* basic simulation kind setup  */
-    Sim_KindSetup( &SimulKind[SIM_WHEEL], SIM_WHEEL, FALSE, SIM_SCALE_WHEEL);
+    Sim_KindSetup( &SimulKind[SIM_WHEEL], SIM_WHEEL, TRUE, SIM_SCALE_WHEEL);
     Sim_KindSetup( &SimulKind[SIM_RPM],   SIM_RPM,   TRUE,  SIM_SCALE_RPM);
 
     /* no sequence required? setup static usage! */
@@ -350,8 +354,8 @@ void Sim_Init(BOOL fSequence)
     {
         /* setup a STATIC behaviour, which will not be changed */
         /* use constant simulation (no sequence) */
-        Sim_FrequenceSetup( &SimulKind[SIM_WHEEL], 0,  100,  100);   // constant speed 100 km/h
-        Sim_FrequenceSetup( &SimulKind[SIM_RPM],   0, 2000, 2000);   // constant RPM 2000 km/h
+        Sim_FrequenceSetup( &SimulKind[SIM_WHEEL], 100,  100  , 10);   // constant speed 100 km/h
+        Sim_FrequenceSetup( &SimulKind[SIM_RPM],   2000, 2000 , 10);   // constant RPM 2000 km/h
         //Sim_FrequenceSetup( SIM_FUEL,   0, 2000, 10);    // accelerate RPM from 0..2000 km/h in 10 sec. and remain at that RPM
         //Sim_FrequenceSetup( SIM_COOLR,  0, 2000, 10);    // accelerate RPM from 0..2000 km/h in 10 sec. and remain at that RPM
     }

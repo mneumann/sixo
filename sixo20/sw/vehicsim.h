@@ -68,6 +68,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.3  2012/07/15 20:43:56  tuberkel
+ * Intermediate update:
+ * - constant simulation ok
+ *
  * Revision 3.2  2012/07/15 19:25:56  tuberkel
  * VehicleSimulation completely reviewed
  * - prepared to handle multiple IRQs
@@ -113,6 +117,8 @@
 
 #define SIM_SCALE_WHEEL  7200    // to convert km/h -> WheelPeriod-IRQ
 #define SIM_SCALE_RPM   26000    // to convert RPM  -> RPM-Period-IRQ
+
+#define SIM_MODE SIM_STATIC   // default: use 'Sequence' (=1) mode
 
 #ifndef SIM_MODE
 #define SIM_MODE SIM_SEQUENCE   // default: use 'Sequence' (=1) mode
