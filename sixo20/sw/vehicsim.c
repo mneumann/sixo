@@ -69,6 +69,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.4  2012/07/16 20:52:25  tuberkel
+ * Vehicle Simulation:
+ * - FuelSensor (GPI0) works
+ *
  * Revision 3.3  2012/07/15 20:43:56  tuberkel
  * Intermediate update:
  * - constant simulation ok
@@ -116,16 +120,24 @@
 #include "measdrv.h"
 #include "vehicsim.h"
 #include "digoutdr.h"
+#include "digindrv.h"
+
 
 
 /* external symbols */
 extern UINT16  wSystemTime_ms;   // valid values: 0h .. ffffh
 extern UINT16  wSystemTime_sec;        // valid values: 0h .. ffffh
 
+
 /* software interrupt declaration */
 /* (this is necessary to cause an interrupt by software) */
 #pragma INTCALL 29 WheelSensor_ISR();
 #pragma INTCALL 30 RPMSensor_ISR();
+#pragma INTCALL 31 GPI0_Int2_ISR();
+#pragma INTCALL  4 GPI1_Int3_ISR();
+#pragma INTCALL  9 GPI2_Int4_ISR();
+#pragma INTCALL  8 GPI3_Int5_ISR();
+
 
 
 /* module global symbols */
@@ -137,18 +149,18 @@ SIM_KIND_CNTRL  SimulKind[SIM_KIND_MAX];    // kind simulation control
 /* simulation sequence pattern */
 SIM_SEQ_STEP SimPattern[] =
 {
-//        Dur    km/h    km/h     RPM     RPM
-//        sec    Start    End     Start   End
-//       -----  ------  -------  ------  ------
-/* 0 */ {   5,       0,      0,      0,      0, },   // all off & halted
-/* 1 */ {   5,       0,      0,    600,   1000, },   // start engine, halted
-/* 2 */ {  10,       0,     50,   1200,   3000, },   // accelerate  to  50 km/h
-/* 3 */ {  10,      50,     50,   3000,   3000, },   // const speed     50 km/h
-/* 4 */ {  10,      50,    150,   3000,   4000, },   // accelerate  to 160 km/h
-/* 5 */ {  10,     150,    150,   4000,   4000, },   // const speed    160 km/h
-/* 6 */ {  10,     150,      0,   4000,   1000, },   // slow down   to   0 km/h
-/* 7 */ {   5,       0,      0,    800,    800, },   // halted, engine run
-//       -----  -------  ------  ------  -----
+//        Dur        km/h              RPM      Fuel l/1000km
+//        sec    Start    End     Start   End   Start   End
+//       -----  ---------------  -------------- -------------
+/* 0 */ {   5,       0,      0,      0,      0,    0,      0, },   // all off & halted
+/* 1 */ {   5,       0,      0,    600,   1000,   20,     20  },   // start engine, halted
+/* 2 */ {  10,       0,     50,   1200,   3000,   50,     75  },   // accelerate  to  50 km/h
+/* 3 */ {  10,      50,     50,   3000,   3000,   75,     75, },   // const speed     50 km/h
+/* 4 */ {  10,      50,    150,   3000,   4000,   75,    100, },   // accelerate  to 160 km/h
+/* 5 */ {  10,     150,    150,   4000,   4000,  100,    100, },   // const speed    160 km/h
+/* 6 */ {  10,     150,      0,   4000,   1000,  100,     50, },   // slow down   to   0 km/h
+/* 7 */ {   5,       0,      0,    800,    800,   20,     20, },   // halted, engine run
+//       -----  ---------------  -------------- -------------
 };
 
 
@@ -161,14 +173,20 @@ SIM_SEQ_STEP SimPattern[] =
  *                  eKind       type of kind
  *                  fActive     TRUE = start simulation, FALSE = stop
  *                  wScaling    scaling from phys. value to IRQ period
+ *                  fClick      TRUE = click for each ISR call
  *  RETURN:         -
  *  COMMENT:        -
  *********************************************************************** */
-void Sim_KindSetup   (SIM_KIND_CNTRL * pKind, SIM_KIND eKind, BOOL fActive, UINT16 wScaling)
+void Sim_KindSetup   (  SIM_KIND_CNTRL *    pKind,
+                        SIM_KIND            eKind,
+                        BOOL                fActive,
+                        UINT16              wScaling,
+                        BOOL                fClick   )
 {
     pKind->eKind    = eKind;
     pKind->fActive  = fActive;
     pKind->wScaling = wScaling;
+    pKind->fClick   = fClick;
 }
 
 
@@ -218,6 +236,28 @@ void Sim_FrequenceSetup (SIM_KIND_CNTRL * pKind, INT16 iFreqStart, INT16 iFreqEn
 
 
 /***********************************************************************
+ *  FUNCTION:       Sim_Click
+ *  DESCRIPTION:    Supports a single short beeper click
+ *  PARAMETER:      BOOL    TRUE = generate click
+ *  RETURN:         -
+ *  COMMENT:        -
+ *********************************************************************** */
+void Sim_Click (BOOL fClick)
+{
+    if ( fClick == TRUE )
+    {
+        /* short 'click' as ISR Indicator */
+        DigOutDrv_SetNewState( eDIGOUT_BEEP, 1, 0, 0 );
+        DigOutDrv_SetNewState( eDIGOUT_BEEP, 0, 1, 0 );
+    }
+    else
+    {   // nothing to do here
+    }
+}
+
+
+
+/***********************************************************************
  *  FUNCTION:       Sim_FrequenceControl
  *  DESCRIPTION:    Controls the simulation of one kind,
  *                  has to be repeatetly called f.e. from main loop
@@ -246,17 +286,16 @@ void Sim_FrequenceControl (SIM_KIND_CNTRL * pKind)
             switch (pKind->eKind)
             {   case SIM_WHEEL: WheelSensor_ISR();  break;
                 case SIM_RPM:   RPMSensor_ISR();    break;
-                //case SIM_FUEL:                      break;
+                case SIM_FUEL:  GPI0_Int2_ISR();    break;
                 //case SIM_COOLR:                     break;
                 default:                            break;
             }
+
+            /* generate a single click (if enabled) */
+            Sim_Click (pKind->fClick);
+
             /* reset recall time for next use */
             pKind->wLastISRCall = wThisISRCall;
-
-            /* short 'click' as ISR Indicator */
-            DigOutDrv_SetNewState( eDIGOUT_BEEP, 1, 0, 0 );
-            DigOutDrv_SetNewState( eDIGOUT_BEEP, 0, 1, 0 );
-
         }
 
         /* ----------------------------------------------- */
@@ -346,17 +385,19 @@ void Sim_Init(BOOL fSequence)
     SimSeq.fSeqMode = fSequence;
 
     /* basic simulation kind setup  */
-    Sim_KindSetup( &SimulKind[SIM_WHEEL], SIM_WHEEL, TRUE, SIM_SCALE_WHEEL);
-    Sim_KindSetup( &SimulKind[SIM_RPM],   SIM_RPM,   TRUE,  SIM_SCALE_RPM);
+    Sim_KindSetup( &SimulKind[SIM_WHEEL], SIM_WHEEL, TRUE, SIM_SCALE_WHEEL,SIM_CLICK_WHEEL);
+    Sim_KindSetup( &SimulKind[SIM_RPM],   SIM_RPM,   TRUE, SIM_SCALE_RPM,  SIM_CLICK_RPM  );
+    Sim_KindSetup( &SimulKind[SIM_FUEL],    SIM_FUEL,  TRUE,  SIM_SCALE_FUEL, SIM_CLICK_FUEL );
+    //Sim_KindSetup( &SimulKind[SIM_COOLR], SIM_FUEL,  TRUE,  SIM_SCALE_COOLR, SIM_CLICK_COOLR );
 
     /* no sequence required? setup static usage! */
     if (SimSeq.fSeqMode == SIM_STATIC )
     {
         /* setup a STATIC behaviour, which will not be changed */
         /* use constant simulation (no sequence) */
-        Sim_FrequenceSetup( &SimulKind[SIM_WHEEL], 100,  100  , 10);   // constant speed 100 km/h
-        Sim_FrequenceSetup( &SimulKind[SIM_RPM],   2000, 2000 , 10);   // constant RPM 2000 km/h
-        //Sim_FrequenceSetup( SIM_FUEL,   0, 2000, 10);    // accelerate RPM from 0..2000 km/h in 10 sec. and remain at that RPM
+        Sim_FrequenceSetup( &SimulKind[SIM_WHEEL],  100,  100, 10);   // constant speed 100 km/h
+        Sim_FrequenceSetup( &SimulKind[SIM_RPM],   2000, 2000, 10);   // constant RPM 2000 km/h
+        Sim_FrequenceSetup( &SimulKind[SIM_FUEL],    50,   50, 10);   // constant Fuel 5,0 l/100km
         //Sim_FrequenceSetup( SIM_COOLR,  0, 2000, 10);    // accelerate RPM from 0..2000 km/h in 10 sec. and remain at that RPM
     }
 
@@ -388,7 +429,7 @@ void Sim_Main(BOOL fSequence)
     /* always: control software interrupts separately  */
     Sim_FrequenceControl( &SimulKind[SIM_WHEEL] );
     Sim_FrequenceControl( &SimulKind[SIM_RPM  ] );
-    //Sim_FrequenceControl(SIM_FUEL);
+    Sim_FrequenceControl( &SimulKind[SIM_FUEL ] );
     //Sim_FrequenceControl(SIM_COOLR);
 
 }

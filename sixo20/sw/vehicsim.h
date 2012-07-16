@@ -68,6 +68,10 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.4  2012/07/16 20:52:25  tuberkel
+ * Vehicle Simulation:
+ * - FuelSensor (GPI0) works
+ *
  * Revision 3.3  2012/07/15 20:43:56  tuberkel
  * Intermediate update:
  * - constant simulation ok
@@ -115,20 +119,26 @@
 #define SIM_STATIC      FALSE   // to control simulation: enables handling of static behavoiur
 #define SIM_SEQSTEPINTV 1000    // intervall time in ms for one sequence step
 
-#define SIM_SCALE_WHEEL  7200    // to convert km/h -> WheelPeriod-IRQ
-#define SIM_SCALE_RPM   26000    // to convert RPM  -> RPM-Period-IRQ
+#define SIM_SCALE_WHEEL  7200   // to convert km/h -> WheelPeriod-IRQ (at wheelsize 2000 mm)
+#define SIM_SCALE_RPM   26000   // to convert RPM  -> RPM-Period-IRQ (at CCF 1/1)
+#define SIM_SCALE_FUEL   2500   // to convert l/1000 km -> Fuel-Period-IRQ (at 8500 I/L)
 
-#define SIM_MODE SIM_STATIC   // default: use 'Sequence' (=1) mode
-
+//#define SIM_MODE SIM_STATIC     // default: use 'Sequence' (=1) mode
 #ifndef SIM_MODE
 #define SIM_MODE SIM_SEQUENCE   // default: use 'Sequence' (=1) mode
 #endif
+
+#define SIM_CLICK_WHEEL     0   // enable a 'click' for each wheel impuls
+#define SIM_CLICK_RPM       0   // enable a 'click' for each RPM impuls
+#define SIM_CLICK_FUEL      0   // enable a 'click' for each fuel impuls
+#define SIM_CLICK_COLLR     0   // enable a 'click' for each Coolride impuls
+
 
 /* Kind of simulation */
 typedef enum
 {   SIM_WHEEL,      /* index of wheelspeed simulation */
     SIM_RPM,        /* index of engine RPM simulation */
-    //SIM_FUEL,       /* index of Fuelsensor simulation */
+    SIM_FUEL,       /* index of Fuelsensor simulation */
     //SIM_COOLR,      /* index of Coolride simulation */
     SIM_KIND_MAX    /* invalid max index  */
 } SIM_KIND;
@@ -154,6 +164,7 @@ typedef struct
 {
     SIM_KIND    eKind;              /* indicator for Kind type */
     BOOL        fActive;            /* 1 = simulation active  */
+    BOOL        fClick;             /* 1 = beeper 'click' for each ISR-call */
     UINT16      wScaling;           /* scaling factor to convert Freq => Period */
     INT16       iDuration;          /* step duration in msec */
 
@@ -191,10 +202,10 @@ typedef struct
 /* public prototypes */
 void Sim_Init               (BOOL fSequence);
 void Sim_Main               (BOOL fSequence);
-void Sim_KindSetup          (SIM_KIND_CNTRL * pKind, SIM_KIND eKind, BOOL fActive, UINT16 wScaling);
+void Sim_KindSetup          (SIM_KIND_CNTRL * pKind, SIM_KIND eKind, BOOL fActive, UINT16 wScaling, BOOL fClick);
 void Sim_FrequenceSetup     (SIM_KIND_CNTRL * pKind, INT16 iFreqStart, INT16 iFreqEnd, INT16 iDuration);
 void Sim_FrequenceControl   (SIM_KIND_CNTRL * pKind);
-
+void Sim_Click              (BOOL fClick);
 
  #endif // _SIMULATOR_H
 

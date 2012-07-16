@@ -344,6 +344,11 @@ void             DigInDrv_GPI_RstCount  ( DIGINTMEAS_GPI eGpi );
 void             DigInDrv_GPI_SetupMeas ( DIGINTMEAS_GPI eGpi, BOOL fHighAct, UINT16 wTimeout );
 void             DigInDrv_GPI_UpdateMeas( void);
 
+void GPI0_Int2_ISR(void);
+void GPI1_Int3_ISR(void);
+void GPI2_Int4_ISR(void);
+void GPI3_Int5_ISR(void);
+
 #endif /* _DIGINDRV_H */
 
 
