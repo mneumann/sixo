@@ -69,6 +69,11 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.5  2012/09/23 07:41:54  tuberkel
+ * Vehicle Simulation Update:
+ * - Coolride GPI supported (but not yet ready)
+ * - Simulation set to 'fixed values' (SIM_STATIC)
+ *
  * Revision 3.4  2012/07/16 20:52:25  tuberkel
  * Vehicle Simulation:
  * - FuelSensor (GPI0) works
@@ -149,18 +154,18 @@ SIM_KIND_CNTRL  SimulKind[SIM_KIND_MAX];    // kind simulation control
 /* simulation sequence pattern */
 SIM_SEQ_STEP SimPattern[] =
 {
-//        Dur        km/h              RPM      Fuel l/1000km
-//        sec    Start    End     Start   End   Start   End
-//       -----  ---------------  -------------- -------------
-/* 0 */ {   5,       0,      0,      0,      0,    0,      0, },   // all off & halted
-/* 1 */ {   5,       0,      0,    600,   1000,   20,     20  },   // start engine, halted
-/* 2 */ {  10,       0,     50,   1200,   3000,   50,     75  },   // accelerate  to  50 km/h
-/* 3 */ {  10,      50,     50,   3000,   3000,   75,     75, },   // const speed     50 km/h
-/* 4 */ {  10,      50,    150,   3000,   4000,   75,    100, },   // accelerate  to 160 km/h
-/* 5 */ {  10,     150,    150,   4000,   4000,  100,    100, },   // const speed    160 km/h
-/* 6 */ {  10,     150,      0,   4000,   1000,  100,     50, },   // slow down   to   0 km/h
-/* 7 */ {   5,       0,      0,    800,    800,   20,     20, },   // halted, engine run
-//       -----  ---------------  -------------- -------------
+//        Dur     km/h        RPM      l/1000km    Coolr%
+//        sec   StartEnd   StartEnd    StartEnd   StartEnd
+//       -----  ---------  ----------- ---------- ---------
+/* 0 */ {   5,    0,   0,     0,    0,   0,    0,   0,   0,  },   // all off & halted
+/* 1 */ {   5,    0,   0,   600, 1000,  20,   20,   0,   0,  },   // start engine, halted
+/* 2 */ {  10,    0,  50,  1200, 3000,  50,   75,  20,  20,  },   // accelerate  to  50 km/h
+/* 3 */ {  10,   50,  50,  3000, 3000,  75,   75,  40,  40,  },   // const speed     50 km/h
+/* 4 */ {  10,   50, 150,  3000, 4000,  75,  100,  60,  60,  },   // accelerate  to 160 km/h
+/* 5 */ {  10,  150, 150,  4000, 4000, 100,  100,  80,  80,  },   // const speed    160 km/h
+/* 6 */ {  10,  150,   0,  4000, 1000, 100,   50, 100, 100,  },   // slow down   to   0 km/h
+/* 7 */ {   5,    0,   0,   800,  800,  20,   20,   0,   0,  },   // halted, engine run
+//       -----  ---------  ----------- ---------- ---------
 };
 
 
@@ -287,7 +292,7 @@ void Sim_FrequenceControl (SIM_KIND_CNTRL * pKind)
             {   case SIM_WHEEL: WheelSensor_ISR();  break;
                 case SIM_RPM:   RPMSensor_ISR();    break;
                 case SIM_FUEL:  GPI0_Int2_ISR();    break;
-                //case SIM_COOLR:                     break;
+                case SIM_COOLR: GPI1_Int3_ISR();    break;
                 default:                            break;
             }
 
@@ -385,10 +390,10 @@ void Sim_Init(BOOL fSequence)
     SimSeq.fSeqMode = fSequence;
 
     /* basic simulation kind setup  */
-    Sim_KindSetup( &SimulKind[SIM_WHEEL], SIM_WHEEL, TRUE, SIM_SCALE_WHEEL,SIM_CLICK_WHEEL);
-    Sim_KindSetup( &SimulKind[SIM_RPM],   SIM_RPM,   TRUE, SIM_SCALE_RPM,  SIM_CLICK_RPM  );
-    Sim_KindSetup( &SimulKind[SIM_FUEL],    SIM_FUEL,  TRUE,  SIM_SCALE_FUEL, SIM_CLICK_FUEL );
-    //Sim_KindSetup( &SimulKind[SIM_COOLR], SIM_FUEL,  TRUE,  SIM_SCALE_COOLR, SIM_CLICK_COOLR );
+    Sim_KindSetup( &SimulKind[SIM_WHEEL], SIM_WHEEL, TRUE, SIM_SCALE_WHEEL, SIM_CLICK_WHEEL);
+    Sim_KindSetup( &SimulKind[SIM_RPM],   SIM_RPM,   TRUE, SIM_SCALE_RPM,   SIM_CLICK_RPM  );
+    Sim_KindSetup( &SimulKind[SIM_FUEL],  SIM_FUEL,  TRUE, SIM_SCALE_FUEL,  SIM_CLICK_FUEL );
+    Sim_KindSetup( &SimulKind[SIM_COOLR], SIM_COOLR, TRUE, SIM_SCALE_COOLR, SIM_CLICK_COOLR);
 
     /* no sequence required? setup static usage! */
     if (SimSeq.fSeqMode == SIM_STATIC )
@@ -396,9 +401,9 @@ void Sim_Init(BOOL fSequence)
         /* setup a STATIC behaviour, which will not be changed */
         /* use constant simulation (no sequence) */
         Sim_FrequenceSetup( &SimulKind[SIM_WHEEL],  100,  100, 10);   // constant speed 100 km/h
-        Sim_FrequenceSetup( &SimulKind[SIM_RPM],   2000, 2000, 10);   // constant RPM 2000 km/h
-        Sim_FrequenceSetup( &SimulKind[SIM_FUEL],    50,   50, 10);   // constant Fuel 5,0 l/100km
-        //Sim_FrequenceSetup( SIM_COOLR,  0, 2000, 10);    // accelerate RPM from 0..2000 km/h in 10 sec. and remain at that RPM
+        Sim_FrequenceSetup( &SimulKind[SIM_RPM  ], 2000, 2000, 10);   // constant RPM 2000 km/h
+        Sim_FrequenceSetup( &SimulKind[SIM_FUEL ],   50,   50, 10);   // constant Fuel 5,0 l/100km
+        Sim_FrequenceSetup( &SimulKind[SIM_COOLR],   50,   50, 10);   // constant PWM 50%
     }
 
     /* initialize only once */
@@ -430,7 +435,7 @@ void Sim_Main(BOOL fSequence)
     Sim_FrequenceControl( &SimulKind[SIM_WHEEL] );
     Sim_FrequenceControl( &SimulKind[SIM_RPM  ] );
     Sim_FrequenceControl( &SimulKind[SIM_FUEL ] );
-    //Sim_FrequenceControl(SIM_COOLR);
+    Sim_FrequenceControl( &SimulKind[SIM_COOLR] );
 
 }
 

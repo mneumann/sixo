@@ -68,6 +68,11 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.5  2012/09/23 07:41:54  tuberkel
+ * Vehicle Simulation Update:
+ * - Coolride GPI supported (but not yet ready)
+ * - Simulation set to 'fixed values' (SIM_STATIC)
+ *
  * Revision 3.4  2012/07/16 20:52:25  tuberkel
  * Vehicle Simulation:
  * - FuelSensor (GPI0) works
@@ -113,25 +118,32 @@
 
 
 
-/* defines */
-#define SIM_STARTDELAY  2       // start delay in sec
+
+/* simulation mode */
 #define SIM_SEQUENCE    TRUE    // to control simulation: enables handling of sequence
 #define SIM_STATIC      FALSE   // to control simulation: enables handling of static behavoiur
+#define SIM_MODE            0   // 0=STATIC, 1=SEQUENCE mode
+
+
+
+/* start delay and step interval */
+#define SIM_STARTDELAY     2    // start delay in sec
 #define SIM_SEQSTEPINTV 1000    // intervall time in ms for one sequence step
 
+
+/* simulation kind scaling */
 #define SIM_SCALE_WHEEL  7200   // to convert km/h -> WheelPeriod-IRQ (at wheelsize 2000 mm)
 #define SIM_SCALE_RPM   26000   // to convert RPM  -> RPM-Period-IRQ (at CCF 1/1)
 #define SIM_SCALE_FUEL   2500   // to convert l/1000 km -> Fuel-Period-IRQ (at 8500 I/L)
+#define SIM_SCALE_COOLR   100   // to convert % heat -> Coolride-Period-IRQ
 
-//#define SIM_MODE SIM_STATIC     // default: use 'Sequence' (=1) mode
-#ifndef SIM_MODE
-#define SIM_MODE SIM_SEQUENCE   // default: use 'Sequence' (=1) mode
-#endif
 
+/* simulation acoustic feedback */
 #define SIM_CLICK_WHEEL     0   // enable a 'click' for each wheel impuls
 #define SIM_CLICK_RPM       0   // enable a 'click' for each RPM impuls
 #define SIM_CLICK_FUEL      0   // enable a 'click' for each fuel impuls
-#define SIM_CLICK_COLLR     0   // enable a 'click' for each Coolride impuls
+#define SIM_CLICK_COOLR     0   // enable a 'click' for each Coolride impuls
+
 
 
 /* Kind of simulation */
@@ -139,7 +151,7 @@ typedef enum
 {   SIM_WHEEL,      /* index of wheelspeed simulation */
     SIM_RPM,        /* index of engine RPM simulation */
     SIM_FUEL,       /* index of Fuelsensor simulation */
-    //SIM_COOLR,      /* index of Coolride simulation */
+    SIM_COOLR,      /* index of Coolride simulation */
     SIM_KIND_MAX    /* invalid max index  */
 } SIM_KIND;
 
