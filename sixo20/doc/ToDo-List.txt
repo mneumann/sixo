@@ -10,11 +10,20 @@ SetupDevice
 	- Sprache: 	    Umschaltbar
 	- Metrik: 	    Umschaltbar
 	- LED:		    PWM-Helligkeiteit aktivieren
-	- DebugOuts: 	aktivieren/sichern + Uart aussuchen
 	- Maindevice:	Ansicht programmierbar
 	- DeviceList:	Auswahl programmierbar
 	- Warnings:	    Konfigurierbare Warnings (Screenentwurf I/W/E)
 	- Logo:         separat flashen: Spezialprojekt!
+	- Simulation:   km/h / RPM / GPIO einzeln per Hexwert setzen
+    - DebugOuts: 	aktivieren/sichern
+    - DebugOuts: 	Uart aussuchen
+
+MainDevice:
+	- Fehler:   Quttieren, einzeln
+	- v-Max:    reuas, ==> MeasureDevice
+	- Datum:    Ohne Jahr! (kleiner! => für universelle austauschen)
+	- T1/T2:    Erweiterung um Zeit+Durchschn. Geschw.
+	- Verbrauch Berechnung nach Tanken-Dialog
 
 MeasureDevice / Statisitik
 	- überarbeiten: alle verfügbaren Max-Werte anzeigen
@@ -29,21 +38,18 @@ MeasureDevice / Statisitik
     - Verbrauch:    neuer Unterscreen mit Tank-Etappen
 
 Extensions:
-	- Kompass (an/aus, Calib-Steps)
-	- Ganganzeige (an/aus)
-	- GPS-Maus (Uart, Zielpunkt, Richtung, Entfernung)
-	- Kettenschmierer: (an/asu, km-Intervall, Dauer, GPO#)auf GPOx)
-	- Selbsttest: Temperaturanzeigen auf RAW-Wert, um Kurve selbst zu ermitteln
-
-MainDevice:
-	- Fehler:   Quttieren, einzeln
-	- v-Max:    reuas, ==> MeasureDevice
-	- Datum:    Ohne Jahr! (kleiner! => für universelle austauschen)
-	- T1/T2:    Erweiterung um Zeit+Durchschn. Geschw.
-	- Verbrauch Berechnung nach Tanken-Dialog
+	- Kompass       an/aus, Calib-Steps
+	- Ganganzeige   an/aus
+	- Ganganzeige   BMW-Mode (BCD-Code an GPIOs)
+	- GPS-Maus      Uart, Zielpunkt, Richtung, Entfernung)
+	- Kettenschmierer: an/asu, km-Intervall, Dauer, GPO#)auf GPOx)
 
 TripCounter:
 	- Compass Darstellung/Nutzung verbessern
+
+TestDevice:
+    - Temperatur    Anzeigen auf RAW-Wert umstellen (für eigene Kennlinien)
+
 
 Handbuch:
     - neues Guzzi-Logo
