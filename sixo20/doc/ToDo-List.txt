@@ -1,0 +1,52 @@
+SIxO20-Software ToDo-List
+=========================
+
+
+SetupDevice
+    - Korrektur Eeeprom-Kontrast-defaultwert
+	- Boot:		Sichern des letzten SetupScreens (wie bei Maindevice)
+	- Scroll:		WrapAround by last/first
+	- DebugOuts: 	aktivieren/sichern + Uart aussuchen
+	- Fzg-km: 	nach Flash & < 1 km: genau 1x einstellbar
+	- Sprache: 	Umschaltbar
+	- Metrik: 		Umschaltbar
+	- Maindevice:	Ansicht programmierbar
+	- DeviceList:	Auswahl programmierbar
+	- LED:		PWM-Helligkeiteit aktivieren
+	- Warnings:	Konfigurierbare Warnings (Screenentwurf I/W/E)
+Messinstrument:
+	- überarbeiten: nur Max-Werte
+	- SpeedMax (filtern!)
+	- RPMMax (filtern!)
+	- Fuelwerte
+Erweiterungen
+	+ Tankgeber (an/aus, Imp/l)
+	- Kompass (an/aus, Calib-Steps)
+	- Ganganzeige (an/aus)
+	- GPS-Maus (Uart, Zielpunkt, Richtung, Entfernung)
+	- Kettenschmierer: (an/asu, km-Intervall, Dauer, GPO#)auf GPOx)
+	- Selbsttest: Temperaturanzeigen auf RAW-Wert, um Kurve selbst zu ermitteln
+Surveillance:
+	- Gerät-Luft-max dazu
+	- Darstellung Max-werte mit 'Pfeil-Hoch'
+	- alle Warnungen nur mit Hysteres!
+MainDevice:
+	- Mehrere Fehlermeldungen Quttieren,
+	- v-Max raus
+	- Datum: Ohne Jahr! (kleiner!)
+	- T1/T2 Mit Zeit+Durchschn. Geschw.
+	- Fuel:  Reichweite + Eingabefeld für Berechnung dazu
+	- Datum schmaler (kompatibel zu Messwert-Infobreite, ohne Jahr)
+Neues:
+	- Compass Darstellung verbessern
+	- Allg Logo separat flashen: Spezialprojekt!
+	- DayTripDevice: Tagesetappen
+	- Benzin
+		+ l/h statt l/Min
+		- Simulation: Fuel-ISR dazu
+		- Reset => Sensor Durchschwert l/100 in Eeprom sichern
+		- Verbrauchsberechnung nach Tanken
+		- Device 'Verbrauchsliste'
+		- Verbrauchsvoraussage mit Warnung
+		- Warnung <4 / <8 Liter
+Handbuch:
