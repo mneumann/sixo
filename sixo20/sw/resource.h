@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.11  2013/03/26 21:09:00  tuberkel
+ * New MotoGuzzi-Logo 'rgSIxOLogo_MotoGuzzi_128x56'
+ *
  * Revision 3.10  2012/05/28 12:47:31  tuberkel
  * Corrections for renamed Eeprom/Nvram Variables
  *
@@ -245,7 +248,7 @@
 /* device bike version strings */
 /* NOTE: This list must be identical to 'LOGO_TYPE' !!! */
 #define RESTXT_SET_LOGO_WIDTH       7           /* max width of below strings in chars */
-#define RESTXT_SET_LOGO_CNT         14          /* number of logos */
+#define RESTXT_SET_LOGO_CNT         15          /* number of logos */
                                  /* +----.--+ */
 #define RESTXT_SET_LOGO_NKDEV       "    N&K"
 #define RESTXT_SET_LOGO_BMW         "    BMW"
@@ -261,6 +264,7 @@
 #define RESTXT_SET_LOGO_VFORCE      " VForce"
 #define RESTXT_SET_LOGO_TENERISTI   "Teneris"
 #define RESTXT_SET_LOGO_COOLRIDE    "Coolrid"
+#define RESTXT_SET_LOGO_MOTOGUZZI   "MotoGuz"  /* @uwe - GUZZI-Version */
 
 #define RESTXT_SET_LOGODELAY_UNIT   "s"
 

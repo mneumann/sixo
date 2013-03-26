@@ -77,6 +77,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.2  2013/03/26 21:08:34  tuberkel
+ * New MotoGuzzi-Logo 'rgSIxOLogo_MotoGuzzi_128x56'
+ *
  * Revision 3.1  2012/05/24 19:30:03  tuberkel
  * Moved BMP-Logos to 'logos.c'
  *
@@ -106,12 +109,13 @@ typedef enum
     eLogo_Motobau,
     eLogo_vforce,
     eLogo_teneristi,
-    eLogo_coolride
+    eLogo_coolride,
+    eLogo_MotoGuzzi   /* @uwe - GUZZI-Version */
 } LOGO_TYPE;
 
 
 
-#define BIKELOGO_ARRAYSIZE  14
+#define BIKELOGO_ARRAYSIZE  15
 #define BIKELOGO_FIRST      0
 #define BIKELOGOG_LAST      (BIKELOGO_ARRAYSIZE-1)
 
