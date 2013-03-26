@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.8  2013/03/26 21:14:07  tuberkel
+ * More prcise distance measurement (for precise fuel consumption)
+ *
  * Revision 3.7  2012/07/15 18:29:03  tuberkel
  * SystemTimer Vars renamed
  *
@@ -133,9 +136,10 @@
 
 
 /* external symbols (taken from eeprom/nvram) */
-extern  UINT16      wSystemTime_ms;   /* valid values: 0h .. ffffh */
+extern  UINT16      wSystemTime_ms;     /* valid values: 0h .. ffffh */
+extern  UINT16      wWheelDist;         /* to sum remaining distance in mm before next 10-meter overflow */
 extern  UINT16      EE_WheelSize;       /* wheel size in mm */
-extern  UINT16      EE_WheelImpPRev;   /* wheel impulses per revolution */
+extern  UINT16      EE_WheelImpPRev;    /* wheel impulses per revolution */
 extern  CCF_TYPE    EE_CCF;             /* RPM cylinder correcture factor */
 extern  DIST_TYPE   NV_VehicDist;       /* vehicle distance */
 extern  DIST_TYPE   NV_TripCnt_A;       /* TripCounter A */
@@ -145,7 +149,6 @@ extern  DIST_TYPE   NV_TripCom_B;       /* TripCommon B */
 extern  DIST_TYPE   NV_FuelDist  ;      /* fuel distance */
 extern  SPEED_TYPE  NV_Speed_AvrM;      /* average speed in motion only */
 extern  SPEED_TYPE  NV_Speed_AvrP;      /* average speed incl. pauses */
-
 
 
 
@@ -544,27 +547,50 @@ ERRCODE Meas_SetDist_TripCnt( TRIPC_ID eTripCntID, DIST_TYPE far * fpDist)
 ERRCODE Meas_ConvertDist( DIST_TYPE far * fpDistSrc, DIST_TYPE far * fpDistTrgt, MEASUNITS_TYPE RUnits)
 {
     /* GET value ------------------ */
-    UINT32 dwCopy;
+    UINT32 dwCopy_dkm;          // distance with 10 m accuracy
+    UINT16 wCopy_WheelDist;     // rest of distance calcualtion (always < 10 m) in mm
     UINT32 dwScratch;
     UINT16 wScratch;
 
     /* get current value */
     INT_GLOB_DISABLE;
-    dwCopy = fpDistSrc->dkm;
+    dwCopy_dkm      = fpDistSrc->dkm;
+    wCopy_WheelDist = wWheelDist;
     INT_GLOB_ENABLE;
 
     /* format return value */
     switch (RUnits)
     {
-        case MR_KM:         fpDistTrgt->km    = dwCopy / 100L; break;           /* 1 kilometer per digit */
-        case MR_HM:         fpDistTrgt->hm    = dwCopy / 10L;  break;           /* 1 hectometer (=0,1 km) per digit */
-        case MR_DKM:        fpDistTrgt->dkm   = dwCopy;       break;            /* 1 dekameter (=0,01 km) per digit */
-        case MR_KM_ONLY:    fpDistTrgt->km_o  = (UINT16) (dwCopy/100L); break;  /* 1 kilometer per digit */        /* 1 kilometer per digit LIMITED to 65.536 km */
-        case MR_HM_ONLY:    dwScratch = dwCopy/10L;                             /* 1 hectometer (=0,1 km) per digit WITHOUT leading km's */
-                            fpDistTrgt->hkm_o = (UINT16)(dwScratch - ((dwScratch/10L)*10L)); break;
-        case MR_DKM_ONLY:   dwScratch  = dwCopy;                                /* 1 dekameter (=0,01 km) per digit WITHOUT leading km's */
-                            fpDistTrgt->dkm_o = (UINT16)(dwScratch - ((dwScratch/100L)*100L)); break;
-        default: ODS1(DBG_MEAS,DBG_ERROR,"Unknown measurement type [%u]!", RUnits); break;
+        /* 1 kilometer per digit */
+        case MR_KM:         fpDistTrgt->km    = dwCopy_dkm / 100L;
+            break;
+
+        /* 1 hectometer (=0,1 km) per digit */
+        case MR_HM:         fpDistTrgt->hm    = dwCopy_dkm / 10L;
+            break;
+
+        /* 1 dekameter (=0,01 km) per digit */
+        case MR_DKM:        fpDistTrgt->dkm   = dwCopy_dkm;
+            break;
+        /* 1 meter (=0,001 km) per digit (adds remaining wWheelDist in mm) */
+        case MR_M:          fpDistTrgt->m     = dwCopy_dkm * 10 + (wWheelDist/1000);
+            break;
+
+        /* 1 kilometer per digit (LIMITED to 65.536 km) */
+        case MR_KM_ONLY:    fpDistTrgt->km_o  = (UINT16) (dwCopy_dkm/100L);
+            break;
+
+        /* 1 hectometer (=0,1 km) per digit WITHOUT leading km's */
+        case MR_HM_ONLY:    dwScratch = dwCopy_dkm/10L;
+                            fpDistTrgt->hkm_o = (UINT16)(dwScratch - ((dwScratch/10L)*10L));
+                            break;
+        /* 1 dekameter (=0,01 km) per digit WITHOUT leading km's */
+        case MR_DKM_ONLY:   dwScratch  = dwCopy_dkm;
+                            fpDistTrgt->dkm_o = (UINT16)(dwScratch - ((dwScratch/100L)*100L));
+                            break;
+
+        default: ODS1(DBG_MEAS,DBG_ERROR,"Unknown measurement type [%u]!", RUnits);
+            break;
     }
     return ERR_OK;
 }

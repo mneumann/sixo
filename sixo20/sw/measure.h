@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.4  2013/03/26 21:14:07  tuberkel
+ * More prcise distance measurement (for precise fuel consumption)
+ *
  * Revision 3.3  2012/06/03 17:45:18  tuberkel
  * Updated API-Function-Name according to Modul-Name
  *
@@ -122,12 +125,13 @@
 /* distance type - just a common interface type for API */
 typedef union
 {
-    UINT32  dkm;    /* dekameter,        10 m/digit, maximum:    42.946.972,95 km */
-    UINT32  hm;     /* hektometer,      100 m/digit, maximum:    42.946.972,9  km */
-    UINT32  km;     /* kilometer,      1000 m/digit, maximum:    42.946.972    km */
-    UINT16  km_o;   /* kilometer only, 1000 m/digit, range:   0    .. 65536    km */
-    UINT16  dkm_o;  /* dekameter only,   10 m/digit, range:   0,00 ..     0,99 km */
-    UINT16  hkm_o;  /* hektometer only, 100 m/digit, range:   0,0  ..     0,9  km */
+    UINT32  m;      /* meter,             1 m/digit, maximum:     4.294.967,295 km */
+    UINT32  dkm;    /* dekameter,        10 m/digit, maximum:    42.946.972,95  km */
+    UINT32  hm;     /* hektometer,      100 m/digit, maximum:    42.946.972,9   km */
+    UINT32  km;     /* kilometer,      1000 m/digit, maximum:    42.946.972     km */
+    UINT16  km_o;   /* kilometer only, 1000 m/digit, range:   0    .. 65536     km */
+    UINT16  dkm_o;  /* dekameter only,   10 m/digit, range:   0,00 ..     0,99  km */
+    UINT16  hkm_o;  /* hektometer only, 100 m/digit, range:   0,0  ..     0,9   km */
 } DIST_TYPE;
 
 /* distance max values */
@@ -195,8 +199,9 @@ typedef enum
     MR_RPM,             /* result in 1 RoundPerMinute per digit */
     MR_RPM_R10,         /* result in 1 RoundPerMinute per digit rounded to ten's */
     MR_KM,              /* result in 1 kilometer per digit */
-    MR_HM,              /* result in 1 hectometer (=0,1 km) per digit */
-    MR_DKM,             /* result in 1 dekameter (=0,01 km) per digit */
+    MR_HM,              /* result in 1 hectometer (=0,1   km) per digit */
+    MR_DKM,             /* result in 1 dekameter  (=0,01  km) per digit */
+    MR_M,               /* result in 1 meter      (=0,001 km) per digit */
     MR_KM_ONLY,         /* result in 1 kilometer per digit LIMITED to 65.536 km */
     MR_HM_ONLY,         /* result in 1 hectometer (=0,1 km) per digit WITHOUT leading km's */
     MR_DKM_ONLY         /* result in 1 dekameter (=0,01 km) per digit WITHOUT leading km's */
