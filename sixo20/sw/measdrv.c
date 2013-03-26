@@ -75,6 +75,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.9  2013/03/26 21:12:44  tuberkel
+ * Made Wheel-Measrurement data globally (for more precise fuel measurement)
+ *
  * Revision 3.8  2012/07/15 18:29:03  tuberkel
  * SystemTimer Vars renamed
  *
@@ -155,6 +158,9 @@ static UINT16 wWheelPeriodLast;         /* Wheel period in 200 µsec/Digit, newes
 static UINT16 wRPMPeriod8;              /* RPM period in 10 µsec/Digit (1/8 per new value)*/
 static UINT16 wRPMPeriod32;             /* RPM period in 10 µsec/Digit (1/32 per new value)*/
 
+       UINT16 wWheelDist     = 0;       /* to sum remaining distance in mm before next 10-meter overflow */
+static UINT8  bWheelImpPresc = 0;       /* to sum impulses before detectin a COMPLETE wheel revolution */
+
 
 /* module internal functions */
 void MeasDrv_ClearWheelSamples(void);
@@ -185,6 +191,10 @@ ERRCODE MeasDrv_Init(void)
     prcr  = 0x01;
     pclk0 = 1;
     prcr  = 0x00;
+
+    /* @uwe - GUZZI-Version */
+    //PIN_GPO1 = TRUE;       // LOW    @@@ ur wg. Reedkontakt an diesen Pin angeschlossen
+
 
     /* timer & intx inits */
     RValue = MeasDrv_InitWheel();       /* init & start velocity measurement */
@@ -413,8 +423,6 @@ void RPMOverflow_ISR(void)
 #pragma INTERRUPT WheelSensor_ISR
 void WheelSensor_ISR(void)
 {
-    static UINT16 wWheelDist    = 0;    /* to sum wheelsize in mm */
-    static UINT8  bImpPrescaler = 0;    /* to sum impulses before detectin a COMPLETE wheel revolution */
     UINT32 dwWheelPeriod;               /* to ge current value */
 
     PIN_TESTPAD11_TOGGLE;                 /* toggle port pin (debug only) */
@@ -426,10 +434,10 @@ void WheelSensor_ISR(void)
              up 99 Imp/rev.
              BUT: This has to be set up in hardware too, because of the
              WHEEL input low pass filter (see forum for details). */
-    if ( ++bImpPrescaler < EE_WheelImpPRev )
+    if ( ++bWheelImpPresc < EE_WheelImpPRev )
     {   return;         // do nothing, just wait for next ISR trigger to continue sum of impulses
     }
-    bImpPrescaler = 0;  // reset prescaler to restart again...
+    bWheelImpPresc = 0;  // reset prescaler to restart again...
 
     /* --------------------------------------------------------------------------------- */
     /* wheel speed stuff */
@@ -446,22 +454,22 @@ void WheelSensor_ISR(void)
     else dwWheelPeriod -= 7;
 
     /* --------------------------------------------------------------------------------- */
-    wWheelCnt   = WHEEL_MAXVALUE;               /* reload timer */
-    fWheelCnt   = TRUE;                         /* restart timer now! */
+    wWheelCnt   = WHEEL_MAXVALUE;                   /* reload timer */
+    fWheelCnt   = TRUE;                             /* restart timer now! */
 
     /* save most actual wheel period */
-    wWheelPeriodLast = (UINT16)dwWheelPeriod;   /* save last used index */
+    wWheelPeriodLast = (UINT16)dwWheelPeriod;       /* save last used index */
 
     /* calculated filtered wheel period (scaled)*/
     dwWheelPeriod4 = ( 3 * dwWheelPeriod4 + (dwWheelPeriod<<3) + 2 ) >> 2;
 
     /* --------------------------------------------------------------------------------- */
     /* distance calculations stuff --------- */
-    wWheelDist += EE_WheelSize;                   /* add to wheel distance in mm */
-    if (wWheelDist > MM_OVFL)                   /* check millimeter overflow */
+    wWheelDist += EE_WheelSize;                     /* add to wheel distance in mm */
+    if (wWheelDist > MM_OVFL)                       /* check millimeter overflow */
     {
         /* 10 meter overflow detected! */
-        wWheelDist -= MM_OVFL;                  /* take rest(!) for next calculations */
+        wWheelDist -= MM_OVFL;                      /* take rest(!) for next calculations */
 
         /* check and increment all distance counters */
         if (NV_VehicDist.dkm < DIST_MAX_VEHIC)
