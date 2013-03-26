@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 1.11  2013/03/26 20:58:25  tuberkel
+ * FuelConsumption improved - smoother & more accurately
+ *
  * Revision 1.10  2012/07/15 18:29:03  tuberkel
  * SystemTimer Vars renamed
  *
@@ -140,12 +143,15 @@ extern UINT32               NV_FuelSensImp;         /* Fuel sensor Impulses coun
 
 // ------------------------------------------------------
 /* local symbols */
-FUEL_DATASET_TYPE   sFuel;
+FUEL_DATASET_TYPE   sFuel;                      // every time recalcualted if used
+FUEL_SAMPLE         sFuelSample[FUEL_ACT_CNT];  // initialized to all zeros by startup code
+UINT8               bFuelSampleIdx = 0;         // index of sample to be written next
 
 
 // ------------------------------------------------------
-/* local define */
-#define FUEL_ACT_DELAY  1000    // delay between actual calculation in ms
+/* local defines */
+
+
 
 
 
@@ -167,6 +173,14 @@ FUEL_DATASET_TYPE   sFuel;
  *                  If FuelSensor is available and fuel is consumed - but
  *                  wheel stands still - we change the view from
  *                  'l/100km' to 'l/Min' by simply exhanging the icons.
+ *
+ *                  To improve accuracy and to get a dynamic behavior,
+ *                  we use a 'sliding average' method:
+ *                      - save a sample pairs of 'fuel-impulses / distance-meters'
+ *                        every n seconds
+ *                      - save n sample pairs every , overwrite oldest
+ *                      - calculate the average of all n sample pairs
+ *
  *********************************************************************** */
 void Fuel_UpdMeas(void)
 {
@@ -260,63 +274,95 @@ void Fuel_UpdMeas(void)
     /* check: FuelSensor available? */
     if ( sFuel.fSensorAvail == TRUE )
     {
-        /* get basic calculation/comparison values */
-        UINT16 wThisTime_ms      = wSystemTime_ms;
-        UINT32 dwThisSample_Imp  = sFuel.dwImpulses;
-        UINT32 dwThisDist_m      = Meas_GetDist_Vehicle(MR_DKM).dkm * 10;
-
-        /* check: this is the FIRST time we are sampling? */
-        if (sFuel.dwLastDist_m == 0L)
+        /* check: valid user settings for Impulsrate (prevent division by zero) */
+        if ( sFuel.dwImpRate == 0 )
         {
-            /* take a first sample of values and return */
-            sFuel.wLastTime_ms      = wThisTime_ms;
-            sFuel.dwLastSample_Imp  = dwThisSample_Imp;
-            sFuel.dwLastDist_m      = dwThisDist_m;
-
-            /* no result yet available */
+            /* no results yet calcuable */
             sFuel.dwConsAct_ml_hkm  = 0L;
             sFuel.dwConsAct_ml_Min  = 0L;
         }
         else
-        {   /* first check input parameters: consumption & distance */
-            UINT16 wDiffTime_ms = wThisTime_ms - sFuel.wLastTime_ms;
-            UINT32 dwImpulses   = dwThisSample_Imp - sFuel.dwLastSample_Imp;
-            UINT32 dwDist_m     = dwThisDist_m     - sFuel.dwLastDist_m;
-            UINT32 dwFuel_ml    = (LITER2ML * dwImpulses) / sFuel.dwImpRate;
+        {   /* get basic calculation/comparison values */
+            UINT16 wThisTime_ms      = wSystemTime_ms;
+            UINT32 dwThisSample_Imp  = sFuel.dwImpulses;
+            UINT32 dwThisDist_m      = Meas_GetDist_Vehicle(MR_M).m;
 
-            /* check: Enough time delay for accurate calculations? */
-            if ( FUEL_ACT_DELAY > wDiffTime_ms )
-            {   /* nothing to do now, wait for next call */
-            }
-            else
-            {   /* check: Any fuel consumption? */
-                if ( 0L == dwFuel_ml )
-                {   /* no fuel consumption -> no result yet available */
-                    sFuel.dwConsAct_ml_hkm = 0L;
-                    sFuel.dwConsAct_ml_Min = 0L;
-                }
-                else
-                {   /* check: any vehicle movement? */
-                    if ( 0L == dwDist_m )
-                    {   /* No movement -> calculate 'ml/Min' (=> l/Min) */
-                        sFuel.dwConsAct_ml_Min = (dwFuel_ml * 1000L * 60L) / wDiffTime_ms;
-                        sFuel.dwConsAct_ml_hkm = 0L;
-                    }
-                    else
-                    {   /* We have movement -> calculate actual 'ml/100km' */
-                        sFuel.dwConsAct_ml_hkm = (1000L * (dwFuel_ml * 100L)) / dwDist_m;
-                        sFuel.dwConsAct_ml_Min = 0L;
-                    } // of dwDist_m
-                } // of dwFuel_ml
-
-                /* all done, update static values for next use */
+            /* check: this is the FIRST time we are sampling? */
+            if (sFuel.dwLastDist_m == 0L)
+            {
+                /* take a first sample of values and return */
                 sFuel.wLastTime_ms      = wThisTime_ms;
                 sFuel.dwLastSample_Imp  = dwThisSample_Imp;
                 sFuel.dwLastDist_m      = dwThisDist_m;
 
-            } // of wTime
-        } // of sFuel.dwLastDist_m
-    } // o fsFuel.fSensorAvail
+                /* no result yet available */
+                sFuel.dwConsAct_ml_hkm  = 0L;
+                sFuel.dwConsAct_ml_Min  = 0L;
+            }
+            else
+            {   /* ok - all parameters given to calculate consumption */
+                /* check: time to get a fresh fuel/meter sample? */
+                if ( FUEL_ACT_INTV > (wThisTime_ms - sFuel.wLastTime_ms) )
+                {   /* no - nothing to do now, wait for next call */
+                }
+                else
+                {   /* reset all local parameters */
+                    UINT8  i;
+                    UINT32 dwImpulses;
+                    UINT32 dwDist_m;
+                    UINT32 dwFuel_ml;
+                    UINT16 wDiffTime_ms;
+
+                    /* yes - get a fresh sample pair & incr. to next */
+                    sFuelSample[bFuelSampleIdx].dwDist_m     = dwThisDist_m     - sFuel.dwLastDist_m;
+                    sFuelSample[bFuelSampleIdx].dwImpulses   = dwThisSample_Imp - sFuel.dwLastSample_Imp;
+                    sFuelSample[bFuelSampleIdx].wDiffTime_ms = wThisTime_ms     - sFuel.wLastTime_ms;
+                    bFuelSampleIdx++;
+                    if ( bFuelSampleIdx == FUEL_ACT_CNT )
+                         bFuelSampleIdx = 0;
+
+                    /* calculate the 'sliding average' value based on sum of all samples */
+                    dwImpulses   = 0;
+                    dwDist_m     = 0;
+                    wDiffTime_ms = 0;
+                    for (i=0; i<FUEL_ACT_CNT; i++)
+                    {   dwImpulses   += sFuelSample[i].dwImpulses;
+                        dwDist_m     += sFuelSample[i].dwDist_m;
+                        wDiffTime_ms += sFuelSample[i].wDiffTime_ms;
+                    }
+                    dwFuel_ml = (LITER2ML * dwImpulses) / sFuel.dwImpRate;
+
+                    /* update static values for next use */
+                    sFuel.wLastTime_ms      = wThisTime_ms;
+                    sFuel.dwLastSample_Imp  = dwThisSample_Imp;
+                    sFuel.dwLastDist_m      = dwThisDist_m;
+
+                    /* check: Any fuel consumption? */
+                    if ( 0L == dwFuel_ml )
+                    {
+                        /* no fuel consumption -> no result yet available */
+                        sFuel.dwConsAct_ml_hkm = 0L;
+                        sFuel.dwConsAct_ml_Min = 0L;
+                    }
+                    /* check: any vehicle movement? */
+                    else if ( 0L == dwDist_m )
+                    {
+                        /* No movement -> calculate 'ml/Min' (=> l/Min) */
+                        sFuel.dwConsAct_ml_Min = (dwFuel_ml * 1000L * 60L) / (wDiffTime_ms * FUEL_ACT_CNT);
+                        sFuel.dwConsAct_ml_hkm = 0L;
+                    }
+                    /* We have movement & consumption! */
+                    else
+                    {
+                        /* calculate actual 'ml/100km' */
+                        sFuel.dwConsAct_ml_hkm = (1000L * (dwFuel_ml * 100L)) / dwDist_m;
+                        sFuel.dwConsAct_ml_Min = 0L;
+
+                    } // of dwFuel_ml / dwDist_m
+                } // of wTime
+            } // of sFuel.dwLastDist_m
+        } // of sFuel.dwImpRate
+    } // of fsFuel.fSensorAvail
     else
     {   /* NON-SENSOR-VERSION: use user given fixed value instead */
         sFuel.dwConsAct_ml_hkm = sFuel.dwConsUsr_ml_hkm;

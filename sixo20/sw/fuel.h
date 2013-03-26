@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 1.7  2013/03/26 20:58:25  tuberkel
+ * FuelConsumption improved - smoother & more accurately
+ *
  * Revision 1.6  2012/06/07 19:14:27  tuberkel
  * Fuel Consumption:
  * - If no motion: Changed from 'l/Min' => 'l/Hour'
@@ -100,8 +103,8 @@
 #define _FUEL_H
 
 
-
-/* Fuel Data Structure bundle */
+/* -------------------------------------------------------- */
+/* Complete Fuel-Calculations-Datastructure-Bundle */
 typedef struct
 {
     UINT32 dwConsAct_ml_hkm;    // Actuel  Fuel Consumption (ml/100km)
@@ -127,6 +130,25 @@ typedef struct
 } FUEL_DATASET_TYPE;
 
 
+
+
+/* -------------------------------------------------------- */
+/* special datasets for 'Actual-Fuel-Consumption' */
+
+#define FUEL_ACT_INTV  1000     // sample interval for actual calculation in ms
+#define FUEL_ACT_CNT      3     // number of samples to be used as avarage actual calculation
+
+/* Fuel-Sample-Data-Pair */
+typedef struct
+{
+    UINT32 dwDist_m;            // distance in meters   since last sample
+    UINT32 dwImpulses;          // fuel sensor impulses since last sample
+    UINT32 wDiffTime_ms;        // elapsed time in ms   since last sample
+} FUEL_SAMPLE;
+
+
+
+/* -------------------------------------------------------- */
 /* to select a calculated fuel data */
 typedef enum
 {
@@ -142,7 +164,10 @@ typedef enum
 } FUEL_SLCT;
 
 
+
+/* -------------------------------------------------------- */
 /* public prototypes */
+
 void    Fuel_UpdMeas        (void);
 void    Fuel_GetData        (FUEL_DATASET_TYPE * sFuelDataSet);
 void    Fuel_GetFormStr     (FUEL_SLCT eChoice, STRING szDest, UINT8 bLen );
