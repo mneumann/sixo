@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.37  2013/03/26 21:14:42  tuberkel
+ * New MotoGuzzi-Logo 'rgSIxOLogo_MotoGuzzi_128x56'
+ *
  * Revision 3.36  2012/07/15 18:29:03  tuberkel
  * SystemTimer Vars renamed
  *
@@ -437,7 +440,8 @@ static const STRING pszSelectLogo[RESTXT_SET_LOGO_CNT] =
                             RESTXT_SET_LOGO_MOTOBAU   ,
                             RESTXT_SET_LOGO_VFORCE    ,
                             RESTXT_SET_LOGO_TENERISTI ,
-                            RESTXT_SET_LOGO_COOLRIDE
+                            RESTXT_SET_LOGO_COOLRIDE  ,
+                            RESTXT_SET_LOGO_MOTOGUZZI    /* @uwe - GUZZI-Version */
                         };
 
 
