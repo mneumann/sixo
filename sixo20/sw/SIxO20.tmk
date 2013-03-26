@@ -5,7 +5,7 @@
 # All Rights Reserved.
 #
 #	Notice	:	Don't edit.
-#	Date	:	2012 09(September) 23(Sunday) AM.10.05
+#	Date	:	2013 03(March) 26(Tuesday) PM.10.33
 #	Project	:	SIxO20
 ####################################################################
 
@@ -28,8 +28,9 @@ LN	=	LN30
 ECHO	=	@-echo
 MKFILE	=	$(PROJECT).tmk
 TYPE	=	@-type
-CFLAGS	=	-c -I. -silent -dir $(OUTDIR) -Wall -DDEBUG=0 -DKD30_USED=1 -DKD30_GUI_USED=1 -DGEARBOX=0 -DCOMPASSDRV=0 -finfo
-AFLAGS	=	-. -DDEBUG=0:KD30_USED=1:COMPASSDRV=0 -finfo -O$(OUTDIR)
+PROJECT	=	SIxO20
+CFLAGS	=	-c -I. -silent -dir $(OUTDIR) -Wall -DDEBUG=0 -DKD30_USED=0 -DKD30_GUI_USED=0 -DGEARBOX=0 -DCOMPASSDRV=0 -finfo
+AFLAGS	=	-. -DDEBUG=0:KD30_USED=0:COMPASSDRV=0 -finfo -O$(OUTDIR)
 LFLAGS	=	-MS -L nc30lib -. -G -O $(OUTDIR)\$(TARGET)
 LIBFLAGS	=	-C
 UTLFLAGS	=	
