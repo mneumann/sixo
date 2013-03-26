@@ -69,6 +69,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.17  2013/03/26 21:15:52  tuberkel
+ * Update V3.1.0
+ *
  * Revision 3.16  2012/06/12 19:45:41  tuberkel
  * V309
  *
@@ -191,8 +194,8 @@
 
 /* software version number e.q. '2.1.1' */
 #define DEF_SWID_APL   3  // APL = (0..15) main aplication number (changed with new main application features)
-#define DEF_SWID_SWV   0  // SWV = (0..15) sw version number (changed with additional features)
-#define DEF_SWID_BLD   9  // BLD = (0..15) build number (changed with bugfixes)
+#define DEF_SWID_SWV   1  // SWV = (0..15) sw version number (changed with additional features)
+#define DEF_SWID_BLD   0  // BLD = (0..15) build number (changed with bugfixes)
 
 
 /* hardware specific version number */

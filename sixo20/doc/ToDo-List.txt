@@ -2,11 +2,13 @@ SIxO20-Software ToDo-List
 =========================
 
 SetupDevice
-    - Benzin:       Verbesserung Akt.-Verbrauch (längere Zeiteinheit, gleitend)
+    + Simulation:   verbessertes handling
+    + Logo:         MotoGuzzi neu
+    + Benzin:       Verbesserung Akt.-Verbrauch (längere Zeiteinheit, gleitend)
     - Display:      Korrektur Eeeprom-Kontrast-Defaultwert
-	- Fzg-km: 	    nach Flash & < 1 km: genau 1x einstellbar
+	- Fzg-km: 	    nach Flash & > 100 km: genau 1x einstellbar
 	- PowerUp:      Sichern des letzten SetupScreens (wie bei Maindevice)
-	- Scroll:	    WrapAround by last/first
+	- Scroll:	    WrapAround by last/first screen
 	- Sprache: 	    Umschaltbar
 	- Metrik: 	    Umschaltbar
 	- LED:		    PWM-Helligkeiteit aktivieren
@@ -19,20 +21,20 @@ SetupDevice
     - DebugOuts: 	Uart aussuchen
 
 MainDevice:
-	- Fehler:   Quttieren, einzeln
-	- v-Max:    reuas, ==> MeasureDevice
-	- Datum:    Ohne Jahr! (kleiner! => für universelle austauschen)
-	- T1/T2:    Erweiterung um Zeit+Durchschn. Geschw.
-	- Verbrauch Berechnung nach Tanken-Dialog
+	- Fehler:       Quttieren, einzeln
+	- v-Max:        reuas, ==> MeasureDevice
+	- Datum:        Ohne Jahr! (kleiner! => für universelle austauschen)
+	- T1/T2:        Erweiterung um Zeit+Durchschn. Geschw.
+	- Verbrauch     Berechnung nach Tanken-Dialog
 
 MeasureDevice / Statisitik
-	- überarbeiten: alle verfügbaren Max-Werte anzeigen
 	- SpeedMax:     besser Filtern (keine Ausßreißer mehr 384 km/h)
+	- überarbeiten: alle verfügbaren Max-Werte anzeigen
 	- RPMMax:       wie SpeedMax
 	- Verbrauch:    Infos dazu
 	- Verbrauch:    Warnung <4 / <8 Liter
 	- Luft:         Gerät-Luft-max dazu
-	- Darstellung:  Max-werte mit 'Pfeil-Hoch'
+	- Darstellung:  Max-Werte mit 'Pfeil-Hoch'
 	- Warnungen:    nur mit Hysterese!
     - Tagesetappen  neuer Unterscreen mit km-Tagesetappen
     - Verbrauch:    neuer Unterscreen mit Tank-Etappen
@@ -49,7 +51,6 @@ TripCounter:
 
 TestDevice:
     - Temperatur    Anzeigen auf RAW-Wert umstellen (für eigene Kennlinien)
-
 
 Handbuch:
     - neues Guzzi-Logo

@@ -5,7 +5,7 @@
 # All Rights Reserved.
 #
 #	Notice	:	Don't edit.
-#	Date	:	2012 07(July) 14(Saturday) PM.06.29
+#	Date	:	2012 09(September) 23(Sunday) AM.10.05
 #	Project	:	SIxO20
 ####################################################################
 
@@ -23,11 +23,10 @@ OUTDIR	=	.\outdir
 MKDIR	=	@-mkdir
 ABSFILE	=	$(PROJECT).x30
 ODINCMD	=	$(OUTDIR)
-LN	=	LN30
 TARGET	=	$(ABSFILE)
+LN	=	LN30
 ECHO	=	@-echo
 MKFILE	=	$(PROJECT).tmk
-PROJECT	=	SIxO20
 TYPE	=	@-type
 CFLAGS	=	-c -I. -silent -dir $(OUTDIR) -Wall -DDEBUG=0 -DKD30_USED=1 -DKD30_GUI_USED=1 -DGEARBOX=0 -DCOMPASSDRV=0 -finfo
 AFLAGS	=	-. -DDEBUG=0:KD30_USED=1:COMPASSDRV=0 -finfo -O$(OUTDIR)
@@ -781,7 +780,8 @@ $(OUTDIR)\vehicsim.r30: \
 		.\stdmsgs.h \
 		.\measdrv.h \
 		.\vehicsim.h \
-		.\digoutdr.h 
+		.\digoutdr.h \
+		.\digindrv.h 
 	$(CC) $(MRCFLAGS) $(CFLAGS) vehicsim.c
 $(OUTDIR)\xtoa.r30: \
 		.\xtoa.c 
