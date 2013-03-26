@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.6  2013/03/26 21:10:29  tuberkel
+ * Simulation-Handling simplified
+ *
  * Revision 3.5  2012/09/23 07:41:54  tuberkel
  * Vehicle Simulation Update:
  * - Coolride GPI supported (but not yet ready)
@@ -120,10 +123,21 @@
 
 
 /* simulation mode */
-#define SIM_SEQUENCE    TRUE    // to control simulation: enables handling of sequence
-#define SIM_STATIC      FALSE   // to control simulation: enables handling of static behavoiur
-#define SIM_MODE            0   // 0=STATIC, 1=SEQUENCE mode
+#define SIM_SEQUENCE    TRUE    // TRUE enables simulation sequence, FALSE switches to static mode
 
+
+/* enable simulation kind */
+#define SIM_WHEEL_ON    TRUE    // TRUE enables this kind, FALSE disables
+#define SIM_RPM_ON      TRUE
+#define SIM_FUEL_ON     TRUE
+#define SIM_COOLR_ON    FALSE
+
+
+/* acoustic feedback - enable a 'click' for each simulated impuls */
+#define SIM_CLICK_WHEEL     0
+#define SIM_CLICK_RPM       0
+#define SIM_CLICK_FUEL      0
+#define SIM_CLICK_COOLR     0
 
 
 /* start delay and step interval */
@@ -131,19 +145,11 @@
 #define SIM_SEQSTEPINTV 1000    // intervall time in ms for one sequence step
 
 
-/* simulation kind scaling */
+/* scaling for 'SimPattern' values */
 #define SIM_SCALE_WHEEL  7200   // to convert km/h -> WheelPeriod-IRQ (at wheelsize 2000 mm)
 #define SIM_SCALE_RPM   26000   // to convert RPM  -> RPM-Period-IRQ (at CCF 1/1)
 #define SIM_SCALE_FUEL   2500   // to convert l/1000 km -> Fuel-Period-IRQ (at 8500 I/L)
 #define SIM_SCALE_COOLR   100   // to convert % heat -> Coolride-Period-IRQ
-
-
-/* simulation acoustic feedback */
-#define SIM_CLICK_WHEEL     0   // enable a 'click' for each wheel impuls
-#define SIM_CLICK_RPM       0   // enable a 'click' for each RPM impuls
-#define SIM_CLICK_FUEL      0   // enable a 'click' for each fuel impuls
-#define SIM_CLICK_COOLR     0   // enable a 'click' for each Coolride impuls
-
 
 
 /* Kind of simulation */
@@ -212,8 +218,8 @@ typedef struct
 
 
 /* public prototypes */
+void Sim_Main               (void);
 void Sim_Init               (BOOL fSequence);
-void Sim_Main               (BOOL fSequence);
 void Sim_KindSetup          (SIM_KIND_CNTRL * pKind, SIM_KIND eKind, BOOL fActive, UINT16 wScaling, BOOL fClick);
 void Sim_FrequenceSetup     (SIM_KIND_CNTRL * pKind, INT16 iFreqStart, INT16 iFreqEnd, INT16 iDuration);
 void Sim_FrequenceControl   (SIM_KIND_CNTRL * pKind);

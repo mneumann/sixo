@@ -68,6 +68,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.20  2013/03/26 21:10:29  tuberkel
+ * Simulation-Handling simplified
+ *
  * Revision 3.19  2012/07/15 19:25:56  tuberkel
  * VehicleSimulation completely reviewed
  * - prepared to handle multiple IRQs
@@ -461,7 +464,7 @@ void main_VehicleSimulation(void)
         return;
 
     // process simulation sequence
-    Sim_Main(SIM_MODE);
+    Sim_Main();
 }
 
 

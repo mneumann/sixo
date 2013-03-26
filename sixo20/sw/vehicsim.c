@@ -69,6 +69,9 @@
  *  changes to CVC ('Log message'):
  *
  * $Log$
+ * Revision 3.6  2013/03/26 21:10:29  tuberkel
+ * Simulation-Handling simplified
+ *
  * Revision 3.5  2012/09/23 07:41:54  tuberkel
  * Vehicle Simulation Update:
  * - Coolride GPI supported (but not yet ready)
@@ -130,8 +133,8 @@
 
 
 /* external symbols */
-extern UINT16  wSystemTime_ms;   // valid values: 0h .. ffffh
-extern UINT16  wSystemTime_sec;        // valid values: 0h .. ffffh
+extern UINT16  wSystemTime_ms;      // valid values: 0h .. ffffh
+extern UINT16  wSystemTime_sec;     // valid values: 0h .. ffffh
 
 
 /* software interrupt declaration */
@@ -154,7 +157,7 @@ SIM_KIND_CNTRL  SimulKind[SIM_KIND_MAX];    // kind simulation control
 /* simulation sequence pattern */
 SIM_SEQ_STEP SimPattern[] =
 {
-//        Dur     km/h        RPM      l/1000km    Coolr%
+//        Dur     km/h        RPM      l/1000km    Coolr
 //        sec   StartEnd   StartEnd    StartEnd   StartEnd
 //       -----  ---------  ----------- ---------- ---------
 /* 0 */ {   5,    0,   0,     0,    0,   0,    0,   0,   0,  },   // all off & halted
@@ -378,41 +381,6 @@ void Sim_SequenceControl(void)
 
 
 /***********************************************************************
- *  FUNCTION:       Sim_Init
- *  DESCRIPTION:    complete simulation initialization
- *  PARAMETER:      -
- *  RETURN:         -
- *  COMMENT:
- *********************************************************************** */
-void Sim_Init(BOOL fSequence)
-{
-    /* save given simulation mode (sequence/static) */
-    SimSeq.fSeqMode = fSequence;
-
-    /* basic simulation kind setup  */
-    Sim_KindSetup( &SimulKind[SIM_WHEEL], SIM_WHEEL, TRUE, SIM_SCALE_WHEEL, SIM_CLICK_WHEEL);
-    Sim_KindSetup( &SimulKind[SIM_RPM],   SIM_RPM,   TRUE, SIM_SCALE_RPM,   SIM_CLICK_RPM  );
-    Sim_KindSetup( &SimulKind[SIM_FUEL],  SIM_FUEL,  TRUE, SIM_SCALE_FUEL,  SIM_CLICK_FUEL );
-    Sim_KindSetup( &SimulKind[SIM_COOLR], SIM_COOLR, TRUE, SIM_SCALE_COOLR, SIM_CLICK_COOLR);
-
-    /* no sequence required? setup static usage! */
-    if (SimSeq.fSeqMode == SIM_STATIC )
-    {
-        /* setup a STATIC behaviour, which will not be changed */
-        /* use constant simulation (no sequence) */
-        Sim_FrequenceSetup( &SimulKind[SIM_WHEEL],  100,  100, 10);   // constant speed 100 km/h
-        Sim_FrequenceSetup( &SimulKind[SIM_RPM  ], 2000, 2000, 10);   // constant RPM 2000 km/h
-        Sim_FrequenceSetup( &SimulKind[SIM_FUEL ],   50,   50, 10);   // constant Fuel 5,0 l/100km
-        Sim_FrequenceSetup( &SimulKind[SIM_COOLR],   50,   50, 10);   // constant PWM 50%
-    }
-
-    /* initialize only once */
-    SimSeq.fInit = TRUE;
-}
-
-
-
-/***********************************************************************
  *  FUNCTION:       Sim_Main
  *  DESCRIPTION:    simple & complete interface to handle vehicle simulation
  *  PARAMETER:      fSequence   SIM_SEQUENCE    supports dynamic sequence of simulation
@@ -420,14 +388,37 @@ void Sim_Init(BOOL fSequence)
  *  RETURN:         -
  *  COMMENT:        Will repeatly be called from main loop
  *********************************************************************** */
-void Sim_Main(BOOL fSequence)
+void Sim_Main ( void )
 {
-    /* first usage? => init! */
+    /* first usage? => init once! */
     if (SimSeq.fInit == FALSE)
-        Sim_Init(fSequence);    /* one-time init */
+    {
+        /* save given simulation mode (sequence/static) */
+        SimSeq.fSeqMode = SIM_SEQUENCE;
+
+        /* basic simulation kind setup  */
+        Sim_KindSetup( &SimulKind[SIM_WHEEL], SIM_WHEEL, SIM_WHEEL_ON, SIM_SCALE_WHEEL, SIM_CLICK_WHEEL);
+        Sim_KindSetup( &SimulKind[SIM_RPM],   SIM_RPM,   SIM_RPM_ON,   SIM_SCALE_RPM,   SIM_CLICK_RPM  );
+        Sim_KindSetup( &SimulKind[SIM_FUEL],  SIM_FUEL,  SIM_FUEL_ON,  SIM_SCALE_FUEL,  SIM_CLICK_FUEL );
+        Sim_KindSetup( &SimulKind[SIM_COOLR], SIM_COOLR, SIM_COOLR_ON, SIM_SCALE_COOLR, SIM_CLICK_COOLR);
+
+        /* no sequence required? setup static usage! */
+        if (SimSeq.fSeqMode == FALSE )
+        {
+            /* setup a STATIC behaviour, which will not be changed */
+            /* use constant simulation (no sequence) */
+            Sim_FrequenceSetup( &SimulKind[SIM_WHEEL],  100,  100, 10);   // constant speed 100 km/h
+            Sim_FrequenceSetup( &SimulKind[SIM_RPM  ], 2000, 2000, 10);   // constant RPM 2000 km/h
+            Sim_FrequenceSetup( &SimulKind[SIM_FUEL ],   50,   50, 10);   // constant Fuel 5,0 l/100km
+            Sim_FrequenceSetup( &SimulKind[SIM_COOLR],   50,   50, 10);   // constant PWM 50%
+        }
+
+        /* initialize only once */
+        SimSeq.fInit = TRUE;
+    }
 
     /* at runtime check: support sequence mode changes? */
-    if (fSequence == SIM_SEQUENCE)
+    if (SimSeq.fSeqMode == TRUE)
     {   Sim_SequenceControl();          /* control step-sequence */
     }
 
