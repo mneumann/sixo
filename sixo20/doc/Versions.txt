@@ -9,12 +9,23 @@ Version Date        Feature
 ======= ==========  ======================================
 
 ==========================================================
+v3.1.0  2013-04-14
+> NEW:
+    -
+> BUGFIXES:
+    + FuelConsumption Calculation more precise and smooth
+    + FuelConsumption Reset of Impulses fixed
+> CHANGES:
+    + Internal handling of wSystemTime_ms extended
+    + VehicleSimulation extended for GPI-Interrupt generation
+    + API for more precise distance values
+
+==========================================================
 v3.0.9  2012-06-12
 > NEW:
     + FuelRemain Actual Consumption (l/100 or l/hour) supported
 > BUGFIXES:
     - Fuel Liter rounding Errors corrected
-
 
 ==========================================================
 v3.0.8  2012-06-01
